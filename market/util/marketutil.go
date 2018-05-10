@@ -22,10 +22,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/robfig/cron"
 	"io/ioutil"
@@ -64,7 +63,13 @@ var (
 	SymbolTokenMap map[common.Address]string
 )
 
-func StartRefreshCron(option config.MarketOptions) {
+type MarketOptions struct {
+	TokenFile             string
+	OldVersionWethAddress string
+	CronJobLock           bool
+}
+
+func StartRefreshCron(option *MarketOptions) {
 	mktCron := cron.New()
 	mktCron.AddFunc("1 0/10 * * * *", func() {
 		log.Info("start market util refresh.....")
@@ -185,7 +190,7 @@ func getTokenAndMarketFromDB(tokenfile string) (
 	return
 }
 
-func Initialize(options config.MarketOptions) {
+func Initialize(options *MarketOptions) {
 
 	SupportTokens = make(map[string]types.Token)
 	SupportMarkets = make(map[string]types.Token)

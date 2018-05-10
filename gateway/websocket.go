@@ -20,9 +20,9 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	"github.com/Loopring/relay/marketcap"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/marketcap"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/gorilla/websocket"
 	"net/http"
 )

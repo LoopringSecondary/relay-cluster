@@ -21,13 +21,13 @@ package market
 import (
 	"encoding/json"
 	"errors"
-	rcache "github.com/Loopring/relay/cache"
+	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-cluster/market/util"
+	rcache "github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/ethaccessor"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strings"
@@ -549,7 +549,11 @@ type AccountManager struct {
 	block          *ChangedOfBlock
 }
 
-func NewAccountManager(options config.AccountManagerOptions) AccountManager {
+type AccountManagerOptions struct {
+	CacheDuration int64
+}
+
+func NewAccountManager(options *AccountManagerOptions) AccountManager {
 	accountManager := AccountManager{}
 	if options.CacheDuration > 0 {
 		accountManager.cacheDuration = options.CacheDuration
@@ -575,7 +579,7 @@ func (accountManager *AccountManager) Start() {
 	ethTransferWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleEthTransfer}
 	eventemitter.On(eventemitter.Transfer, transferWatcher)
 	eventemitter.On(eventemitter.Approve, approveWatcher)
-	eventemitter.On(eventemitter.EthTransferEvent, ethTransferWatcher)
+	eventemitter.On(eventemitter.EthTransfer, ethTransferWatcher)
 	eventemitter.On(eventemitter.Block_End, blockEndWatcher)
 	eventemitter.On(eventemitter.Block_New, blockNewWatcher)
 	eventemitter.On(eventemitter.WethDeposit, wethDepositWatcher)

@@ -19,10 +19,9 @@
 package usermanager
 
 import (
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/dao"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	gocache "github.com/patrickmn/go-cache"
 	"time"
@@ -34,7 +33,7 @@ type WhiteListCache struct {
 	expire time.Duration
 }
 
-func newWhiteListCache(options *config.UserManagerOptions, rds dao.RdsService) *WhiteListCache {
+func newWhiteListCache(options *UserManagerOptions, rds dao.RdsService) *WhiteListCache {
 	c := &WhiteListCache{}
 	c.rds = rds
 

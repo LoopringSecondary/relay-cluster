@@ -22,14 +22,14 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/market/util"
+	"github.com/Loopring/relay-cluster/marketcap"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/marketcap"
-	"github.com/Loopring/relay/ordermanager"
-	"github.com/Loopring/relay/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
@@ -52,7 +52,28 @@ type Filter interface {
 	filter(o *types.Order) (bool, error)
 }
 
-func Initialize(filterOptions *config.GatewayFiltersOptions, options *config.GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am market.AccountManager) {
+type GatewayFiltersOptions struct {
+	BaseFilter struct {
+		MinLrcFee             int64
+		MinLrcHold            int64
+		MaxPrice              int64
+		MinSplitPercentage    float64
+		MaxSplitPercentage    float64
+		MinTokeSAmount        map[string]string
+		MinTokenSUsdAmount    float64
+		MaxValidSinceInterval int64
+	}
+	PowFilter struct {
+		Difficulty string
+	}
+}
+
+type GateWayOptions struct {
+	IsBroadcast      bool
+	MaxBroadcastTime int
+}
+
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am market.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)

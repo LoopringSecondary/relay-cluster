@@ -20,7 +20,6 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/Loopring/relay/config"
 	"github.com/Loopring/relay/eventemiter"
 	"github.com/Loopring/relay/gateway/ipfs"
 	"github.com/Loopring/relay/types"
@@ -48,14 +47,14 @@ type IPFSSubService interface {
 }
 
 type IPFSSubServiceImpl struct {
-	options config.IpfsOptions
+	options *IpfsOptions
 	subs    map[string]*subProxy
 	stop    chan struct{}
 	mtx     sync.Mutex
 	url     string
 }
 
-func NewIPFSSubService(options config.IpfsOptions) *IPFSSubServiceImpl {
+func NewIPFSSubService(options *IpfsOptions) *IPFSSubServiceImpl {
 	l := &IPFSSubServiceImpl{}
 	l.url = options.Url()
 	l.options = options

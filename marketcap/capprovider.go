@@ -22,11 +22,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/market/util"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"io/ioutil"
 	"math/big"
@@ -320,7 +319,14 @@ func (p *CapProvider_CoinMarketCap) syncMarketCap() error {
 	return nil
 }
 
-func NewMarketCapProvider(options config.MarketCapOptions) *CapProvider_CoinMarketCap {
+type MarketCapOptions struct {
+	BaseUrl  string
+	Currency string
+	Duration int
+	IsSync   bool
+}
+
+func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap {
 	provider := &CapProvider_CoinMarketCap{}
 	provider.baseUrl = options.BaseUrl
 	provider.currency = options.Currency

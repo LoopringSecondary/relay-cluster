@@ -19,23 +19,39 @@
 package gateway
 
 import (
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ipfs/go-ipfs-api"
+	"strconv"
+	"strings"
 )
 
 type IPFSPubService interface {
 	PublishOrder(order types.Order) error
 }
 
+type IpfsOptions struct {
+	Server          string
+	Port            int
+	ListenTopics    []string
+	BroadcastTopics []string
+}
+
+func (opts IpfsOptions) Url() string {
+	url := opts.Server
+	if !strings.HasSuffix(url, ":") {
+		url = url + ":"
+	}
+	return url + strconv.Itoa(opts.Port)
+}
+
 type IPFSPubServiceImpl struct {
-	options *config.IpfsOptions
+	options *IpfsOptions
 	sh      *shell.Shell
 	url     string
 }
 
-func NewIPFSPubService(options *config.IpfsOptions) *IPFSPubServiceImpl {
+func NewIPFSPubService(options *IpfsOptions) *IPFSPubServiceImpl {
 	l := &IPFSPubServiceImpl{}
 	l.url = options.Url()
 	l.options = options

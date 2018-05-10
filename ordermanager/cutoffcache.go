@@ -19,8 +19,8 @@
 package ordermanager
 
 import (
-	"github.com/Loopring/relay/cache"
-	"github.com/Loopring/relay/ethaccessor"
+	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-lib/cache"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"

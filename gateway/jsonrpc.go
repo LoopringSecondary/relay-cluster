@@ -20,7 +20,7 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rs/cors"
 	"net"

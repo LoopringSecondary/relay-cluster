@@ -21,8 +21,8 @@ package txmanager
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Loopring/relay/cache"
-	"github.com/Loopring/relay/dao"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/cache"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )

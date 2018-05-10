@@ -25,7 +25,7 @@ import (
 	"io"
 	"syscall"
 
-	"github.com/Loopring/relay/cmd/utils"
+	"github.com/Loopring/relay-cluster/cmd/utils"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -120,7 +120,7 @@ func importAccount(ctx *cli.Context) {
 	if "0x" == pk[0:2] {
 		pk = pk[2:]
 	}
-	if !common.IsHex("0x" + pk) {
+	if !common.IsHexAddress("0x" + pk) {
 		utils.ExitWithErr(ctx.App.Writer, errors.New("the private-key must be hex"))
 	}
 	if privateKey, err := crypto.ToECDSA(common.Hex2Bytes(pk)); nil != err {

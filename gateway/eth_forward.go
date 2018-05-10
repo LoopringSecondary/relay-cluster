@@ -1,7 +1,8 @@
 package gateway
 
 import (
-	"github.com/Loopring/relay/ethaccessor"
+	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-lib/eth/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -27,7 +28,7 @@ func (e *EthForwarder) GetTransactionCount(address, blockNumber string) (result 
 	//return result, nil
 }
 
-func (e *EthForwarder) Call(ethCall *ethaccessor.CallArg, blockNumber string) (result string, err error) {
+func (e *EthForwarder) Call(ethCall *types.CallArg, blockNumber string) (result string, err error) {
 	err = ethaccessor.Call(&result, ethCall, blockNumber)
 	return
 	//err = e.Accessor.RetryCall("latest", 2, &result, "eth_call", ethCall, blockNumber)

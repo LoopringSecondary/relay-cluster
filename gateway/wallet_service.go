@@ -21,18 +21,19 @@ package gateway
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Loopring/relay/cache"
+	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/market/util"
+	"github.com/Loopring/relay-cluster/marketcap"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/txmanager"
+	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"github.com/Loopring/relay-lib/cache"
+	ethtyp "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay/dao"
-	"github.com/Loopring/relay/ethaccessor"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/marketcap"
-	"github.com/Loopring/relay/ordermanager"
-	"github.com/Loopring/relay/txmanager"
-	txtyp "github.com/Loopring/relay/txmanager/types"
-	"github.com/Loopring/relay/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
@@ -413,7 +414,7 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("from or to address is illegal")
 	}
 
-	tx := &ethaccessor.Transaction{}
+	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
 	tx.Input = txNotify.Input
 	tx.From = txNotify.From

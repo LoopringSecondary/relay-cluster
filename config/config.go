@@ -20,7 +20,6 @@ package config
 
 import (
 	"errors"
-	"math/big"
 	"os"
 	"reflect"
 	"strconv"
@@ -78,10 +77,7 @@ type GlobalConfig struct {
 	GatewayFilters GatewayFiltersOptions
 	OrderManager   OrderManagerOptions
 	Gateway        GateWayOptions
-	Accessor       AccessorOptions
-	Extractor      ExtractorOptions
 	Common         CommonOptions
-	Miner          MinerOptions
 	Log            LogOptions
 	Keystore       KeyStoreOptions
 	Market         MarketOptions
@@ -127,20 +123,6 @@ func (opts IpfsOptions) Url() string {
 	return url + strconv.Itoa(opts.Port)
 }
 
-type AccessorOptions struct {
-	RawUrls           []string `required:"true"`
-	FetchTxRetryCount int
-}
-
-type ExtractorOptions struct {
-	StartBlockNumber   *big.Int
-	EndBlockNumber     *big.Int
-	ConfirmBlockNumber uint64
-	ForkWaitingTime    int64
-	Debug              bool
-	Open               bool
-}
-
 type KeyStoreOptions struct {
 	Keydir  string
 	ScryptN int
@@ -179,27 +161,6 @@ type PercentMinerAddress struct {
 	Address    string
 	FeePercent float64 //the gasprice will be calculated by (FeePercent/100)*(legalFee/eth-price)/gaslimit
 	StartFee   float64 //If received reaches StartReceived, it will use feepercent to ensure eth confirm this tx quickly.
-}
-
-type NormalMinerAddress struct {
-	Address         string
-	MaxPendingTtl   int   //if a tx is still pending after MaxPendingTtl blocks, the nonce used by it will be used again.
-	MaxPendingCount int64 //this addr will be used to send tx again until the count of pending txs belows MaxPendingCount.
-	GasPriceLimit   int64 //the max gas price
-}
-
-type MinerOptions struct {
-	RingMaxLength         int `` //recommended value:4
-	Name                  string
-	Subsidy               float64
-	WalletSplit           float64
-	NormalMiners          []NormalMinerAddress  //
-	PercentMiners         []PercentMinerAddress //
-	TimingMatcher         *TimingMatcher
-	RateRatioCVSThreshold int64
-	MinGasLimit           int64
-	MaxGasLimit           int64
-	FeeReceipt            string
 }
 
 type MarketOptions struct {

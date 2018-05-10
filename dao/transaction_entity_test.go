@@ -19,7 +19,7 @@
 package dao_test
 
 import (
-	"github.com/Loopring/relay/test"
+	"github.com/Loopring/relay-cluster/test"
 	"testing"
 )
 

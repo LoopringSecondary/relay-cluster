@@ -24,7 +24,7 @@ import (
 	"runtime"
 	"sort"
 
-	"github.com/Loopring/relay/cmd/utils"
+	"github.com/Loopring/relay-cluster/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
 )
 

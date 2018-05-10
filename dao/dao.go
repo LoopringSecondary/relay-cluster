@@ -19,8 +19,8 @@
 package dao
 
 import (
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/log"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"time"
@@ -33,12 +33,25 @@ type PageResult struct {
 	Total     int           `json:"total"`
 }
 
+type MysqlOptions struct {
+	Hostname           string
+	Port               string
+	User               string
+	Password           string
+	DbName             string
+	TablePrefix        string
+	MaxOpenConnections int
+	MaxIdleConnections int
+	ConnMaxLifetime    int
+	Debug              bool
+}
+
 type RdsServiceImpl struct {
-	options config.MysqlOptions
+	options *MysqlOptions
 	db      *gorm.DB
 }
 
-func NewRdsService(options config.MysqlOptions) *RdsServiceImpl {
+func NewRdsService(options *MysqlOptions) *RdsServiceImpl {
 	impl := &RdsServiceImpl{}
 	impl.options = options
 

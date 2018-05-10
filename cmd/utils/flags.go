@@ -21,7 +21,7 @@ package utils
 import (
 	"reflect"
 
-	"github.com/Loopring/relay/config"
+	"github.com/Loopring/relay-cluster/config"
 	"gopkg.in/urfave/cli.v1"
 )
 
