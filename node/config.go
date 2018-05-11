@@ -16,17 +16,21 @@
 
 */
 
-package config
+package node
 
 import (
 	"errors"
 	"os"
 	"reflect"
-	"strconv"
-	"strings"
 
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/cache/redis"
+	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-cluster/usermanager"
+	"github.com/Loopring/relay-lib/marketcap"
 )
 
 func LoadConfig(file string) *GlobalConfig {
@@ -47,19 +51,6 @@ func LoadConfig(file string) *GlobalConfig {
 		panic(err)
 	}
 
-	//if c.Common.Develop {
-	//	basedir := strings.TrimSuffix(os.Getenv("GOPATH"), "/") + "/src/github.com/Loopring/relay/"
-	//	c.Keystore.Keydir = basedir + c.Keystore.Keydir
-	//
-	//	for idx, path := range c.Log.ZapOpts.OutputPaths {
-	//		if !strings.HasPrefix(path, "std") {
-	//			c.Log.ZapOpts.OutputPaths[idx] = basedir + path
-	//		}
-	//	}
-	//}
-
-	// extractor.IsDevNet default false
-
 	return c
 }
 
@@ -69,20 +60,20 @@ type GlobalConfig struct {
 	Owner struct {
 		Name string
 	}
-	Mysql          MysqlOptions
-	Redis          RedisOptions
-	Ipfs           IpfsOptions
+	Mysql          dao.MysqlOptions
+	Redis          redis.RedisOptions
+	Ipfs           gateway.IpfsOptions
 	Jsonrpc        JsonrpcOptions
 	Websocket      WebsocketOptions
-	GatewayFilters GatewayFiltersOptions
-	OrderManager   OrderManagerOptions
-	Gateway        GateWayOptions
+	GatewayFilters gateway.GatewayFiltersOptions
+	OrderManager   ordermanager.OrderManagerOptions
+	Gateway        gateway.GateWayOptions
 	Common         CommonOptions
 	Log            LogOptions
 	Keystore       KeyStoreOptions
 	Market         MarketOptions
-	MarketCap      MarketCapOptions
-	UserManager    UserManagerOptions
+	MarketCap      marketcap.MarketCapOptions
+	UserManager    usermanager.UserManagerOptions
 	AccountManager AccountManagerOptions
 }
 
@@ -100,27 +91,6 @@ type WebsocketOptions struct {
 
 func (c *GlobalConfig) defaultConfig() {
 
-}
-
-type OrderManagerOptions struct {
-	CutoffCacheExpireTime int64
-	CutoffCacheCleanTime  int64
-	DustOrderValue        int64
-}
-
-type IpfsOptions struct {
-	Server          string
-	Port            int
-	ListenTopics    []string
-	BroadcastTopics []string
-}
-
-func (opts IpfsOptions) Url() string {
-	url := opts.Server
-	if !strings.HasSuffix(url, ":") {
-		url = url + ":"
-	}
-	return url + strconv.Itoa(opts.Port)
 }
 
 type KeyStoreOptions struct {
@@ -167,62 +137,6 @@ type MarketOptions struct {
 	TokenFile             string
 	OldVersionWethAddress string
 	CronJobLock           bool
-}
-
-type MarketCapOptions struct {
-	BaseUrl  string
-	Currency string
-	Duration int
-	IsSync   bool
-}
-
-type GatewayFiltersOptions struct {
-	BaseFilter struct {
-		MinLrcFee             int64
-		MinLrcHold            int64
-		MaxPrice              int64
-		MinSplitPercentage    float64
-		MaxSplitPercentage    float64
-		MinTokeSAmount        map[string]string
-		MinTokenSUsdAmount    float64
-		MaxValidSinceInterval int64
-	}
-	PowFilter struct {
-		Difficulty string
-	}
-}
-
-type GateWayOptions struct {
-	IsBroadcast      bool
-	MaxBroadcastTime int
-}
-
-type MysqlOptions struct {
-	Hostname           string
-	Port               string
-	User               string
-	Password           string
-	DbName             string
-	TablePrefix        string
-	MaxOpenConnections int
-	MaxIdleConnections int
-	ConnMaxLifetime    int
-	Debug              bool
-}
-
-type RedisOptions struct {
-	Host        string
-	Port        string
-	Password    string
-	IdleTimeout int
-	MaxIdle     int
-	MaxActive   int
-}
-
-type UserManagerOptions struct {
-	WhiteListOpen            bool
-	WhiteListCacheExpireTime int64
-	WhiteListCacheCleanTime  int64
 }
 
 func Validator(cv reflect.Value) (bool, error) {

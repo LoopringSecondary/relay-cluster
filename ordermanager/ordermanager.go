@@ -52,7 +52,7 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options            *config.OrderManagerOptions
+	options            *OrderManagerOptions
 	rds                dao.RdsService
 	processor          *ForkProcessor
 	um                 usermanager.UserManager
@@ -71,8 +71,14 @@ type OrderManagerImpl struct {
 	//ordersValidForMiner     bool
 }
 
+type OrderManagerOptions struct {
+	CutoffCacheExpireTime int64
+	CutoffCacheCleanTime  int64
+	DustOrderValue        int64
+}
+
 func NewOrderManager(
-	options *config.OrderManagerOptions,
+	options *OrderManagerOptions,
 	rds dao.RdsService,
 	userManager usermanager.UserManager,
 	market marketcap.MarketCapProvider) *OrderManagerImpl {

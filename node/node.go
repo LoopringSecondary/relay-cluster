@@ -22,29 +22,21 @@ import (
 	"sync"
 
 	"fmt"
-	"github.com/Loopring/relay/cache"
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/crypto"
-	"github.com/Loopring/relay/dao"
-	"github.com/Loopring/relay/ethaccessor"
-	"github.com/Loopring/relay/extractor"
-	"github.com/Loopring/relay/gateway"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/marketcap"
-	"github.com/Loopring/relay/miner"
-	"github.com/Loopring/relay/miner/timing_matcher"
-	"github.com/Loopring/relay/ordermanager"
-	"github.com/Loopring/relay/txmanager"
-	"github.com/Loopring/relay/usermanager"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-cluster/config"
+	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-cluster/market"
+	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/marketcap"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/txmanager"
+	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
-)
-
-const (
-	MODEL_RELAY = "relay"
-	MODEL_MINER = "miner"
 )
 
 type Node struct {
@@ -55,8 +47,13 @@ type Node struct {
 	userManager       usermanager.UserManager
 	marketCapProvider marketcap.MarketCapProvider
 	accountManager    market.AccountManager
-	relayNode         *RelayNode
-	mineNode          *MineNode
+	trendManager     market.TrendManager
+	tickerCollector  market.CollectorImpl
+	jsonRpcService   gateway.JsonrpcServiceImpl
+	websocketService gateway.WebsocketServiceImpl
+	socketIOService  gateway.SocketIOServiceImpl
+	walletService    gateway.WalletServiceImpl
+	txManager        txmanager.TransactionManager
 
 	stop   chan struct{}
 	lock   sync.RWMutex
@@ -64,7 +61,6 @@ type Node struct {
 }
 
 type RelayNode struct {
-	extractorService extractor.ExtractorService
 	trendManager     market.TrendManager
 	tickerCollector  market.CollectorImpl
 	jsonRpcService   gateway.JsonrpcServiceImpl
@@ -76,8 +72,6 @@ type RelayNode struct {
 
 func (n *RelayNode) Start() {
 	n.txManager.Start()
-	n.extractorService.Start()
-
 	//gateway.NewJsonrpcService("8080").Start()
 	fmt.Println("step in relay node start")
 	n.tickerCollector.Start()
@@ -89,17 +83,6 @@ func (n *RelayNode) Start() {
 
 func (n *RelayNode) Stop() {
 	n.txManager.Stop()
-}
-
-type MineNode struct {
-	miner *miner.Miner
-}
-
-func (n *MineNode) Start() {
-	n.miner.Start()
-}
-func (n *MineNode) Stop() {
-	n.miner.Stop()
 }
 
 func NewNode(logger *zap.Logger, globalConfig *config.GlobalConfig) *Node {
@@ -120,21 +103,6 @@ func NewNode(logger *zap.Logger, globalConfig *config.GlobalConfig) *Node {
 	n.registerGateway()
 	n.registerCrypto(nil)
 
-	if "relay" == globalConfig.Mode {
-		n.registerRelayNode()
-	} else if "miner" == globalConfig.Mode {
-		n.registerMineNode()
-	} else {
-		n.registerMineNode()
-		n.registerRelayNode()
-	}
-
-	return n
-}
-
-func (n *Node) registerRelayNode() {
-	n.relayNode = &RelayNode{}
-	n.registerExtractor()
 	n.registerTransactionManager()
 	n.registerTrendManager()
 	n.registerTickerCollector()
@@ -143,28 +111,22 @@ func (n *Node) registerRelayNode() {
 	n.registerWebsocketService()
 	n.registerSocketIOService()
 	txmanager.NewTxView(n.rdsService)
-}
 
-func (n *Node) registerMineNode() {
-	n.mineNode = &MineNode{}
-	ks := keystore.NewKeyStore(n.globalConfig.Keystore.Keydir, keystore.StandardScryptN, keystore.StandardScryptP)
-	n.registerCrypto(ks)
-	n.registerMiner()
+	return n
 }
 
 func (n *Node) Start() {
 	n.orderManager.Start()
 	n.marketCapProvider.Start()
-
-	if n.globalConfig.Mode != MODEL_MINER {
-		n.accountManager.Start()
-		n.relayNode.Start()
-		go ethaccessor.IncludeGasPriceEvaluator()
-	}
-	if n.globalConfig.Mode != MODEL_RELAY {
-		n.mineNode.Start()
-		ethaccessor.IncludeGasPriceEvaluator()
-	}
+	n.accountManager.Start()
+	n.txManager.Start()
+	//gateway.NewJsonrpcService("8080").Start()
+	fmt.Println("step in relay node start")
+	n.tickerCollector.Start()
+	go n.jsonRpcService.Start()
+	//n.websocketService.Start()
+	go n.socketIOService.Start()
+	go ethaccessor.IncludeGasPriceEvaluator()
 }
 
 func (n *Node) Wait() {
@@ -178,18 +140,8 @@ func (n *Node) Wait() {
 	<-stop
 }
 
+// todo
 func (n *Node) Stop() {
-	n.lock.RLock()
-	n.mineNode.Stop()
-	//
-	//n.p2pListener.Stop()
-	//n.chainListener.Stop()
-	//n.orderbook.Stop()
-	//n.miner.Stop()
-
-	//close(n.stop)
-
-	n.lock.RUnlock()
 }
 
 func (n *Node) registerCrypto(ks *keystore.KeyStore) {
@@ -209,10 +161,6 @@ func (n *Node) registerAccessor() {
 	}
 }
 
-func (n *Node) registerExtractor() {
-	n.relayNode.extractorService = extractor.NewExtractorService(n.globalConfig.Extractor, n.rdsService)
-}
-
 func (n *Node) registerIPFSSubService() {
 	n.ipfsSubService = gateway.NewIPFSSubService(n.globalConfig.Ipfs)
 }
@@ -222,7 +170,7 @@ func (n *Node) registerOrderManager() {
 }
 
 func (n *Node) registerTrendManager() {
-	n.relayNode.trendManager = market.NewTrendManager(n.rdsService, n.globalConfig.Market.CronJobLock)
+	n.trendManager = market.NewTrendManager(n.rdsService, n.globalConfig.Market.CronJobLock)
 }
 
 func (n *Node) registerAccountManager() {
@@ -230,40 +178,28 @@ func (n *Node) registerAccountManager() {
 }
 
 func (n *Node) registerTransactionManager() {
-	n.relayNode.txManager = txmanager.NewTxManager(n.rdsService, &n.accountManager)
+	n.txManager = txmanager.NewTxManager(n.rdsService, &n.accountManager)
 }
 
 func (n *Node) registerTickerCollector() {
-	n.relayNode.tickerCollector = *market.NewCollector(n.globalConfig.Market.CronJobLock)
+	n.tickerCollector = *market.NewCollector(n.globalConfig.Market.CronJobLock)
 }
 
 func (n *Node) registerWalletService() {
-	n.relayNode.walletService = *gateway.NewWalletService(n.relayNode.trendManager, n.orderManager,
-		n.accountManager, n.marketCapProvider, n.relayNode.tickerCollector, n.rdsService, n.globalConfig.Market.OldVersionWethAddress)
+	n.walletService = *gateway.NewWalletService(n.trendManager, n.orderManager,
+		n.accountManager, n.marketCapProvider, n.tickerCollector, n.rdsService, n.globalConfig.Market.OldVersionWethAddress)
 }
 
 func (n *Node) registerJsonRpcService() {
-	n.relayNode.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.relayNode.walletService)
+	n.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.walletService)
 }
 
 func (n *Node) registerWebsocketService() {
-	n.relayNode.websocketService = *gateway.NewWebsocketService(n.globalConfig.Websocket.Port, n.relayNode.trendManager, n.accountManager, n.marketCapProvider)
+	n.websocketService = *gateway.NewWebsocketService(n.globalConfig.Websocket.Port, n.trendManager, n.accountManager, n.marketCapProvider)
 }
 
 func (n *Node) registerSocketIOService() {
-	n.relayNode.socketIOService = *gateway.NewSocketIOService(n.globalConfig.Websocket.Port, n.relayNode.walletService)
-}
-
-func (n *Node) registerMiner() {
-	//ethaccessor.IncludeGasPriceEvaluator()
-	submitter, err := miner.NewSubmitter(n.globalConfig.Miner, n.rdsService, n.marketCapProvider)
-	if nil != err {
-		log.Fatalf("failed to init submitter, error:%s", err.Error())
-	}
-	evaluator := miner.NewEvaluator(n.marketCapProvider, n.globalConfig.Miner)
-	matcher := timing_matcher.NewTimingMatcher(n.globalConfig.Miner.TimingMatcher, submitter, evaluator, n.orderManager, &n.accountManager, n.rdsService)
-	evaluator.SetMatcher(matcher)
-	n.mineNode.miner = miner.NewMiner(submitter, matcher, evaluator, n.marketCapProvider)
+	n.socketIOService = *gateway.NewSocketIOService(n.globalConfig.Websocket.Port, n.walletService)
 }
 
 func (n *Node) registerGateway() {

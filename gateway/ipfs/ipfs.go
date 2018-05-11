@@ -23,7 +23,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/ipfs/go-ipfs-api"
 	pb "github.com/libp2p/go-floodsub/pb"
 	peer "github.com/libp2p/go-libp2p-peer"

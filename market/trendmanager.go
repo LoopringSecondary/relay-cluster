@@ -23,7 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/market/util"
+	util "github.com/Loopring/relay-lib/marketutil"
 	redisCache "github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"

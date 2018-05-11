@@ -21,7 +21,7 @@ package market
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Loopring/relay-cluster/market/util"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	gocache "github.com/patrickmn/go-cache"

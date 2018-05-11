@@ -16,7 +16,7 @@
 
 */
 
-package config_test
+package node
 
 import (
 	"encoding/json"
