@@ -39,7 +39,7 @@ import (
 )
 
 type Node struct {
-	globalConfig      GlobalConfig
+	globalConfig      *GlobalConfig
 	rdsService        dao.RdsService
 	ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
@@ -59,7 +59,7 @@ type Node struct {
 	logger *zap.Logger
 }
 
-func NewNode(logger *zap.Logger, globalConfig GlobalConfig) *Node {
+func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n := &Node{}
 	n.logger = logger
 	n.globalConfig = globalConfig

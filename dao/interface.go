@@ -44,8 +44,6 @@ type RdsService interface {
 	// order table
 	GetOrderByHash(orderhash common.Hash) (*Order, error)
 	GetOrdersByHash(orderhashs []string) (map[string]Order, error)
-	MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error
-	GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error)
 	GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error)
 	GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int) ([]Order, error)
 	SetCutOffOrders(orderHashList []common.Hash, blockNumber *big.Int) error
@@ -98,20 +96,9 @@ type RdsService interface {
 	GetWhiteList() ([]WhiteList, error)
 	FindWhiteListUserByAddress(address common.Address) (*WhiteList, error)
 
-	//ringSubmitInfo
-	//UpdateRingSubmitInfoProtocolTxHash(ringhash common.Hash, txHash string) error
-	//UpdateRingSubmitInfoSubmitUsedGas(txHash string, usedGas *big.Int) error
-	//UpdateRingSubmitInfoFailed(ringhashs []common.Hash, err string) error
-
 	UpdateRingSubmitInfoResult(submitResult *types.RingSubmitResultEvent) error
-	GetRingForSubmitByHash(ringhash common.Hash) (RingSubmitInfo, error)
-	GetRingHashesByTxHash(txHash common.Hash) ([]*RingSubmitInfo, error)
 	RingMinedPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error)
 	GetRingminedMethods(lastId int, limit int) ([]RingMinedEvent, error)
-	GetFilledOrderByRinghash(ringhash common.Hash) ([]*FilledOrder, error)
-
-	// transactions
-	GetTransactionById(id int) (Transaction, error)
 
 	// transactionEntity
 	FindPendingTxEntity(hash string) (TransactionEntity, error)
