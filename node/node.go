@@ -23,7 +23,6 @@ import (
 
 	"fmt"
 	"github.com/Loopring/accessor/ethaccessor"
-	"github.com/Loopring/relay-cluster/config"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
@@ -40,7 +39,7 @@ import (
 )
 
 type Node struct {
-	globalConfig      *config.GlobalConfig
+	globalConfig      GlobalConfig
 	rdsService        dao.RdsService
 	ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
@@ -60,32 +59,7 @@ type Node struct {
 	logger *zap.Logger
 }
 
-type RelayNode struct {
-	trendManager     market.TrendManager
-	tickerCollector  market.CollectorImpl
-	jsonRpcService   gateway.JsonrpcServiceImpl
-	websocketService gateway.WebsocketServiceImpl
-	socketIOService  gateway.SocketIOServiceImpl
-	walletService    gateway.WalletServiceImpl
-	txManager        txmanager.TransactionManager
-}
-
-func (n *RelayNode) Start() {
-	n.txManager.Start()
-	//gateway.NewJsonrpcService("8080").Start()
-	fmt.Println("step in relay node start")
-	n.tickerCollector.Start()
-	go n.jsonRpcService.Start()
-	//n.websocketService.Start()
-	go n.socketIOService.Start()
-
-}
-
-func (n *RelayNode) Stop() {
-	n.txManager.Stop()
-}
-
-func NewNode(logger *zap.Logger, globalConfig *config.GlobalConfig) *Node {
+func NewNode(logger *zap.Logger, globalConfig GlobalConfig) *Node {
 	n := &Node{}
 	n.logger = logger
 	n.globalConfig = globalConfig
@@ -94,7 +68,7 @@ func NewNode(logger *zap.Logger, globalConfig *config.GlobalConfig) *Node {
 	n.registerMysql()
 	cache.NewCache(n.globalConfig.Redis)
 
-	util.Initialize(n.globalConfig.Market)
+	util.Initialize(&n.globalConfig.Market)
 	n.registerMarketCap()
 	n.registerAccessor()
 	n.registerUserManager()
@@ -150,7 +124,7 @@ func (n *Node) registerCrypto(ks *keystore.KeyStore) {
 }
 
 func (n *Node) registerMysql() {
-	n.rdsService = dao.NewRdsService(n.globalConfig.Mysql)
+	n.rdsService = dao.NewRdsService(&n.globalConfig.Mysql)
 	n.rdsService.Prepare()
 }
 
@@ -162,7 +136,7 @@ func (n *Node) registerAccessor() {
 }
 
 func (n *Node) registerIPFSSubService() {
-	n.ipfsSubService = gateway.NewIPFSSubService(n.globalConfig.Ipfs)
+	n.ipfsSubService = gateway.NewIPFSSubService(&n.globalConfig.Ipfs)
 }
 
 func (n *Node) registerOrderManager() {
@@ -174,7 +148,7 @@ func (n *Node) registerTrendManager() {
 }
 
 func (n *Node) registerAccountManager() {
-	n.accountManager = market.NewAccountManager(n.globalConfig.AccountManager)
+	n.accountManager = market.NewAccountManager(&n.globalConfig.AccountManager)
 }
 
 func (n *Node) registerTransactionManager() {
@@ -211,5 +185,5 @@ func (n *Node) registerUserManager() {
 }
 
 func (n *Node) registerMarketCap() {
-	n.marketCapProvider = marketcap.NewMarketCapProvider(n.globalConfig.MarketCap)
+	n.marketCapProvider = marketcap.NewMarketCapProvider(&n.globalConfig.MarketCap)
 }

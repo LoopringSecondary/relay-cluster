@@ -30,6 +30,7 @@ import (
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/marketcap"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
 )
@@ -71,7 +72,7 @@ type GlobalConfig struct {
 	Common         CommonOptions
 	Log            LogOptions
 	Keystore       KeyStoreOptions
-	Market         MarketOptions
+	Market         util.MarketOptions
 	MarketCap      marketcap.MarketCapOptions
 	UserManager    usermanager.UserManagerOptions
 	AccountManager market.AccountManagerOptions
@@ -99,12 +100,6 @@ type CommonOptions struct {
 
 type LogOptions struct {
 	ZapOpts zap.Config
-}
-
-type MarketOptions struct {
-	TokenFile             string
-	OldVersionWethAddress string
-	CronJobLock           bool
 }
 
 func Validator(cv reflect.Value) (bool, error) {

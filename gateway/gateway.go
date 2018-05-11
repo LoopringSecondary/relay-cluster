@@ -29,7 +29,6 @@ import (
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay/config"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
@@ -73,7 +72,7 @@ type GateWayOptions struct {
 	MaxBroadcastTime int
 }
 
-func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am market.AccountManager) {
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am market.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
