@@ -25,6 +25,7 @@ import (
 
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache/redis"
@@ -46,7 +47,6 @@ func LoadConfig(file string) *GlobalConfig {
 	defer io.Close()
 
 	c := &GlobalConfig{}
-	c.defaultConfig()
 	if err := toml.NewDecoder(io).Decode(c); err != nil {
 		panic(err)
 	}
@@ -63,8 +63,8 @@ type GlobalConfig struct {
 	Mysql          dao.MysqlOptions
 	Redis          redis.RedisOptions
 	Ipfs           gateway.IpfsOptions
-	Jsonrpc        JsonrpcOptions
-	Websocket      WebsocketOptions
+	Jsonrpc        gateway.JsonrpcOptions
+	Websocket      gateway.WebsocketOptions
 	GatewayFilters gateway.GatewayFiltersOptions
 	OrderManager   ordermanager.OrderManagerOptions
 	Gateway        gateway.GateWayOptions
@@ -74,23 +74,7 @@ type GlobalConfig struct {
 	Market         MarketOptions
 	MarketCap      marketcap.MarketCapOptions
 	UserManager    usermanager.UserManagerOptions
-	AccountManager AccountManagerOptions
-}
-
-type AccountManagerOptions struct {
-	CacheDuration int64
-}
-
-type JsonrpcOptions struct {
-	Port string
-}
-
-type WebsocketOptions struct {
-	Port string
-}
-
-func (c *GlobalConfig) defaultConfig() {
-
+	AccountManager market.AccountManagerOptions
 }
 
 type KeyStoreOptions struct {
@@ -115,22 +99,6 @@ type CommonOptions struct {
 
 type LogOptions struct {
 	ZapOpts zap.Config
-}
-
-type TimingMatcher struct {
-	RoundOrdersCount             int
-	Duration                     int64
-	ReservedSubmitTime           int64
-	MaxSumitFailedCount          int64
-	DelayedNumber                int64
-	MaxCacheRoundsLength         int
-	LagForCleanSubmitCacheBlocks int64
-}
-
-type PercentMinerAddress struct {
-	Address    string
-	FeePercent float64 //the gasprice will be calculated by (FeePercent/100)*(legalFee/eth-price)/gaslimit
-	StartFee   float64 //If received reaches StartReceived, it will use feepercent to ensure eth confirm this tx quickly.
 }
 
 type MarketOptions struct {

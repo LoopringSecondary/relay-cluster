@@ -21,15 +21,11 @@ package utils
 import (
 	"reflect"
 
-	"github.com/Loopring/relay-cluster/config"
+	"github.com/Loopring/relay-cluster/node"
 	"gopkg.in/urfave/cli.v1"
 )
 
 var (
-	ModeFlag = cli.StringFlag{
-		Name:  "mode",
-		Usage: "the mode that will be run, it can be set by relay, miner or full",
-	}
 	UnlockFlag = cli.StringFlag{
 		Name:  "unlocks",
 		Usage: "the list of accounts to unlock",
@@ -46,7 +42,6 @@ func GlobalFlags() []cli.Flag {
 			Name:  "config,c",
 			Usage: "config file",
 		},
-		ModeFlag,
 		UnlockFlag,
 		PasswordsFlag,
 	}
@@ -69,32 +64,14 @@ func MinerFlags() []cli.Flag {
 	}
 }
 
-func mergeMinerConfig(ctx *cli.Context, minerOpts *config.MinerOptions) {
-	if ctx.IsSet("ringMaxLength") {
-		minerOpts.RingMaxLength = ctx.Int("ringMaxLength")
-	}
-	minerOpts.WalletSplit = float64(0.8)
-}
-
-func mergeModeConfig(ctx *cli.Context, globalConfig *config.GlobalConfig) {
-	if ctx.IsSet(ModeFlag.Name) {
-		globalConfig.Mode = ctx.String(ModeFlag.Name)
-	} else {
-		globalConfig.Mode = "full"
-	}
-}
-
-func SetGlobalConfig(ctx *cli.Context) *config.GlobalConfig {
+func SetGlobalConfig(ctx *cli.Context) *node.GlobalConfig {
 	file := ""
 	if ctx.IsSet("config") {
 		file = ctx.String("config")
 	}
-	globalConfig := config.LoadConfig(file)
-	mergeMinerConfig(ctx, &globalConfig.Miner)
+	globalConfig := node.LoadConfig(file)
 
-	mergeModeConfig(ctx, globalConfig)
-
-	if _, err := config.Validator(reflect.ValueOf(globalConfig).Elem()); nil != err {
+	if _, err := node.Validator(reflect.ValueOf(globalConfig).Elem()); nil != err {
 		panic(err)
 	}
 

@@ -32,6 +32,10 @@ type WebsocketService interface {
 	Stop()
 }
 
+type WebsocketOptions struct {
+	Port string
+}
+
 type WebsocketServiceImpl struct {
 	port     string
 	upgrader websocket.Upgrader

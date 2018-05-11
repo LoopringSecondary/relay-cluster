@@ -27,6 +27,10 @@ import (
 	"net/http"
 )
 
+type JsonrpcOptions struct {
+	Port string
+}
+
 func (*JsonrpcServiceImpl) Ping(val string, val2 int) (res string, err error) {
 	res = "pong for first connect, meaning server is OK"
 	return
