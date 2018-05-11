@@ -22,19 +22,19 @@ import (
 	"sync"
 
 	"fmt"
-	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-cluster/config"
-	"github.com/Loopring/relay-lib/crypto"
-	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/accessor/ethaccessor"
+	"github.com/Loopring/relay-cluster/config"
+	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-cluster/market"
-	util "github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-cluster/txmanager"
 	"github.com/Loopring/relay-cluster/usermanager"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
 )
@@ -47,13 +47,13 @@ type Node struct {
 	userManager       usermanager.UserManager
 	marketCapProvider marketcap.MarketCapProvider
 	accountManager    market.AccountManager
-	trendManager     market.TrendManager
-	tickerCollector  market.CollectorImpl
-	jsonRpcService   gateway.JsonrpcServiceImpl
-	websocketService gateway.WebsocketServiceImpl
-	socketIOService  gateway.SocketIOServiceImpl
-	walletService    gateway.WalletServiceImpl
-	txManager        txmanager.TransactionManager
+	trendManager      market.TrendManager
+	tickerCollector   market.CollectorImpl
+	jsonRpcService    gateway.JsonrpcServiceImpl
+	websocketService  gateway.WebsocketServiceImpl
+	socketIOService   gateway.SocketIOServiceImpl
+	walletService     gateway.WalletServiceImpl
+	txManager         txmanager.TransactionManager
 
 	stop   chan struct{}
 	lock   sync.RWMutex

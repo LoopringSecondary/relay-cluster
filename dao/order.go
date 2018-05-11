@@ -21,9 +21,9 @@ package dao
 import (
 	"errors"
 	"fmt"
-	"github.com/Loopring/relay-cluster/market/util"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/log"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"

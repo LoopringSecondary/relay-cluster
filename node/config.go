@@ -23,14 +23,14 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/usermanager"
+	"github.com/Loopring/relay-lib/cache/redis"
+	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
-	"github.com/Loopring/relay-cluster/ordermanager"
-	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-lib/cache/redis"
-	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-cluster/usermanager"
-	"github.com/Loopring/relay-lib/marketcap"
 )
 
 func LoadConfig(file string) *GlobalConfig {
