@@ -21,8 +21,8 @@ package ordermanager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/marketcap"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 	"sort"

@@ -21,13 +21,12 @@ package ordermanager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/market/util"
-	"github.com/Loopring/relay-cluster/marketcap"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay/config"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )

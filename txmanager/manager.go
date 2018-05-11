@@ -19,13 +19,13 @@
 package txmanager
 
 import (
-	"github.com/Loopring/relay/dao"
-	"github.com/Loopring/relay/ethaccessor"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market"
-	txtyp "github.com/Loopring/relay/txmanager/types"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/market"
+	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"github.com/Loopring/relay-lib/eth/contract"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -78,7 +78,7 @@ func (tm *TransactionManager) Start() {
 	eventemitter.On(eventemitter.Transfer, tm.transferEventWatcher)
 
 	tm.ethTransferEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveEthTransferEvent}
-	eventemitter.On(eventemitter.EthTransferEvent, tm.ethTransferEventWatcher)
+	eventemitter.On(eventemitter.EthTransfer, tm.ethTransferEventWatcher)
 
 	tm.orderFilledEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveOrderFilledEvent}
 	eventemitter.On(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
@@ -95,7 +95,7 @@ func (tm *TransactionManager) Stop() {
 	eventemitter.Un(eventemitter.WethDeposit, tm.wethDepositEventWatcher)
 	eventemitter.Un(eventemitter.WethWithdrawal, tm.wethWithdrawalEventWatcher)
 	eventemitter.Un(eventemitter.Transfer, tm.transferEventWatcher)
-	eventemitter.Un(eventemitter.EthTransferEvent, tm.ethTransferEventWatcher)
+	eventemitter.Un(eventemitter.EthTransfer, tm.ethTransferEventWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
 	eventemitter.Un(eventemitter.ChainForkDetected, tm.forkDetectedEventWatcher)
 }
@@ -215,7 +215,7 @@ func (tm *TransactionManager) SaveTransferEvent(input eventemitter.EventData) er
 	}
 
 	// view过滤fill owner的转账,entity仍然存储transfer
-	if ethaccessor.TxIsSubmitRing(event.Identify) {
+	if contract.TxIsSubmitRing(event.Identify) {
 		var filterList []txtyp.TransactionView
 		for _, v := range list {
 			if ok, _ := ExistFillOwnerCache(v.TxHash, v.Owner); !ok {

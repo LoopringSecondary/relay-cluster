@@ -20,7 +20,7 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/Loopring/relay-cluster/market/util"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
