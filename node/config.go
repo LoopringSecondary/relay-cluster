@@ -23,6 +23,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
@@ -69,7 +70,8 @@ type GlobalConfig struct {
 	GatewayFilters gateway.GatewayFiltersOptions
 	OrderManager   ordermanager.OrderManagerOptions
 	Gateway        gateway.GateWayOptions
-	Common         CommonOptions
+	Accessor       ethaccessor.AccessorOptions
+	Protocol       ethaccessor.LoopringProtocolOptions
 	Log            LogOptions
 	Keystore       KeyStoreOptions
 	Market         util.MarketOptions

@@ -129,7 +129,7 @@ func (n *Node) registerMysql() {
 }
 
 func (n *Node) registerAccessor() {
-	err := ethaccessor.Initialize(n.globalConfig.Accessor, n.globalConfig.Common, util.WethTokenAddress())
+	err := ethaccessor.Initialize(n.globalConfig.Accessor, n.globalConfig.Protocol, util.WethTokenAddress())
 	if nil != err {
 		log.Fatalf("err:%s", err.Error())
 	}
