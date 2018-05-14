@@ -86,20 +86,6 @@ type KeyStoreOptions struct {
 	ScryptP int
 }
 
-type ProtocolOptions struct {
-	Address          map[string]string
-	ImplAbi          string
-	DelegateAbi      string
-	TokenRegistryAbi string
-}
-
-type CommonOptions struct {
-	Erc20Abi        string
-	WethAbi         string
-	ProtocolImpl    ProtocolOptions  `required:"true"`
-	OrderMinAmounts map[string]int64 //最小的订单金额，低于该数，则终止匹配订单，每个token的值不同
-}
-
 type LogOptions struct {
 	ZapOpts zap.Config
 }
