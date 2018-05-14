@@ -58,26 +58,25 @@ func LoadConfig(file string) *GlobalConfig {
 
 type GlobalConfig struct {
 	Title string `required:"true"`
-	Mode  string `required:"true"`
 	Owner struct {
 		Name string
 	}
-	Mysql          dao.MysqlOptions
-	Redis          redis.RedisOptions
-	Ipfs           gateway.IpfsOptions
-	Jsonrpc        gateway.JsonrpcOptions
-	Websocket      gateway.WebsocketOptions
-	GatewayFilters gateway.GatewayFiltersOptions
-	OrderManager   ordermanager.OrderManagerOptions
-	Gateway        gateway.GateWayOptions
-	Accessor       ethaccessor.AccessorOptions
-	Protocol       ethaccessor.LoopringProtocolOptions
-	Log            LogOptions
-	Keystore       KeyStoreOptions
-	Market         util.MarketOptions
-	MarketCap      marketcap.MarketCapOptions
-	UserManager    usermanager.UserManagerOptions
-	AccountManager market.AccountManagerOptions
+	Mysql            dao.MysqlOptions
+	Redis            redis.RedisOptions
+	Ipfs             gateway.IpfsOptions
+	Jsonrpc          gateway.JsonrpcOptions
+	Websocket        gateway.WebsocketOptions
+	GatewayFilters   gateway.GatewayFiltersOptions
+	OrderManager     ordermanager.OrderManagerOptions
+	Gateway          gateway.GateWayOptions
+	Accessor         ethaccessor.AccessorOptions
+	LoopringProtocol ethaccessor.LoopringProtocolOptions
+	Log              LogOptions
+	Keystore         KeyStoreOptions
+	Market           util.MarketOptions
+	MarketCap        marketcap.MarketCapOptions
+	UserManager      usermanager.UserManagerOptions
+	AccountManager   market.AccountManagerOptions
 }
 
 type KeyStoreOptions struct {

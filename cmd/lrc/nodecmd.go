@@ -19,19 +19,12 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 
 	"github.com/Loopring/relay-cluster/cmd/utils"
 	"github.com/Loopring/relay-cluster/node"
-	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -65,87 +58,10 @@ func startNode(ctx *cli.Context) error {
 
 	n = node.NewNode(logger, globalConfig)
 
-	unlockAccount(ctx, globalConfig)
-
 	n.Start()
 
 	log.Info("started")
 
 	n.Wait()
 	return nil
-}
-
-func unlockAccount(ctx *cli.Context, globalConfig *node.GlobalConfig) {
-	unlockAccs := []accounts.Account{}
-	minerAccs := []string{}
-	if ctx.IsSet(utils.UnlockFlag.Name) {
-		unlocks := strings.Split(ctx.String(utils.UnlockFlag.Name), ",")
-		for _, acc := range unlocks {
-			if common.IsHexAddress(acc) {
-				unlockAccs = append(unlockAccs, accounts.Account{Address: common.HexToAddress(acc)})
-			} else {
-				utils.ExitWithErr(ctx.App.Writer, errors.New(acc+" is not a HexAddress"))
-			}
-		}
-	}
-	//todo:it should not appear here, move it.
-	if len(minerAccs) <= 0 {
-		utils.ExitWithErr(ctx.App.Writer, fmt.Errorf("require a address as miner to sign and submit ring when running as miner"))
-	}
-	for _, addr := range minerAccs {
-		unlocked := false
-		for _, unlockAcc := range unlockAccs {
-			if strings.ToLower(unlockAcc.Address.Hex()) == strings.ToLower(addr) {
-				unlocked = true
-			}
-		}
-		if !unlocked {
-			utils.ExitWithErr(ctx.App.Writer, fmt.Errorf("the address:%s used to mine ring must be unlocked ", addr))
-		}
-	}
-
-	var passwords []string
-	if ctx.IsSet(utils.PasswordsFlag.Name) {
-		passwords = strings.Split(ctx.String(utils.PasswordsFlag.Name), ",")
-		if len(passwords) != len(unlockAccs) {
-			utils.ExitWithErr(ctx.App.Writer, errors.New("the count of passwords and unlocks not match "))
-		}
-	}
-	for idx, acc := range unlockAccs {
-		var passphrase string
-		if ctx.IsSet(utils.PasswordsFlag.Name) {
-			passphrase = passwords[idx]
-			if err := crypto.UnlockKSAccount(acc, passphrase); nil != err {
-				if keystore.ErrNoMatch == err {
-					log.Fatalf("err:", err.Error())
-				} else {
-					utils.ExitWithErr(ctx.App.Writer, errors.New("failed to unlock address:"+acc.Address.Hex()))
-				}
-			}
-		} else {
-			unlockAccountFromTerminal(acc, ctx)
-		}
-	}
-}
-
-func unlockAccountFromTerminal(acc accounts.Account, ctx *cli.Context) {
-	unlocked := false
-	for trials := 1; trials < 4; trials++ {
-		fmt.Fprintf(ctx.App.Writer, "Unlocking account %s | Attempt %d/%d \n", acc.Address.Hex(), trials, 3)
-		passphrase, _ := getPassphraseFromTeminal(false, ctx.App.Writer)
-		if err := crypto.UnlockKSAccount(acc, passphrase); nil != err {
-			if keystore.ErrNoMatch == err {
-				log.Fatalf("err:", err.Error())
-			} else {
-				log.Infof("failed to unlock, try again")
-			}
-		} else {
-			unlocked = true
-			log.Infof("Unlocked address:%s", acc.Address.Hex())
-			break
-		}
-	}
-	if !unlocked {
-		utils.ExitWithErr(ctx.App.Writer, errors.New("3 incorrect passphrase attempts when unlocking address:"+acc.Address.Hex()))
-	}
 }
