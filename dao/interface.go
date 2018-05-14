@@ -98,7 +98,6 @@ type RdsService interface {
 	GetWhiteList() ([]WhiteList, error)
 	FindWhiteListUserByAddress(address common.Address) (*WhiteList, error)
 
-	UpdateRingSubmitInfoResult(submitResult *types.RingSubmitResultEvent) error
 	RingMinedPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error)
 	GetRingminedMethods(lastId int, limit int) ([]RingMinedEvent, error)
 
