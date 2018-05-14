@@ -195,6 +195,44 @@ func (s *RdsServiceImpl) GetOrdersByHash(orderhashs []string) (map[string]Order,
 	return ret, err
 }
 
+func (s *RdsServiceImpl) MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error {
+	if len(filterOrderhashs) == 0 {
+		return nil
+	}
+
+	err := s.db.Model(&Order{}).
+		Where("order_hash in (?)", filterOrderhashs).
+		Update("miner_block_mark", blockNumber).Error
+
+	return err
+}
+
+func (s *RdsServiceImpl) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
+	var (
+		list []*Order
+		err  error
+	)
+
+	if len(filterStatus) < 1 {
+		return list, fmt.Errorf("should filter cutoff and finished orders")
+	}
+
+	nowtime := time.Now().Unix()
+	sinceTime := nowtime
+	untilTime := nowtime + reservedTime
+	err = s.db.Where("delegate_address = ? and token_s = ? and token_b = ?", protocol, tokenS, tokenB).
+		Where("valid_since < ?", sinceTime).
+		Where("valid_until >= ? ", untilTime).
+		Where("status not in (?) ", filterStatus).
+		Where("miner_block_mark between ? and ?", startBlockNumber, endBlockNumber).
+		Order("price desc").
+		Limit(length).
+		Find(&list).
+		Error
+
+	return list, err
+}
+
 func (s *RdsServiceImpl) GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error) {
 	var (
 		list []Order
