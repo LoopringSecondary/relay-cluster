@@ -22,9 +22,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
 	"io/ioutil"
 	"math/big"
@@ -34,6 +36,11 @@ import (
 )
 
 type LegalCurrency int
+
+const (
+	CACHEKEY_COIN_MARKETCAP = "coin_marketcap"
+	ZKNAME_COIN_MARKETCAP   = "coin_marketcap"
+)
 
 func StringToLegalCurrency(currency string) LegalCurrency {
 	currency = strings.ToUpper(currency)
@@ -46,6 +53,19 @@ func StringToLegalCurrency(currency string) LegalCurrency {
 		return USD
 	case "BTC":
 		return BTC
+	}
+}
+
+func LegalCurrencyToString(currency LegalCurrency) string {
+	switch currency {
+	default:
+		return "CNY"
+	case CNY:
+		return "CNY"
+	case USD:
+		return "USD"
+	case BTC:
+		return "BTC"
 	}
 }
 
@@ -84,6 +104,7 @@ func NewLocalCap() *CapProvider_LocalCap {
 }
 
 func (cap *CapProvider_LocalCap) Start() {
+
 	for _, marketStr := range util.AllMarkets {
 		tokenAddress, _ := util.UnWrapToAddress(marketStr)
 		token, _ := util.AddressToToken(tokenAddress)
@@ -187,7 +208,7 @@ type CapProvider_CoinMarketCap struct {
 	idToAddress     map[string]common.Address
 	currency        string
 	duration        int
-	stopChan        chan bool
+	stopFuncs       []func()
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValue(tokenAddress common.Address, amount *big.Rat) (*big.Rat, error) {
@@ -252,19 +273,51 @@ func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.A
 }
 
 func (p *CapProvider_CoinMarketCap) Stop() {
-	p.stopChan <- true
+	for _, f := range p.stopFuncs {
+		f()
+	}
 }
 
 func (p *CapProvider_CoinMarketCap) Start() {
+	stopChan := make(chan bool)
+	p.stopFuncs = append(p.stopFuncs, func() {
+		stopChan <- true
+	})
 	go func() {
 		for {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
-				log.Infof("marketCap sycing...")
-				if err := p.syncMarketCap(); nil != err {
+				log.Debugf("sync marketcap from redis...")
+				if err := p.syncMarketCapFromRedis(); nil != err {
 					log.Errorf("can't sync marketcap, time:%d", time.Now().Unix())
 				}
-			case stopped := <-p.stopChan:
+			case stopped := <-stopChan:
+				if stopped {
+					return
+				}
+			}
+		}
+	}()
+
+	go p.syncMarketCapFromAPIWithZk()
+}
+
+func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
+	//todo:
+	zkInstance, _ := zklock.NewLock(zklock.ZkLockConfig{})
+	zkInstance.TryLock(ZKNAME_COIN_MARKETCAP)
+	stopChan := make(chan bool)
+	p.stopFuncs = append(p.stopFuncs, func() {
+		stopChan <- true
+	})
+
+	go func() {
+		for {
+			select {
+			case <-time.After(time.Duration(p.duration) * time.Minute):
+				log.Debugf("sync marketcap from api...")
+				p.syncMarketCapFromAPI()
+			case stopped := <-stopChan:
 				if stopped {
 					return
 				}
@@ -273,11 +326,12 @@ func (p *CapProvider_CoinMarketCap) Start() {
 	}()
 }
 
-func (p *CapProvider_CoinMarketCap) syncMarketCap() error {
+func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
 	url := fmt.Sprintf(p.baseUrl, p.currency)
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		log.Errorf("err:%s", err.Error())
+		return []byte{}, err
 	}
 	defer func() {
 		if nil != resp && nil != resp.Body {
@@ -286,6 +340,21 @@ func (p *CapProvider_CoinMarketCap) syncMarketCap() error {
 	}()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if nil != err {
+		log.Errorf("err:%s", err.Error())
+		return []byte{}, err
+	}
+	err = cache.Set(CACHEKEY_COIN_MARKETCAP, body, int64((p.duration+1)*60))
+	return body, err
+}
+
+func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
+	//todo:use zk to keep
+	body, err := cache.Get(CACHEKEY_COIN_MARKETCAP)
+	if nil != err {
+		body, err = p.syncMarketCapFromAPI()
+	}
+
 	if nil != err {
 		return err
 	} else {
@@ -335,6 +404,8 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 		//default 5 min
 		provider.duration = 5
 	}
+	provider.stopFuncs = []func(){}
+
 	for _, v := range util.AllTokens {
 		if "ARP" == v.Symbol || "VITE" == v.Symbol {
 			c := &types.CurrencyMarketCap{}
@@ -356,7 +427,7 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 		}
 	}
 
-	if err := provider.syncMarketCap(); nil != err {
+	if err := provider.syncMarketCapFromRedis(); nil != err {
 		log.Fatalf("can't sync marketcap with error:%s", err.Error())
 	}
 

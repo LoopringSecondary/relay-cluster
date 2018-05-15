@@ -19,11 +19,11 @@
 package ordermanager
 
 import (
-	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 )
 
 type CutoffCache struct {
@@ -57,7 +57,8 @@ func (c *CutoffCache) GetCutoff(protocol, owner common.Address) *big.Int {
 		return bytes2value(bs)
 	}
 
-	if cutoff, _ := ethaccessor.GetCutoff(protocol, owner, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
+	var cutoff *big.Int
+	if loopringaccessor.GetCutoff(cutoff, protocol, owner, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
 		c.UpdateCutoff(protocol, owner, cutoff)
 		return cutoff
 	}
@@ -72,7 +73,8 @@ func (c *CutoffCache) GetCutoffPair(protocol, owner, token1, token2 common.Addre
 		return bytes2value(bs)
 	}
 
-	if cutoff, _ := ethaccessor.GetCutoffPair(protocol, owner, token1, token2, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
+	var cutoff *big.Int
+	if loopringaccessor.GetCutoffPair(cutoff, protocol, owner, token1, token2, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
 		c.UpdateCutoffPair(protocol, owner, token1, token2, cutoff)
 		return cutoff
 	}

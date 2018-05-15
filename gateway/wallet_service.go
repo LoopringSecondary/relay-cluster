@@ -21,7 +21,6 @@ package gateway
 import (
 	"encoding/json"
 	"fmt"
-    "github.com/Loopring/accessor/ethaccessor"
     "github.com/Loopring/relay-cluster/dao"
     "github.com/Loopring/relay-cluster/market"
     "github.com/Loopring/relay-cluster/ordermanager"
@@ -41,6 +40,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -79,15 +81,18 @@ type DepthElement struct {
 type OrderBook struct {
 	DelegateAddress string `json:"delegateAddress"`
 	Market          string `json:"market"`
-	Depth           AskBid `json:"depth"`
+	Buy             []OrderBookElement `json:"buy"`
+	Sell            []OrderBookElement `json:"sell"`
 }
 
 type OrderBookElement struct {
 	Price  string   `json:"price"`
 	Size   *big.Rat `json:"size"`
 	Amount *big.Rat `json:"amount"`
+	OrderHash string `json:"orderHash"`
 	LrcFee *big.Rat `json:"lrcFee"`
-	Split
+	SplitS     *big.Rat  `json:"splitS"`
+	SplitB     *big.Rat  `json:"splitB"`
 }
 
 type CommonTokenRequest struct {
@@ -476,7 +481,7 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 }
 
 func (w *WalletServiceImpl) GetOldVersionWethBalance(owner SingleOwner) (res string, err error) {
-	b, err := ethaccessor.Erc20Balance(common.HexToAddress(w.oldWethAddress), common.HexToAddress(owner.Owner), "latest")
+	b, err := loopringaccessor.Erc20Balance(common.HexToAddress(w.oldWethAddress), common.HexToAddress(owner.Owner), "latest")
 	if err != nil {
 		return
 	} else {
@@ -547,7 +552,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	}
 
 	var txHashRst string
-	err = ethaccessor.SendRawTransaction(&txHashRst, p2pRing.RawTx);
+	err = accessor.SendRawTransaction(&txHashRst, p2pRing.RawTx);
 	if err != nil {
 		return res, err
 	}
@@ -630,9 +635,9 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	return depth, err
 }
 
-func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res Depth, err error) {
+func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBook, err error) {
 
-	defaultDepthLength := 10
+	defaultDepthLength := 20
 
 	mkt := strings.ToUpper(query.Market)
 	delegateAddress := query.DelegateAddress
@@ -655,35 +660,34 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res Depth, e
 	for i := range empty {
 		empty[i] = make([]string, 0)
 	}
-	askBid := AskBid{Buy: empty, Sell: empty}
-	depth := Depth{DelegateAddress: delegateAddress, Market: mkt, Depth: askBid}
+	orderbook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell:make([]OrderBookElement, 0)}
 
 	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
 	asks, askErr := w.orderManager.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[a].Protocol,
-		util.AllTokens[b].Protocol, defaultDepthLength*2)
+		util.AllTokens[b].Protocol, defaultDepthLength)
 
 	if askErr != nil {
-		err = errors.New("get depth error , please refresh again")
+		err = errors.New("get ask order error , please refresh again")
 		return
 	}
 
-	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
+	orderbook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
 
 	bids, bidErr := w.orderManager.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[b].Protocol,
-		util.AllTokens[a].Protocol, defaultDepthLength*2)
+		util.AllTokens[a].Protocol, defaultDepthLength)
 
 	if bidErr != nil {
-		err = errors.New("get depth error , please refresh again")
+		err = errors.New("get bid order error , please refresh again")
 		return
 	}
 
-	depth.Depth.Buy = w.calculateDepth(bids, defaultDepthLength, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
+	orderbook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
 
-	return depth, err
+	return orderbook, err
 }
 
 func (w *WalletServiceImpl) GetFills(query FillQuery) (dao.PageResult, error) {
@@ -802,7 +806,8 @@ func (w *WalletServiceImpl) GetBalance(balanceQuery CommonTokenRequest) (res Acc
 }
 
 func (w *WalletServiceImpl) GetCutoff(query CutoffRequest) (result int64, err error) {
-	cutoff, err := ethaccessor.GetCutoff(common.HexToAddress(query.DelegateAddress), common.HexToAddress(query.Address), query.BlockNumber)
+	var cutoff *big.Int
+	err = loopringaccessor.GetCutoff(&cutoff, common.HexToAddress(query.DelegateAddress), common.HexToAddress(query.Address), query.BlockNumber)
 	if err != nil {
 		return 0, err
 	}
@@ -856,7 +861,7 @@ func (w *WalletServiceImpl) GetLooprSupportedTokens() (markets []types.Token, er
 
 func (w *WalletServiceImpl) GetContracts() (contracts map[string][]string, err error) {
 	rst := make(map[string][]string)
-	for k, protocol := range ethaccessor.ProtocolAddresses() {
+	for k, protocol := range loopringaccessor.ProtocolAddresses() {
 		lprP := k.Hex()
 		lprDP := protocol.DelegateAddress.Hex()
 
@@ -955,7 +960,7 @@ func (w *WalletServiceImpl) GetPendingRawTxByHash(query TransactionQuery) (resul
 }
 
 func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
-	return types.BigintToHex(ethaccessor.EstimateGasPrice(nil, nil)), nil
+	return types.BigintToHex(gasprice_evaluator.EstimateGasPrice(nil, nil)), nil
 }
 
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
@@ -1114,6 +1119,43 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 		return depth[:length]
 	}
 	return depth
+}
+
+func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (elements []OrderBookElement, err error) {
+	if len(states) == 0 {
+		return nil, errors.New("orders can't be nil")
+	}
+	elements = make([]OrderBookElement, 0)
+
+	for _, s := range states {
+		o := OrderBookElement{}
+		o.OrderHash = s.RawOrder.Hash.Hex()
+		o.SplitS = new(big.Rat).SetFrac(s.SplitAmountS, tokenSDecimal)
+		o.SplitB = new(big.Rat).SetFrac(s.SplitAmountB, tokenBDecimal)
+		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, big.NewInt(10e18))
+
+		price := *s.RawOrder.Price
+		amountS, amountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal); if err != nil {
+			continue
+		}
+
+		if isAsk {
+			price = *price.Inv(&price)
+			priceFloatStr := price.FloatString(10)
+			o.Price = priceFloatStr
+			o.Amount = amountS
+			o.Size = amountB
+		} else {
+			priceFloatStr := price.FloatString(10)
+			o.Price = priceFloatStr
+			o.Amount = amountB
+			o.Size = amountS
+		}
+
+		elements = append(elements, o)
+	}
+
+	return elements, nil
 }
 
 func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (amountS, amountB *big.Rat, err error) {

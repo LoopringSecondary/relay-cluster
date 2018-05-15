@@ -23,7 +23,6 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
@@ -34,6 +33,8 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 )
 
 func LoadConfig(file string) *GlobalConfig {
@@ -69,8 +70,8 @@ type GlobalConfig struct {
 	GatewayFilters   gateway.GatewayFiltersOptions
 	OrderManager     ordermanager.OrderManagerOptions
 	Gateway          gateway.GateWayOptions
-	Accessor         ethaccessor.AccessorOptions
-	LoopringProtocol ethaccessor.LoopringProtocolOptions
+	Accessor         accessor.AccessorOptions
+	LoopringProtocol loopringaccessor.LoopringProtocolOptions
 	Log              LogOptions
 	Keystore         KeyStoreOptions
 	Market           util.MarketOptions
