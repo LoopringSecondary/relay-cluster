@@ -76,6 +76,20 @@ type DepthElement struct {
 	Amount *big.Rat `json:"amount"`
 }
 
+type OrderBook struct {
+	DelegateAddress string `json:"delegateAddress"`
+	Market          string `json:"market"`
+	Depth           AskBid `json:"depth"`
+}
+
+type OrderBookElement struct {
+	Price  string   `json:"price"`
+	Size   *big.Rat `json:"size"`
+	Amount *big.Rat `json:"amount"`
+	LrcFee *big.Rat `json:"lrcFee"`
+	Split
+}
+
 type CommonTokenRequest struct {
 	DelegateAddress string `json:"delegateAddress"`
 	Owner           string `json:"owner"`
@@ -506,7 +520,8 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New("only p2p order can be submitted")
 	}
 
-	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash)); if err != nil {
+	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash));
+	if err != nil {
 		return res, err
 	}
 
@@ -526,23 +541,96 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New("maker order has been locked by other taker or expired")
 	}
 
-	takerOrderHash, err := HandleInputOrder(types.ToOrder(p2pRing.Taker)); if err != nil {
+	takerOrderHash, err := HandleInputOrder(types.ToOrder(p2pRing.Taker));
+	if err != nil {
 		return res, err
 	}
 
 	var txHashRst string
-	err = ethaccessor.SendRawTransaction(&txHashRst, p2pRing.RawTx); if err != nil {
+	err = ethaccessor.SendRawTransaction(&txHashRst, p2pRing.RawTx);
+	if err != nil {
 		return res, err
 	}
 
-	err = ordermanager.SaveP2POrderRelation(p2pRing.Taker.Owner.Hex(), takerOrderHash, maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst); if err != nil {
+	err = ordermanager.SaveP2POrderRelation(p2pRing.Taker.Owner.Hex(), takerOrderHash, maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst);
+	if err != nil {
 		return res, err
 	}
 
 	return txHashRst, nil
 }
 
+func (w *WalletServiceImpl) GetLatestOrders(query *OrderQuery) (res []OrderJsonResult, err error) {
+	orderQuery, _, _, _  := convertFromQuery(query)
+	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
+	if err != nil {
+		return res, err
+	}
+
+	res = make([]OrderJsonResult, 0)
+	for _, d := range queryRst {
+		res = append(res, orderStateToJson(d))
+	}
+	return res, err
+}
+
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
+
+	defaultDepthLength := 10
+
+	mkt := strings.ToUpper(query.Market)
+	delegateAddress := query.DelegateAddress
+
+	if mkt == "" || !common.IsHexAddress(delegateAddress) {
+		err = errors.New("market and correct contract address must be applied")
+		return
+	}
+
+	a, b := util.UnWrap(mkt)
+
+	_, err = util.WrapMarket(a, b)
+	if err != nil {
+		err = errors.New("unsupported market type")
+		return
+	}
+
+	empty := make([][]string, 0)
+
+	for i := range empty {
+		empty[i] = make([]string, 0)
+	}
+	askBid := AskBid{Buy: empty, Sell: empty}
+	depth := Depth{DelegateAddress: delegateAddress, Market: mkt, Depth: askBid}
+
+	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
+	asks, askErr := w.orderManager.GetOrderBook(
+		common.HexToAddress(delegateAddress),
+		util.AllTokens[a].Protocol,
+		util.AllTokens[b].Protocol, defaultDepthLength*2)
+
+	if askErr != nil {
+		err = errors.New("get depth error , please refresh again")
+		return
+	}
+
+	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
+
+	bids, bidErr := w.orderManager.GetOrderBook(
+		common.HexToAddress(delegateAddress),
+		util.AllTokens[b].Protocol,
+		util.AllTokens[a].Protocol, defaultDepthLength*2)
+
+	if bidErr != nil {
+		err = errors.New("get depth error , please refresh again")
+		return
+	}
+
+	depth.Depth.Buy = w.calculateDepth(bids, defaultDepthLength, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
+
+	return depth, err
+}
+
+func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res Depth, err error) {
 
 	defaultDepthLength := 10
 
@@ -970,57 +1058,12 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 
 	for _, s := range states {
 
-		//log.Infof("handle order ....... %s", s.RawOrder.Hash.Hex())
-
 		price := *s.RawOrder.Price
-		amountS, amountB := s.RemainedAmount()
-		amountS = amountS.Quo(amountS, new(big.Rat).SetFrac(tokenSDecimal, big.NewInt(1)))
-		amountB = amountB.Quo(amountB, new(big.Rat).SetFrac(tokenBDecimal, big.NewInt(1)))
+		minAmountS, minAmountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)
 
-		if amountS.Cmp(new(big.Rat).SetFloat64(0)) == 0 {
-			log.Debug("amount s is zero, skipped")
-			continue
-		}
-
-		if amountB.Cmp(new(big.Rat).SetFloat64(0)) == 0 {
-			log.Debug("amount b is zero, skipped")
-			continue
-		}
-
-		minAmountB := amountB
-		minAmountS := amountS
-		var err error
-
-		minAmountS, err = w.getAvailableMinAmount(amountS, s.RawOrder.Owner, s.RawOrder.TokenS, s.RawOrder.DelegateAddress, tokenSDecimal)
 		if err != nil {
-			//log.Debug(err.Error())
+			log.Errorf("calculate min amount error " + err.Error())
 			continue
-		}
-
-		sellPrice := new(big.Rat).SetFrac(s.RawOrder.AmountS, s.RawOrder.AmountB)
-		buyPrice := new(big.Rat).SetFrac(s.RawOrder.AmountB, s.RawOrder.AmountS)
-		if s.RawOrder.BuyNoMoreThanAmountB {
-			//log.Info("order BuyNoMoreThanAmountB is true")
-			//log.Infof("amount s is %s", minAmountS)
-			//log.Infof("amount b is %s", minAmountB)
-			//log.Infof("sellprice is %s", sellPrice.String())
-			limitedAmountS := new(big.Rat).Mul(minAmountB, sellPrice)
-			//log.Infof("limit amount s is %s", limitedAmountS)
-			if limitedAmountS.Cmp(minAmountS) < 0 {
-				minAmountS = limitedAmountS
-			}
-
-			minAmountB = minAmountB.Mul(minAmountS, buyPrice)
-		} else {
-			//log.Infof("amount s is %s", minAmountS)
-			//log.Infof("amount b is %s", minAmountB)
-			//log.Infof("buyprice is %s", buyPrice.String())
-			limitedAmountB := new(big.Rat).Mul(minAmountS, buyPrice)
-			//log.Infof("limit amount b is %s", limitedAmountB)
-			if limitedAmountB.Cmp(minAmountB) < 0 {
-				minAmountB = limitedAmountB
-			}
-			minAmountS = minAmountS.Mul(minAmountB, sellPrice)
 		}
 
 		if isAsk {
@@ -1071,6 +1114,50 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 		return depth[:length]
 	}
 	return depth
+}
+
+func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (amountS, amountB *big.Rat, err error) {
+
+	amountS, amountB = state.RemainedAmount()
+	amountS = amountS.Quo(amountS, new(big.Rat).SetFrac(tokenSDecimal, big.NewInt(1)))
+	amountB = amountB.Quo(amountB, new(big.Rat).SetFrac(tokenBDecimal, big.NewInt(1)))
+
+	if amountS.Cmp(new(big.Rat).SetFloat64(0)) == 0 {
+		log.Debug("amount s is zero, skipped")
+		return nil, nil, errors.New("amount s is zero")
+	}
+
+	if amountB.Cmp(new(big.Rat).SetFloat64(0)) == 0 {
+		log.Debug("amount b is zero, skipped")
+		return nil, nil, errors.New("amount b is zero")
+	}
+
+	minAmountB := amountB
+	minAmountS := amountS
+
+	minAmountS, err = w.getAvailableMinAmount(amountS, state.RawOrder.Owner, state.RawOrder.TokenS, state.RawOrder.DelegateAddress, tokenSDecimal)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sellPrice := new(big.Rat).SetFrac(state.RawOrder.AmountS, state.RawOrder.AmountB)
+	buyPrice := new(big.Rat).SetFrac(state.RawOrder.AmountB, state.RawOrder.AmountS)
+	if state.RawOrder.BuyNoMoreThanAmountB {
+		limitedAmountS := new(big.Rat).Mul(minAmountB, sellPrice)
+		if limitedAmountS.Cmp(minAmountS) < 0 {
+			minAmountS = limitedAmountS
+		}
+
+		minAmountB = minAmountB.Mul(minAmountS, buyPrice)
+	} else {
+		limitedAmountB := new(big.Rat).Mul(minAmountS, buyPrice)
+		if limitedAmountB.Cmp(minAmountB) < 0 {
+			minAmountB = limitedAmountB
+		}
+		minAmountS = minAmountS.Mul(minAmountB, sellPrice)
+	}
+
+	return minAmountS, minAmountB, nil
 }
 
 func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, token, spender common.Address, decimal *big.Int) (amount *big.Rat, err error) {

@@ -61,12 +61,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Origin = OriginList[0]
 	}
 	w.Header().Add("Access-Control-Allow-Origin", Origin)
-	//w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8000")
 	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	//w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Headers", "accept, origin, content-type")
 	w.Header().Add("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-	//w.Header().Add("Content-Type", "application/json;charset=utf-8")
 	s.Server.ServeHTTP(w, r)
 }
 
@@ -89,6 +86,8 @@ const (
 	eventKeyPendingTx   = "pendingTx"
 	eventKeyDepth       = "depth"
 	eventKeyTrades      = "trades"
+	eventKeyMarketOrders      = "marketOrders"
+	eventKeyP2POrders      = "p2pOrders"
 )
 
 var EventTypeRoute = map[string]InvokeInfo{
@@ -116,6 +115,8 @@ var EventTypeRoute = map[string]InvokeInfo{
 	eventKeyPendingTx:   {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 	eventKeyDepth:       {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 	eventKeyTrades:      {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyMarketOrders:      {"GetLatestOrders", OrderQuery{} , false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyP2POrders:      {"GetLatestOrders", OrderQuery{} , false, emitTypeByEvent, DefaultCronSpec10Second},
 }
 
 type SocketIOService interface {
@@ -272,7 +273,6 @@ func (so *SocketIOServiceImpl) Start() {
 	http.Handle("/socket.io/", NewServer(*server))
 	log.Info("Serving at localhost: " + so.port)
 	log.Fatal(http.ListenAndServe(":"+so.port, nil).Error())
-	log.Info("finished listen socket io....")
 
 }
 

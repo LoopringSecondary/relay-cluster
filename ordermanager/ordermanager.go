@@ -37,6 +37,7 @@ type OrderManager interface {
 	MinerOrders(protocol, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState
 	GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error)
 	GetOrders(query map[string]interface{}, statusList []types.OrderStatus, pageIndex, pageSize int) (dao.PageResult, error)
+	GetLatestOrders(query map[string]interface{}, length int) ([]types.OrderState, error)
 	GetOrderByHash(hash common.Hash) (*types.OrderState, error)
 	UpdateBroadcastTimeByHash(hash common.Hash, bt int) error
 	FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (dao.PageResult, error)
@@ -530,6 +531,24 @@ func (om *OrderManagerImpl) GetOrders(query map[string]interface{}, statusList [
 		pageRes.Data = append(pageRes.Data, state)
 	}
 	return pageRes, nil
+}
+
+func (om *OrderManagerImpl) GetLatestOrders(query map[string]interface{}, length int) (rst []types.OrderState, err error) {
+	tmp, err := om.rds.GetLatestOrders(query, length); if err != nil {
+		return nil, err
+	}
+
+	rst = make([]types.OrderState, 0)
+
+	for _, v := range tmp {
+		var state types.OrderState
+		if err := v.ConvertUp(&state); err != nil {
+			log.Debug("convertUp error occurs " + err.Error())
+			continue
+		}
+		rst = append(rst, state)
+	}
+	return rst, nil
 }
 
 func (om *OrderManagerImpl) GetOrderByHash(hash common.Hash) (orderState *types.OrderState, err error) {
