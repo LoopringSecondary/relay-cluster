@@ -33,6 +33,7 @@ import (
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
 	"time"
+	"github.com/Loopring/accessor/ethaccessor"
 )
 
 type Gateway struct {
@@ -223,6 +224,10 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		addrLength = 20
 		hashLength = 32
 	)
+
+	if !ethaccessor.IsRelateProtocol(o.Protocol, o.DelegateAddress) {
+		return false, fmt.Errorf("protocol and Delegate are not matched")
+	}
 
 	if o.TokenB != util.AliasToAddress("LRC") {
 		balances, err := gateway.am.GetBalanceWithSymbolResult(o.Owner)
