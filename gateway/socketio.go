@@ -36,6 +36,8 @@ const (
 const (
 	emitTypeByEvent = 1
 	emitTypeByCron  = 2
+	priceQuoteCNY   = "CNY"
+	priceQuoteUSD   = "USD"
 )
 
 type Server struct {
@@ -80,21 +82,21 @@ const (
 	eventKeyTickers         = "tickers"
 	eventKeyLoopringTickers = "loopringTickers"
 	eventKeyTrends          = "trends"
-	eventKeyPortfolio       = "portfolio"
-	eventKeyMarketCap       = "marketcap"
-	eventKeyBalance         = "balance"
-	eventKeyTransaction     = "transaction"
-	eventKeyPendingTx       = "pendingTx"
-	eventKeyDepth           = "depth"
-	eventKeyTrades          = "trades"
+	//eventKeyPortfolio       = "portfolio"
+	eventKeyMarketCap   = "marketcap"
+	eventKeyBalance     = "balance"
+	eventKeyTransaction = "transaction"
+	eventKeyPendingTx   = "pendingTx"
+	eventKeyDepth       = "depth"
+	eventKeyTrades      = "trades"
 )
 
 var EventTypeRoute = map[string]InvokeInfo{
 	//eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec3Second},
 	//eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec3Second},
 	//eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec3Second},
-	//// portfolio has been remove from loopr2
-	//// eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+	// portfolio has been remove from loopr2
+	// eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec3Second},
 	//eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByCron, DefaultCronSpec3Second},
 	//eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
 	//eventKeyBalance:         {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec3Second},
@@ -107,7 +109,7 @@ var EventTypeRoute = map[string]InvokeInfo{
 	eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 	// portfolio has been remove from loopr2
 	// eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec3Second},
-	eventKeyPortfolio:   {"GetPortfolio", SingleOwner{}, false, emitTypeByCron, DefaultCronSpec3Second},
+	//eventKeyPortfolio:   {"GetPortfolio", SingleOwner{}, false, emitTypeByCron, DefaultCronSpec3Second},
 	eventKeyMarketCap:   {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
 	eventKeyBalance:     {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 	eventKeyTransaction: {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
@@ -202,30 +204,17 @@ func (so *SocketIOServiceImpl) Start() {
 		copyOfK := k
 		spec := events.spec
 
-		//if events.emitType != emitTypeByCron {
-		//	log.Infof("no cron emit type %d ", events.emitType)
-		//	continue
-		//}
-
 		switch k {
 		case eventKeyTickers:
-			so.cron.AddFunc(spec, func() {
-				so.broadcastTpTickers(nil)
-			})
+			so.cron.AddFunc(spec, func() { so.broadcastTpTickers(nil) })
 		case eventKeyLoopringTickers:
-			so.cron.AddFunc(spec, func() {
-				so.broadcastLoopringTicker(nil)
-			})
+			so.cron.AddFunc(spec, func() { so.broadcastLoopringTicker(nil) })
 		case eventKeyDepth:
-			so.cron.AddFunc(spec, func() {
-				//log.Info("start depth broadcast")
-				so.broadcastDepth(nil)
-			})
+			so.cron.AddFunc(spec, func() { so.broadcastDepth(nil) })
 		case eventKeyTrades:
-			so.cron.AddFunc(spec, func() {
-				//log.Info("start trades broadcast")
-				so.broadcastTrades(nil)
-			})
+			so.cron.AddFunc(spec, func() { so.broadcastTrades(nil) })
+		case eventKeyMarketCap:
+			so.cron.AddFunc(spec, func() { so.broadcastMarketCap(nil) })
 		default:
 			log.Infof("add cron emit %d ", events.emitType)
 			so.cron.AddFunc(spec, func() {
@@ -338,7 +327,6 @@ func (so *SocketIOServiceImpl) handleAfterEmit(eventType string, query interface
 
 func (so *SocketIOServiceImpl) broadcastTpTickers(input eventemitter.EventData) (err error) {
 
-	//log.Infof("[SOCKETIO-RECEIVE-EVENT] tickers input. %s", input)
 	mkts, _ := so.walletService.GetSupportedMarket()
 
 	tickerMap := make(map[string]SocketIOJsonResp)
@@ -488,6 +476,45 @@ func (so *SocketIOServiceImpl) broadcastTrades(input eventemitter.EventData) (er
 		return true
 	})
 	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastMarketCap(input eventemitter.EventData) (err error) {
+
+	cnyResp := so.getPriceQuoteResp(priceQuoteCNY)
+	usdResp := so.getPriceQuoteResp(priceQuoteUSD)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyMarketCap]
+			if ok {
+				query := &PriceQuoteQuery{}
+				err := json.Unmarshal([]byte(ctx), query)
+				if err == nil && strings.ToLower(priceQuoteCNY) == strings.ToLower(query.Currency) {
+					v.Emit(eventKeyMarketCap+EventPostfixRes, cnyResp)
+				} else if err == nil && strings.ToLower(priceQuoteUSD) == strings.ToLower(query.Currency) {
+					v.Emit(eventKeyMarketCap+EventPostfixRes, usdResp)
+				}
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) getPriceQuoteResp(currency string) string {
+	resp := SocketIOJsonResp{}
+
+	price, err := so.walletService.GetPriceQuote(PriceQuoteQuery{Currency: currency})
+	if err != nil {
+		log.Debug("query cny price error")
+		resp.Data = price
+	} else {
+		resp = SocketIOJsonResp{Error: err.Error()}
+	}
+	respJson, _ := json.Marshal(resp)
+	return string(respJson)
 }
 
 func (so *SocketIOServiceImpl) getConnectedMarketForDepth() map[string]bool {
