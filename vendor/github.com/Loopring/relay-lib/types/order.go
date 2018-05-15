@@ -19,8 +19,8 @@
 package types
 
 import (
-	"fmt"
-	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay/crypto"
+	"github.com/Loopring/relay/log"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
@@ -37,8 +37,12 @@ const (
 	ORDER_CUTOFF   OrderStatus = 5
 	ORDER_EXPIRE   OrderStatus = 6
 	ORDER_PENDING  OrderStatus = 7
+	ORDER_PENDING_FOR_P2P  OrderStatus = 17
 	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 7
 	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 8
+
+	ORDER_TYPE_MARKET = "market_order"
+	ORDER_TYPE_P2P = "p2p_order"
 )
 
 //go:generate gencodec -type Order -field-override orderMarshaling -out gen_order_json.go
@@ -67,6 +71,7 @@ type Order struct {
 	CreateTime            int64                      `json:"createTime"`
 	PowNonce              uint64                     `json:"powNonce"`
 	Side                  string                     `json:"side"`
+	OrderType             string                     `json:"orderType"`
 }
 
 type orderMarshaling struct {
@@ -84,7 +89,7 @@ type OrderJsonRequest struct {
 	TokenS          common.Address             `json:"tokenS" gencodec:"required"`          // 卖出erc20代币智能合约地址
 	TokenB          common.Address             `json:"tokenB" gencodec:"required"`          // 买入erc20代币智能合约地址
 	AuthAddr        common.Address             `json:"authAddr" gencodec:"required"`        //
-	AuthPrivateKey  crypto.EthPrivateKeyCrypto `json:"authPrivateKey" gencodec:"required"`  //
+	AuthPrivateKey  crypto.EthPrivateKeyCrypto `json:"authPrivateKey"`  //
 	WalletAddress   common.Address             `json:"walletAddress" gencodec:"required"`
 	AmountS         *big.Int                   `json:"amountS" gencodec:"required"`    // 卖出erc20代币数量上限
 	AmountB         *big.Int                   `json:"amountB" gencodec:"required"`    // 买入erc20代币数量上限
@@ -103,6 +108,7 @@ type OrderJsonRequest struct {
 	CreateTime            int64          `json:"createTime"`
 	PowNonce              uint64         `json:"powNonce"`
 	Side                  string         `json:"side"`
+	OrderType             string         `json:"orderType"`
 }
 
 type orderJsonRequestMarshaling struct {
@@ -170,7 +176,8 @@ func (o *Order) SignerAddress() (common.Address, error) {
 	sig, _ := crypto.VRSToSig(o.V, o.R.Bytes(), o.S.Bytes())
 
 	if addressBytes, err := crypto.SigToAddress(o.Hash.Bytes(), sig); nil != err {
-		return *address, fmt.Errorf("type,order signer address error:%s", err.Error())
+		log.Errorf("type,order signer address error:%s", err.Error())
+		return *address, err
 	} else {
 		address.SetBytes(addressBytes)
 		return *address, nil
@@ -290,7 +297,9 @@ func (ord *OrderState) IsExpired() bool {
 }
 
 func (ord *OrderState) IsEffective() bool {
-	if (ord.Status == ORDER_NEW || ord.Status == ORDER_PARTIAL) && ord.RawOrder.ValidSince.Int64() >= time.Now().Unix() {
+	if (ord.Status == ORDER_NEW || ord.Status == ORDER_PARTIAL) &&
+		ord.RawOrder.ValidSince.Int64() <= time.Now().Unix() &&
+		ord.RawOrder.ValidUntil.Int64() > time.Now().Unix() {
 		return true
 	}
 	return false
@@ -306,6 +315,19 @@ func (ord *OrderState) ResolveStatus(allowance, balance *big.Int) {
 		ord.Status = ORDER_EXPIRE
 		return
 	}
+
+	//cancelOrFilled := new(big.Int).Add(ord.CancelledAmountS, ord.DealtAmountS)
+	//finished := new(big.Int).Add(cancelOrFilled, ord.SplitAmountS)
+
+	//if finished.Cmp(allowance) >= 0 {
+	//	ord.Status = ORDER_ALLOWANCE_INSUFFICIENT
+	//	return
+	//}
+	//
+	//if finished.Cmp(balance) >= 0 {
+	//	ord.Status = ORDER_BALANCE_INSUFFICIENT
+	//	return
+	//}
 }
 
 //const (
@@ -391,5 +413,6 @@ func ToOrder(request *OrderJsonRequest) *Order {
 	order.Owner = request.Owner
 	order.WalletAddress = request.WalletAddress
 	order.PowNonce = request.PowNonce
+	order.OrderType = request.OrderType
 	return order
 }

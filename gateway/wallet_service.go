@@ -21,19 +21,19 @@ package gateway
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Loopring/accessor/ethaccessor"
-	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/market"
-	"github.com/Loopring/relay-cluster/ordermanager"
-	"github.com/Loopring/relay-cluster/txmanager"
-	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
-	"github.com/Loopring/relay-lib/cache"
-	ethtyp "github.com/Loopring/relay-lib/eth/types"
-	"github.com/Loopring/relay-lib/eventemitter"
-	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
-	util "github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/relay-lib/types"
+    "github.com/Loopring/accessor/ethaccessor"
+    "github.com/Loopring/relay-cluster/dao"
+    "github.com/Loopring/relay-cluster/market"
+    "github.com/Loopring/relay-cluster/ordermanager"
+    "github.com/Loopring/relay-cluster/txmanager"
+    txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+    "github.com/Loopring/relay-lib/cache"
+    ethtyp "github.com/Loopring/relay-lib/eth/types"
+    "github.com/Loopring/relay-lib/eventemitter"
+    "github.com/Loopring/relay-lib/log"
+    "github.com/Loopring/relay-lib/marketcap"
+    util "github.com/Loopring/relay-lib/marketutil"
+    "github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
@@ -148,6 +148,7 @@ type OrderQuery struct {
 	Market          string `json:"market"`
 	OrderHash       string `json:"orderHash"`
 	Side            string `json:"side"`
+	OrderType       string `json:"orderType"`
 }
 
 type DepthQuery struct {
@@ -164,6 +165,7 @@ type FillQuery struct {
 	PageIndex       int    `json:"pageIndex"`
 	PageSize        int    `json:"pageSize"`
 	Side            string `json:"side"`
+	OrderType       string `json:"orderType"`
 }
 
 type RingMinedQuery struct {
@@ -198,6 +200,7 @@ type RawOrderJsonResult struct {
 	Market                string `json:"market"`
 	Side                  string `json:"side"`
 	CreateTime            int64  `json:"createTime"`
+	OrderType             string `json:"orderType"`
 }
 
 type OrderJsonResult struct {
@@ -259,6 +262,15 @@ type LatestFill struct {
 	Amount     float64 `json:"amount"`
 	Side       string  `json:"side"`
 	RingHash   string  `json:"ringHash"`
+	LrcFee     string  `json:"lrcFee"`
+	SplitS     string  `json:"splitS"`
+	SplitB     string  `json:"splitB"`
+}
+
+type P2PRingRequest struct {
+	RawTx  string  `json:"rawTx"`
+	Taker  *types.OrderJsonRequest `json:"taker"`
+	MakerOrderHash string `json:"makerOrderHash"`
 }
 
 type WalletServiceImpl struct {
@@ -459,6 +471,11 @@ func (w *WalletServiceImpl) GetOldVersionWethBalance(owner SingleOwner) (res str
 }
 
 func (w *WalletServiceImpl) SubmitOrder(order *types.OrderJsonRequest) (res string, err error) {
+
+	if order.OrderType != types.ORDER_TYPE_MARKET && order.OrderType != types.ORDER_TYPE_P2P {
+		order.OrderType = types.ORDER_TYPE_MARKET
+	}
+
 	return HandleInputOrder(types.ToOrder(order))
 }
 
@@ -466,9 +483,63 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 	orderQuery, statusList, pi, ps := convertFromQuery(query)
 	queryRst, err := w.orderManager.GetOrders(orderQuery, statusList, pi, ps)
 	if err != nil {
-		fmt.Println(err)
+		log.Info("query order error : " + err.Error())
 	}
 	return buildOrderResult(queryRst), err
+}
+
+func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
+	if len(query.OrderHash) == 0 {
+		return order, errors.New("order hash can't be null")
+	} else {
+		state, err := w.orderManager.GetOrderByHash(common.HexToHash(query.OrderHash)); if err != nil {
+			return order, err
+		} else {
+			return orderStateToJson(*state), err
+		}
+	}
+}
+
+func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
+
+	if p2pRing.Taker.OrderType != types.ORDER_TYPE_P2P {
+		return res, errors.New("only p2p order can be submitted")
+	}
+
+	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash)); if err != nil {
+		return res, err
+	}
+
+	if !maker.IsEffective() {
+		return res, errors.New("maker order has been finished, can't be match ring again")
+	}
+
+	if p2pRing.Taker.AmountS.Cmp(maker.RawOrder.AmountB) != 0 || p2pRing.Taker.AmountB.Cmp(maker.RawOrder.AmountS) != 0 {
+		return res, errors.New("the amount of maker and taker are not matched")
+	}
+
+	if p2pRing.Taker.Owner.Hex() == maker.RawOrder.Owner.Hex() {
+		return res, errors.New("taker and maker's address can't be same")
+	}
+
+	if ordermanager.IsP2PMakerLocked(maker.RawOrder.Hash.Hex()) {
+		return res, errors.New("maker order has been locked by other taker or expired")
+	}
+
+	takerOrderHash, err := HandleInputOrder(types.ToOrder(p2pRing.Taker)); if err != nil {
+		return res, err
+	}
+
+	var txHashRst string
+	err = ethaccessor.SendRawTransaction(&txHashRst, p2pRing.RawTx); if err != nil {
+		return res, err
+	}
+
+	err = ordermanager.SaveP2POrderRelation(p2pRing.Taker.Owner.Hex(), takerOrderHash, maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst); if err != nil {
+		return res, err
+	}
+
+	return txHashRst, nil
 }
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
@@ -552,6 +623,7 @@ func (w *WalletServiceImpl) GetFills(query FillQuery) (dao.PageResult, error) {
 }
 
 func (w *WalletServiceImpl) GetLatestFills(query FillQuery) ([]LatestFill, error) {
+
 	rst := make([]LatestFill, 0)
 	fillQuery, _, _ := fillQueryToMap(query)
 	res, err := w.orderManager.GetLatestFills(fillQuery, 40)
@@ -653,6 +725,7 @@ func (w *WalletServiceImpl) GetEstimatedAllocatedAllowance(query EstimatedAlloca
 	statusSet := make([]types.OrderStatus, 0)
 	statusSet = append(statusSet, types.ORDER_NEW)
 	statusSet = append(statusSet, types.ORDER_PARTIAL)
+	statusSet = append(statusSet, types.ORDER_PENDING_FOR_P2P)
 
 	token := query.Token
 	owner := query.Owner
@@ -673,6 +746,7 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	statusSet := make([]types.OrderStatus, 0)
 	statusSet = append(statusSet, types.ORDER_NEW)
 	statusSet = append(statusSet, types.ORDER_PARTIAL)
+	statusSet = append(statusSet, types.ORDER_PENDING_FOR_P2P)
 
 	owner := query.Owner
 
@@ -819,6 +893,12 @@ func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, sta
 		query["order_hash"] = orderQuery.OrderHash
 	}
 
+	if orderQuery.OrderType == types.ORDER_TYPE_MARKET || orderQuery.OrderType == types.ORDER_TYPE_P2P {
+		query["order_type"] = orderQuery.OrderType
+	} else {
+		query["order_type"] = types.ORDER_TYPE_MARKET
+	}
+
 	pageIndex = orderQuery.PageIndex
 	pageSize = orderQuery.PageSize
 	return
@@ -852,7 +932,7 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_EXPIRE"
 	}
 
-	if order.IsExpired() {
+	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && ordermanager.IsP2PMakerLocked(order.RawOrder.Hash.Hex()) {
 		return "ORDER_PENDING"
 	}
 
@@ -1059,6 +1139,12 @@ func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {
 		rst["side"] = q.Side
 	}
 
+	if q.OrderType == types.ORDER_TYPE_MARKET || q.OrderType == types.ORDER_TYPE_P2P {
+		rst["order_type"] = q.OrderType
+	} else {
+		rst["order_type"] = types.ORDER_TYPE_MARKET
+	}
+
 	return rst, pi, ps
 }
 
@@ -1125,12 +1211,13 @@ func orderStateToJson(src types.OrderState) OrderJsonResult {
 	rawOrder.R = src.RawOrder.R.Hex()
 	rawOrder.S = src.RawOrder.S.Hex()
 	rawOrder.WalletAddress = src.RawOrder.WalletAddress.Hex()
-	rawOrder.AuthAddr = src.RawOrder.AuthPrivateKey.Address().Hex()
+	rawOrder.AuthAddr = src.RawOrder.AuthAddr.Hex()
 	rawOrder.Market = src.RawOrder.Market
 	auth, _ := src.RawOrder.AuthPrivateKey.MarshalText()
 	rawOrder.AuthPrivateKey = string(auth)
 	rawOrder.CreateTime = src.RawOrder.CreateTime
 	rawOrder.Side = src.RawOrder.Side
+	rawOrder.OrderType = src.RawOrder.OrderType
 	rst.RawOrder = rawOrder
 	return rst
 }
@@ -1267,6 +1354,9 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 	rst.Price, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
 	rst.Side = f.Side
 	rst.RingHash = f.RingHash
+	rst.LrcFee = f.LrcFee
+	rst.SplitS = f.SplitS
+	rst.SplitB = f.SplitB
 	var amount float64
 	if util.GetSide(f.TokenS, f.TokenB) == util.SideBuy {
 		amountB, _ := new(big.Int).SetString(f.AmountB, 0)
@@ -1288,4 +1378,8 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 		rst.Amount, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", amount), 64)
 	}
 	return rst, nil
+}
+
+func saveMatchedRelation(takerOrderHash, makerOrderHash, ringTxHash string) (err error) {
+	return nil
 }
