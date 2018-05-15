@@ -20,7 +20,7 @@ package dao
 
 import (
 	"fmt"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
