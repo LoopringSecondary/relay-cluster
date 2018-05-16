@@ -7,12 +7,13 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/Loopring/relay/crypto"
+	"github.com/Loopring/relay-lib/crypto"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ = (*orderMarshaling)(nil)
 
+// MarshalJSON marshals as JSON.
 func (o Order) MarshalJSON() ([]byte, error) {
 	type Order struct {
 		Protocol              common.Address             `json:"protocol" gencodec:"required"`
@@ -70,6 +71,7 @@ func (o Order) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (o *Order) UnmarshalJSON(input []byte) error {
 	type Order struct {
 		Protocol              *common.Address             `json:"protocol" gencodec:"required"`

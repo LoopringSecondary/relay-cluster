@@ -20,10 +20,10 @@ package gateway
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
-	"qiniupkg.com/x/errors.v7"
 	"strconv"
 	"time"
 )

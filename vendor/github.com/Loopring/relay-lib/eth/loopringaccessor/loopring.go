@@ -39,7 +39,7 @@ type LoopringParams struct {
 	DelegateAddresses map[common.Address]bool
 }
 
-func InitLoopringParams(options LoopringProtocolOptions) error {
+func InitLoopringAccessor(options LoopringProtocolOptions) error {
 	if !accessor.IsInit() {
 		log.Fatalf("must init accessor first")
 	}
@@ -59,7 +59,11 @@ func InitLoopringParams(options LoopringProtocolOptions) error {
 
 	if "" == options.ImplAbi {
 		//todo:
-		options.ImplAbi, _ = abiStrFromEthscan(options.Address)
+		for _,address := range options.Address {
+			data,_ := abiStrFromEthscan(common.HexToAddress(address))
+			options.ImplAbi = string(data)
+			break
+		}
 	}
 
 	if protocolImplAbi, err := abi.New(options.ImplAbi); nil != err {
@@ -103,7 +107,8 @@ func InitLoopringParams(options LoopringProtocolOptions) error {
 	if "" == options.DelegateAbi {
 		for _, impl := range loopringParams.ProtocolAddresses {
 			//todo:error
-			options.DelegateAbi, _ = abiStrFromEthscan(impl.DelegateAddress)
+			data,_ := abiStrFromEthscan(impl.DelegateAddress)
+			options.DelegateAbi = string(data)
 			break
 		}
 	}
@@ -115,7 +120,8 @@ func InitLoopringParams(options LoopringProtocolOptions) error {
 
 	if "" == options.TokenRegistryAbi {
 		for _, impl := range loopringParams.ProtocolAddresses {
-			options.TokenRegistryAbi, _ = abiStrFromEthscan(impl.TokenRegistryAddress)
+			data,_ := abiStrFromEthscan(impl.TokenRegistryAddress)
+			options.TokenRegistryAbi = string(data)
 			break
 		}
 	}

@@ -21,10 +21,11 @@ package gateway
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"errors"
 	"fmt"
-	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
@@ -32,7 +33,6 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"qiniupkg.com/x/errors.v7"
 	"time"
 )
 
@@ -225,7 +225,7 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		hashLength = 32
 	)
 
-	if !ethaccessor.IsRelateProtocol(o.Protocol, o.DelegateAddress) {
+	if !loopringaccessor.IsRelateProtocol(o.Protocol, o.DelegateAddress) {
 		return false, fmt.Errorf("protocol and Delegate are not matched")
 	}
 

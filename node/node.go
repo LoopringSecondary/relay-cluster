@@ -22,7 +22,6 @@ import (
 	"sync"
 
 	"fmt"
-	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
@@ -31,6 +30,9 @@ import (
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -100,7 +102,7 @@ func (n *Node) Start() {
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
-	go ethaccessor.IncludeGasPriceEvaluator()
+	go gasprice_evaluator.InitGasPriceEvaluator()
 }
 
 func (n *Node) Wait() {
@@ -129,7 +131,8 @@ func (n *Node) registerMysql() {
 }
 
 func (n *Node) registerAccessor() {
-	err := ethaccessor.Initialize(n.globalConfig.Accessor, n.globalConfig.LoopringProtocol, util.WethTokenAddress())
+	err := accessor.Initialize(n.globalConfig.Accessor)
+	err = loopringaccessor.InitLoopringAccessor(n.globalConfig.LoopringProtocol)
 	if nil != err {
 		log.Fatalf("err:%s", err.Error())
 	}

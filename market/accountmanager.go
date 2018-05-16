@@ -21,8 +21,9 @@ package market
 import (
 	"encoding/json"
 	"errors"
-	"github.com/Loopring/accessor/ethaccessor"
 	rcache "github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -76,23 +77,23 @@ func parseCacheField(field []byte) common.Address {
 }
 
 //todo:tokens
-func (b AccountBalances) batchReqs(tokens ...common.Address) ethaccessor.BatchBalanceReqs {
-	reqs := ethaccessor.BatchBalanceReqs{}
+func (b AccountBalances) batchReqs(tokens ...common.Address) loopringaccessor.BatchBalanceReqs {
+	reqs := loopringaccessor.BatchBalanceReqs{}
 	for _, token := range util.AllTokens {
-		req := &ethaccessor.BatchBalanceReq{}
+		req := &loopringaccessor.BatchBalanceReq{}
 		req.BlockParameter = "latest"
 		req.Token = token.Protocol
 		req.Owner = b.Owner
 		reqs = append(reqs, req)
 	}
 	for _, token := range b.CustomTokens {
-		req := &ethaccessor.BatchBalanceReq{}
+		req := &loopringaccessor.BatchBalanceReq{}
 		req.BlockParameter = "latest"
 		req.Token = token.Protocol
 		req.Owner = b.Owner
 		reqs = append(reqs, req)
 	}
-	req := &ethaccessor.BatchBalanceReq{}
+	req := &loopringaccessor.BatchBalanceReq{}
 	req.BlockParameter = "latest"
 	req.Token = common.HexToAddress("0x")
 	req.Owner = b.Owner
@@ -178,7 +179,7 @@ func (accountBalances AccountBalances) syncFromCache(tokens ...common.Address) e
 
 func (accountBalances AccountBalances) syncFromEthNode(tokens ...common.Address) error {
 	reqs := accountBalances.batchReqs(tokens...)
-	if err := ethaccessor.BatchCall("latest", []ethaccessor.BatchReq{reqs}); nil != err {
+	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
 		return err
 	}
 	for _, req := range reqs {
@@ -223,11 +224,11 @@ func parseAllowanceCacheField(data []byte) (token common.Address, spender common
 }
 
 //todo:tokens
-func (accountAllowances *AccountAllowances) batchReqs(tokens, spenders []common.Address) ethaccessor.BatchErc20AllowanceReqs {
-	reqs := ethaccessor.BatchErc20AllowanceReqs{}
+func (accountAllowances *AccountAllowances) batchReqs(tokens, spenders []common.Address) loopringaccessor.BatchErc20AllowanceReqs {
+	reqs := loopringaccessor.BatchErc20AllowanceReqs{}
 	for _, v := range util.AllTokens {
-		for _, impl := range ethaccessor.ProtocolAddresses() {
-			req := &ethaccessor.BatchErc20AllowanceReq{}
+		for _, impl := range loopringaccessor.ProtocolAddresses() {
+			req := &loopringaccessor.BatchErc20AllowanceReq{}
 			req.BlockParameter = "latest"
 			req.Spender = impl.DelegateAddress
 			req.Token = v.Protocol
@@ -236,8 +237,8 @@ func (accountAllowances *AccountAllowances) batchReqs(tokens, spenders []common.
 		}
 	}
 	for _, v := range accountAllowances.CustomTokens {
-		for _, impl := range ethaccessor.ProtocolAddresses() {
-			req := &ethaccessor.BatchErc20AllowanceReq{}
+		for _, impl := range loopringaccessor.ProtocolAddresses() {
+			req := &loopringaccessor.BatchErc20AllowanceReq{}
 			req.BlockParameter = "latest"
 			req.Spender = impl.DelegateAddress
 			req.Token = v.Protocol
@@ -337,7 +338,7 @@ func (accountAllowances *AccountAllowances) syncFromCache(tokens, spenders []com
 
 func (accountAllowances *AccountAllowances) syncFromEthNode(tokens, spenders []common.Address) error {
 	reqs := accountAllowances.batchReqs(tokens, spenders)
-	if err := ethaccessor.BatchCall("latest", []ethaccessor.BatchReq{reqs}); nil != err {
+	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
 		return err
 	}
 	for _, req := range reqs {
@@ -435,7 +436,7 @@ func removeExpiredBlock(blockNumber, duration *big.Int) error {
 
 func (b *ChangedOfBlock) syncAndSaveBalances() error {
 	reqs := b.batchBalanceReqs()
-	if err := ethaccessor.BatchCall("latest", []ethaccessor.BatchReq{reqs}); nil != err {
+	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
 		return err
 	}
 	accounts := make(map[common.Address]*AccountBalances)
@@ -461,8 +462,8 @@ func (b *ChangedOfBlock) syncAndSaveBalances() error {
 	return nil
 }
 
-func (b *ChangedOfBlock) batchBalanceReqs() ethaccessor.BatchBalanceReqs {
-	reqs := ethaccessor.BatchBalanceReqs{}
+func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
+	reqs := loopringaccessor.BatchBalanceReqs{}
 	if balancesData, err := rcache.SMembers(b.cacheBalanceKey()); nil == err && len(balancesData) > 0 {
 		for _, data := range balancesData {
 			accountAddr, token := b.parseCacheBalanceField(data)
@@ -471,7 +472,7 @@ func (b *ChangedOfBlock) batchBalanceReqs() ethaccessor.BatchBalanceReqs {
 				//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
 				if exists1, err1 := rcache.HExists(balanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && exists1 {
 					log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-					req := &ethaccessor.BatchBalanceReq{}
+					req := &loopringaccessor.BatchBalanceReq{}
 					req.Owner = accountAddr
 					req.Token = token
 					req.BlockParameter = "latest"
@@ -483,18 +484,18 @@ func (b *ChangedOfBlock) batchBalanceReqs() ethaccessor.BatchBalanceReqs {
 	return reqs
 }
 
-func (b *ChangedOfBlock) batchAllowanceReqs() ethaccessor.BatchErc20AllowanceReqs {
-	reqs := ethaccessor.BatchErc20AllowanceReqs{}
+func (b *ChangedOfBlock) batchAllowanceReqs() loopringaccessor.BatchErc20AllowanceReqs {
+	reqs := loopringaccessor.BatchErc20AllowanceReqs{}
 	if allowancesData, err := rcache.SMembers(b.cacheAllowanceKey()); nil == err && len(allowancesData) > 0 {
 		for _, data := range allowancesData {
 			owner, token, spender := b.parseCacheAllowanceField(data)
 			//log.Debugf("1---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-			if ethaccessor.IsSpenderAddress(spender) {
+			if loopringaccessor.IsSpenderAddress(spender) {
 				if exists, err := rcache.Exists(balanceCacheKey(owner)); nil == err && exists {
 					//log.Debugf("2---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
 					if exists1, err1 := rcache.HExists(allowanceCacheKey(owner), allowanceCacheField(token, spender)); nil == err1 && exists1 {
 						log.Debugf("3---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-						req := &ethaccessor.BatchErc20AllowanceReq{}
+						req := &loopringaccessor.BatchErc20AllowanceReq{}
 						req.BlockParameter = "latest"
 						req.Spender = spender
 						req.Token = token
@@ -512,7 +513,7 @@ func (b *ChangedOfBlock) batchAllowanceReqs() ethaccessor.BatchErc20AllowanceReq
 func (b *ChangedOfBlock) syncAndSaveAllowances() error {
 
 	reqs := b.batchAllowanceReqs()
-	if err := ethaccessor.BatchCall("latest", []ethaccessor.BatchReq{reqs}); nil != err {
+	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
 		return err
 	}
 	accountAllowances := make(map[common.Address]*AccountAllowances)
@@ -659,7 +660,8 @@ func (a *AccountManager) GetBalanceAndAllowance(owner, token, spender common.Add
 }
 
 func (a *AccountManager) GetCutoff(contract, address string) (int, error) {
-	cutoffTime, err := ethaccessor.GetCutoff(common.HexToAddress(contract), common.HexToAddress(address), "latest")
+	var cutoffTime types.Big
+	err := loopringaccessor.GetCutoff(&cutoffTime, common.HexToAddress(contract), common.HexToAddress(address), "latest")
 	return int(cutoffTime.Int64()), err
 }
 
@@ -679,7 +681,7 @@ func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err 
 	a.block.saveBalanceKey(event.Receiver, event.Protocol)
 
 	//allowance
-	if spender, err := ethaccessor.GetSpenderAddress(event.To); nil == err {
+	if spender, err := loopringaccessor.GetSpenderAddress(event.To); nil == err {
 		log.Debugf("handleTokenTransfer allowance owner:%s", event.Sender.Hex(), event.Protocol.Hex(), spender.Hex())
 		a.block.saveAllowanceKey(event.Sender, event.Protocol, spender)
 	}

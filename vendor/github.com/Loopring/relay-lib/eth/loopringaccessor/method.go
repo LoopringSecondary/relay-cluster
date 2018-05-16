@@ -22,10 +22,8 @@ import (
 	"errors"
 	"github.com/Loopring/relay-lib/eth/abi"
 	"github.com/Loopring/relay-lib/eth/accessor"
-	relayethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rpc"
 	"math/big"
 )
 
@@ -87,42 +85,53 @@ func GetCutoffPair(result interface{}, contractAddress, owner, token1, token2 co
 	return nil
 }
 
-func BatchErc20BalanceAndAllowance(routeParam string, reqs []*BatchErc20Req) error {
-	reqElems := make([]rpc.BatchElem, 2*len(reqs))
-	erc20Abi := loopringParams.Erc20Abi
-
-	for idx, req := range reqs {
-		balanceOfData, _ := erc20Abi.Pack("balanceOf", req.Owner)
-		balanceOfArg := &relayethtyp.CallArg{}
-		balanceOfArg.To = req.Token
-		balanceOfArg.Data = common.ToHex(balanceOfData)
-
-		allowanceData, _ := erc20Abi.Pack("allowance", req.Owner, req.Spender)
-		allowanceArg := &relayethtyp.CallArg{}
-		allowanceArg.To = req.Token
-		allowanceArg.Data = common.ToHex(allowanceData)
-		reqElems[2*idx] = rpc.BatchElem{
-			Method: "eth_call",
-			Args:   []interface{}{balanceOfArg, req.BlockParameter},
-			Result: &req.Balance,
-		}
-		reqElems[2*idx+1] = rpc.BatchElem{
-			Method: "eth_call",
-			Args:   []interface{}{allowanceArg, req.BlockParameter},
-			Result: &req.Allowance,
-		}
-	}
-
-	if _, err := accessor.MutilClient.BatchCall(routeParam, reqElems); err != nil {
-		return err
-	}
-
-	for idx, req := range reqs {
-		req.BalanceErr = reqElems[2*idx].Error
-		req.AllowanceErr = reqElems[2*idx+1].Error
-	}
-	return nil
-}
+//func BatchErc20BalanceAndAllowance(routeParam string, reqs []*BatchErc20Req) error {
+//	reqElems := make([]rpc.BatchElem, 2*len(reqs))
+//
+//
+//	erc20Abi := loopringParams.Erc20Abi
+//
+//	balanceReqs := BatchBalanceReqs{}
+//	allowanceReqs := BatchErc20AllowanceReqs{}
+//	for idx, req := range reqs {
+//		balanceReq := &BatchBalanceReq{}
+//		balanceReq.BlockParameter = "latest"
+//		balanceReq.Token = req.Token
+//		balanceReq.Owner = req.Owner
+//		balanceReqs = append(balanceReqs, balanceReq)
+//
+//		//balanceOfData, _ := erc20Abi.Pack("balanceOf", req.Owner)
+//		//balanceOfArg := &relayethtyp.CallArg{}
+//		//balanceOfArg.To = req.Token
+//		//balanceOfArg.Data = common.ToHex(balanceOfData)
+//
+//
+//		allowanceData, _ := erc20Abi.Pack("allowance", req.Owner, req.Spender)
+//		allowanceArg := &relayethtyp.CallArg{}
+//		allowanceArg.To = req.Token
+//		allowanceArg.Data = common.ToHex(allowanceData)
+//		reqElems[2*idx] = rpc.BatchElem{
+//			Method: "eth_call",
+//			Args:   []interface{}{balanceOfArg, req.BlockParameter},
+//			Result: &req.Balance,
+//		}
+//		reqElems[2*idx+1] = rpc.BatchElem{
+//			Method: "eth_call",
+//			Args:   []interface{}{allowanceArg, req.BlockParameter},
+//			Result: &req.Allowance,
+//		}
+//	}
+//
+//	if err := accessor.BatchCall(routeParam, reqElems); err != nil {
+//		return err
+//	}
+//
+//	for idx, req := range reqs {
+//		req.BalanceErr = reqElems[2*idx].Error
+//		req.AllowanceErr = reqElems[2*idx+1].Error
+//	}
+//	return nil
+//}
 
 func Erc20Balance(tokenAddress, ownerAddress common.Address, blockParameter string) (*big.Int, error) {
 	var balance types.Big
@@ -134,29 +143,9 @@ func Erc20Balance(tokenAddress, ownerAddress common.Address, blockParameter stri
 	}
 }
 
-func BatchErc20Allowance(routeParam string, reqs []*BatchErc20AllowanceReq) error {
-	reqElems := make([]rpc.BatchElem, len(reqs))
-	erc20Abi := loopringParams.Erc20Abi
-
-	for idx, req := range reqs {
-		allowanceData, _ := erc20Abi.Pack("allowance", req.Owner, req.Spender)
-		allowanceArg := &relayethtyp.CallArg{}
-		allowanceArg.To = req.Token
-		allowanceArg.Data = common.ToHex(allowanceData)
-		reqElems[idx] = rpc.BatchElem{
-			Method: "eth_call",
-			Args:   []interface{}{allowanceArg, req.BlockParameter},
-			Result: &req.Allowance,
-			Error:  req.AllowanceErr,
-		}
-	}
-
-	if _, err := accessor.MutilClient.BatchCall(routeParam, reqElems); err != nil {
+func BatchErc20Allowance(routeParam string, reqs BatchErc20AllowanceReqs) error {
+	if err := accessor.BatchCall(routeParam, []accessor.BatchReq{reqs}); err != nil {
 		return err
-	}
-
-	for idx, req := range reqs {
-		req.AllowanceErr = reqElems[idx].Error
 	}
 	return nil
 }
@@ -207,7 +196,7 @@ func IsRelateProtocol(protocol, delegate common.Address) bool {
 	}
 }
 
-func GetSenderAddress(protocol common.Address) (common.Address, error) {
+func GetSpenderAddress(protocol common.Address) (common.Address, error) {
 	impl, ok := loopringParams.ProtocolAddresses[protocol]
 	if !ok {
 		return common.Address{}, errors.New("accessor method:invalid protocol address")

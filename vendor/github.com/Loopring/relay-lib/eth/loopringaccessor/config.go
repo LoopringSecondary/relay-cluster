@@ -49,7 +49,7 @@ type ProtocolAddress struct {
 	DelegateAddress common.Address
 }
 
-func abiStrFromEthscan(address common.Address) (string, error) {
+func abiStrFromEthscan(address common.Address) ([]byte, error) {
 	url := fmt.Sprintf("http://api.etherscan.io/api?module=contract&action=getabi&address=%s&format=raw", address.Hex())
 	resp, err := http.Get(url)
 	if err != nil {
@@ -63,5 +63,5 @@ func abiStrFromEthscan(address common.Address) (string, error) {
 	}()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	return string(body), err
+	return body, err
 }

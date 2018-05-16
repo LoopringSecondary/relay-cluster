@@ -20,6 +20,7 @@ package gateway
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/market"
@@ -38,7 +39,6 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"qiniupkg.com/x/errors.v7"
 	"sort"
 	"strconv"
 	"strings"
@@ -1133,7 +1133,8 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 		o.OrderHash = s.RawOrder.Hash.Hex()
 		o.SplitS = new(big.Rat).SetFrac(s.SplitAmountS, tokenSDecimal)
 		o.SplitB = new(big.Rat).SetFrac(s.SplitAmountB, tokenBDecimal)
-		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, big.NewInt(10e18))
+		lrcToken := util.AllTokens["LRC"]
+		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, lrcToken.Decimals)
 
 		price := *s.RawOrder.Price
 		amountS, amountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)

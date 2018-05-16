@@ -37,11 +37,6 @@ type BatchErc20Req struct {
 	AllowanceErr   error
 }
 
-type BatchReq interface {
-	ToBatchElem() []rpc.BatchElem
-	FromBatchElem(batchElems []rpc.BatchElem)
-}
-
 type BatchBalanceReq struct {
 	Owner          common.Address
 	Token          common.Address

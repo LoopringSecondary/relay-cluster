@@ -20,8 +20,8 @@ package ordermanager
 
 import (
 	"fmt"
-	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -166,12 +166,12 @@ func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, 
 	)
 
 	// get order cancelled amount from chain
-	if cancelled, err = ethaccessor.GetCancelled(protocol, orderhash, blockNumberStr); err != nil {
+	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, blockNumberStr); err != nil {
 		return nil, nil, fmt.Errorf("order manager,handle gateway order,order %s getCancelled error:%s", orderhash.Hex(), err.Error())
 	}
 
 	// get order cancelledOrFilled amount from chain
-	if cancelOrFilled, err = ethaccessor.GetCancelledOrFilled(protocol, orderhash, blockNumberStr); err != nil {
+	if cancelOrFilled, err = loopringaccessor.GetCancelledOrFilled(protocol, orderhash, blockNumberStr); err != nil {
 		return nil, nil, fmt.Errorf("order manager,handle gateway order,order %s getCancelledOrFilled error:%s", orderhash.Hex(), err.Error())
 	}
 
