@@ -19,7 +19,6 @@
 package loopringaccessor
 
 import (
-	"github.com/Loopring/relay-base/accessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"

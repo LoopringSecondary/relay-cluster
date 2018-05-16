@@ -147,11 +147,6 @@ func GetFullBlock(blockNumber *big.Int, withObject bool) (interface{}, error) {
 	return accessor.GetFullBlock(blockNumber, withObject)
 }
 
-//
-//func NameRegistryAbi() *abi.ABI {
-//	return accessor.NameRegistryAbi
-//}
-
 func IsInit() bool {
 	return nil == accessor
 }
