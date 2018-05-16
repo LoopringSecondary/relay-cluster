@@ -71,7 +71,6 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 	b.cachedDuration = big.NewInt(int64(500))
 	accountManager.block = b
 
-	//brokers := strings.Split("127.0.0.1:9092", ",")
 	accountManager.producerWrapped = &kafka.MessageProducer{}
 	if err := accountManager.producerWrapped.Initialize(brokers); nil != err {
 		log.Fatalf("Failed init producerWrapped %s", err.Error())
@@ -86,7 +85,7 @@ type KafkaMsg interface {
 }
 
 func sendKafkaMsg(msg interface{}) error {
-	topic,key := "", ""
+	topic, key := kafka.BalanceUpdated, "1"
 	//todo:if it occors error
 	_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
 	return err
