@@ -22,7 +22,7 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	gocache "github.com/patrickmn/go-cache"
 	"time"
 )

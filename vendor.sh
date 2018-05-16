@@ -8,5 +8,5 @@ govendor init
 govendor add +external
 
 # copy go-ethrenum c libs
-rm -rf $GOPATH/src/github.com/Loopring/relay-cluster/vendor/github.com/Loopring/go-ethereum/crypto/secp256k1
-cp -r $GOPATH/src/github.com/Loopring/go-ethereum/crypto/secp256k1 $GOPATH/src/github.com/Loopring/relay-cluster/vendor/github.com/Loopring/go-ethereum/crypto/
+rm -rf $GOPATH/src/github.com/Loopring/relay-cluster/vendor/github.com/ethereum/go-ethereum/crypto/secp256k1
+cp -r $GOPATH/src/github.com/ethereum/go-ethereum/crypto/secp256k1 $GOPATH/src/github.com/Loopring/relay-cluster/vendor/github.com/ethereum/go-ethereum/crypto/

@@ -20,7 +20,7 @@ package dao
 
 import (
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 

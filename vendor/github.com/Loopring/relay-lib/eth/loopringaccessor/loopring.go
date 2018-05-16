@@ -22,7 +22,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/abi"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var loopringParams *LoopringParams

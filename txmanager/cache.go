@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 

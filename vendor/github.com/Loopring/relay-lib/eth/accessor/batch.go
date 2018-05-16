@@ -20,7 +20,7 @@ package accessor
 
 import (
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
-	"github.com/Loopring/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type BatchReq interface {

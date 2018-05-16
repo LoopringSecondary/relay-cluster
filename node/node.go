@@ -36,7 +36,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
 )
 

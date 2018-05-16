@@ -18,7 +18,7 @@
 
 package types
 
-import "github.com/Loopring/go-ethereum/common"
+import "github.com/ethereum/go-ethereum/common"
 
 func Xor(bytes1, bytes2 []byte) []byte {
 	bs1Length := len(bytes1)

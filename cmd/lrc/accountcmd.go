@@ -26,9 +26,9 @@ import (
 	"syscall"
 
 	"github.com/Loopring/relay-cluster/cmd/utils"
-	"github.com/Loopring/go-ethereum/accounts/keystore"
-	"github.com/Loopring/go-ethereum/common"
-	"github.com/Loopring/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/ssh/terminal"
 	"gopkg.in/urfave/cli.v1"
 )

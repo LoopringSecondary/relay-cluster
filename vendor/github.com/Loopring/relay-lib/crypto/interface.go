@@ -19,8 +19,8 @@
 package crypto
 
 import (
-	"github.com/Loopring/go-ethereum/common"
-	"github.com/Loopring/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 )
 

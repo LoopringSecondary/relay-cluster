@@ -21,7 +21,7 @@ package ordermanager_test
 import (
 	"github.com/Loopring/relay/test"
 	"github.com/Loopring/relay/types"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	"testing"
 )
 

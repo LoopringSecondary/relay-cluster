@@ -37,7 +37,6 @@ const (
 	HashTy
 	FixedPointTy
 	FunctionTy
-	StructTy
 )
 
 // Type is the reflection of the supported argument type
@@ -59,105 +58,27 @@ var (
 
 // NewType creates a new reflection type of abi type given in t.
 func NewType(t string) (typ Type, err error) {
-
-	// if there are brackets, get ready to go into slice/array mode and
-	// recursively create the type
-	var found bool
-	if typ, found, err = checkForSlices(t); found == true || err != nil {
-		return typ, err
+	// check that array brackets are equal if they exist
+	if strings.Count(t, "[") != strings.Count(t, "]") {
+		return Type{}, fmt.Errorf("invalid arg type in abi")
 	}
 
 	typ.stringKind = t
-	// parse the type and size of the abi-type.
-	parsedType := typeRegex.FindAllStringSubmatch(t, -1)[0]
-	// varSize is the size of the variable
-	var varSize int
-	if len(parsedType[3]) > 0 {
-		var err error
-		varSize, err = strconv.Atoi(parsedType[2])
-		if err != nil {
-			return Type{}, fmt.Errorf("abi: error parsing variable size: %v", err)
-		}
-	} else {
-		if parsedType[0] == "uint" || parsedType[0] == "int" {
-			// this should fail because it means that there's something wrong with
-			// the abi type (the compiler should always format it to the size...always)
-			return Type{}, fmt.Errorf("unsupported arg type: %s", t)
-		}
-	}
-	// varType is the parsed abi type
-	switch varType := parsedType[1]; varType {
-	case "int":
-		typ.Kind, typ.Type = reflectIntKindAndType(false, varSize)
-		typ.Size = varSize
-		typ.T = IntTy
-	case "uint":
-		typ.Kind, typ.Type = reflectIntKindAndType(true, varSize)
-		typ.Size = varSize
-		typ.T = UintTy
-	case "bool":
-		typ.Kind = reflect.Bool
-		typ.T = BoolTy
-		typ.Type = reflect.TypeOf(bool(false))
-	case "address":
-		typ.Kind = reflect.Array
-		typ.Type = address_t
-		typ.Size = 20
-		typ.T = AddressTy
-	case "string":
-		typ.Kind = reflect.String
-		typ.Type = reflect.TypeOf("")
-		typ.T = StringTy
-	case "bytes":
-		if varSize == 0 {
-			typ.T = BytesTy
-			typ.Kind = reflect.Slice
-			typ.Type = reflect.SliceOf(reflect.TypeOf(byte(0)))
-		} else {
-			typ.T = FixedBytesTy
-			typ.Kind = reflect.Array
-			typ.Size = varSize
-			typ.Type = reflect.ArrayOf(varSize, reflect.TypeOf(byte(0)))
-		}
-	case "function":
-		typ.Kind = reflect.Array
-		typ.T = FunctionTy
-		typ.Size = 24
-		typ.Type = reflect.ArrayOf(24, reflect.TypeOf(byte(0)))
-	default:
-		return Type{}, fmt.Errorf("unsupported arg type: %s", t)
-	}
 
-	return
-}
-
-// if brackets surround the type, create it recursively, otherwise note that brackets weren't found
-func checkForSlices(t string, structComponents ...unmarshalArg) (typ Type, found bool, err error) {
-	// check that array brackets are equal if they exist
-	if strings.Count(t, "[") != strings.Count(t, "]") {
-		return Type{}, false, fmt.Errorf("invalid arg type in abi")
-	}
-
+	// if there are brackets, get ready to go into slice/array mode and
+	// recursively create the type
 	if strings.Count(t, "[") != 0 {
 		i := strings.LastIndex(t, "[")
+		// recursively embed the type
+		embeddedType, err := NewType(t[:i])
+		if err != nil {
+			return Type{}, err
+		}
 		// grab the last cell and create a type from there
 		sliced := t[i:]
 		// grab the slice size with regexp
 		re := regexp.MustCompile("[0-9]+")
 		intz := re.FindAllString(sliced, -1)
-
-		// recursively embed the type
-		var embeddedType Type
-		if len(structComponents) > 0 {
-			embeddedType, err = ParseStructType(t[:i], structComponents...)
-			typ.stringKind = embeddedType.String() + sliced
-		} else {
-			embeddedType, err = NewType(t[:i])
-			typ.stringKind = t
-		}
-		if err != nil {
-			return Type{}, false, err
-		}
 
 		if len(intz) == 0 {
 			// is a slice
@@ -172,52 +93,78 @@ func checkForSlices(t string, structComponents ...unmarshalArg) (typ Type, found
 			typ.Elem = &embeddedType
 			typ.Size, err = strconv.Atoi(intz[0])
 			if err != nil {
-				return Type{}, false, fmt.Errorf("abi: error parsing variable size: %v", err)
+				return Type{}, fmt.Errorf("abi: error parsing variable size: %v", err)
 			}
 			typ.Type = reflect.ArrayOf(typ.Size, embeddedType.Type)
 		} else {
-			return Type{}, false, fmt.Errorf("invalid formatting of array type")
+			return Type{}, fmt.Errorf("invalid formatting of array type")
 		}
-		return typ, true, err
-	}
-	return Type{}, false, nil
-}
-
-func ParseStructType(t string, components ...unmarshalArg) (typ Type, err error) {
-	// if there are brackets, get ready to go into slice/array mode and
-	// recursively create the type
-	var found bool
-	if typ, found, err = checkForSlices(t, components...); found == true || err != nil {
 		return typ, err
-	}
-
-	// need to concatenate the different type strings together
-	//typ.stringKind = t
-	typ.T = StructTy
-	typ.Kind = reflect.Struct
-	// create the struct type
-	var fields []reflect.StructField
-	var typeStrings []string
-	for _, component := range components {
-		// it's a embedded struct type
-		var fieldType Type
-
-		if len(component.Components) > 0 {
-			fieldType, err = ParseStructType(component.Type, component.Components...)
+	} else {
+		// parse the type and size of the abi-type.
+		parsedType := typeRegex.FindAllStringSubmatch(t, -1)[0]
+		// varSize is the size of the variable
+		var varSize int
+		if len(parsedType[3]) > 0 {
+			var err error
+			varSize, err = strconv.Atoi(parsedType[2])
+			if err != nil {
+				return Type{}, fmt.Errorf("abi: error parsing variable size: %v", err)
+			}
 		} else {
-			fieldType, err = NewType(component.Type)
+			if parsedType[0] == "uint" || parsedType[0] == "int" {
+				// this should fail because it means that there's something wrong with
+				// the abi type (the compiler should always format it to the size...always)
+				return Type{}, fmt.Errorf("unsupported arg type: %s", t)
+			}
 		}
-		if err != nil {
-			return Type{}, err
+		// varType is the parsed abi type
+		varType := parsedType[1]
+
+		switch varType {
+		case "int":
+			typ.Kind, typ.Type = reflectIntKindAndType(false, varSize)
+			typ.Size = varSize
+			typ.T = IntTy
+		case "uint":
+			typ.Kind, typ.Type = reflectIntKindAndType(true, varSize)
+			typ.Size = varSize
+			typ.T = UintTy
+		case "bool":
+			typ.Kind = reflect.Bool
+			typ.T = BoolTy
+			typ.Type = reflect.TypeOf(bool(false))
+		case "address":
+			typ.Kind = reflect.Array
+			typ.Type = address_t
+			typ.Size = 20
+			typ.T = AddressTy
+		case "string":
+			typ.Kind = reflect.String
+			typ.Type = reflect.TypeOf("")
+			typ.T = StringTy
+		case "bytes":
+			if varSize == 0 {
+				typ.T = BytesTy
+				typ.Kind = reflect.Slice
+				typ.Type = reflect.SliceOf(reflect.TypeOf(byte(0)))
+			} else {
+				typ.T = FixedBytesTy
+				typ.Kind = reflect.Array
+				typ.Size = varSize
+				typ.Type = reflect.ArrayOf(varSize, reflect.TypeOf(byte(0)))
+			}
+		case "function":
+			typ.Kind = reflect.Array
+			typ.T = FunctionTy
+			typ.Size = 24
+			typ.Type = reflect.ArrayOf(24, reflect.TypeOf(byte(0)))
+		default:
+			return Type{}, fmt.Errorf("unsupported arg type: %s", t)
 		}
-		typeStrings = append(typeStrings, fieldType.String())
-		field := reflect.StructField{Name: strings.Title(component.Name), Type: fieldType.Type, Tag: reflect.StructTag(fmt.Sprintf(`json:"%v"`, component.Name))}
-		fields = append(fields, field)
 	}
 
-	typ.Type = reflect.StructOf(fields)
-	typ.stringKind = "(" + strings.Join(typeStrings, ",") + ")"
-	return typ, nil
+	return
 }
 
 // String implements Stringer

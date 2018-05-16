@@ -23,8 +23,8 @@ import (
 	"github.com/Loopring/relay-lib/eth/abi"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/go-ethereum/common"
-	"github.com/Loopring/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 	"math/big"
 	"sync"
 )

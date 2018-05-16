@@ -13,7 +13,7 @@ import (
 	"github.com/Loopring/relay/ordermanager"
 	"github.com/Loopring/relay/test"
 	"github.com/Loopring/relay/usermanager"
-	common2 "github.com/Loopring/go-ethereum/common"
+	common2 "github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
 )
