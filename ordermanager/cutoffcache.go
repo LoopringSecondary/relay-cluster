@@ -20,10 +20,10 @@ package ordermanager
 
 import (
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
-	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 )
 
 type CutoffCache struct {

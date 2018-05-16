@@ -22,6 +22,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"github.com/Loopring/accessor/ethaccessor"
 	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -33,7 +34,6 @@ import (
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
 	"time"
-	"github.com/Loopring/accessor/ethaccessor"
 )
 
 type Gateway struct {

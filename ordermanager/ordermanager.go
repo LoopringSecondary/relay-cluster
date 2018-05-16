@@ -250,7 +250,6 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 		return err
 	}
 
-
 	newFillModel := &dao.FillEvent{}
 	newFillModel.ConvertDown(event)
 	newFillModel.Fork = false
@@ -536,7 +535,8 @@ func (om *OrderManagerImpl) GetOrders(query map[string]interface{}, statusList [
 }
 
 func (om *OrderManagerImpl) GetLatestOrders(query map[string]interface{}, length int) (rst []types.OrderState, err error) {
-	tmp, err := om.rds.GetLatestOrders(query, length); if err != nil {
+	tmp, err := om.rds.GetLatestOrders(query, length)
+	if err != nil {
 		return nil, err
 	}
 

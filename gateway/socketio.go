@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Loopring/accessor/ethaccessor"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -27,7 +27,6 @@ const (
 	EventPostfixReq         = "_req"
 	EventPostfixRes         = "_res"
 	EventPostfixEnd         = "_end"
-	DefaultCronSpec3Second  = "0/3 * * * * *"
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
@@ -79,44 +78,30 @@ const (
 	eventKeyTickers         = "tickers"
 	eventKeyLoopringTickers = "loopringTickers"
 	eventKeyTrends          = "trends"
-	//eventKeyPortfolio       = "portfolio"
-	eventKeyMarketCap   = "marketcap"
-	eventKeyBalance     = "balance"
-	eventKeyTransaction = "transaction"
-	eventKeyPendingTx   = "pendingTx"
-	eventKeyDepth       = "depth"
-	eventKeyTrades      = "trades"
-	eventKeyMarketOrders      = "marketOrders"
-	eventKeyP2POrders      = "p2pOrders"
+	eventKeyMarketCap       = "marketcap"
+	eventKeyBalance         = "balance"
+	eventKeyTransaction     = "transaction"
+	eventKeyPendingTx       = "pendingTx"
+	eventKeyDepth           = "depth"
+	eventKeyOrderBook       = "orderBook"
+	eventKeyTrades          = "trades"
+	eventKeyMarketOrders    = "marketOrders"
+	eventKeyP2POrders       = "p2pOrders"
 )
 
 var EventTypeRoute = map[string]InvokeInfo{
-	//eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec3Second},
-	//eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec3Second},
-	// portfolio has been remove from loopr2
-	// eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByCron, DefaultCronSpec3Second},
-	//eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-	//eventKeyBalance:         {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyTransaction:     {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyPendingTx:       {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	//eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyTrades:          {"GetTrades", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec3Second},
 	eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
 	eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
 	eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	// portfolio has been remove from loopr2
-	// eventKeyPortfolio:       {"GetPortfolio", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec3Second},
-	//eventKeyPortfolio:   {"GetPortfolio", SingleOwner{}, false, emitTypeByCron, DefaultCronSpec3Second},
-	eventKeyMarketCap:   {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-	eventKeyBalance:     {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTransaction: {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyPendingTx:   {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyDepth:       {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTrades:      {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyMarketOrders:      {"GetLatestOrders", OrderQuery{} , false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyP2POrders:      {"GetLatestOrders", OrderQuery{} , false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
+	eventKeyBalance:         {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyTransaction:     {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyPendingTx:       {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyMarketOrders:    {"GetLatestOrders", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyP2POrders:       {"GetLatestOrders", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 }
 
 type SocketIOService interface {
@@ -141,20 +126,21 @@ func NewSocketIOService(port string, walletService WalletServiceImpl) *SocketIOS
 	so.cron = cron.New()
 
 	// init event watcher
-	//loopringTickerWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastLoopringTicker}
-	//eventemitter.On(eventemitter.LoopringTickerUpdated, loopringTickerWatcher)
-	//trendsWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastTrends}
-	//eventemitter.On(eventemitter.TrendUpdated, trendsWatcher)
-	//portfolioWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handlePortfolioUpdate}
-	//eventemitter.On(eventemitter.PortfolioUpdated, portfolioWatcher)
-	//balanceWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleBalanceUpdate}
-	//eventemitter.On(eventemitter.BalanceUpdated, balanceWatcher)
-	//depthWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastDepth}
-	//eventemitter.On(eventemitter.DepthUpdated, depthWatcher)
-	//transactionWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleTransactionUpdate}
-	//eventemitter.On(eventemitter.TransactionEvent, transactionWatcher)
-	//pendingTxWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handlePendingTransaction}
-	//eventemitter.On(eventemitter.TransactionEvent, pendingTxWatcher)
+	loopringTickerWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastLoopringTicker}
+	eventemitter.On(eventemitter.LoopringTickerUpdated, loopringTickerWatcher)
+	trendsWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastTrends}
+	eventemitter.On(eventemitter.TrendUpdated, trendsWatcher)
+	balanceWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleBalanceUpdate}
+	eventemitter.On(eventemitter.BalanceUpdated, balanceWatcher)
+	depthWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastDepth}
+	eventemitter.On(eventemitter.DepthUpdated, depthWatcher)
+	orderBookWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastOrderBook}
+	eventemitter.On(eventemitter.DepthUpdated, orderBookWatcher)
+
+	transactionWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleTransactionUpdate}
+	eventemitter.On(eventemitter.TransactionEvent, transactionWatcher)
+	pendingTxWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handlePendingTransaction}
+	eventemitter.On(eventemitter.TransactionEvent, pendingTxWatcher)
 	return so
 }
 
@@ -188,7 +174,6 @@ func (so *SocketIOServiceImpl) Start() {
 			context[aliasOfV] = msg
 			s.SetContext(context)
 			so.connIdMap.Store(s.ID(), s)
-			//log.Infof("[SOCKETIO-EMIT]response emit by key : %s, connId : %s", aliasOfV, s.ID())
 			so.EmitNowByEventType(aliasOfV, s, msg)
 		})
 
@@ -212,6 +197,8 @@ func (so *SocketIOServiceImpl) Start() {
 			so.cron.AddFunc(spec, func() { so.broadcastLoopringTicker(nil) })
 		case eventKeyDepth:
 			so.cron.AddFunc(spec, func() { so.broadcastDepth(nil) })
+		case eventKeyOrderBook:
+			so.cron.AddFunc(spec, func() { so.broadcastOrderBook(nil) })
 		case eventKeyTrades:
 			so.cron.AddFunc(spec, func() { so.broadcastTrades(nil) })
 		case eventKeyMarketCap:
@@ -367,8 +354,6 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input eventemitter.EventData) 
 
 func (so *SocketIOServiceImpl) broadcastLoopringTicker(input eventemitter.EventData) (err error) {
 
-	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring ticker input. %s", input)
-
 	resp := SocketIOJsonResp{}
 	tickers, err := so.walletService.GetTicker()
 
@@ -396,44 +381,64 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input eventemitter.EventD
 }
 
 func (so *SocketIOServiceImpl) broadcastDepth(input eventemitter.EventData) (err error) {
-
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input. %s", input)
+	markets := so.getConnectedMarketForDepth(eventKeyDepth)
+	respMap := so.getDepthPushData(eventKeyDepth, markets)
+	so.pushDepthData(eventKeyDepth, respMap)
+	return nil
+}
 
-	markets := so.getConnectedMarketForDepth()
+func (so *SocketIOServiceImpl) broadcastOrderBook(input eventemitter.EventData) (err error) {
+	markets := so.getConnectedMarketForDepth(eventKeyOrderBook)
+	respMap := so.getDepthPushData(eventKeyOrderBook, markets)
+	so.pushDepthData(eventKeyOrderBook, respMap)
+	return nil
+}
 
+func (so *SocketIOServiceImpl) getDepthPushData(eventKey string, markets map[string]bool) map[string]string {
 	respMap := make(map[string]string, 0)
 	for mk := range markets {
 		mktAndDelegate := strings.Split(mk, "_")
 		delegate := mktAndDelegate[0]
 		mkt := mktAndDelegate[1]
 		resp := SocketIOJsonResp{}
-		depth, err := so.walletService.GetDepth(DepthQuery{delegate, mkt})
+
+		var data interface{}
+		var err error
+		if eventKeyDepth == eventKey {
+			data, err = so.walletService.GetDepth(DepthQuery{delegate, mkt})
+		} else {
+			data, err = so.walletService.GetUnmergedOrderBook(DepthQuery{delegate, mkt})
+		}
+
 		if err == nil {
-			resp.Data = depth
+			resp.Data = data
 		} else {
 			resp = SocketIOJsonResp{Error: err.Error()}
 		}
 		respJson, _ := json.Marshal(resp)
 		respMap[mk] = string(respJson[:])
 	}
+	return respMap
+}
 
+func (so *SocketIOServiceImpl) pushDepthData(eventKey string, respMap map[string]string) {
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			ctx, ok := businesses[eventKeyDepth]
+			ctx, ok := businesses[eventKey]
 			if ok {
 				dQuery := &DepthQuery{}
 				err := json.Unmarshal([]byte(ctx), dQuery)
 				if err == nil && len(dQuery.DelegateAddress) > 0 && len(dQuery.Market) > 0 {
 					depthKey := strings.ToLower(dQuery.DelegateAddress) + "_" + strings.ToLower(dQuery.Market)
-					v.Emit(eventKeyDepth+EventPostfixRes, respMap[depthKey])
+					v.Emit(eventKey+EventPostfixRes, respMap[depthKey])
 				}
 			}
 		}
 		return true
 	})
-	return nil
 }
 
 func (so *SocketIOServiceImpl) broadcastTrades(input eventemitter.EventData) (err error) {
@@ -517,7 +522,7 @@ func (so *SocketIOServiceImpl) getPriceQuoteResp(currency string) string {
 	return string(respJson)
 }
 
-func (so *SocketIOServiceImpl) getConnectedMarketForDepth() map[string]bool {
+func (so *SocketIOServiceImpl) getConnectedMarketForDepth(eventKey string) map[string]bool {
 	markets := make(map[string]bool, 0)
 	count := 0
 	so.connIdMap.Range(func(key, value interface{}) bool {
@@ -525,7 +530,7 @@ func (so *SocketIOServiceImpl) getConnectedMarketForDepth() map[string]bool {
 		count++
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			DCtx, ok := businesses[eventKeyDepth]
+			DCtx, ok := businesses[eventKey]
 			if ok {
 				dQuery := &DepthQuery{}
 				err := json.Unmarshal([]byte(DCtx), dQuery)
@@ -536,7 +541,6 @@ func (so *SocketIOServiceImpl) getConnectedMarketForDepth() map[string]bool {
 		}
 		return true
 	})
-	log.Infof("SOCKETIO current conn number is %d", count)
 	return markets
 }
 
@@ -599,11 +603,6 @@ func (so *SocketIOServiceImpl) broadcastTrends(input eventemitter.EventData) (er
 	return nil
 }
 
-// portfolio has removed from loopr2
-func (so *SocketIOServiceImpl) handlePortfolioUpdate(input eventemitter.EventData) (err error) {
-	return nil
-}
-
 func (so *SocketIOServiceImpl) handleBalanceUpdate(input eventemitter.EventData) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s", input)
@@ -616,7 +615,7 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input eventemitter.EventData)
 	if common.IsHexAddress(req.DelegateAddress) {
 		so.notifyBalanceUpdateByDelegateAddress(req.Owner, req.DelegateAddress)
 	} else {
-		for k := range ethaccessor.DelegateAddresses() {
+		for k := range loopringaccessor.DelegateAddresses() {
 			so.notifyBalanceUpdateByDelegateAddress(req.Owner, k.Hex())
 		}
 	}

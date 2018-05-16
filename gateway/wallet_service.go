@@ -21,18 +21,21 @@ package gateway
 import (
 	"encoding/json"
 	"fmt"
-    "github.com/Loopring/relay-cluster/dao"
-    "github.com/Loopring/relay-cluster/market"
-    "github.com/Loopring/relay-cluster/ordermanager"
-    "github.com/Loopring/relay-cluster/txmanager"
-    txtyp "github.com/Loopring/relay-cluster/txmanager/types"
-    "github.com/Loopring/relay-lib/cache"
-    ethtyp "github.com/Loopring/relay-lib/eth/types"
-    "github.com/Loopring/relay-lib/eventemitter"
-    "github.com/Loopring/relay-lib/log"
-    "github.com/Loopring/relay-lib/marketcap"
-    util "github.com/Loopring/relay-lib/marketutil"
-    "github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/txmanager"
+	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	ethtyp "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
+	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"qiniupkg.com/x/errors.v7"
@@ -40,9 +43,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -79,20 +79,20 @@ type DepthElement struct {
 }
 
 type OrderBook struct {
-	DelegateAddress string `json:"delegateAddress"`
-	Market          string `json:"market"`
+	DelegateAddress string             `json:"delegateAddress"`
+	Market          string             `json:"market"`
 	Buy             []OrderBookElement `json:"buy"`
 	Sell            []OrderBookElement `json:"sell"`
 }
 
 type OrderBookElement struct {
-	Price  string   `json:"price"`
-	Size   *big.Rat `json:"size"`
-	Amount *big.Rat `json:"amount"`
-	OrderHash string `json:"orderHash"`
-	LrcFee *big.Rat `json:"lrcFee"`
-	SplitS     *big.Rat  `json:"splitS"`
-	SplitB     *big.Rat  `json:"splitB"`
+	Price     string   `json:"price"`
+	Size      *big.Rat `json:"size"`
+	Amount    *big.Rat `json:"amount"`
+	OrderHash string   `json:"orderHash"`
+	LrcFee    *big.Rat `json:"lrcFee"`
+	SplitS    *big.Rat `json:"splitS"`
+	SplitB    *big.Rat `json:"splitB"`
 }
 
 type CommonTokenRequest struct {
@@ -287,9 +287,9 @@ type LatestFill struct {
 }
 
 type P2PRingRequest struct {
-	RawTx  string  `json:"rawTx"`
-	Taker  *types.OrderJsonRequest `json:"taker"`
-	MakerOrderHash string `json:"makerOrderHash"`
+	RawTx          string                  `json:"rawTx"`
+	Taker          *types.OrderJsonRequest `json:"taker"`
+	MakerOrderHash string                  `json:"makerOrderHash"`
 }
 
 type WalletServiceImpl struct {
@@ -511,7 +511,8 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 	if len(query.OrderHash) == 0 {
 		return order, errors.New("order hash can't be null")
 	} else {
-		state, err := w.orderManager.GetOrderByHash(common.HexToHash(query.OrderHash)); if err != nil {
+		state, err := w.orderManager.GetOrderByHash(common.HexToHash(query.OrderHash))
+		if err != nil {
 			return order, err
 		} else {
 			return orderStateToJson(*state), err
@@ -525,7 +526,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New("only p2p order can be submitted")
 	}
 
-	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash));
+	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
 	if err != nil {
 		return res, err
 	}
@@ -546,18 +547,18 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New("maker order has been locked by other taker or expired")
 	}
 
-	takerOrderHash, err := HandleInputOrder(types.ToOrder(p2pRing.Taker));
+	takerOrderHash, err := HandleInputOrder(types.ToOrder(p2pRing.Taker))
 	if err != nil {
 		return res, err
 	}
 
 	var txHashRst string
-	err = accessor.SendRawTransaction(&txHashRst, p2pRing.RawTx);
+	err = accessor.SendRawTransaction(&txHashRst, p2pRing.RawTx)
 	if err != nil {
 		return res, err
 	}
 
-	err = ordermanager.SaveP2POrderRelation(p2pRing.Taker.Owner.Hex(), takerOrderHash, maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst);
+	err = ordermanager.SaveP2POrderRelation(p2pRing.Taker.Owner.Hex(), takerOrderHash, maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst)
 	if err != nil {
 		return res, err
 	}
@@ -566,7 +567,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 }
 
 func (w *WalletServiceImpl) GetLatestOrders(query *OrderQuery) (res []OrderJsonResult, err error) {
-	orderQuery, _, _, _  := convertFromQuery(query)
+	orderQuery, _, _, _ := convertFromQuery(query)
 	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
@@ -660,7 +661,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 	for i := range empty {
 		empty[i] = make([]string, 0)
 	}
-	orderbook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell:make([]OrderBookElement, 0)}
+	orderBook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell: make([]OrderBookElement, 0)}
 
 	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
 	asks, askErr := w.orderManager.GetOrderBook(
@@ -673,7 +674,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderbook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
+	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
 
 	bids, bidErr := w.orderManager.GetOrderBook(
 		common.HexToAddress(delegateAddress),
@@ -685,9 +686,9 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderbook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
+	orderBook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
 
-	return orderbook, err
+	return orderBook, err
 }
 
 func (w *WalletServiceImpl) GetFills(query FillQuery) (dao.PageResult, error) {
@@ -1135,7 +1136,8 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, big.NewInt(10e18))
 
 		price := *s.RawOrder.Price
-		amountS, amountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal); if err != nil {
+		amountS, amountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)
+		if err != nil {
 			continue
 		}
 

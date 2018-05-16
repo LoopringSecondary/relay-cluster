@@ -403,10 +403,10 @@ func (s *RdsServiceImpl) OrderPageQuery(query map[string]interface{}, statusList
 	return pageResult, err
 }
 
-func (s *RdsServiceImpl) GetLatestOrders(query map[string]interface{}, length int) ([] Order, error) {
+func (s *RdsServiceImpl) GetLatestOrders(query map[string]interface{}, length int) ([]Order, error) {
 	var (
-		orders        []Order
-		err           error
+		orders []Order
+		err    error
 	)
 	err = s.db.Where(query).Order("create_time DESC").Limit(length).Find(&orders).Error
 	return orders, err

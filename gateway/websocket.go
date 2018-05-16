@@ -16,6 +16,7 @@
 
 */
 
+// deprecate
 package gateway
 
 import (
@@ -43,6 +44,7 @@ type WebsocketServiceImpl struct {
 
 type WebsocketRequest map[string]string
 
+// this code is not stable
 func NewWebsocketService(port string, trendManager market.TrendManager, accountManager market.AccountManager, capProvider marketcap.MarketCapProvider) *WebsocketServiceImpl {
 	l := &WebsocketServiceImpl{}
 	l.port = port
