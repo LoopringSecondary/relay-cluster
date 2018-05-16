@@ -191,7 +191,7 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 	}
 	for addr,_ := range changedAddrs {
 		event := types.BalanceUpdateEvent{}
-		event.Owner = addr
+		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
 	}
 
@@ -247,7 +247,7 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 
 	for addr,_ := range changedAddrs {
 		event := types.BalanceUpdateEvent{}
-		event.Owner = addr
+		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
 	}
 	return nil
