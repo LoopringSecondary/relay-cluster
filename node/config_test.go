@@ -18,51 +18,51 @@
 
 package node
 
-import (
-	"encoding/json"
-	"github.com/Loopring/relay/test"
-	"testing"
-)
-
-func TestCreateTokenJsonFile(t *testing.T) {
-	type Token struct {
-		Protocol string
-		Symbol   string
-		Source   string
-		Deny     bool
-		Decimals int
-		IsMarket bool
-	}
-
-	var list []Token
-	rds := test.Rds()
-	tokens, err := rds.FindUnDeniedTokens()
-	if err != nil {
-		panic(err)
-	}
-	markets, err := rds.FindUnDeniedMarkets()
-	if err != nil {
-		panic(err)
-	}
-
-	tokens = append(tokens, markets...)
-	for _, v := range tokens {
-		var t Token
-
-		t.Protocol = v.Protocol
-		t.Symbol = v.Symbol
-		t.Source = v.Source
-		t.Deny = v.Deny
-		t.Decimals = v.Decimals
-		t.IsMarket = v.IsMarket
-
-		list = append(list, t)
-	}
-
-	bs, err := json.Marshal(&list)
-	if err != nil {
-		panic(err)
-	}
-
-	t.Log(string(bs))
-}
+//import (
+//	"encoding/json"
+//	"github.com/Loopring/relay/test"
+//	"testing"
+//)
+//
+//func TestCreateTokenJsonFile(t *testing.T) {
+//	type Token struct {
+//		Protocol string
+//		Symbol   string
+//		Source   string
+//		Deny     bool
+//		Decimals int
+//		IsMarket bool
+//	}
+//
+//	var list []Token
+//	rds := test.Rds()
+//	tokens, err := rds.FindUnDeniedTokens()
+//	if err != nil {
+//		panic(err)
+//	}
+//	markets, err := rds.FindUnDeniedMarkets()
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	tokens = append(tokens, markets...)
+//	for _, v := range tokens {
+//		var t Token
+//
+//		t.Protocol = v.Protocol
+//		t.Symbol = v.Symbol
+//		t.Source = v.Source
+//		t.Deny = v.Deny
+//		t.Decimals = v.Decimals
+//		t.IsMarket = v.IsMarket
+//
+//		list = append(list, t)
+//	}
+//
+//	bs, err := json.Marshal(&list)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	t.Log(string(bs))
+//}

@@ -23,9 +23,9 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache/redis"
@@ -77,7 +77,7 @@ type GlobalConfig struct {
 	Market           util.MarketOptions
 	MarketCap        marketcap.MarketCapOptions
 	UserManager      usermanager.UserManagerOptions
-	AccountManager   market.AccountManagerOptions
+	AccountManager   accountmanager.AccountManagerOptions
 }
 
 type KeyStoreOptions struct {

@@ -23,7 +23,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -39,7 +39,7 @@ import (
 type Gateway struct {
 	filters          []Filter
 	om               ordermanager.OrderManager
-	am               market.AccountManager
+	am               accountmanager.AccountManager
 	isBroadcast      bool
 	maxBroadcastTime int
 	ipfsPubService   IPFSPubService
@@ -73,7 +73,7 @@ type GateWayOptions struct {
 	MaxBroadcastTime int
 }
 
-func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am market.AccountManager) {
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
@@ -230,7 +230,7 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 	}
 
 	if o.TokenB != util.AliasToAddress("LRC") {
-		balances, err := gateway.am.GetBalanceWithSymbolResult(o.Owner)
+		balances, err := accountmanager.GetBalanceWithSymbolResult(o.Owner)
 
 		if err != nil {
 			return false, fmt.Errorf("gateway,base filter,owner holds lrc less than %d ", f.MinLrcHold)

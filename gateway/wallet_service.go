@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager"
@@ -118,8 +119,8 @@ type SingleOwner struct {
 }
 
 type OwnerAndMarket struct {
-	Owner string `json:"owner"`
-	Market   string `json:"market"`
+	Owner  string `json:"owner"`
+	Market string `json:"market"`
 }
 
 type TxNotify struct {
@@ -300,14 +301,14 @@ type P2PRingRequest struct {
 type WalletServiceImpl struct {
 	trendManager    market.TrendManager
 	orderManager    ordermanager.OrderManager
-	accountManager  market.AccountManager
+	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
 	rds             dao.RdsService
 	oldWethAddress  string
 }
 
-func NewWalletService(trendManager market.TrendManager, orderManager ordermanager.OrderManager, accountManager market.AccountManager,
+func NewWalletService(trendManager market.TrendManager, orderManager ordermanager.OrderManager, accountManager accountmanager.AccountManager,
 	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds dao.RdsService, oldWethAddress string) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
@@ -339,7 +340,7 @@ func (w *WalletServiceImpl) GetPortfolio(query SingleOwner) (res []Portfolio, er
 		return nil, errors.New("owner can't be nil")
 	}
 
-	balances, _ := w.accountManager.GetBalanceWithSymbolResult(common.HexToAddress(query.Owner))
+	balances, _ := accountmanager.GetBalanceWithSymbolResult(common.HexToAddress(query.Owner))
 	if len(balances) == 0 {
 		return
 	}
@@ -572,7 +573,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 }
 
 func (w *WalletServiceImpl) GetLatestOrders(query *OwnerAndMarket) (res []OrderJsonResult, err error) {
-	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner:query.Owner, Market:query.Market})
+	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market})
 	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
@@ -788,8 +789,8 @@ func (w *WalletServiceImpl) GetBalance(balanceQuery CommonTokenRequest) (res Acc
 		return res, errors.New("delegate must be address")
 	}
 	owner := common.HexToAddress(balanceQuery.Owner)
-	balances, _ := w.accountManager.GetBalanceWithSymbolResult(owner)
-	allowances, _ := w.accountManager.GetAllowanceWithSymbolResult(owner, common.HexToAddress(balanceQuery.DelegateAddress))
+	balances, _ := accountmanager.GetBalanceWithSymbolResult(owner)
+	allowances, _ := accountmanager.GetAllowanceWithSymbolResult(owner, common.HexToAddress(balanceQuery.DelegateAddress))
 
 	res = AccountJson{}
 	res.DelegateAddress = balanceQuery.DelegateAddress
@@ -1120,10 +1121,10 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 	})
 
 	if isAsk {
-        return depth[len(depth)-length-1:]
-    } else {
-        return depth[:length]
-    }
+		return depth[len(depth)-length-1:]
+	} else {
+		return depth[:length]
+	}
 	return depth
 }
 
@@ -1219,7 +1220,7 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 
 	amount = depthAmount
 
-	balance, allowance, err := w.accountManager.GetBalanceAndAllowance(owner, token, spender)
+	balance, allowance, err := accountmanager.GetBalanceAndAllowance(owner, token, spender)
 	if err != nil {
 		return
 	}

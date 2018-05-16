@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"fmt"
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
@@ -41,13 +42,13 @@ import (
 )
 
 type Node struct {
-	globalConfig      *GlobalConfig
-	rdsService        dao.RdsService
-	ipfsSubService    gateway.IPFSSubService
+	globalConfig *GlobalConfig
+	rdsService   dao.RdsService
+	//ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
 	userManager       usermanager.UserManager
 	marketCapProvider marketcap.MarketCapProvider
-	accountManager    market.AccountManager
+	accountManager    accountmanager.AccountManager
 	trendManager      market.TrendManager
 	tickerCollector   market.CollectorImpl
 	jsonRpcService    gateway.JsonrpcServiceImpl
@@ -138,9 +139,9 @@ func (n *Node) registerAccessor() {
 	}
 }
 
-func (n *Node) registerIPFSSubService() {
-	n.ipfsSubService = gateway.NewIPFSSubService(&n.globalConfig.Ipfs)
-}
+//func (n *Node) registerIPFSSubService() {
+//	n.ipfsSubService = gateway.NewIPFSSubService(&n.globalConfig.Ipfs)
+//}
 
 func (n *Node) registerOrderManager() {
 	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.userManager, n.marketCapProvider)
@@ -151,11 +152,11 @@ func (n *Node) registerTrendManager() {
 }
 
 func (n *Node) registerAccountManager() {
-	n.accountManager = market.NewAccountManager(&n.globalConfig.AccountManager)
+	n.accountManager = accountmanager.Initialize(&n.globalConfig.AccountManager)
 }
 
 func (n *Node) registerTransactionManager() {
-	n.txManager = txmanager.NewTxManager(n.rdsService, &n.accountManager)
+	n.txManager = txmanager.NewTxManager(n.rdsService)
 }
 
 func (n *Node) registerTickerCollector() {

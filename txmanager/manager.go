@@ -19,8 +19,8 @@
 package txmanager
 
 import (
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/market"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -31,7 +31,6 @@ import (
 
 type TransactionManager struct {
 	db                         dao.RdsService
-	accountmanager             *market.AccountManager
 	approveEventWatcher        *eventemitter.Watcher
 	orderCancelledEventWatcher *eventemitter.Watcher
 	cutoffAllEventWatcher      *eventemitter.Watcher
@@ -44,10 +43,9 @@ type TransactionManager struct {
 	forkDetectedEventWatcher   *eventemitter.Watcher
 }
 
-func NewTxManager(db dao.RdsService, accountmanager *market.AccountManager) TransactionManager {
+func NewTxManager(db dao.RdsService) TransactionManager {
 	var tm TransactionManager
 	tm.db = db
-	tm.accountmanager = accountmanager
 
 	return tm
 }
@@ -397,7 +395,7 @@ func (tm *TransactionManager) getUnlockedMap(list []txtyp.TransactionView) unloc
 	ret := make(map[common.Address]bool)
 
 	for _, v := range list {
-		if ok, _ := tm.accountmanager.HasUnlocked(v.Owner.Hex()); ok {
+		if ok, _ := accountmanager.HasUnlocked(v.Owner.Hex()); ok {
 			ret[v.Owner] = true
 		} else {
 			ret[v.Owner] = false

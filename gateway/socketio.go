@@ -98,11 +98,11 @@ var EventTypeRoute = map[string]InvokeInfo{
 	eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 	eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 
-	eventKeyBalance:         {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTransaction:     {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyPendingTx:       {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyMarketOrders:    {"GetLatestOrders", OwnerAndMarket{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyP2POrders:       {"GetLatestOrders", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyTransaction:  {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyMarketOrders: {"GetLatestOrders", OwnerAndMarket{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyP2POrders:    {"GetLatestOrders", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 }
 
 type SocketIOService interface {
