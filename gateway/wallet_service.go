@@ -117,6 +117,11 @@ type SingleOwner struct {
 	Owner string `json:"owner"`
 }
 
+type OwnerAndMarket struct {
+	Owner string `json:"owner"`
+	Market   string `json:"market"`
+}
+
 type TxNotify struct {
 	Hash     string `json:"hash"`
 	Nonce    string `json:"nonce"`
@@ -566,8 +571,8 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	return txHashRst, nil
 }
 
-func (w *WalletServiceImpl) GetLatestOrders(query *OrderQuery) (res []OrderJsonResult, err error) {
-	orderQuery, _, _, _ := convertFromQuery(query)
+func (w *WalletServiceImpl) GetLatestOrders(query *OwnerAndMarket) (res []OrderJsonResult, err error) {
+	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner:query.Owner, Market:query.Market})
 	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
@@ -819,7 +824,6 @@ func (w *WalletServiceImpl) GetEstimatedAllocatedAllowance(query EstimatedAlloca
 	statusSet := make([]types.OrderStatus, 0)
 	statusSet = append(statusSet, types.ORDER_NEW)
 	statusSet = append(statusSet, types.ORDER_PARTIAL)
-	statusSet = append(statusSet, types.ORDER_PENDING_FOR_P2P)
 
 	token := query.Token
 	owner := query.Owner
@@ -840,7 +844,6 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	statusSet := make([]types.OrderStatus, 0)
 	statusSet = append(statusSet, types.ORDER_NEW)
 	statusSet = append(statusSet, types.ORDER_PARTIAL)
-	statusSet = append(statusSet, types.ORDER_PENDING_FOR_P2P)
 
 	owner := query.Owner
 
@@ -1027,7 +1030,7 @@ func getStringStatus(order types.OrderState) string {
 	}
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && ordermanager.IsP2PMakerLocked(order.RawOrder.Hash.Hex()) {
-		return "ORDER_PENDING"
+		return "ORDER_P2P_LOCKED"
 	}
 
 	switch s {
