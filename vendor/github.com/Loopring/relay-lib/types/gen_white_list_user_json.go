@@ -5,7 +5,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 )
 
 // MarshalJSON marshals as JSON.

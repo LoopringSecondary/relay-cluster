@@ -21,10 +21,10 @@ package crypto
 import (
 	"errors"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/Loopring/go-ethereum/accounts"
+	"github.com/Loopring/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/core/types"
+	ethCrypto "github.com/Loopring/go-ethereum/crypto"
 	"math/big"
 )
 

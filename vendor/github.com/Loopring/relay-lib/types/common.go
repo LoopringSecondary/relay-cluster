@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/Loopring/go-ethereum/common/hexutil"
 	"math/big"
 )
 

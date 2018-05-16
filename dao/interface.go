@@ -21,7 +21,7 @@ package dao
 import (
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"math/big"
 )
 

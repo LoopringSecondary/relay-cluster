@@ -72,20 +72,39 @@ func (abi ABI) Pack(name string, args ...interface{}) ([]byte, error) {
 	return append(method.Id(), arguments...), nil
 }
 
+const (
+	SEL_UNPACK_METHOD = 1
+	SEL_UNPACK_EVENT = 2
+	SEL_UNPACK_INPUT = 3
+)
+
 // Unpack output in v according to the abi specification
-func (abi ABI) Unpack(v interface{}, name string, output []byte) (err error) {
+func (abi ABI) Unpack(v interface{}, name string, output []byte, methodOrEvent int) (err error) {
 	if err = bytesAreProper(output); err != nil {
 		return err
 	}
+
+	if methodOrEvent != SEL_UNPACK_METHOD && methodOrEvent != SEL_UNPACK_EVENT {
+		return fmt.Errorf("abi: select unpack kind")
+	}
+
 	// since there can't be naming collisions with contracts and events,
 	// we need to decide whether we're calling a method or an event
 	var unpack unpacker
-	if method, ok := abi.Methods[name]; ok {
-		unpack = method
-	} else if event, ok := abi.Events[name]; ok {
-		unpack = event
-	} else {
-		return fmt.Errorf("abi: could not locate named method or event.")
+	switch methodOrEvent{
+	case SEL_UNPACK_METHOD:
+		if method, ok := abi.Methods[name]; ok {
+			unpack = method
+		} else {
+			return fmt.Errorf("abi: could not locate named method")
+		}
+
+	case SEL_UNPACK_EVENT:
+		if event, ok := abi.Events[name]; ok {
+			unpack = event
+		} else {
+			return fmt.Errorf("abi: could not locate named event")
+		}
 	}
 
 	// requires a struct to unpack into for a tuple return...
@@ -93,6 +112,26 @@ func (abi ABI) Unpack(v interface{}, name string, output []byte) (err error) {
 		return unpack.tupleUnpack(v, output)
 	}
 	return unpack.singleUnpack(v, output)
+}
+
+// Unpack output in v according to the abi specification
+func (abi ABI) UnpackMethodInput(v interface{}, name string, input []byte) (err error) {
+	if err = bytesAreProper(input); err != nil {
+		return err
+	}
+
+	// since there can't be naming collisions with contracts and events,
+	// we need to decide whether we're calling a method or an event
+	method, ok := abi.Methods[name]
+	if !ok {
+		return fmt.Errorf("abi: could not locate named method")
+	}
+
+	// requires a struct to unpack into for a tuple return...
+	if method.isInputTupleReturn() {
+		return method.tupleUnpackInputs(v, input)
+	}
+	return method.singleInputUnpack(v, input)
 }
 
 func (abi *ABI) UnmarshalJSON(data []byte) error {

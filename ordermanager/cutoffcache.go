@@ -21,7 +21,7 @@ package ordermanager
 import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"math/big"
 	"time"
 )

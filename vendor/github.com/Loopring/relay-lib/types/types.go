@@ -20,7 +20,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"math/big"
 )
 

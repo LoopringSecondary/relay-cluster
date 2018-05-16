@@ -26,7 +26,7 @@ import (
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 )
 
 type TransactionManager struct {

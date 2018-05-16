@@ -21,7 +21,7 @@ package dao_test
 import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay/test"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"testing"
 )
 

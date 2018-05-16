@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 )
 
 type TransactionJsonResult struct {

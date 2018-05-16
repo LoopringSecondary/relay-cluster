@@ -3,7 +3,7 @@ package gateway
 import (
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 )
 
 type EthForwarder struct {

@@ -21,8 +21,8 @@ package loopringaccessor
 import (
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/Loopring/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/rpc"
 )
 
 type BatchErc20Req struct {

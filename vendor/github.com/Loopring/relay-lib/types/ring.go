@@ -20,7 +20,7 @@ package types
 
 import (
 	"github.com/Loopring/relay-lib/crypto"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"math/big"
 )
 
