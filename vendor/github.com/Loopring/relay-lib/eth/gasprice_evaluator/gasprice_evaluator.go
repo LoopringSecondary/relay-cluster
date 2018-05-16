@@ -25,6 +25,13 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 	"sort"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/zklock"
+)
+
+const (
+	CacheKey_Evaluated_GasPrice = "evaluated_gasprice_"
+	ZkName_Evaluated_GasPrice = "evaluated_gasprice"
 )
 
 var priceEvaluator *GasPriceEvaluator
@@ -53,6 +60,9 @@ func (e *GasPriceEvaluator) GasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int
 }
 
 func (e *GasPriceEvaluator) start() {
+	zkLock,_ := zklock.NewLock(zklock.ZkLockConfig{})
+	zkLock.TryLock(ZkName_Evaluated_GasPrice)
+
 	var blockNumber types.Big
 	if err := accessor.BlockNumber(&blockNumber); nil == err {
 		go func() {
@@ -79,6 +89,7 @@ func (e *GasPriceEvaluator) start() {
 							}
 						}
 						e.gasPrice = prices.bestGasPrice()
+						cache.Set(CacheKey_Evaluated_GasPrice, []byte(e.gasPrice.String()), int64(0))
 					}
 				}
 			}
@@ -123,10 +134,21 @@ func (prices gasPrices) bestGasPrice() *big.Int {
 }
 
 func InitGasPriceEvaluator() {
+	if nil != priceEvaluator {
+		priceEvaluator.stop()
+	}
 	priceEvaluator = &GasPriceEvaluator{}
 	priceEvaluator.start()
 }
 
 func EstimateGasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int {
-	return priceEvaluator.GasPrice(minGasPrice, maxGasPrice)
+	if data,err := cache.Get(CacheKey_Evaluated_GasPrice); nil == err {
+		gasprice := new(big.Int)
+		gasprice.SetString(string(data), 10)
+		return gasprice
+	} else {
+		InitGasPriceEvaluator()
+		return big.NewInt(int64(1000000000))
+	}
+	//return priceEvaluator.GasPrice(minGasPrice, maxGasPrice)
 }
