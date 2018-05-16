@@ -679,7 +679,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
+	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals, defaultDepthLength)
 
 	bids, bidErr := w.orderManager.GetOrderBook(
 		common.HexToAddress(delegateAddress),
@@ -691,7 +691,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderBook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
+	orderBook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals, defaultDepthLength)
 
 	return orderBook, err
 }
@@ -1119,13 +1119,15 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 
 	})
 
-	if length < len(depth) {
-		return depth[:length]
-	}
+	if isAsk {
+        return depth[len(depth)-length-1:]
+    } else {
+        return depth[:length]
+    }
 	return depth
 }
 
-func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (elements []OrderBookElement, err error) {
+func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int, length int) (elements []OrderBookElement, err error) {
 	if len(states) == 0 {
 		return nil, errors.New("orders can't be nil")
 	}
@@ -1161,7 +1163,12 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 		elements = append(elements, o)
 	}
 
-	return elements, nil
+	if isAsk {
+		return elements[len(elements)-length-1:], nil
+	} else {
+		return elements[:length], nil
+	}
+
 }
 
 func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (amountS, amountB *big.Rat, err error) {
