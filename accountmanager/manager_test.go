@@ -30,6 +30,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/zklock"
 )
 
 func init() {
@@ -68,9 +69,11 @@ func init() {
 	utiloptions.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
 	marketutil.Initialize(&utiloptions)
 
+	zklock.Initialize(zklock.ZkLockConfig{ZkServers: "127.0.0.1:2181", ConnectTimeOut: 10000})
 	acctOptions := &accountmanager.AccountManagerOptions{}
 	//options.CacheDuration =
 	accountmanager.Initialize(acctOptions)
+
 }
 
 func TestAccountManager_GetBalance(t *testing.T) {

@@ -30,8 +30,12 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"github.com/Loopring/relay-lib/zklock"
 )
 
+const (
+	ZK_ACCOUNT_MANAGER = "account_manager"
+)
 type AccountManager struct {
 	cacheDuration int64
 	//maxBlockLength uint64
@@ -42,8 +46,8 @@ func isPackegeReady() error {
 	if !log.IsInit() {
 		return fmt.Errorf("log must be init first")
 	}
-	if !rcache.IsInit() || !loopringaccessor.IsInit() || !marketutil.IsInit() {
-		return fmt.Errorf("cache、loopringaccessor and marketutil must be init first")
+	if !rcache.IsInit() || !loopringaccessor.IsInit() || !marketutil.IsInit() || !zklock.IsInit() {
+		return fmt.Errorf("cache、loopringaccessor、 marketutil and zklock must be init first")
 	}
 	return nil
 }
@@ -68,6 +72,9 @@ func Initialize(options *AccountManagerOptions) AccountManager {
 }
 
 func (accountManager *AccountManager) Start() {
+	log.Infof("accountmanger try to get zklock")
+	zklock.TryLock(ZK_ACCOUNT_MANAGER)
+	log.Infof("accountmanger has got zklock")
 	transferWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleTokenTransfer}
 	approveWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleApprove}
 	wethDepositWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleWethDeposit}
