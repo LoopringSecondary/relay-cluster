@@ -434,10 +434,11 @@ func removeExpiredBlock(blockNumber, duration *big.Int) error {
 	return nil
 }
 
-func (b *ChangedOfBlock) syncAndSaveBalances() error {
+func (b *ChangedOfBlock) syncAndSaveBalances() (map[common.Address]bool, error) {
+	changedAddrs := make(map[common.Address]bool)
 	reqs := b.batchBalanceReqs()
 	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
-		return err
+		return changedAddrs, err
 	}
 	accounts := make(map[common.Address]*AccountBalances)
 	for _, req := range reqs {
@@ -457,9 +458,10 @@ func (b *ChangedOfBlock) syncAndSaveBalances() error {
 	}
 	for _, balances := range accounts {
 		balances.save(int64(0))
+		changedAddrs[balances.Owner] = true
 	}
 
-	return nil
+	return changedAddrs, nil
 }
 
 func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
@@ -510,11 +512,12 @@ func (b *ChangedOfBlock) batchAllowanceReqs() loopringaccessor.BatchErc20Allowan
 	return reqs
 }
 
-func (b *ChangedOfBlock) syncAndSaveAllowances() error {
+func (b *ChangedOfBlock) syncAndSaveAllowances() (map[common.Address]bool, error) {
+	changedAddrs := make(map[common.Address]bool)
 
 	reqs := b.batchAllowanceReqs()
 	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
-		return err
+		return changedAddrs, err
 	}
 	accountAllowances := make(map[common.Address]*AccountAllowances)
 	for _, req := range reqs {
@@ -537,7 +540,8 @@ func (b *ChangedOfBlock) syncAndSaveAllowances() error {
 	}
 	for _, allowances := range accountAllowances {
 		allowances.save(int64(0))
+		changedAddrs[allowances.Owner] = true
 	}
 
-	return nil
+	return changedAddrs, nil
 }

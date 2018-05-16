@@ -72,7 +72,7 @@ func init() {
 	zklock.Initialize(zklock.ZkLockConfig{ZkServers: "127.0.0.1:2181", ConnectTimeOut: 10000})
 	acctOptions := &accountmanager.AccountManagerOptions{}
 	//options.CacheDuration =
-	accountmanager.Initialize(acctOptions)
+	accountmanager.Initialize(acctOptions, "127.0.0.1:9092")
 
 }
 

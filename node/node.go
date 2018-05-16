@@ -152,7 +152,7 @@ func (n *Node) registerTrendManager() {
 }
 
 func (n *Node) registerAccountManager() {
-	n.accountManager = accountmanager.Initialize(&n.globalConfig.AccountManager)
+	n.accountManager = accountmanager.Initialize(&n.globalConfig.AccountManager, "")
 }
 
 func (n *Node) registerTransactionManager() {

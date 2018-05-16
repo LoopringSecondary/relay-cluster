@@ -31,15 +31,18 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"github.com/Loopring/relay-lib/zklock"
+	"github.com/Loopring/relay-lib/kafka"
 )
 
 const (
 	ZK_ACCOUNT_MANAGER = "account_manager"
 )
+
 type AccountManager struct {
 	cacheDuration int64
 	//maxBlockLength uint64
 	block *ChangedOfBlock
+	producerWrapped *kafka.MessageProducer
 }
 
 func isPackegeReady() error {
@@ -52,7 +55,7 @@ func isPackegeReady() error {
 	return nil
 }
 
-func Initialize(options *AccountManagerOptions) AccountManager {
+func Initialize(options *AccountManagerOptions, brokers []string) AccountManager {
 	if err := isPackegeReady(); nil != err {
 		log.Fatalf(err.Error())
 	}
@@ -67,8 +70,26 @@ func Initialize(options *AccountManagerOptions) AccountManager {
 	b := &ChangedOfBlock{}
 	b.cachedDuration = big.NewInt(int64(500))
 	accountManager.block = b
+
+	//brokers := strings.Split("127.0.0.1:9092", ",")
+	accountManager.producerWrapped = &kafka.MessageProducer{}
+	if err := accountManager.producerWrapped.Initialize(brokers); nil != err {
+		log.Fatalf("Failed init producerWrapped %s", err.Error())
+	}
+
 	accManager = &accountManager
 	return accountManager
+}
+
+type KafkaMsg interface {
+	KafkaTopicAndKey() (string, string)
+}
+
+func sendKafkaMsg(msg interface{}) error {
+	topic,key := "", ""
+	//todo:if it occors error
+	_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
+	return err
 }
 
 func (accountManager *AccountManager) Start() {
@@ -160,10 +181,19 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 	event := input.(*types.BlockEvent)
 	log.Debugf("handleBlockEndhandleBlockEndhandleBlockEnd:%s", event.BlockNumber.String())
 
-	a.block.syncAndSaveBalances()
-	a.block.syncAndSaveAllowances()
+	changedAddrs, _ := a.block.syncAndSaveBalances()
+	changedAllowanceAddrs, _ := a.block.syncAndSaveAllowances()
 
 	removeExpiredBlock(a.block.currentBlockNumber, a.block.cachedDuration)
+
+	for addr,_ := range changedAllowanceAddrs {
+		changedAddrs[addr] = true
+	}
+	for addr,_ := range changedAddrs {
+		event := types.BalanceUpdateEvent{}
+		event.Owner = addr
+		sendKafkaMsg(event)
+	}
 
 	return nil
 }
@@ -200,13 +230,25 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 	log.Infof("the eth network may be forked. flush all cache, detectedBlock:%s", event.DetectedBlock.String())
 
 	i := new(big.Int).Set(event.DetectedBlock)
+	changedAddrs := make(map[common.Address]bool)
 	for i.Cmp(event.ForkBlock) >= 0 {
 		changedOfBlock := &ChangedOfBlock{}
 		changedOfBlock.currentBlockNumber = i
-		changedOfBlock.syncAndSaveBalances()
-		changedOfBlock.syncAndSaveAllowances()
+		changedBalanceAddrs,_ := changedOfBlock.syncAndSaveBalances()
+		changedAllowanceAddrs,_ := changedOfBlock.syncAndSaveAllowances()
+		for addr,_ := range changedBalanceAddrs {
+			changedAddrs[addr] = true
+		}
+		for addr,_ := range changedAllowanceAddrs {
+			changedAddrs[addr] = true
+		}
 		i.Sub(i, big.NewInt(int64(1)))
 	}
 
+	for addr,_ := range changedAddrs {
+		event := types.BalanceUpdateEvent{}
+		event.Owner = addr
+		sendKafkaMsg(event)
+	}
 	return nil
 }
