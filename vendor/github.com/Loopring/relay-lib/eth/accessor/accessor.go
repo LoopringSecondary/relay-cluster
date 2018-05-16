@@ -148,8 +148,9 @@ func GetFullBlock(blockNumber *big.Int, withObject bool) (interface{}, error) {
 }
 
 func IsInit() bool {
-	return nil == accessor
+	return nil != accessor
 }
+
 func Initialize(accessorOptions AccessorOptions) error {
 	InitializeAccessor(accessorOptions)
 	return nil

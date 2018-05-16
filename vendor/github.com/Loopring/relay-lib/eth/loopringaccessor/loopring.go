@@ -59,8 +59,8 @@ func InitLoopringAccessor(options LoopringProtocolOptions) error {
 
 	if "" == options.ImplAbi {
 		//todo:
-		for _,address := range options.Address {
-			data,_ := abiStrFromEthscan(common.HexToAddress(address))
+		for _, address := range options.Address {
+			data, _ := abiStrFromEthscan(common.HexToAddress(address))
 			options.ImplAbi = string(data)
 			break
 		}
@@ -107,7 +107,7 @@ func InitLoopringAccessor(options LoopringProtocolOptions) error {
 	if "" == options.DelegateAbi {
 		for _, impl := range loopringParams.ProtocolAddresses {
 			//todo:error
-			data,_ := abiStrFromEthscan(impl.DelegateAddress)
+			data, _ := abiStrFromEthscan(impl.DelegateAddress)
 			options.DelegateAbi = string(data)
 			break
 		}
@@ -120,7 +120,7 @@ func InitLoopringAccessor(options LoopringProtocolOptions) error {
 
 	if "" == options.TokenRegistryAbi {
 		for _, impl := range loopringParams.ProtocolAddresses {
-			data,_ := abiStrFromEthscan(impl.TokenRegistryAddress)
+			data, _ := abiStrFromEthscan(impl.TokenRegistryAddress)
 			options.TokenRegistryAbi = string(data)
 			break
 		}

@@ -304,8 +304,8 @@ func (p *CapProvider_CoinMarketCap) Start() {
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 	//todo:
-	zkInstance, _ := zklock.NewLock(zklock.ZkLockConfig{})
-	zkInstance.TryLock(ZKNAME_COIN_MARKETCAP)
+	zklock.TryLock(ZKNAME_COIN_MARKETCAP)
+	log.Debugf("syncMarketCapFromAPIWithZk....")
 	stopChan := make(chan bool)
 	p.stopFuncs = append(p.stopFuncs, func() {
 		stopChan <- true
@@ -314,11 +314,12 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 	go func() {
 		for {
 			select {
-			case <-time.After(time.Duration(p.duration) * time.Minute):
+			case <-time.After(time.Duration(p.duration) * time.Second):
 				log.Debugf("sync marketcap from api...")
 				p.syncMarketCapFromAPI()
 			case stopped := <-stopChan:
 				if stopped {
+					zklock.ReleaseLock(ZKNAME_COIN_MARKETCAP)
 					return
 				}
 			}
@@ -327,6 +328,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
+	log.Debugf("syncMarketCapFromAPI...")
 	url := fmt.Sprintf(p.baseUrl, p.currency)
 	resp, err := http.Get(url)
 	if err != nil {

@@ -27,6 +27,16 @@ import (
 	"math/big"
 )
 
+func Erc20Balance(tokenAddress, ownerAddress common.Address, blockParameter string) (*big.Int, error) {
+	var balance types.Big
+	callMethod := accessor.ContractCallMethod(loopringParams.Erc20Abi, tokenAddress)
+	if err := callMethod(&balance, "balanceOf", blockParameter, ownerAddress); nil != err {
+		return nil, err
+	} else {
+		return balance.BigInt(), err
+	}
+}
+
 func Erc20Allowance(tokenAddress, ownerAddress, spenderAddress common.Address, blockParameter string) (*big.Int, error) {
 	var allowance types.Big
 	callMethod := accessor.ContractCallMethod(loopringParams.Erc20Abi, tokenAddress)
@@ -133,17 +143,15 @@ func GetCutoffPair(result interface{}, contractAddress, owner, token1, token2 co
 //	return nil
 //}
 
-func Erc20Balance(tokenAddress, ownerAddress common.Address, blockParameter string) (*big.Int, error) {
-	var balance types.Big
-	callMethod := accessor.ContractCallMethod(loopringParams.Erc20Abi, tokenAddress)
-	if err := callMethod(&balance, "balanceOf", blockParameter, ownerAddress); nil != err {
-		return nil, err
-	} else {
-		return balance.BigInt(), err
-	}
-}
 
 func BatchErc20Allowance(routeParam string, reqs BatchErc20AllowanceReqs) error {
+	if err := accessor.BatchCall(routeParam, []accessor.BatchReq{reqs}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func BatchErc20Balance(routeParam string, reqs BatchBalanceReqs) error {
 	if err := accessor.BatchCall(routeParam, []accessor.BatchReq{reqs}); err != nil {
 		return err
 	}

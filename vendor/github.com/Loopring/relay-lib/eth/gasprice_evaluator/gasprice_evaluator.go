@@ -19,19 +19,19 @@
 package gasprice_evaluator
 
 import (
+	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
 	"math/big"
 	"sort"
-	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-lib/zklock"
 )
 
 const (
-	CacheKey_Evaluated_GasPrice = "evaluated_gasprice_"
-	ZkName_Evaluated_GasPrice = "evaluated_gasprice"
+	CacheKey_Evaluated_GasPrice = "evaluated_gasprice"
+	ZkName_Evaluated_GasPrice   = "evaluated_gasprice"
 )
 
 var priceEvaluator *GasPriceEvaluator
@@ -43,35 +43,20 @@ type GasPriceEvaluator struct {
 	stopChan chan bool
 }
 
-func (e *GasPriceEvaluator) GasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int {
-	gasPrice := new(big.Int)
-	if nil != e.gasPrice {
-		if nil != maxGasPrice && maxGasPrice.Cmp(e.gasPrice) < 0 {
-			gasPrice.Set(maxGasPrice)
-		} else if nil != minGasPrice && minGasPrice.Cmp(e.gasPrice) > 0 {
-			gasPrice.Set(minGasPrice)
-		} else {
-			gasPrice.Set(e.gasPrice)
-		}
-	} else {
-		gasPrice.Set(maxGasPrice)
-	}
-	return gasPrice
-}
-
 func (e *GasPriceEvaluator) start() {
-	zkLock,_ := zklock.NewLock(zklock.ZkLockConfig{})
-	zkLock.TryLock(ZkName_Evaluated_GasPrice)
-
+	log.Debugf("GasPriceEvaluator try to get zklock.")
+	zklock.TryLock(ZkName_Evaluated_GasPrice)
+	log.Debugf("GasPriceEvaluator has got zklock.")
 	var blockNumber types.Big
 	if err := accessor.BlockNumber(&blockNumber); nil == err {
 		go func() {
 			number := new(big.Int).Set(blockNumber.BigInt())
-			number.Sub(number, big.NewInt(30))
-			iterator := accessor.NewBlockIterator(number, nil, true, uint64(0))
+			number.Sub(number, big.NewInt(5))
+			iterator := accessor.NewBlockIterator(number, nil, true, uint64(5))
 			for {
 				select {
 				case <-e.stopChan:
+					zklock.ReleaseLock(ZkName_Evaluated_GasPrice)
 					return
 				default:
 					blockInterface, err := iterator.Next()
@@ -89,12 +74,15 @@ func (e *GasPriceEvaluator) start() {
 							}
 						}
 						e.gasPrice = prices.bestGasPrice()
-						cache.Set(CacheKey_Evaluated_GasPrice, []byte(e.gasPrice.String()), int64(0))
+						if nil != e.gasPrice {
+							cache.Set(CacheKey_Evaluated_GasPrice, []byte(e.gasPrice.String()), int64(0))
+						} else {
+							log.Errorf("e.gasPrice == nil, blockNumber:%s", blockWithTxAndReceipt.Number.BigInt().String())
+						}
 					}
 				}
 			}
 		}()
-
 	}
 }
 
@@ -127,9 +115,9 @@ func (prices gasPrices) bestGasPrice() *big.Int {
 	}
 	averagePrice.Div(averagePrice, big.NewInt(int64(endIdx-startIdx+1)))
 
-	if averagePrice.Cmp(big.NewInt(int64(0))) <= 0 {
-		averagePrice = big.NewInt(int64(1000000000))
-	}
+	//if averagePrice.Cmp(big.NewInt(int64(0))) <= 0 {
+	//	averagePrice = big.NewInt(int64(1000000000))
+	//}
 	return averagePrice
 }
 
@@ -138,17 +126,21 @@ func InitGasPriceEvaluator() {
 		priceEvaluator.stop()
 	}
 	priceEvaluator = &GasPriceEvaluator{}
-	priceEvaluator.start()
+	go priceEvaluator.start()
 }
 
 func EstimateGasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int {
-	if data,err := cache.Get(CacheKey_Evaluated_GasPrice); nil == err {
-		gasprice := new(big.Int)
+	gasprice := big.NewInt(int64(1000000000))
+	if data, err := cache.Get(CacheKey_Evaluated_GasPrice); nil == err {
 		gasprice.SetString(string(data), 10)
-		return gasprice
 	} else {
-		InitGasPriceEvaluator()
-		return big.NewInt(int64(1000000000))
+		//InitGasPriceEvaluator()
+		log.Errorf("EstimateGasPrice err:%s", err.Error())
 	}
-	//return priceEvaluator.GasPrice(minGasPrice, maxGasPrice)
+	if nil != maxGasPrice && maxGasPrice.Cmp(gasprice) < 0 {
+		gasprice.Set(maxGasPrice)
+	} else if nil != minGasPrice && minGasPrice.Cmp(gasprice) > 0 {
+		gasprice.Set(minGasPrice)
+	}
+	return gasprice
 }
