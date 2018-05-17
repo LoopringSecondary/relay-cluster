@@ -18,20 +18,20 @@
 
 package txmanager_test
 
-import (
-	"github.com/Loopring/relay/test"
-	"github.com/Loopring/relay/txmanager"
-	"testing"
-)
-
-func TestRollbackCache(t *testing.T) {
-	test.Cfg()
-
-	from := 42710
-	to := 42711
-	if err := txmanager.RollbackCache(int64(from), int64(to)); err != nil {
-		t.Fatalf(err.Error())
-	}
-
-	t.Log("rollback tx cache success!")
-}
+//import (
+//	"github.com/Loopring/relay/test"
+//	"github.com/Loopring/relay/txmanager"
+//	"testing"
+//)
+//
+//func TestRollbackCache(t *testing.T) {
+//	test.Cfg()
+//
+//	from := 42710
+//	to := 42711
+//	if err := txmanager.RollbackCache(int64(from), int64(to)); err != nil {
+//		t.Fatalf(err.Error())
+//	}
+//
+//	t.Log("rollback tx cache success!")
+//}

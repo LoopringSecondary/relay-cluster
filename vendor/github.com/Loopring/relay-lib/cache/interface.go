@@ -128,3 +128,7 @@ func ZRange(key string, start, stop int64, withScores bool) ([][]byte, error) {
 func ZRemRangeByScore(key string, start, stop int64) (int64, error) {
 	return cache.ZRemRangeByScore(key, start, stop)
 }
+
+func IsInit() bool {
+	return nil != cache
+}

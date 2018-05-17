@@ -19,18 +19,18 @@
 package accountmanager_test
 
 import (
-	"testing"
-	"github.com/Loopring/relay-cluster/accountmanager"
-	"go.uber.org/zap"
 	"encoding/json"
-	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/zklock"
+	"github.com/ethereum/go-ethereum/common"
+	"go.uber.org/zap"
+	"testing"
 )
 
 func init() {

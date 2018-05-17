@@ -129,6 +129,10 @@ func InitGasPriceEvaluator() {
 	go priceEvaluator.start()
 }
 
+func IsInit() bool {
+	return nil != priceEvaluator
+}
+
 func EstimateGasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int {
 	gasprice := big.NewInt(int64(1000000000))
 	if data, err := cache.Get(CacheKey_Evaluated_GasPrice); nil == err {

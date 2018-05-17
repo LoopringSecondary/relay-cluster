@@ -185,7 +185,7 @@ func (m *SubmitRingMethodInputs) ConvertDown() (*types.SubmitRingMethodEvent, er
 	event.OrderList = list
 	event.FeeReceipt = m.FeeRecipient
 	event.FeeSelection = m.FeeSelections
-	event.Err = nil
+	event.Err = ""
 
 	return &event, nil
 }

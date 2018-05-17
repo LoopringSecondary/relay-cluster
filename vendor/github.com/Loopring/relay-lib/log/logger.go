@@ -44,3 +44,7 @@ func Initialize(cfg zap.Config) *zap.Logger {
 
 	return logger
 }
+
+func IsInit() bool {
+	return nil != logger
+}

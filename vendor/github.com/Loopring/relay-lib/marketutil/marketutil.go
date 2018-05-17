@@ -290,7 +290,7 @@ func UnWrap(market string) (s, b string) {
 
 func UnWrapToAddress(market string) (s, b common.Address) {
 	sa, sb := UnWrap(market)
-	return common.StringToAddress(sa), common.StringToAddress(sb)
+	return common.HexToAddress(sa), common.HexToAddress(sb)
 }
 
 func IsSupportedMarket(market string) bool {
@@ -402,4 +402,8 @@ func GetSymbolWithAddress(address common.Address) (string, error) {
 		return symbol, nil
 	}
 	return "", fmt.Errorf("market util, unsupported address:%s", address.Hex())
+}
+
+func IsInit() bool {
+	return nil != AllTokens
 }

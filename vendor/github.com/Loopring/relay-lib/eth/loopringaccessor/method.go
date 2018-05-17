@@ -143,7 +143,6 @@ func GetCutoffPair(result interface{}, contractAddress, owner, token1, token2 co
 //	return nil
 //}
 
-
 func BatchErc20Allowance(routeParam string, reqs BatchErc20AllowanceReqs) error {
 	if err := accessor.BatchCall(routeParam, []accessor.BatchReq{reqs}); err != nil {
 		return err
