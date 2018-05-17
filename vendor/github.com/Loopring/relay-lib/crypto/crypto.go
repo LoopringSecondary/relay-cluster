@@ -155,11 +155,14 @@ func (h *EthPrivateKeyCrypto) UnmarshalText(input []byte) error {
 
 func toECDSA(privateKeyHex string) (*ecdsa.PrivateKey, error) {
 	privateKeyHex = strings.TrimPrefix(privateKeyHex, "0x")
+	if len(privateKeyHex) == 0 {
+		return &ecdsa.PrivateKey{}, nil
+	}
 	return ethCrypto.ToECDSA(common.Hex2Bytes(privateKeyHex))
 }
 
 func (h *EthPrivateKeyCrypto) MarshalText() ([]byte, error) {
-	if h.privateKey == nil {
+	if h.privateKey == nil || nil == h.privateKey.D {
 		return []byte{}, nil
 	}
 	return []byte(common.ToHex(common.LeftPadBytes(h.privateKey.D.Bytes(), 32))), nil

@@ -25,17 +25,17 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-lib/broadcast/ipfs"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay/config"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
-	"github.com/Loopring/relay-lib/broadcast/ipfs"
-	"github.com/Loopring/relay/config"
 )
 
 type Gateway struct {

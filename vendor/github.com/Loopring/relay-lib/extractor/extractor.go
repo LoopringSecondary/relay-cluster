@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/kafka"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 )
 
@@ -52,15 +53,19 @@ func Initialize(options kafka.KafkaOptions) error {
 func (s *ExtractorService) handle(input interface{}) error {
 	src, ok := input.(*types.KafkaOnChainEvent)
 	if !ok {
-		return fmt.Errorf("extractor,input type should be *KafkaOnChainEvent")
+		log.Errorf("extractor,input type should be *KafkaOnChainEvent")
+		return nil
 	}
 
 	event, err := Disassemble(src)
 	if err != nil {
+		log.Errorf("extractor, disassemble error:%s", err.Error())
 		return err
 	}
 
 	eventemitter.Emit(src.Topic, event)
+	log.Debugf("extractor, send to emitter topic:%s", src.Topic)
+
 	return nil
 }
 
@@ -71,6 +76,7 @@ func Disassemble(src *types.KafkaOnChainEvent) (interface{}, error) {
 		return nil, fmt.Errorf("get event from topic error")
 	}
 
+	log.Debugf(src.Data)
 	if err := json.Unmarshal([]byte(src.Data), event); err != nil {
 		return nil, err
 	}

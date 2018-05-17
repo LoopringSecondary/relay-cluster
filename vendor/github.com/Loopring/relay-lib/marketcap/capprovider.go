@@ -314,7 +314,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 	go func() {
 		for {
 			select {
-			case <-time.After(time.Duration(p.duration) * time.Second):
+			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap from api...")
 				p.syncMarketCapFromAPI()
 			case stopped := <-stopChan:

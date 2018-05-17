@@ -35,9 +35,9 @@ import (
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/zklock"
+	"github.com/Loopring/relay/config"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
-	"github.com/Loopring/relay/config"
 )
 
 func LoadConfig(file string) *GlobalConfig {

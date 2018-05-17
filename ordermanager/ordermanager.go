@@ -19,7 +19,6 @@
 package ordermanager
 
 import (
-	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -52,23 +51,21 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options            *OrderManagerOptions
-	rds                dao.RdsService
-	processor          *ForkProcessor
-	um                 usermanager.UserManager
-	mc                 marketcap.MarketCapProvider
-	cutoffCache        *CutoffCache
-	newOrderWatcher    *eventemitter.Watcher
-	ringMinedWatcher   *eventemitter.Watcher
-	fillOrderWatcher   *eventemitter.Watcher
-	cancelOrderWatcher *eventemitter.Watcher
-	cutoffOrderWatcher *eventemitter.Watcher
-	cutoffPairWatcher  *eventemitter.Watcher
-	forkWatcher        *eventemitter.Watcher
-	//syncWatcher             *eventemitter.Watcher
+	options                 *OrderManagerOptions
+	rds                     dao.RdsService
+	processor               *ForkProcessor
+	um                      usermanager.UserManager
+	mc                      marketcap.MarketCapProvider
+	cutoffCache             *CutoffCache
+	newOrderWatcher         *eventemitter.Watcher
+	ringMinedWatcher        *eventemitter.Watcher
+	fillOrderWatcher        *eventemitter.Watcher
+	cancelOrderWatcher      *eventemitter.Watcher
+	cutoffOrderWatcher      *eventemitter.Watcher
+	cutoffPairWatcher       *eventemitter.Watcher
+	forkWatcher             *eventemitter.Watcher
 	warningWatcher          *eventemitter.Watcher
 	submitRingMethodWatcher *eventemitter.Watcher
-	//ordersValidForMiner     bool
 }
 
 type OrderManagerOptions struct {
@@ -90,7 +87,6 @@ func NewOrderManager(
 	om.um = userManager
 	om.mc = market
 	om.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
-	//om.ordersValidForMiner = false
 
 	dustOrderValue = om.options.DustOrderValue
 
@@ -105,7 +101,6 @@ func (om *OrderManagerImpl) Start() {
 	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderCancelled}
 	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoff}
 	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoffPair}
-	//om.syncWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleSync}
 	om.forkWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleFork}
 	om.warningWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWarning}
 	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleSubmitRingMethod}
@@ -116,7 +111,6 @@ func (om *OrderManagerImpl) Start() {
 	eventemitter.On(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.On(eventemitter.CutoffAll, om.cutoffOrderWatcher)
 	eventemitter.On(eventemitter.CutoffPair, om.cutoffPairWatcher)
-	//eventemitter.On(eventemitter.SyncChainComplete, om.syncWatcher)
 	eventemitter.On(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.On(eventemitter.ExtractorWarning, om.warningWatcher)
 	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
@@ -128,22 +122,10 @@ func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.Un(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.Un(eventemitter.CutoffAll, om.cutoffOrderWatcher)
-	//eventemitter.Un(eventemitter.SyncChainComplete, om.syncWatcher)
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
 	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
-
-	//om.ordersValidForMiner = false
 }
-
-//func (om *OrderManagerImpl) handleSync(input eventemitter.EventData) error {
-//	blockNumber := input.(types.Big)
-//	if blockNumber.BigInt().Cmp(big.NewInt(0)) > 0 {
-//		om.ordersValidForMiner = true
-//	}
-//
-//	return nil
-//}
 
 func (om *OrderManagerImpl) handleFork(input eventemitter.EventData) error {
 	log.Debugf("order manager processing chain fork......")
@@ -177,11 +159,13 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 
 	model, err = om.rds.FindRingMined(event.TxHash.Hex())
 	if err == nil {
-		return fmt.Errorf("order manager,handle ringmined event,tx %s has already exist", event.TxHash.Hex())
+		log.Debugf("order manager,handle ringmined event,tx %s has already exist", event.TxHash.Hex())
+		return nil
 	}
 	model.FromSubmitRingMethod(event)
 	if err = om.rds.Add(model); err != nil {
-		return fmt.Errorf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		log.Debugf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		return nil
 	}
 
 	return nil
@@ -216,11 +200,13 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 
 	model, err = om.rds.FindRingMined(event.TxHash.Hex())
 	if err == nil {
-		return fmt.Errorf("order manager,handle ringmined event,ring %s has already exist", event.Ringhash.Hex())
+		log.Debugf("order manager,handle ringmined event,ring %s has already exist", event.Ringhash.Hex())
+		return nil
 	}
 	model.ConvertDown(event)
 	if err = om.rds.Add(model); err != nil {
-		return fmt.Errorf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		log.Debugf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		return nil
 	}
 
 	return nil
