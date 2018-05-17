@@ -86,153 +86,153 @@ type TxInfo struct {
 
 type TokenRegisterEvent struct {
 	TxInfo
-	Token  common.Address
-	Symbol string
+	Token  common.Address `json:"token"`
+	Symbol string         `json:"symbol"`
 }
 
 type TokenUnRegisterEvent struct {
 	TxInfo
-	Token  common.Address
-	Symbol string
+	Token  common.Address `json:"token"`
+	Symbol string         `json:"symbol"`
 }
 
 type AddressAuthorizedEvent struct {
 	TxInfo
-	Protocol common.Address
-	Number   int
+	Protocol common.Address `json:"protocol"`
+	Number   int            `json:"number"`
 }
 
 type AddressDeAuthorizedEvent struct {
 	TxInfo
-	Protocol common.Address
-	Number   int
+	Protocol common.Address `json:"protocol"`
+	Number   int            `json:"number"`
 }
 
 type TransferEvent struct {
 	TxInfo
-	Sender   common.Address
-	Receiver common.Address
-	Amount   *big.Int
+	Sender   common.Address `json:"sender"`
+	Receiver common.Address `json:"receiver"`
+	Amount   *big.Int       `json:"amount"`
 }
 
 type ApprovalEvent struct {
 	TxInfo
-	Owner   common.Address
-	Spender common.Address
-	Amount  *big.Int
+	Owner   common.Address `json:"owner"`
+	Spender common.Address `json:"spender"`
+	Amount  *big.Int       `json:"amount"`
 }
 
 type OrderFilledEvent struct {
 	TxInfo
-	Ringhash      common.Hash
-	PreOrderHash  common.Hash
-	OrderHash     common.Hash
-	NextOrderHash common.Hash
-	Owner         common.Address
-	TokenS        common.Address
-	TokenB        common.Address
-	SellTo        common.Address
-	BuyFrom       common.Address
-	RingIndex     *big.Int
-	AmountS       *big.Int
-	AmountB       *big.Int
-	LrcReward     *big.Int
-	LrcFee        *big.Int
-	SplitS        *big.Int
-	SplitB        *big.Int
-	Market        string
-	FillIndex     *big.Int
+	Ringhash      common.Hash    `json:"ringhash"`
+	PreOrderHash  common.Hash    `json:"pre_order_hash"`
+	OrderHash     common.Hash    `json:"order_hash"`
+	NextOrderHash common.Hash    `json:"next_order_hash"`
+	Owner         common.Address `json:"owner"`
+	TokenS        common.Address `json:"token_s"`
+	TokenB        common.Address `json:"token_b"`
+	SellTo        common.Address `json:"sell_to"`
+	BuyFrom       common.Address `json:"buy_from"`
+	RingIndex     *big.Int       `json:"ring_index"`
+	AmountS       *big.Int       `json:"amount_s"`
+	AmountB       *big.Int       `json:"amount_b"`
+	LrcReward     *big.Int       `json:"lrc_reward"`
+	LrcFee        *big.Int       `json:"lrc_fee"`
+	SplitS        *big.Int       `json:"split_s"`
+	SplitB        *big.Int       `json:"split_b"`
+	Market        string         `json:"market"`
+	FillIndex     *big.Int       `json:"fill_index"`
 }
 
 type OrderCancelledEvent struct {
 	TxInfo
-	OrderHash       common.Hash
-	AmountCancelled *big.Int
+	OrderHash       common.Hash `json:"order_hash"`
+	AmountCancelled *big.Int    `json:"amount_cancelled"`
 }
 
 type CutoffEvent struct {
 	TxInfo
-	Owner         common.Address
-	Cutoff        *big.Int
-	OrderHashList []common.Hash
+	Owner         common.Address `json:"owner"`
+	Cutoff        *big.Int       `json:"cutoff"`
+	OrderHashList []common.Hash  `json:"order_hash_list"`
 }
 
 type CutoffPairEvent struct {
 	TxInfo
-	Owner         common.Address
-	Token1        common.Address
-	Token2        common.Address
-	Cutoff        *big.Int
-	OrderHashList []common.Hash
+	Owner         common.Address `json:"owner"`
+	Token1        common.Address `json:"token_1"`
+	Token2        common.Address `json:"token_2"`
+	Cutoff        *big.Int       `json:"cutoff"`
+	OrderHashList []common.Hash  `json:"order_hash_list"`
 }
 
 type RingMinedEvent struct {
 	TxInfo
-	RingIndex    *big.Int
-	TotalLrcFee  *big.Int
-	TradeAmount  int
-	Ringhash     common.Hash
-	Miner        common.Address
-	FeeRecipient common.Address
-	Err          error
+	RingIndex    *big.Int       `json:"ring_index"`
+	TotalLrcFee  *big.Int       `json:"total_lrc_fee"`
+	TradeAmount  int            `json:"trade_amount"`
+	Ringhash     common.Hash    `json:"ringhash"`
+	Miner        common.Address `json:"miner"`
+	FeeRecipient common.Address `json:"fee_recipient"`
+	Err          string         `json:"err"`
 }
 
 type WethDepositEvent struct {
 	TxInfo
-	Dst    common.Address
-	Amount *big.Int
+	Dst    common.Address `json:"dst"`
+	Amount *big.Int       `json:"amount"`
 }
 
 type WethWithdrawalEvent struct {
 	TxInfo
-	Src    common.Address
-	Amount *big.Int
+	Src    common.Address `json:"src"`
+	Amount *big.Int       `json:"amount"`
 }
 
 type SubmitRingMethodEvent struct {
 	TxInfo
-	OrderList    []Order
-	FeeReceipt   common.Address
-	FeeSelection uint16
-	Err          error
+	OrderList    []Order        `json:"order_list"`
+	FeeReceipt   common.Address `json:"fee_receipt"`
+	FeeSelection uint16         `json:"fee_selection"`
+	Err          string         `json:"err"`
 }
 
 type RingSubmitResultEvent struct {
-	RingHash     common.Hash
-	RingUniqueId common.Hash
-	TxHash       common.Hash
-	Status       TxStatus
-	RingIndex    *big.Int
-	BlockNumber  *big.Int
-	UsedGas      *big.Int
-	Err          error
+	RingHash     common.Hash `json:"ring_hash"`
+	RingUniqueId common.Hash `json:"ring_unique_id"`
+	TxHash       common.Hash `json:"tx_hash"`
+	Status       TxStatus    `json:"status"`
+	RingIndex    *big.Int    `json:"ring_index"`
+	BlockNumber  *big.Int    `json:"block_number"`
+	UsedGas      *big.Int    `json:"used_gas"`
+	Err          string      `json:"err"`
 }
 
 type ForkedEvent struct {
-	DetectedBlock *big.Int
-	DetectedHash  common.Hash
-	ForkBlock     *big.Int
-	ForkHash      common.Hash
+	DetectedBlock *big.Int    `json:"detected_block"`
+	DetectedHash  common.Hash `json:"detected_hash"`
+	ForkBlock     *big.Int    `json:"fork_block"`
+	ForkHash      common.Hash `json:"fork_hash"`
 }
 
 type BlockEvent struct {
-	BlockNumber *big.Int
-	BlockHash   common.Hash
-	BlockTime   int64
+	BlockNumber *big.Int    `json:"block_number"`
+	BlockHash   common.Hash `json:"block_hash"`
+	BlockTime   int64       `json:"block_time"`
 }
 
 type ExtractorWarningEvent struct{}
 
 type TransactionEvent struct {
-	Tx TxInfo
+	TxInfo
 }
 
 type DepthUpdateEvent struct {
-	DelegateAddress string
-	Market          string
+	DelegateAddress string `json:"delegate_address"`
+	Market          string `json:"market"`
 }
 
 type BalanceUpdateEvent struct {
-	DelegateAddress string
-	Owner           string
+	DelegateAddress string `json:"delegate_address"`
+	Owner           string `json:"owner"`
 }

@@ -34,6 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+	"github.com/Loopring/relay-lib/broadcast/ipfs"
+	"github.com/Loopring/relay/config"
 )
 
 type Gateway struct {
@@ -42,7 +44,7 @@ type Gateway struct {
 	am               accountmanager.AccountManager
 	isBroadcast      bool
 	maxBroadcastTime int
-	ipfsPubService   IPFSPubService
+	ipfsPubService   ipfs.IPFSPubService
 	marketCap        marketcap.MarketCapProvider
 }
 
@@ -73,7 +75,7 @@ type GateWayOptions struct {
 	MaxBroadcastTime int
 }
 
-func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
@@ -227,6 +229,10 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 
 	if !loopringaccessor.IsRelateProtocol(o.Protocol, o.DelegateAddress) {
 		return false, fmt.Errorf("protocol and Delegate are not matched")
+	}
+
+	if o.OrderType == types.ORDER_TYPE_MARKET && o.AuthPrivateKey.Address() != o.AuthAddr {
+		return false, fmt.Errorf("market order auth private key not correct")
 	}
 
 	if o.TokenB != util.AliasToAddress("LRC") {

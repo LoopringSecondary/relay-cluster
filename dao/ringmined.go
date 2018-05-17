@@ -19,7 +19,6 @@
 package dao
 
 import (
-	"errors"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -86,7 +85,7 @@ func (r *RingMinedEvent) ConvertUp(event *types.RingMinedEvent) error {
 	event.GasLimit, _ = new(big.Int).SetString(r.GasLimit, 0)
 	event.GasUsed, _ = new(big.Int).SetString(r.GasUsed, 0)
 	event.GasPrice, _ = new(big.Int).SetString(r.GasPrice, 0)
-	event.Err = errors.New(r.Err)
+	event.Err = r.Err
 
 	return nil
 }
@@ -100,9 +99,8 @@ func (r *RingMinedEvent) FromSubmitRingMethod(event *types.SubmitRingMethodEvent
 	r.GasLimit = event.GasLimit.String()
 	r.GasUsed = event.GasUsed.String()
 	r.GasPrice = event.GasPrice.String()
-	if nil != event.Err {
-		r.Err = event.Err.Error()
-	}
+	r.Err = event.Err
+
 	return nil
 }
 

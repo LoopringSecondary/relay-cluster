@@ -31,11 +31,13 @@ import (
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
-	"github.com/Loopring/relay-lib/kafka"
+	"github.com/Loopring/relay/config"
 )
 
 func LoadConfig(file string) *GlobalConfig {
@@ -65,7 +67,7 @@ type GlobalConfig struct {
 	}
 	Mysql            dao.MysqlOptions
 	Redis            redis.RedisOptions
-	Ipfs             gateway.IpfsOptions
+	Ipfs             config.IpfsOptions
 	Jsonrpc          gateway.JsonrpcOptions
 	Websocket        gateway.WebsocketOptions
 	GatewayFilters   gateway.GatewayFiltersOptions
@@ -79,7 +81,8 @@ type GlobalConfig struct {
 	MarketCap        marketcap.MarketCapOptions
 	UserManager      usermanager.UserManagerOptions
 	AccountManager   accountmanager.AccountManagerOptions
-	Kafka	kafka.KafkaOptions
+	Kafka            kafka.KafkaOptions
+	ZkLock           zklock.ZkLockConfig
 }
 
 type KeyStoreOptions struct {

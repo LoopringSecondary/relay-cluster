@@ -152,11 +152,6 @@ func IsInit() bool {
 }
 
 func Initialize(accessorOptions AccessorOptions) error {
-	InitializeAccessor(accessorOptions)
-	return nil
-}
-
-func InitializeAccessor(accessorOptions AccessorOptions) error {
 	var err error
 	accessor = &ethNodeAccessor{}
 	accessor.mtx = sync.RWMutex{}

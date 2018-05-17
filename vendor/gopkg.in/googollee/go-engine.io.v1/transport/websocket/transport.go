@@ -74,9 +74,6 @@ func (t *Transport) Accept(w http.ResponseWriter, r *http.Request) (base.Conn, e
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  t.ReadBufferSize,
 		WriteBufferSize: t.WriteBufferSize,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
 	}
 	c, err := upgrader.Upgrade(w, r, w.Header())
 	if err != nil {

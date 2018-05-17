@@ -69,14 +69,11 @@ func (p *Payload) FeedIn(r io.Reader, supportBinary bool) error {
 	default:
 	}
 
-	fmt.Println("pl1>>")
 	if !atomic.CompareAndSwapInt64(&p.feeding, 0, 1) {
-		fmt.Println("pl2>>")
 		return newOpError("read", errOverlap)
 	}
 	defer atomic.StoreInt64(&p.feeding, 0)
 	if ok := p.pauser.Working(); !ok {
-		fmt.Println("pl3>>")
 		return newOpError("payload", errPaused)
 	}
 	defer p.pauser.Done()

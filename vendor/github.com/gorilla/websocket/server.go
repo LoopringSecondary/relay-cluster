@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	"fmt"
-
 )
 
 // HandshakeError describes an error with the handshake from the peer.
@@ -74,8 +72,6 @@ func (u *Upgrader) returnError(w http.ResponseWriter, r *http.Request, status in
 
 // checkSameOrigin returns true if the origin is not set or is equal to the request host.
 func checkSameOrigin(r *http.Request) bool {
-	fmt.Println("headers  from out side ........")
-	fmt.Println(r.Header)
 	origin := r.Header["Origin"]
 	if len(origin) == 0 {
 		return true
@@ -84,8 +80,6 @@ func checkSameOrigin(r *http.Request) bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println("u.Host.................." + u.Host)
-	fmt.Println("r.Houst........." + r.Host)
 	return equalASCIIFold(u.Host, r.Host)
 }
 
@@ -137,7 +131,6 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 	}
 
 	checkOrigin := u.CheckOrigin
-	fmt.Println(checkOrigin)
 	if checkOrigin == nil {
 		checkOrigin = checkSameOrigin
 	}
@@ -250,7 +243,7 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 // of the same origin policy check is:
 //
 //	if req.Header.Get("Origin") != "http://"+req.Host {
-//		http.Error(w, "Origin not allowed", 403)
+//		http.Error(w, "Origin not allowed", http.StatusForbidden)
 //		return
 //	}
 //

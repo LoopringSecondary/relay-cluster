@@ -18,15 +18,15 @@
 
 package usermanager_test
 
-import (
-	"github.com/Loopring/relay/test"
-	"testing"
-)
-
-func TestUserManagerImpl_InWhiteList(t *testing.T) {
-	um := test.GenerateUserManager()
-	entity := test.Entity()
-	owner := entity.Accounts[0].Address
-	ok := um.InWhiteList(owner)
-	t.Logf("user %s exist? %t", owner.Hex(), ok)
-}
+//import (
+//	"github.com/Loopring/relay-cluster/test"
+//	"testing"
+//)
+//
+//func TestUserManagerImpl_InWhiteList(t *testing.T) {
+//	um := test.GenerateUserManager()
+//	entity := test.Entity()
+//	owner := entity.Accounts[0].Address
+//	ok := um.InWhiteList(owner)
+//	t.Logf("user %s exist? %t", owner.Hex(), ok)
+//}
