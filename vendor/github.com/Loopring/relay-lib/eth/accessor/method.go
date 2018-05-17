@@ -237,7 +237,7 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 	transaction := ethTypes.NewTransaction(nonce.Uint64(),
 		common.HexToAddress(to.Hex()),
 		value,
-		gas,
+		gas.Uint64(),
 		gasPrice,
 		callData)
 	if err := accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
@@ -247,7 +247,7 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 		transaction = ethTypes.NewTransaction(nonce.Uint64(),
 			common.HexToAddress(to.Hex()),
 			value,
-			gas,
+			gas.Uint64(),
 			gasPrice,
 			callData)
 		if err := accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {

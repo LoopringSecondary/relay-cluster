@@ -39,7 +39,11 @@ type LoopringParams struct {
 	DelegateAddresses map[common.Address]bool
 }
 
-func InitLoopringAccessor(options LoopringProtocolOptions) error {
+func IsInit() bool {
+	return nil != loopringParams
+}
+
+func Initialize(options LoopringProtocolOptions) error {
 	if !accessor.IsInit() {
 		log.Fatalf("must init accessor first")
 	}

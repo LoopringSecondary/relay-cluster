@@ -26,12 +26,12 @@ import (
 	"github.com/Loopring/relay-lib/log"
 
 	"fmt"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"github.com/Loopring/relay-lib/zklock"
-	"github.com/Loopring/relay-lib/kafka"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 type AccountManager struct {
 	cacheDuration int64
 	//maxBlockLength uint64
-	block *ChangedOfBlock
+	block           *ChangedOfBlock
 	producerWrapped *kafka.MessageProducer
 }
 
@@ -185,10 +185,10 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 
 	removeExpiredBlock(a.block.currentBlockNumber, a.block.cachedDuration)
 
-	for addr,_ := range changedAllowanceAddrs {
+	for addr, _ := range changedAllowanceAddrs {
 		changedAddrs[addr] = true
 	}
-	for addr,_ := range changedAddrs {
+	for addr, _ := range changedAddrs {
 		event := types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
@@ -233,18 +233,18 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 	for i.Cmp(event.ForkBlock) >= 0 {
 		changedOfBlock := &ChangedOfBlock{}
 		changedOfBlock.currentBlockNumber = i
-		changedBalanceAddrs,_ := changedOfBlock.syncAndSaveBalances()
-		changedAllowanceAddrs,_ := changedOfBlock.syncAndSaveAllowances()
-		for addr,_ := range changedBalanceAddrs {
+		changedBalanceAddrs, _ := changedOfBlock.syncAndSaveBalances()
+		changedAllowanceAddrs, _ := changedOfBlock.syncAndSaveAllowances()
+		for addr, _ := range changedBalanceAddrs {
 			changedAddrs[addr] = true
 		}
-		for addr,_ := range changedAllowanceAddrs {
+		for addr, _ := range changedAllowanceAddrs {
 			changedAddrs[addr] = true
 		}
 		i.Sub(i, big.NewInt(int64(1)))
 	}
 
-	for addr,_ := range changedAddrs {
+	for addr, _ := range changedAddrs {
 		event := types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
 		sendKafkaMsg(event)

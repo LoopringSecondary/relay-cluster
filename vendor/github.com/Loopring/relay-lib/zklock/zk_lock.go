@@ -1,3 +1,21 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+*/
+
 package zklock
 
 import (
@@ -35,14 +53,15 @@ func Initialize(config ZkLockConfig) (*ZkLock, error) {
 	return zl, nil
 }
 
-func TryLock(lockName string) {
+//when get err, should send sns message
+func TryLock(lockName string) error {
 	zl.mutex.Lock()
 	if _, ok := zl.lockMap[lockName]; !ok {
 		acls := zk.WorldACL(zk.PermAll)
 		zl.lockMap[lockName] = zk.NewLock(zl.zkClient, fmt.Sprintf("%s/%s", basePath, lockName), acls)
 	}
 	zl.mutex.Unlock()
-	zl.lockMap[lockName].Lock()
+	return zl.lockMap[lockName].Lock()
 }
 
 func ReleaseLock(lockName string) error {
@@ -52,4 +71,8 @@ func ReleaseLock(lockName string) error {
 	} else {
 		return fmt.Errorf("Try release not exists lock: %s\n", lockName)
 	}
+}
+
+func IsInit() bool {
+	return nil != zl
 }
