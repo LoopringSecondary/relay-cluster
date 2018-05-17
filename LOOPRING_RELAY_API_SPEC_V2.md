@@ -1201,7 +1201,7 @@ wallet should notify relay there was a transaction sending to eth network, then 
 
 ##### Parameters
 
-- `txHash` - The txHash.
+- `hash` - The txHash.
 - `nonce` - The owner newest nonce.
 - `to` - The target address to send.
 - `value` - The value in transaction.
