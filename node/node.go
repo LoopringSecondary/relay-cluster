@@ -34,6 +34,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/extractor"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -58,8 +59,7 @@ type Node struct {
 	walletService     gateway.WalletServiceImpl
 	txManager         txmanager.TransactionManager
 
-	stop   chan struct{}
-	lock   sync.RWMutex
+	wg     *sync.WaitGroup
 	logger *zap.Logger
 }
 
@@ -67,9 +67,11 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n := &Node{}
 	n.logger = logger
 	n.globalConfig = globalConfig
+	n.wg = new(sync.WaitGroup)
 
 	// register
 	n.registerZklock()
+	n.registerExtractor()
 
 	n.registerMysql()
 	cache.NewCache(n.globalConfig.Redis)
@@ -107,21 +109,17 @@ func (n *Node) Start() {
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
 	go gasprice_evaluator.InitGasPriceEvaluator()
+
+	n.wg.Add(1)
 }
 
 func (n *Node) Wait() {
-	n.lock.RLock()
-
-	// TODO(fk): states should be judged
-
-	stop := n.stop
-	n.lock.RUnlock()
-
-	<-stop
+	n.wg.Wait()
 }
 
-// todo
+// todo release zklock and kafka producers and consumers
 func (n *Node) Stop() {
+	n.wg.Done()
 }
 
 func (n *Node) registerCrypto(ks *keystore.KeyStore) {
@@ -198,5 +196,11 @@ func (n *Node) registerMarketCap() {
 func (n *Node) registerZklock() {
 	if _, err := zklock.Initialize(n.globalConfig.ZkLock); err != nil {
 		log.Fatalf("node start, register zklock error:%s", err.Error())
+	}
+}
+
+func (n *Node) registerExtractor() {
+	if err := extractor.Initialize(n.globalConfig.Kafka); err != nil {
+		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
 }

@@ -80,7 +80,7 @@ type KafkaMsg interface {
 }
 
 func sendKafkaMsg(msg interface{}) error {
-	topic, key := kafka.BalanceUpdated, "1"
+	topic, key := kafka.Kafka_Topic_AccountManager_BalanceUpdated, "1"
 	//todo:if it occors error
 	_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
 	return err

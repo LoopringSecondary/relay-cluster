@@ -219,12 +219,28 @@ type BlockEvent struct {
 	BlockNumber *big.Int    `json:"block_number"`
 	BlockHash   common.Hash `json:"block_hash"`
 	BlockTime   int64       `json:"block_time"`
+	IsFinished  bool        `json:"is_finished"`
 }
 
 type ExtractorWarningEvent struct{}
 
+type EthTransferEvent struct {
+	TxInfo
+	Sender   common.Address `json:"sender"`
+	Receiver common.Address `json:"receiver"`
+	Amount   *big.Int       `json:"amount"`
+}
+
 type TransactionEvent struct {
 	TxInfo
+}
+
+type UnsupportedContractEvent struct {
+	TxInfo
+}
+
+type SyncCompleteEvent struct {
+	BlockNumber *big.Int `json:"block_number"`
 }
 
 type DepthUpdateEvent struct {
@@ -235,4 +251,9 @@ type DepthUpdateEvent struct {
 type BalanceUpdateEvent struct {
 	DelegateAddress string `json:"delegate_address"`
 	Owner           string `json:"owner"`
+}
+
+type KafkaOnChainEvent struct {
+	Data  string `json:"data"`
+	Topic string `json:"topic"`
 }
