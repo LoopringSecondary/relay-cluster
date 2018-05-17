@@ -37,6 +37,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
 )
@@ -68,6 +69,8 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.globalConfig = globalConfig
 
 	// register
+	n.registerZklock()
+
 	n.registerMysql()
 	cache.NewCache(n.globalConfig.Redis)
 
@@ -190,4 +193,10 @@ func (n *Node) registerUserManager() {
 
 func (n *Node) registerMarketCap() {
 	n.marketCapProvider = marketcap.NewMarketCapProvider(&n.globalConfig.MarketCap)
+}
+
+func (n *Node) registerZklock() {
+	if _, err := zklock.Initialize(n.globalConfig.ZkLock); err != nil {
+		log.Fatalf("node start, register zklock error:%s", err.Error())
+	}
 }

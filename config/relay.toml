@@ -108,3 +108,7 @@ name = "Loopring corporation"
 
 [account_manager]
     cache_duration = 8640000
+
+[zk_lock]
+    zk_servers = "127.0.0.1:2181"
+    connect_time_out = 10
