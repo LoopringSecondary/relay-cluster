@@ -34,6 +34,7 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
 )
@@ -80,6 +81,7 @@ type GlobalConfig struct {
 	UserManager      usermanager.UserManagerOptions
 	AccountManager   accountmanager.AccountManagerOptions
 	Kafka            kafka.KafkaOptions
+	ZkLock           zklock.ZkLockConfig
 }
 
 type KeyStoreOptions struct {
