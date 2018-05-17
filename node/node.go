@@ -133,7 +133,7 @@ func (n *Node) registerMysql() {
 
 func (n *Node) registerAccessor() {
 	err := accessor.Initialize(n.globalConfig.Accessor)
-	err = loopringaccessor.InitLoopringAccessor(n.globalConfig.LoopringProtocol)
+	err = loopringaccessor.Initialize(n.globalConfig.LoopringProtocol)
 	if nil != err {
 		log.Fatalf("err:%s", err.Error())
 	}
