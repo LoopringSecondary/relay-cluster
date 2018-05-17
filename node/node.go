@@ -124,6 +124,8 @@ func (n *Node) Wait() {
 
 // todo release zklock and kafka producers and consumers
 func (n *Node) Stop() {
+	n.orderManager.Stop()
+	n.txManager.Stop()
 	n.wg.Done()
 }
 
