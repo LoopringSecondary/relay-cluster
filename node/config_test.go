@@ -20,7 +20,7 @@ package node
 
 //import (
 //	"encoding/json"
-//	"github.com/Loopring/relay/test"
+//	"github.com/Loopring/relay-cluster/test"
 //	"testing"
 //)
 //

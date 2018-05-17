@@ -7,7 +7,7 @@ Relay是钱包与Loopring协议之间的中继，向上和钱包对接，向下�
 注意：这里提到的Relay，是我们Github项目Relay以Relay的模式启动后，提供的中心化服务，而Relay同样可以以Miner的身份启动，只处理订单的撮合。要使用或者自己实现Miner，可以参考我们Github主页的Relay项目。
 
 ## Relay提供了哪些接入方式？
-HTTP-JSON-RPC2.0是目前Relay最直接的接入方式，我们完全符合JSONRPC2.0规范，详细的接口文档和数据示例，请参考：[Relay API Spec](#https://github.com/Loopring/relay/blob/master/JSONRPC.md)
+HTTP-JSON-RPC2.0是目前Relay最直接的接入方式，我们完全符合JSONRPC2.0规范，详细的接口文档和数据示例，请参考：[Relay API Spec](#https://github.com/Loopring/relay-cluster/blob/master/JSONRPC.md)
 
 [Loopring.js](#https://github.com/Loopring/loopring.js)是我们开发Javascript版本的sdk，封装了所有JSONRPC接口，提供方法调用级别的支持，帮助Javascript项目快速接入Relay。
 
@@ -119,6 +119,6 @@ TBD
 
 ## 联系我们
 如果您有任何问题，请通过以下方式联系我们：
-- Github Issues : https://github.com/Loopring/relay/issues
+- Github Issues : https://github.com/Loopring/relay-cluster/issues
 - 邮件：TBD
 - Rocket.io: TBD

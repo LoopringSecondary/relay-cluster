@@ -19,9 +19,9 @@
 package ordermanager_test
 
 //import (
-//	"github.com/Loopring/relay/ordermanager"
-//	"github.com/Loopring/relay/test"
-//	"github.com/Loopring/relay/types"
+//	"github.com/Loopring/relay-cluster/ordermanager"
+//	"github.com/Loopring/relay-cluster/test"
+//	"github.com/Loopring/relay-cluster/types"
 //	"math/big"
 //	"sort"
 //	"testing"

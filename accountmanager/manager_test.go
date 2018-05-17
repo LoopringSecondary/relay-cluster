@@ -66,7 +66,7 @@ func init() {
 	loopringaccessor.InitLoopringAccessor(options)
 
 	utiloptions := marketutil.MarketOptions{}
-	utiloptions.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
+	utiloptions.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay-cluster/config/tokens.json"
 	marketutil.Initialize(&utiloptions)
 
 	zklock.Initialize(zklock.ZkLockConfig{ZkServers: "127.0.0.1:2181", ConnectTimeOut: 10000})

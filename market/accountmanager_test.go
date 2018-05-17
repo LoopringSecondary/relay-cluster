@@ -20,7 +20,7 @@ package market_test
 
 //
 //import (
-//	"github.com/Loopring/relay/test"
+//	"github.com/Loopring/relay-cluster/test"
 //	"github.com/ethereum/go-ethereum/common"
 //	"testing"
 //)

@@ -2,7 +2,7 @@ package market_test
 
 //import (
 //	"fmt"
-//	"github.com/Loopring/relay/market"
+//	"github.com/Loopring/relay-cluster/market"
 //	"testing"
 //)
 //

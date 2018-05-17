@@ -83,7 +83,7 @@ docker run -d --name relay -v YOUR_KEYSTORE_DIR:/keystore \
 
 
 ## **Docker compose**
-We have provide docker-compose.yaml, ref github.com/Loopring/relay/docker-compose.yml
+We have provide docker-compose.yaml, ref github.com/Loopring/relay-cluster/docker-compose.yml
 Service relay depends on mysql,ipfs and ethereum client. mkdir with your favorite name ex prod and run 
 ```bash
 docker-compose up

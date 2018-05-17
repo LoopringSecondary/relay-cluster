@@ -19,8 +19,8 @@
 package txmanager_test
 
 //import (
-//	"github.com/Loopring/relay/test"
-//	"github.com/Loopring/relay/txmanager"
+//	"github.com/Loopring/relay-cluster/test"
+//	"github.com/Loopring/relay-cluster/txmanager"
 //	"testing"
 //)
 //
