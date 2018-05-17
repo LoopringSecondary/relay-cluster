@@ -229,6 +229,10 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		return false, fmt.Errorf("protocol and Delegate are not matched")
 	}
 
+	if o.OrderType == types.ORDER_TYPE_MARKET && o.AuthPrivateKey.Address() != o.AuthAddr {
+		return false, fmt.Errorf("market order auth private key not correct")
+	}
+
 	if o.TokenB != util.AliasToAddress("LRC") {
 		balances, err := accountmanager.GetBalanceWithSymbolResult(o.Owner)
 
