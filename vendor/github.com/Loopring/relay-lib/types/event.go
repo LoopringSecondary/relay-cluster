@@ -174,6 +174,7 @@ type RingMinedEvent struct {
 	Ringhash     common.Hash    `json:"ringhash"`
 	Miner        common.Address `json:"miner"`
 	FeeRecipient common.Address `json:"fee_recipient"`
+	Err          string         `json:"err"`
 }
 
 type WethDepositEvent struct {
