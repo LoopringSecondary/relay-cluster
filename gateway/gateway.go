@@ -34,6 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+	"github.com/Loopring/relay-lib/broadcast/ipfs"
+	"github.com/Loopring/relay/config"
 )
 
 type Gateway struct {
@@ -42,7 +44,7 @@ type Gateway struct {
 	am               accountmanager.AccountManager
 	isBroadcast      bool
 	maxBroadcastTime int
-	ipfsPubService   IPFSPubService
+	ipfsPubService   ipfs.IPFSPubService
 	marketCap        marketcap.MarketCapProvider
 }
 
@@ -73,7 +75,7 @@ type GateWayOptions struct {
 	MaxBroadcastTime int
 }
 
-func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
