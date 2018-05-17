@@ -75,9 +75,9 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerExtractor()
 
 	n.registerMysql()
-	cache.NewCache(n.globalConfig.Redis)
+	n.registerCache()
 
-	util.Initialize(&n.globalConfig.Market)
+	n.registerMarketUtil()
 	n.registerMarketCap()
 	n.registerAccessor()
 	n.registerUserManager()
@@ -90,7 +90,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerCrypto(nil)
 
 	n.registerTransactionManager()
-	txmanager.NewTxView(n.rdsService)
+	n.registerTransactionViewer()
 
 	n.registerTrendManager()
 	n.registerTickerCollector()
@@ -139,6 +139,10 @@ func (n *Node) registerMysql() {
 	n.rdsService.Prepare()
 }
 
+func (n *Node) registerCache() {
+	cache.NewCache(n.globalConfig.Redis)
+}
+
 func (n *Node) registerAccessor() {
 	err := accessor.Initialize(n.globalConfig.Accessor)
 	err = loopringaccessor.Initialize(n.globalConfig.LoopringProtocol)
@@ -171,6 +175,10 @@ func (n *Node) registerTransactionManager() {
 	n.txManager = txmanager.NewTxManager(n.rdsService)
 }
 
+func (n *Node) registerTransactionViewer() {
+	txmanager.NewTxView(n.rdsService)
+}
+
 func (n *Node) registerTickerCollector() {
 	n.tickerCollector = *market.NewCollector(n.globalConfig.Market.CronJobLock)
 }
@@ -198,6 +206,10 @@ func (n *Node) registerGateway() {
 
 func (n *Node) registerUserManager() {
 	n.userManager = usermanager.NewUserManager(&n.globalConfig.UserManager, n.rdsService)
+}
+
+func (n *Node) registerMarketUtil() {
+	util.Initialize(&n.globalConfig.Market)
 }
 
 func (n *Node) registerMarketCap() {
