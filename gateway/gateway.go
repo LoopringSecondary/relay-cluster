@@ -40,7 +40,7 @@ import (
 
 type Gateway struct {
 	filters          []Filter
-	om               ordermanager.OrderManager
+	om               ordermanager.OrderViewer
 	am               accountmanager.AccountManager
 	isBroadcast      bool
 	maxBroadcastTime int
@@ -75,7 +75,7 @@ type GateWayOptions struct {
 	MaxBroadcastTime int
 }
 
-func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderManager, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
+func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, ipfsOptions *config.IpfsOptions, om ordermanager.OrderViewer, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
 	// add gateway watcher
 	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
 	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
@@ -366,7 +366,7 @@ func (f *TokenFilter) filter(o *types.Order) (bool, error) {
 }
 
 type CutoffFilter struct {
-	om ordermanager.OrderManager
+	om ordermanager.OrderViewer
 }
 
 // 如果订单接收在cutoff(cancel)事件之后，则该订单直接过滤

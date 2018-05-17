@@ -301,7 +301,7 @@ type P2PRingRequest struct {
 
 type WalletServiceImpl struct {
 	trendManager    market.TrendManager
-	orderManager    ordermanager.OrderManager
+	orderViewer     ordermanager.OrderViewer
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
@@ -309,11 +309,11 @@ type WalletServiceImpl struct {
 	oldWethAddress  string
 }
 
-func NewWalletService(trendManager market.TrendManager, orderManager ordermanager.OrderManager, accountManager accountmanager.AccountManager,
+func NewWalletService(trendManager market.TrendManager, orderViewer ordermanager.OrderViewer, accountManager accountmanager.AccountManager,
 	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds dao.RdsService, oldWethAddress string) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
-	w.orderManager = orderManager
+	w.orderViewer = orderViewer
 	w.accountManager = accountManager
 	w.marketCap = capProvider
 	w.tickerCollector = collector
@@ -507,7 +507,7 @@ func (w *WalletServiceImpl) SubmitOrder(order *types.OrderJsonRequest) (res stri
 
 func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err error) {
 	orderQuery, statusList, pi, ps := convertFromQuery(query)
-	queryRst, err := w.orderManager.GetOrders(orderQuery, statusList, pi, ps)
+	queryRst, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
 	if err != nil {
 		log.Info("query order error : " + err.Error())
 	}
@@ -518,7 +518,7 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 	if len(query.OrderHash) == 0 {
 		return order, errors.New("order hash can't be null")
 	} else {
-		state, err := w.orderManager.GetOrderByHash(common.HexToHash(query.OrderHash))
+		state, err := w.orderViewer.GetOrderByHash(common.HexToHash(query.OrderHash))
 		if err != nil {
 			return order, err
 		} else {
@@ -529,12 +529,12 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 
 func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
 
-	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
+	maker, err := w.orderViewer.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
 	if err != nil {
 		return res, err
 	}
 
-	taker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.TakerOrderHash))
+	taker, err := w.orderViewer.GetOrderByHash(common.HexToHash(p2pRing.TakerOrderHash))
 	if err != nil {
 		return res, err
 	}
@@ -575,7 +575,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 
 func (w *WalletServiceImpl) GetLatestOrders(query *OwnerAndMarket) (res []OrderJsonResult, err error) {
 	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market})
-	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
+	queryRst, err := w.orderViewer.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
 	}
@@ -616,7 +616,7 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	depth := Depth{DelegateAddress: delegateAddress, Market: mkt, Depth: askBid}
 
 	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
-	asks, askErr := w.orderManager.GetOrderBook(
+	asks, askErr := w.orderViewer.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[a].Protocol,
 		util.AllTokens[b].Protocol, defaultDepthLength*2)
@@ -628,7 +628,7 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
 	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
 
-	bids, bidErr := w.orderManager.GetOrderBook(
+	bids, bidErr := w.orderViewer.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[b].Protocol,
 		util.AllTokens[a].Protocol, defaultDepthLength*2)
@@ -671,7 +671,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 	orderBook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell: make([]OrderBookElement, 0)}
 
 	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
-	asks, askErr := w.orderManager.GetOrderBook(
+	asks, askErr := w.orderViewer.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[a].Protocol,
 		util.AllTokens[b].Protocol, defaultDepthLength)
@@ -683,7 +683,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 
 	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals, defaultDepthLength)
 
-	bids, bidErr := w.orderManager.GetOrderBook(
+	bids, bidErr := w.orderViewer.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[b].Protocol,
 		util.AllTokens[a].Protocol, defaultDepthLength)
@@ -699,7 +699,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 }
 
 func (w *WalletServiceImpl) GetFills(query FillQuery) (dao.PageResult, error) {
-	res, err := w.orderManager.FillsPageQuery(fillQueryToMap(query))
+	res, err := w.orderViewer.FillsPageQuery(fillQueryToMap(query))
 
 	if err != nil {
 		return dao.PageResult{}, nil
@@ -726,7 +726,7 @@ func (w *WalletServiceImpl) GetLatestFills(query FillQuery) ([]LatestFill, error
 
 	rst := make([]LatestFill, 0)
 	fillQuery, _, _ := fillQueryToMap(query)
-	res, err := w.orderManager.GetLatestFills(fillQuery, 40)
+	res, err := w.orderViewer.GetLatestFills(fillQuery, 40)
 
 	if err != nil {
 		return rst, err
@@ -754,7 +754,7 @@ func (w *WalletServiceImpl) GetTrend(query TrendQuery) (res []market.Trend, err 
 }
 
 func (w *WalletServiceImpl) GetRingMined(query RingMinedQuery) (res dao.PageResult, err error) {
-	return w.orderManager.RingMinedPageQuery(ringMinedQueryToMap(query))
+	return w.orderViewer.RingMinedPageQuery(ringMinedQueryToMap(query))
 }
 
 func (w *WalletServiceImpl) GetRingMinedDetail(query RingMinedQuery) (res RingMinedDetail, err error) {
@@ -762,7 +762,7 @@ func (w *WalletServiceImpl) GetRingMinedDetail(query RingMinedQuery) (res RingMi
 		return res, errors.New("ring index can't < 0")
 	}
 
-	rings, err := w.orderManager.RingMinedPageQuery(ringMinedQueryToMap(query))
+	rings, err := w.orderViewer.RingMinedPageQuery(ringMinedQueryToMap(query))
 
 	// todo:如果ringhash重复暂时先取第一条
 	if err != nil || rings.Total > 1 {
@@ -775,7 +775,7 @@ func (w *WalletServiceImpl) GetRingMinedDetail(query RingMinedQuery) (res RingMi
 	}
 
 	ring := rings.Data[0].(dao.RingMinedEvent)
-	fills, err := w.orderManager.FindFillsByRingHash(common.HexToHash(ring.RingHash))
+	fills, err := w.orderViewer.FindFillsByRingHash(common.HexToHash(ring.RingHash))
 	if err != nil {
 		return res, err
 	}
@@ -834,7 +834,7 @@ func (w *WalletServiceImpl) GetEstimatedAllocatedAllowance(query EstimatedAlloca
 	if tokenAddress.Hex() == "" {
 		return "", errors.New("unsupported token alias " + token)
 	}
-	amount, err := w.orderManager.GetFrozenAmount(common.HexToAddress(owner), tokenAddress, statusSet, common.HexToAddress(query.DelegateAddress))
+	amount, err := w.orderViewer.GetFrozenAmount(common.HexToAddress(owner), tokenAddress, statusSet, common.HexToAddress(query.DelegateAddress))
 	if err != nil {
 		return "", err
 	}
@@ -849,7 +849,7 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 
 	owner := query.Owner
 
-	allLrcFee, err := w.orderManager.GetFrozenLRCFee(common.HexToAddress(owner), statusSet)
+	allLrcFee, err := w.orderViewer.GetFrozenLRCFee(common.HexToAddress(owner), statusSet)
 	if err != nil {
 		return "", err
 	}

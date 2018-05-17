@@ -48,6 +48,7 @@ type Node struct {
 	rdsService   dao.RdsService
 	//ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
+	orderViewer       ordermanager.OrderViewer
 	userManager       usermanager.UserManager
 	marketCapProvider marketcap.MarketCapProvider
 	accountManager    accountmanager.AccountManager
@@ -80,19 +81,23 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerMarketCap()
 	n.registerAccessor()
 	n.registerUserManager()
+
 	n.registerOrderManager()
+	n.registerOrderViewer()
+
 	n.registerAccountManager()
 	n.registerGateway()
 	n.registerCrypto(nil)
 
 	n.registerTransactionManager()
+	txmanager.NewTxView(n.rdsService)
+
 	n.registerTrendManager()
 	n.registerTickerCollector()
 	n.registerWalletService()
 	n.registerJsonRpcService()
 	n.registerWebsocketService()
 	n.registerSocketIOService()
-	txmanager.NewTxView(n.rdsService)
 
 	return n
 }
@@ -145,7 +150,11 @@ func (n *Node) registerAccessor() {
 //}
 
 func (n *Node) registerOrderManager() {
-	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.userManager, n.marketCapProvider)
+	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider)
+}
+
+func (n *Node) registerOrderViewer() {
+	n.orderViewer = ordermanager.NewOrderViewer(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager)
 }
 
 func (n *Node) registerTrendManager() {
@@ -165,7 +174,7 @@ func (n *Node) registerTickerCollector() {
 }
 
 func (n *Node) registerWalletService() {
-	n.walletService = *gateway.NewWalletService(n.trendManager, n.orderManager,
+	n.walletService = *gateway.NewWalletService(n.trendManager, n.orderViewer,
 		n.accountManager, n.marketCapProvider, n.tickerCollector, n.rdsService, n.globalConfig.Market.OldVersionWethAddress)
 }
 
@@ -182,7 +191,7 @@ func (n *Node) registerSocketIOService() {
 }
 
 func (n *Node) registerGateway() {
-	gateway.Initialize(&n.globalConfig.GatewayFilters, &n.globalConfig.Gateway, &n.globalConfig.Ipfs, n.orderManager, n.marketCapProvider, n.accountManager)
+	gateway.Initialize(&n.globalConfig.GatewayFilters, &n.globalConfig.Gateway, &n.globalConfig.Ipfs, n.orderViewer, n.marketCapProvider, n.accountManager)
 }
 
 func (n *Node) registerUserManager() {
