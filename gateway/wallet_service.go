@@ -293,10 +293,10 @@ type LatestFill struct {
 }
 
 type P2PRingRequest struct {
-	RawTx          string                  `json:"rawTx"`
+	RawTx string `json:"rawTx"`
 	//Taker          *types.OrderJsonRequest `json:"taker"`
-	TakerOrderHash string				   `json:"takerOrderHash"`
-	MakerOrderHash string                  `json:"makerOrderHash"`
+	TakerOrderHash string `json:"takerOrderHash"`
+	MakerOrderHash string `json:"makerOrderHash"`
 }
 
 type WalletServiceImpl struct {
@@ -528,7 +528,6 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 }
 
 func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
-
 
 	maker, err := w.orderManager.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
 	if err != nil {
