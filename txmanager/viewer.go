@@ -52,7 +52,7 @@ type TransactionViewer interface {
 var impl TransactionViewer
 
 type TransactionViewerImpl struct {
-	db dao.RdsService
+	db *dao.RdsServiceImpl
 }
 
 // todo(fuk): 在分布式锁以及wallet_service事件通知推送落地后使用redis缓存(当前版本暂时不考虑redis),考虑到分叉及用户tx总量，
@@ -60,7 +60,7 @@ type TransactionViewerImpl struct {
 // 1. user key 存储用户pengding&mined first page transactions,设置过期时间
 // 2. user tx number key存储某个用户所有tx数量的key,设置过期时间
 // 3. block key 存储某个block涉及到的用户key(用于分叉),设置过期时间
-func NewTxView(db dao.RdsService) {
+func NewTxView(db *dao.RdsServiceImpl) {
 	tm := &TransactionViewerImpl{}
 	tm.db = db
 	impl = tm

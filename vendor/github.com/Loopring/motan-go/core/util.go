@@ -74,9 +74,7 @@ func GetLocalIPs() []string {
 
 // GetLocalIP falg of localIP > ipnet
 func GetLocalIP() string {
-	if *LocalIP != "" {
-		return *LocalIP
-	} else if len(GetLocalIPs()) > 0 {
+	if len(GetLocalIPs()) > 0 {
 		return GetLocalIPs()[0]
 	}
 	return "unknown"

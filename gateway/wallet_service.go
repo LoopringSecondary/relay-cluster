@@ -306,12 +306,12 @@ type WalletServiceImpl struct {
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
-	rds             dao.RdsService
+	rds             *dao.RdsServiceImpl
 	oldWethAddress  string
 }
 
 func NewWalletService(trendManager market.TrendManager, orderViewer ordermanager.OrderViewer, accountManager accountmanager.AccountManager,
-	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds dao.RdsService, oldWethAddress string) *WalletServiceImpl {
+	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsServiceImpl, oldWethAddress string) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
 	w.orderViewer = orderViewer
@@ -576,7 +576,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 
 func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
 	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType: query.OrderType})
-	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
+	queryRst, err := w.orderViewer.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
 	}

@@ -30,7 +30,7 @@ import (
 )
 
 type TransactionManager struct {
-	db                         dao.RdsService
+	db                         *dao.RdsServiceImpl
 	approveEventWatcher        *eventemitter.Watcher
 	orderCancelledEventWatcher *eventemitter.Watcher
 	cutoffAllEventWatcher      *eventemitter.Watcher
@@ -43,7 +43,7 @@ type TransactionManager struct {
 	forkDetectedEventWatcher   *eventemitter.Watcher
 }
 
-func NewTxManager(db dao.RdsService) TransactionManager {
+func NewTxManager(db *dao.RdsServiceImpl) TransactionManager {
 	var tm TransactionManager
 	tm.db = db
 

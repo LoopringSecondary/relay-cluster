@@ -2,7 +2,6 @@ package motan
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -43,9 +42,6 @@ var (
 // a motan server context can listen multi ports and provide many services. so a single motan server context is suggested
 // default context will be used if confFile is empty
 func GetMotanServerContext(confFile string) *MSContext {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
 	serverContextMutex.Lock()
 	defer serverContextMutex.Unlock()
 	ms := serverContextMap[confFile]

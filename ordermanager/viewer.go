@@ -31,12 +31,12 @@ type OrderViewer interface {
 type OrderViewerImpl struct {
 	um          usermanager.UserManager
 	mc          marketcap.MarketCapProvider
-	rds         dao.RdsService
+	rds         *dao.RdsServiceImpl
 	cutoffCache *CutoffCache
 }
 
 func NewOrderViewer(options *OrderManagerOptions,
-	rds dao.RdsService,
+	rds *dao.RdsServiceImpl,
 	market marketcap.MarketCapProvider,
 	userManager usermanager.UserManager) *OrderViewerImpl {
 

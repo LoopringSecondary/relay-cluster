@@ -2,7 +2,6 @@ package motan
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"sync"
 
@@ -92,9 +91,6 @@ func (c *Client) BuildRequest(method string, args []interface{}) motan.Request {
 }
 
 func GetClientContext(confFile string) *MCContext {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
 	clientContextMutex.Lock()
 	defer clientContextMutex.Unlock()
 	mc := clientContextMap[confFile]

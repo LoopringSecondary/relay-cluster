@@ -65,9 +65,6 @@ func NewAgent(extfactory motan.ExtentionFactory) *Agent {
 }
 
 func (a *Agent) StartMotanAgent() {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
 	a.initContext()
 	a.initParam()
 	a.SetSanpshotConf()
@@ -101,28 +98,19 @@ func (a *Agent) initParam() {
 	}
 	initLog(logdir)
 
-	port := *motan.Port
-	if port == 0 && section != nil && section["port"] != nil {
+	port := defaultPort
+	if section != nil && section["port"] != nil {
 		port = section["port"].(int)
 	}
-	if port == 0 {
-		port = defaultPort
-	}
 
-	mport := *motan.Mport
-	if mport == 0 && section != nil && section["mport"] != nil {
+	mport := defaultMport
+	if section != nil && section["mport"] != nil {
 		mport = section["mport"].(int)
 	}
-	if mport == 0 {
-		mport = defaultMport
-	}
 
-	pidfile := *motan.Pidfile
-	if pidfile == "" && section != nil && section["pidfile"] != nil {
+	pidfile := defaultPidFile
+	if section != nil && section["pidfile"] != nil {
 		pidfile = section["pidfile"].(string)
-	}
-	if pidfile == "" {
-		pidfile = defaultPidFile
 	}
 
 	vlog.Infof("agent port:%d, manage port:%d, pidfile:%s, logdir:%s\n", port, mport, pidfile, logdir)
@@ -452,7 +440,7 @@ func (a *Agent) rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Agent) getConfigHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadFile(*motan.CfgFile)
+	data, err := ioutil.ReadFile(motan.CfgFile)
 	if err != nil {
 		w.Write([]byte("error."))
 	} else {

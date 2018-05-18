@@ -1,7 +1,6 @@
 package core
 
 import (
-	"flag"
 	"reflect"
 
 	cfg "github.com/Loopring/motan-go/config"
@@ -42,13 +41,10 @@ var (
 
 // all env flag in motan-go
 var (
-	Port         = flag.Int("motan_port", 0, "agent listen port")
-	Mport        = flag.Int("motan_mport", 0, "agent manage port")
-	Pidfile      = flag.String("motan_pidfile", "", "agent manage port")
-	CfgFile      = flag.String("motan_c", "./motan.yaml", "motan run conf")
-	LocalIP      = flag.String("motan_localIP", "", "local ip for motan register")
-	IDC          = flag.String("motan_idc", "", "the idc info for agent or client.")
-	DynamicConfs = flag.String("motan_dynamicConf", "", "dynamic config file for config placeholder")
+	CfgFile      = "./motan.yaml"
+	LocalIP      = ""
+	IDC          = ""
+	DynamicConfs = ""
 )
 
 func (c *Context) confToURLs(section string) map[string]*URL {
@@ -101,16 +97,16 @@ func (c *Context) Initialize() {
 	c.ServiceURLs = make(map[string]*URL)
 	c.BasicServiceURLs = make(map[string]*URL)
 	if c.ConfigFile == "" { // use flag as default config file name
-		c.ConfigFile = *CfgFile
+		c.ConfigFile = CfgFile
 	}
 
 	cfgRs, _ := cfg.NewConfigFromFile(c.ConfigFile)
 	var dynamicFile string
-	if *DynamicConfs != "" {
-		dynamicFile = *DynamicConfs
+	if DynamicConfs != "" {
+		dynamicFile = DynamicConfs
 	}
-	if dynamicFile == "" && *IDC != "" {
-		suffix := *IDC + ".yaml"
+	if dynamicFile == "" && IDC != "" {
+		suffix := IDC + ".yaml"
 		idx := strings.LastIndex(c.ConfigFile, "/")
 		if idx > -1 {
 			dynamicFile = c.ConfigFile[0:idx+1] + suffix

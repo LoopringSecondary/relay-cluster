@@ -36,7 +36,7 @@ type OrderManager interface {
 
 type OrderManagerImpl struct {
 	options                 *OrderManagerOptions
-	rds                     dao.RdsService
+	rds                     *dao.RdsServiceImpl
 	processor               *ForkProcessor
 	cutoffCache             *CutoffCache
 	mc                      marketcap.MarketCapProvider
@@ -59,7 +59,7 @@ type OrderManagerOptions struct {
 
 func NewOrderManager(
 	options *OrderManagerOptions,
-	rds dao.RdsService,
+	rds *dao.RdsServiceImpl,
 	market marketcap.MarketCapProvider) *OrderManagerImpl {
 
 	om := &OrderManagerImpl{}
