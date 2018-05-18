@@ -729,15 +729,17 @@ Get all mined rings.
 
 ##### Parameters
 
-1. `ringHash` - The ring hash, if is null, will query all rings.
+1. `ringIndex` - The ring index
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+2. `protocolAddress` - The loopring [LoopringProtocolImpl](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 3. `pageIndex` - The page want to query, default is 1.
 4. `pageSize` - The size per page, default is 50.
 
 ```js
 params: [{
-  "ringHash" : "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+  "ringIndex" : "0x15",
   "delegateAddress" : "0x5567ee920f7E62274284985D793344351A00142B",
+  "protocolAddress" : "0xb1170dE31c7f72aB62535862C97F5209E356991b",
   "pageIndex" : 1,
   "pageSize" : 20 // max size is 50.
 }]

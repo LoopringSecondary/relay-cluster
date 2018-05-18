@@ -207,7 +207,7 @@ type FillQuery struct {
 type RingMinedQuery struct {
 	DelegateAddress string    `json:"delegateAddress"`
 	ProtocolAddress string    `json:"protocolAddress"`
-	RingIndex       types.Big `json:"ringIndex"`
+	RingIndex       string    `json:"ringIndex"`
 	PageIndex       int       `json:"pageIndex"`
 	PageSize        int       `json:"pageSize"`
 }
@@ -784,8 +784,13 @@ func (w *WalletServiceImpl) GetRingMined(query RingMinedQuery) (res dao.PageResu
 }
 
 func (w *WalletServiceImpl) GetRingMinedDetail(query RingMinedQuery) (res RingMinedDetail, err error) {
-	if query.RingIndex.BigInt().Cmp(big.NewInt(0)) < 0 {
-		return res, errors.New("ring index can't < 0")
+
+	if query.RingIndex == "" {
+		return res, errors.New("ringIndex must be supplied")
+	}
+
+	if query.DelegateAddress == "" {
+		return res, errors.New("delegate address must be supplied")
 	}
 
 	rings, err := w.orderViewer.RingMinedPageQuery(ringMinedQueryToMap(query))
@@ -1341,8 +1346,9 @@ func ringMinedQueryToMap(q RingMinedQuery) (map[string]interface{}, int, int) {
 	if common.IsHexAddress(q.ProtocolAddress) {
 		rst["contract_address"] = q.ProtocolAddress
 	}
-	if q.RingIndex.BigInt().Cmp(big.NewInt(0)) >= 0 {
-		rst["ring_index"] = q.RingIndex.BigInt().String()
+
+	if q.RingIndex != "" {
+		rst["ring_index"] = types.HexToBigint(q.RingIndex).String()
 	}
 
 	return rst, pi, ps
