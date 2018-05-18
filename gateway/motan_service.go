@@ -23,6 +23,7 @@ import (
 	"github.com/Loopring/relay-cluster/ordermanager"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
+	"github.com/Loopring/relay-lib/log"
 )
 
 type MotanService struct {
@@ -47,6 +48,8 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
 	res := &motan.MinerOrdersRes{}
 	res.List = s.orderViewer.MinerOrders(req.Protocol, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
+
+	log.Debugf("motan service, GetMinerOrders list length:%d", len(res.List))
 	return res
 }
 
