@@ -238,7 +238,7 @@ func (s *session) upgrading(t string, conn base.Conn) {
 		conn.Close()
 		return
 	}
-	p.Pause()
+	// p.Pause()
 	defer func() {
 		if p != nil {
 			p.Resume()
