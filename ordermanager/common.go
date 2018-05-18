@@ -113,39 +113,6 @@ func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-//
-//func isOrderFullFinished(state *types.OrderState, mc marketcap.MarketCapProvider) bool {
-//	remainedAmountS, _ := state.RemainedAmount()
-//	remainedValue, _ := mc.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
-//
-//	return isValueDusted(remainedValue)
-//}
-//
-//// 判断cancel的量大于灰尘丁价值，如果是则为cancel，如果不是则为finished
-//func isOrderCancelled(state *types.OrderState, mc marketcap.MarketCapProvider) bool {
-//	if state.Status != types.ORDER_CANCEL && state.Status != types.ORDER_FINISHED {
-//		return false
-//	}
-//
-//	var cancelValue *big.Rat
-//	if state.RawOrder.BuyNoMoreThanAmountB {
-//		cancelValue, _ = mc.LegalCurrencyValue(state.RawOrder.TokenB, new(big.Rat).SetInt(state.CancelledAmountB))
-//	} else {
-//		cancelValue, _ = mc.LegalCurrencyValue(state.RawOrder.TokenS, new(big.Rat).SetInt(state.CancelledAmountS))
-//	}
-//
-//	return !isValueDusted(cancelValue)
-//}
-//
-//func isValueDusted(value *big.Rat) bool {
-//	minValue := big.NewInt(dustOrderValue)
-//	if value == nil || value.Cmp(new(big.Rat).SetInt(minValue)) > 0 {
-//		return false
-//	}
-//
-//	return true
-//}
-
 func blockNumberToString(blockNumber *big.Int) string {
 	var blockNumberStr string
 	if blockNumber == nil {

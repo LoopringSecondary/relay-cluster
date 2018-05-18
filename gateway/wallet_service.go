@@ -205,11 +205,11 @@ type FillQuery struct {
 }
 
 type RingMinedQuery struct {
-	DelegateAddress string    `json:"delegateAddress"`
-	ProtocolAddress string    `json:"protocolAddress"`
-	RingIndex       string    `json:"ringIndex"`
-	PageIndex       int       `json:"pageIndex"`
-	PageSize        int       `json:"pageSize"`
+	DelegateAddress string `json:"delegateAddress"`
+	ProtocolAddress string `json:"protocolAddress"`
+	RingIndex       string `json:"ringIndex"`
+	PageIndex       int    `json:"pageIndex"`
+	PageSize        int    `json:"pageSize"`
 }
 
 type RawOrderJsonResult struct {

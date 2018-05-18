@@ -22,8 +22,6 @@ type OrderViewer interface {
 	FindFillsByRingHash(ringHash common.Hash) (result []dao.FillEvent, err error)
 	RingMinedPageQuery(query map[string]interface{}, pageIndex, pageSize int) (dao.PageResult, error)
 	IsOrderCutoff(protocol, owner, token1, token2 common.Address, validsince *big.Int) bool
-	IsOrderFullFinished(state *types.OrderState) bool
-	IsValueDusted(tokenAddress common.Address, value *big.Rat) bool
 	GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) (*big.Int, error)
 	GetFrozenLRCFee(owner common.Address, statusSet []types.OrderStatus) (*big.Int, error)
 }
@@ -47,18 +45,6 @@ func NewOrderViewer(options *OrderManagerOptions,
 	viewer.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
 
 	return &viewer
-}
-
-func (om *OrderViewerImpl) IsOrderFullFinished(state *types.OrderState) bool {
-	return isOrderFullFinished(state, om.mc)
-}
-
-func (om *OrderViewerImpl) IsValueDusted(tokenAddress common.Address, value *big.Rat) bool {
-	if legalValue, err := om.mc.LegalCurrencyValue(tokenAddress, value); nil != err {
-		return false
-	} else {
-		return isValueDusted(legalValue)
-	}
 }
 
 func (om *OrderViewerImpl) MinerOrders(protocol, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {

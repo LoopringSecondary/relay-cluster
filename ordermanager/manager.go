@@ -54,7 +54,6 @@ type OrderManagerImpl struct {
 type OrderManagerOptions struct {
 	CutoffCacheExpireTime int64
 	CutoffCacheCleanTime  int64
-	DustOrderValue        int64
 }
 
 func NewOrderManager(
@@ -68,8 +67,6 @@ func NewOrderManager(
 	om.processor = NewForkProcess(om.rds, market)
 	om.mc = market
 	om.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
-
-	dustOrderValue = om.options.DustOrderValue
 
 	return om
 }
