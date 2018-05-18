@@ -21,8 +21,6 @@ import (
 	"time"
 )
 
-type BusinessType int
-
 const (
 	EventPostfixReq         = "_req"
 	EventPostfixRes         = "_res"
@@ -99,10 +97,10 @@ var EventTypeRoute = map[string]InvokeInfo{
 	eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 
 	eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTransaction:  {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 	eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyMarketOrders: {"GetLatestOrders", OwnerAndMarket{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyP2POrders:    {"GetLatestOrders", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	eventKeyMarketOrders: {"GetLatestMarketOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	//eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 }
 
 type SocketIOService interface {
@@ -114,7 +112,6 @@ type SocketIOServiceImpl struct {
 	port               string
 	walletService      WalletServiceImpl
 	connIdMap          *sync.Map
-	connBusinessKeyMap map[string]socketio.Conn
 	cron               *cron.Cron
 }
 
@@ -122,7 +119,6 @@ func NewSocketIOService(port string, walletService WalletServiceImpl) *SocketIOS
 	so := &SocketIOServiceImpl{}
 	so.port = port
 	so.walletService = walletService
-	so.connBusinessKeyMap = make(map[string]socketio.Conn)
 	so.connIdMap = &sync.Map{}
 	so.cron = cron.New()
 
@@ -795,7 +791,7 @@ func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input eventemitter.Event
 			log.Infof("cxt contains event key %b", ok)
 
 			if ok {
-				query := &OwnerAndMarket{}
+				query := &LatestOrderQuery{}
 				err = json.Unmarshal([]byte(ctx), query)
 				log.Info("single owner is: " + query.Owner)
 				if err != nil {
