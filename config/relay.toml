@@ -50,12 +50,6 @@ name = "Loopring corporation"
     cutoff_cache_clean_time = 0
     dust_order_value = 1
 
-[ipfs]
-    server = "127.0.0.1"
-    port = 5001
-    listen_topics = ["test_topic_broad_fk"]
-    broadcast_topics = ["test_topic_broad_fk"]
-
 [gateway]
     is_broadcast = false
     max_broadcast_time = 3
@@ -116,5 +110,5 @@ name = "Loopring corporation"
 [kafka]
     brokers = ["127.0.0.1:9092"]
 
-[motan]
-    conf_file = ""
+[motan_server]
+    conf_file = "motan_server.yaml"
