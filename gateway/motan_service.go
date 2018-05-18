@@ -27,7 +27,7 @@ import (
 
 type MotanService struct {
 	accountManager accountmanager.AccountManager
-	orderViewer   ordermanager.OrderViewer
+	orderViewer    ordermanager.OrderViewer
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
@@ -35,9 +35,11 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 	if balance, allowance, err := accountmanager.GetBalanceAndAllowance(req.Owner, req.Token, req.Spender); nil != err {
 		res.Allowance = big.NewInt(int64(0))
 		res.Balance = big.NewInt(int64(0))
+		//res.Err = err.Error()
 	} else {
 		res.Balance = new(big.Int).Set(balance)
 		res.Allowance = new(big.Int).Set(allowance)
+		//res.Err = ""
 	}
 	return res
 }
@@ -46,4 +48,12 @@ func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrd
 	res := &motan.MinerOrdersRes{}
 	res.List = s.orderViewer.MinerOrders(req.Protocol, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 	return res
+}
+
+func StartMotanService(options motan.MotanServerOptions, accountManager accountmanager.AccountManager, orderViewer ordermanager.OrderViewer) {
+	service := &MotanService{}
+	service.accountManager = accountManager
+	service.orderViewer = orderViewer
+	options.ServerInstance = service
+	go motan.RunServer(options)
 }

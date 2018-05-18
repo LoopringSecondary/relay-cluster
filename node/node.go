@@ -38,7 +38,6 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/relay-lib/motan"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
@@ -117,7 +116,7 @@ func (n *Node) Start() {
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
 	go gasprice_evaluator.InitGasPriceEvaluator()
-	go motan.RunServer(n.globalConfig.MotanServer)
+	gateway.StartMotanService(n.globalConfig.MotanServer, n.accountManager, n.orderViewer)
 
 	n.wg.Add(1)
 }
@@ -230,12 +229,4 @@ func (n *Node) registerExtractor() {
 	if err := extractor.Initialize(n.globalConfig.Kafka); err != nil {
 		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
-}
-
-func (n *Node) registerMotan() {
-	serverInstance := &gateway.MotanService{}
-	options := motan.MotanServerOptions{}
-	options.ConfFile = n.globalConfig.MotanServer.ConfFile
-	options.ServerInstance = serverInstance
-	motan.RunServer(options)
 }

@@ -65,8 +65,8 @@ type GlobalConfig struct {
 	Owner struct {
 		Name string
 	}
-	Mysql dao.MysqlOptions
-	Redis redis.RedisOptions
+	Mysql            dao.MysqlOptions
+	Redis            redis.RedisOptions
 	Jsonrpc          gateway.JsonrpcOptions
 	Websocket        gateway.WebsocketOptions
 	GatewayFilters   gateway.GatewayFiltersOptions
