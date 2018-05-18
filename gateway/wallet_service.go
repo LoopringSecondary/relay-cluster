@@ -29,6 +29,7 @@ import (
 	"github.com/Loopring/relay-cluster/txmanager"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
@@ -37,7 +38,6 @@ import (
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay/ethaccessor"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"sort"
@@ -576,7 +576,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	}
 
 	var txHashRst string
-	err = ethaccessor.SendRawTransaction(&txHashRst, p2pRing.RawTx)
+	err = accessor.SendRawTransaction(&txHashRst, p2pRing.RawTx)
 	if err != nil {
 		return res, err
 	}
