@@ -84,6 +84,12 @@ func sendKafkaMsg(msg interface{}) error {
 	return err
 }
 
+func sendBlockEndKafkaMsg(msg interface{}) error {
+	topic, key := kafka.Kafka_Topic_RelayCluster_BlockEnd, "relaycluster_blockend"
+	_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
+	return err
+}
+
 func (accountManager *AccountManager) Start() {
 	transferWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleTokenTransfer}
 	approveWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleApprove}
@@ -183,6 +189,9 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
 	}
+
+	// send blockEnd, miner use only
+	sendBlockEndKafkaMsg(event)
 
 	return nil
 }
