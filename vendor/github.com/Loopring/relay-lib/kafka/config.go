@@ -16,18 +16,8 @@
 
 */
 
-package ordermanager_test
+package kafka
 
-import (
-	"github.com/Loopring/relay-cluster/ordermanager"
-	"github.com/Loopring/relay-lib/motan"
-	"testing"
-)
-
-func TestOrderViewerImpl_MotanRpcServer(t *testing.T) {
-	serverInstance := &ordermanager.OrderViewerImpl{}
-	options := motan.MotanServerOptions{}
-	options.ConfFile = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/config/ordermanager.yaml"
-	options.ServerInstance = serverInstance
-	motan.RunServer(options)
+type KafkaOptions struct {
+	Brokers []string
 }
