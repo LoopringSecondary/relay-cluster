@@ -25,18 +25,7 @@ import (
 	"math/big"
 )
 
-type RdsService interface {
-	// create tables
-	Prepare()
-
-	// base functions
-	Add(item interface{}) error
-	Del(item interface{}) error
-	First(item interface{}) error
-	Last(item interface{}) error
-	Save(item interface{}) error
-	FindAll(item interface{}) error
-
+type RdsServiceInterface interface {
 	// ring mined table
 	FindRingMined(txhash string) (*RingMinedEvent, error)
 	RollBackRingMined(from, to int64) error

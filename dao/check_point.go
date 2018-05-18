@@ -36,7 +36,7 @@ type CheckPoint struct {
 func (s *RdsServiceImpl) QueryCheckPointByType(businessType string) (point CheckPoint, err error) {
 	points := make([]CheckPoint, 0)
 
-	err = s.db.Model(&CheckPoint{}).Where("business_type = ? ", businessType).Find(&points).Error
+	err = s.Db.Model(&CheckPoint{}).Where("business_type = ? ", businessType).Find(&points).Error
 	if err != nil || len(points) == 0 {
 		return point, errors.New("can't found default check point for " + point.BusinessType)
 	} else {

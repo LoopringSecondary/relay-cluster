@@ -67,7 +67,7 @@ func (e *CancelEvent) ConvertUp(dst *types.OrderCancelledEvent) error {
 
 func (s *RdsServiceImpl) GetCancelEvent(txhash common.Hash) (CancelEvent, error) {
 	var event CancelEvent
-	err := s.db.Where("tx_hash=?", txhash.Hex()).Where("fork=?", false).First(&event).Error
+	err := s.Db.Where("tx_hash=?", txhash.Hex()).Where("fork=?", false).First(&event).Error
 	return event, err
 }
 
@@ -77,7 +77,7 @@ func (s *RdsServiceImpl) GetCancelForkEvents(from, to int64) ([]CancelEvent, err
 		err  error
 	)
 
-	err = s.db.Where("block_number > ? and block_number <= ?", from, to).
+	err = s.Db.Where("block_number > ? and block_number <= ?", from, to).
 		Where("fork=?", false).
 		Find(&list).Error
 
@@ -85,5 +85,5 @@ func (s *RdsServiceImpl) GetCancelForkEvents(from, to int64) ([]CancelEvent, err
 }
 
 func (s *RdsServiceImpl) RollBackCancel(from, to int64) error {
-	return s.db.Model(&CancelEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
+	return s.Db.Model(&CancelEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }

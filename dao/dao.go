@@ -19,10 +19,9 @@
 package dao
 
 import (
+	libdao "github.com/Loopring/relay-lib/dao"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"time"
 )
 
 type PageResult struct {
@@ -32,53 +31,18 @@ type PageResult struct {
 	Total     int           `json:"total"`
 }
 
-type MysqlOptions struct {
-	Hostname           string
-	Port               string
-	User               string
-	Password           string
-	DbName             string
-	TablePrefix        string
-	MaxOpenConnections int
-	MaxIdleConnections int
-	ConnMaxLifetime    int
-	Debug              bool
-}
-
 type RdsServiceImpl struct {
-	options *MysqlOptions
-	db      *gorm.DB
+	libdao.RdsServiceImpl
 }
 
-func NewRdsService(options *MysqlOptions) *RdsServiceImpl {
-	impl := &RdsServiceImpl{}
-	impl.options = options
+func NewDb(options *libdao.MysqlOptions) *RdsServiceImpl {
+	var s RdsServiceImpl
 
-	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return options.TablePrefix + defaultTableName
-	}
+	s.RdsServiceImpl = libdao.NewRdsService(options)
 
-	url := options.User + ":" + options.Password + "@tcp(" + options.Hostname + ":" + options.Port + ")/" + options.DbName + "?charset=utf8&parseTime=True"
-	db, err := gorm.Open("mysql", url)
-	if err != nil {
-		log.Fatalf("mysql connection error:%s", err.Error())
-	}
-
-	db.DB().SetConnMaxLifetime(time.Duration(options.ConnMaxLifetime) * time.Second)
-	db.DB().SetMaxIdleConns(options.MaxIdleConnections)
-	db.DB().SetMaxOpenConns(options.MaxOpenConnections)
-
-	db.LogMode(options.Debug)
-
-	impl.db = db
-
-	return impl
-}
-
-func (s *RdsServiceImpl) Prepare() {
-	var tables []interface{}
-
+	tables := []interface{}{}
 	// create tables if not exists
+	tables = append(tables, &Block{})
 	tables = append(tables, &Order{})
 	tables = append(tables, &Block{})
 	tables = append(tables, &RingMinedEvent{})
@@ -92,16 +56,10 @@ func (s *RdsServiceImpl) Prepare() {
 	tables = append(tables, &TransactionView{})
 	tables = append(tables, &CheckPoint{})
 
-	for _, t := range tables {
-		if ok := s.db.HasTable(t); !ok {
-			if err := s.db.CreateTable(t).Error; err != nil {
-				log.Fatalf("create mysql table error:%s", err.Error())
-			}
-		}
+	s.SetTables(tables)
+	if err := s.CreateTables(); err != nil {
+		log.Fatalf(err.Error())
 	}
 
-	// auto migrate to keep schema update to date
-	// AutoMigrate will ONLY create tables, missing columns and missing indexes,
-	// and WON'T change existing column's type or delete unused columns to protect your data
-	s.db.AutoMigrate(tables...)
+	return &s
 }

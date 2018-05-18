@@ -81,7 +81,7 @@ func (tx *TransactionView) ConvertUp(dst *txtyp.TransactionView) error {
 
 // 更新交易发起者相同nonce下tx为failed
 func (s *RdsServiceImpl) SetPendingTxViewFailed(hashlist []string) error {
-	err := s.db.Model(&TransactionView{}).
+	err := s.Db.Model(&TransactionView{}).
 		Where("tx_hash in (?)", hashlist).
 		Where("status=?", types.TX_STATUS_PENDING).
 		Where("fork=?", false).
@@ -92,7 +92,7 @@ func (s *RdsServiceImpl) SetPendingTxViewFailed(hashlist []string) error {
 
 // 根据hash删除pending tx
 func (s *RdsServiceImpl) DelPendingTxView(hash string) error {
-	err := s.db.Where("tx_hash=?", hash).
+	err := s.Db.Where("tx_hash=?", hash).
 		Where("status=?", types.TX_STATUS_PENDING).
 		Where("fork=?", false).
 		Delete(&TransactionView{}).Error
@@ -103,7 +103,7 @@ func (s *RdsServiceImpl) DelPendingTxView(hash string) error {
 func (s *RdsServiceImpl) GetTxViewByOwnerAndHashs(owner string, hashs []string) ([]TransactionView, error) {
 	var txs []TransactionView
 
-	err := s.db.Where("owner=?", owner).
+	err := s.Db.Where("owner=?", owner).
 		Where("tx_hash in (?)", hashs).
 		Where("fork=?", false).
 		Find(&txs).Error
@@ -114,7 +114,7 @@ func (s *RdsServiceImpl) GetTxViewByOwnerAndHashs(owner string, hashs []string) 
 func (s *RdsServiceImpl) GetPendingTxViewByOwner(owner string) ([]TransactionView, error) {
 	var txs []TransactionView
 
-	err := s.db.Where("owner=?", owner).
+	err := s.Db.Where("owner=?", owner).
 		Where("status=?", types.TX_STATUS_PENDING).
 		Where("fork=?", false).
 		Order("update_time DESC").
@@ -128,7 +128,7 @@ func (s *RdsServiceImpl) GetTxViewCountByOwner(owner string, symbol string, stat
 
 	query := assembleTxViewQuery(owner, symbol, status, typ)
 
-	err := s.db.Model(&TransactionView{}).Where(query).Count(&number).Error
+	err := s.Db.Model(&TransactionView{}).Where(query).Count(&number).Error
 
 	return number, err
 }
@@ -138,13 +138,13 @@ func (s *RdsServiceImpl) GetTxViewByOwner(owner string, symbol string, status ty
 
 	query := assembleTxViewQuery(owner, symbol, status, typ)
 
-	err := s.db.Where(query).Order("update_time DESC").Limit(limit).Offset(offset).Find(&txs).Error
+	err := s.Db.Where(query).Order("update_time DESC").Limit(limit).Offset(offset).Find(&txs).Error
 
 	return txs, err
 }
 
 func (s *RdsServiceImpl) RollBackTxView(from, to int64) error {
-	return s.db.Model(&TransactionView{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
+	return s.Db.Model(&TransactionView{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
 
 func assembleTxViewQuery(owner, symbol string, status types.TxStatus, typ txtyp.TxType) map[string]interface{} {

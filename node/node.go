@@ -45,7 +45,7 @@ import (
 
 type Node struct {
 	globalConfig *GlobalConfig
-	rdsService   dao.RdsService
+	rdsService   dao.RdsServiceInterface
 	//ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
 	orderViewer       ordermanager.OrderViewer
@@ -138,8 +138,7 @@ func (n *Node) registerCrypto(ks *keystore.KeyStore) {
 }
 
 func (n *Node) registerMysql() {
-	n.rdsService = dao.NewRdsService(&n.globalConfig.Mysql)
-	n.rdsService.Prepare()
+	n.rdsService = dao.NewDb(&n.globalConfig.Mysql)
 }
 
 func (n *Node) registerCache() {

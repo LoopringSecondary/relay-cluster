@@ -31,28 +31,6 @@ type WhiteList struct {
 	IsDeleted  bool   `gorm:"column:is_deleted"`
 }
 
-func (s *RdsServiceImpl) GetWhiteList() ([]WhiteList, error) {
-	var (
-		list []WhiteList
-		err  error
-	)
-
-	err = s.db.Where("is_deleted = false").Find(&list).Error
-
-	return list, err
-}
-
-func (s *RdsServiceImpl) FindWhiteListUserByAddress(address common.Address) (*WhiteList, error) {
-	var (
-		user WhiteList
-		err  error
-	)
-
-	err = s.db.Where("owner = ? and is_deleted = ?", address.Hex(), false).First(&user).Error
-
-	return &user, err
-}
-
 func (w *WhiteList) ConvertDown(src *types.WhiteListUser) error {
 	w.Owner = src.Owner.Hex()
 	w.CreateTime = src.CreateTime
@@ -70,4 +48,26 @@ func (w *WhiteList) ConvertUp(dst *types.WhiteListUser) error {
 	dst.CreateTime = w.CreateTime
 
 	return nil
+}
+
+func (s *RdsServiceImpl) GetWhiteList() ([]WhiteList, error) {
+	var (
+		list []WhiteList
+		err  error
+	)
+
+	err = s.Db.Where("is_deleted = false").Find(&list).Error
+
+	return list, err
+}
+
+func (s *RdsServiceImpl) FindWhiteListUserByAddress(address common.Address) (*WhiteList, error) {
+	var (
+		user WhiteList
+		err  error
+	)
+
+	err = s.Db.Where("owner = ? and is_deleted = ?", address.Hex(), false).First(&user).Error
+
+	return &user, err
 }
