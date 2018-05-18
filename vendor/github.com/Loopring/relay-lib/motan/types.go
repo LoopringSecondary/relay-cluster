@@ -19,16 +19,32 @@
 package motan
 
 import (
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
 type AccountBalanceAndAllowanceReq struct {
-	Owner common.Address
-	Token common.Address
+	Owner   common.Address
+	Token   common.Address
 	Spender common.Address
 }
 
 type AccountBalanceAndAllowanceRes struct {
 	Balance, Allowance *big.Int
+}
+
+type MinerOrdersReq struct {
+	Protocol             common.Address
+	TokenS               common.Address
+	TokenB               common.Address
+	Length               int
+	ReservedTime         int64
+	StartBlockNumber     int64
+	EndBlockNumber       int64
+	FilterOrderHashLists []*types.OrderDelayList
+}
+
+type MinerOrdersRes struct {
+	List []*types.OrderState
 }

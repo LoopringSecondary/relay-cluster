@@ -67,7 +67,6 @@ type GlobalConfig struct {
 	}
 	Mysql dao.MysqlOptions
 	Redis redis.RedisOptions
-	//Ipfs             config.IpfsOptions
 	Jsonrpc          gateway.JsonrpcOptions
 	Websocket        gateway.WebsocketOptions
 	GatewayFilters   gateway.GatewayFiltersOptions
@@ -83,7 +82,7 @@ type GlobalConfig struct {
 	AccountManager   accountmanager.AccountManagerOptions
 	Kafka            kafka.KafkaOptions
 	ZkLock           zklock.ZkLockConfig
-	Motan            motan.MotanServerOptions
+	MotanServer      motan.MotanServerOptions
 }
 
 type KeyStoreOptions struct {

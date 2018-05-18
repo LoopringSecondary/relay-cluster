@@ -27,7 +27,7 @@ import (
 
 type MotanService struct {
 	accountManager accountmanager.AccountManager
-	orderManager   ordermanager.OrderManager
+	orderViewer   ordermanager.OrderViewer
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
@@ -39,5 +39,11 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 		res.Balance = new(big.Int).Set(balance)
 		res.Allowance = new(big.Int).Set(allowance)
 	}
+	return res
+}
+
+func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
+	res := &motan.MinerOrdersRes{}
+	res.List = s.orderViewer.MinerOrders(req.Protocol, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 	return res
 }

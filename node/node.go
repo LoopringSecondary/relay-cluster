@@ -117,7 +117,7 @@ func (n *Node) Start() {
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
 	go gasprice_evaluator.InitGasPriceEvaluator()
-	go motan.RunServer(n.globalConfig.Motan)
+	go motan.RunServer(n.globalConfig.MotanServer)
 
 	n.wg.Add(1)
 }
@@ -205,7 +205,7 @@ func (n *Node) registerSocketIOService() {
 }
 
 func (n *Node) registerGateway() {
-	gateway.Initialize(&n.globalConfig.GatewayFilters, &n.globalConfig.Gateway, &n.globalConfig.Ipfs, n.orderViewer, n.marketCapProvider, n.accountManager)
+	gateway.Initialize(&n.globalConfig.GatewayFilters, &n.globalConfig.Gateway, n.orderViewer, n.marketCapProvider, n.accountManager)
 }
 
 func (n *Node) registerUserManager() {
@@ -230,4 +230,12 @@ func (n *Node) registerExtractor() {
 	if err := extractor.Initialize(n.globalConfig.Kafka); err != nil {
 		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
+}
+
+func (n *Node) registerMotan() {
+	serverInstance := &gateway.MotanService{}
+	options := motan.MotanServerOptions{}
+	options.ConfFile = n.globalConfig.MotanServer.ConfFile
+	options.ServerInstance = serverInstance
+	motan.RunServer(options)
 }
