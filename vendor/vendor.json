@@ -228,12 +228,6 @@
 			"revisionTime": "2018-05-18T04:29:15Z"
 		},
 		{
-			"checksumSHA1": "K8+xANkYRKVSeLqafP19uUU8Izs=",
-			"path": "github.com/Loopring/relay/config",
-			"revision": "775ba3a6609a3e510ace49c4ad5741183cd96cd5",
-			"revisionTime": "2018-05-09T10:04:40Z"
-		},
-		{
 			"checksumSHA1": "kHh2EuzlSG80I7Hegzb8XnM5ybU=",
 			"origin": "github.com/Loopring/relay-lib/vendor/github.com/Shopify/sarama",
 			"path": "github.com/Shopify/sarama",
