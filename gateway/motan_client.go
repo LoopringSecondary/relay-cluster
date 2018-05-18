@@ -16,9 +16,4 @@
 
 */
 
-package accessor
-
-type AccessorOptions struct {
-	RawUrls           []string `required:"true"`
-	FetchTxRetryCount int
-}
+package gateway
