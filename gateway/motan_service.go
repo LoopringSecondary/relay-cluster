@@ -35,9 +35,18 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 	if balance, allowance, err := accountmanager.GetBalanceAndAllowance(req.Owner, req.Token, req.Spender); nil != err {
 		res.Allowance = big.NewInt(int64(0))
 		res.Balance = big.NewInt(int64(0))
+		//res.Err = err.Error()
 	} else {
 		res.Balance = new(big.Int).Set(balance)
 		res.Allowance = new(big.Int).Set(allowance)
+		//res.Err = ""
 	}
 	return res
+}
+
+func StartMotanService(options motan.MotanServerOptions, accountManager accountmanager.AccountManager) {
+	service := &MotanService{}
+	service.accountManager = accountManager
+	options.ServerInstance = service
+	go motan.RunServer(options)
 }

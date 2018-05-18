@@ -116,7 +116,7 @@ func (n *Node) Start() {
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
 	go gasprice_evaluator.InitGasPriceEvaluator()
-	go motan.RunServer(n.globalConfig.Motan)
+	gateway.StartMotanService(n.globalConfig.Motan, n.accountManager)
 
 	n.wg.Add(1)
 }

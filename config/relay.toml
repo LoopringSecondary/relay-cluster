@@ -115,3 +115,6 @@ name = "Loopring corporation"
 
 [kafka]
     brokers = ["127.0.0.1:9092"]
+
+[motan]
+    conf_file = ""
