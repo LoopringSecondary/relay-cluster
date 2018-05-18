@@ -42,7 +42,7 @@ func Initialize(options kafka.KafkaOptions) error {
 	var serv ExtractorService
 
 	serv.consumer = &kafka.ConsumerRegister{}
-	serv.consumer.Initialize(options.Brokers[0])
+	serv.consumer.Initialize(options.Brokers)
 	if err := serv.consumer.RegisterTopicAndHandler(kafka_topic, kafka_group, types.KafkaOnChainEvent{}, serv.handle); err != nil {
 		return err
 	}

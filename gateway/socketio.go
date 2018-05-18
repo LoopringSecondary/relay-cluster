@@ -109,10 +109,10 @@ type SocketIOService interface {
 }
 
 type SocketIOServiceImpl struct {
-	port               string
-	walletService      WalletServiceImpl
-	connIdMap          *sync.Map
-	cron               *cron.Cron
+	port          string
+	walletService WalletServiceImpl
+	connIdMap     *sync.Map
+	cron          *cron.Cron
 }
 
 func NewSocketIOService(port string, walletService WalletServiceImpl) *SocketIOServiceImpl {

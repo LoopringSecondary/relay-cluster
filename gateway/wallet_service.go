@@ -119,8 +119,8 @@ type SingleOwner struct {
 }
 
 type LatestOrderQuery struct {
-	Owner  string `json:"owner"`
-	Market string `json:"market"`
+	Owner     string `json:"owner"`
+	Market    string `json:"market"`
 	OrderType string `json:"orderType"`
 }
 
@@ -575,7 +575,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 }
 
 func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
-	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType:query.OrderType})
+	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType: query.OrderType})
 	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err

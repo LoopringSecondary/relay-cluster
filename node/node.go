@@ -74,7 +74,6 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	// register
 	n.registerZklock()
-	n.registerExtractor()
 
 	n.registerMysql()
 	n.registerCache()
@@ -100,6 +99,8 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerJsonRpcService()
 	n.registerWebsocketService()
 	n.registerSocketIOService()
+
+	n.registerExtractor()
 
 	return n
 }

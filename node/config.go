@@ -36,7 +36,6 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/motan"
 	"github.com/Loopring/relay-lib/zklock"
-	"github.com/Loopring/relay/config"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
 )
@@ -66,9 +65,9 @@ type GlobalConfig struct {
 	Owner struct {
 		Name string
 	}
-	Mysql            dao.MysqlOptions
-	Redis            redis.RedisOptions
-	Ipfs             config.IpfsOptions
+	Mysql dao.MysqlOptions
+	Redis redis.RedisOptions
+	//Ipfs             config.IpfsOptions
 	Jsonrpc          gateway.JsonrpcOptions
 	Websocket        gateway.WebsocketOptions
 	GatewayFilters   gateway.GatewayFiltersOptions
