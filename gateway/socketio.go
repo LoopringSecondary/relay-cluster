@@ -144,7 +144,6 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	for k, v := range so.eventTypeRoute {
 		so.consumer.RegisterTopicAndHandler(k, topic, KafkaMsg{}, v.eventHandler)
 	}
-	so.consumer.RegisterTopicAndHandler(eventKeyTickers, "", KafkaMsg{}, so.broadcastLoopringTicker)
 	return so
 }
 
