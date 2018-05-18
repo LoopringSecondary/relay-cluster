@@ -19,17 +19,16 @@
 package motan
 
 import (
-	motan "github.com/Loopring/motan-go"
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 )
 
-func RunServer(options MotanServerOptions) {
-	mscontext := motan.GetMotanServerContext(options.ConfFile)
-	if err := mscontext.RegisterService(options.ServerInstance, ""); nil != err {
-		println("########", err.Error())
-	}
-	//extFactory := motan.GetDefaultExtFactory()
-	//extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
-	//	return &serialize.GobSerialization{}
-	//})
-	mscontext.Start(nil)
+type AccountBalanceAndAllowanceReq struct {
+	Owner common.Address
+	Token common.Address
+	Spender common.Address
+}
+
+type AccountBalanceAndAllowanceRes struct {
+	Balance, Allowance *big.Int
 }
