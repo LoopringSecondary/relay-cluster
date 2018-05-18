@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-
+	"fmt"
 	"gopkg.in/googollee/go-engine.io.v1/base"
 	"gopkg.in/googollee/go-engine.io.v1/payload"
 )
@@ -85,11 +85,14 @@ func (c *serverConn) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		mime := r.Header.Get("Content-Type")
 		supportBinary, err := mimeSupportBinary(mime)
+		fmt.Println("errr111111>>>>>1")
 		if err != nil {
+			fmt.Println("errr111111>>>>>2")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		if err := c.Payload.FeedIn(r.Body, supportBinary); err != nil {
+			fmt.Println("errr111111>>>>>3")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

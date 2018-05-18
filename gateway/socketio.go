@@ -6,7 +6,6 @@ import (
 	"fmt"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -19,6 +18,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/Loopring/relay-lib/kafka"
+	"net"
 )
 
 const (
@@ -70,6 +71,12 @@ type InvokeInfo struct {
 	isBroadcast bool
 	emitType    int
 	spec        string
+	eventHandler        func(event interface{}) error
+}
+
+type KafkaMsg struct {
+	eventKey string
+	data 	 interface{}
 }
 
 const (
@@ -87,59 +94,58 @@ const (
 	eventKeyP2POrders       = "p2pOrders"
 )
 
-var EventTypeRoute = map[string]InvokeInfo{
-	eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
-	eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
-	eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-	eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-
-	eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	eventKeyMarketOrders: {"GetLatestMarketOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-	//eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-}
-
 type SocketIOService interface {
 	Start(port string)
 	Stop()
 }
 
 type SocketIOServiceImpl struct {
-	port          string
-	walletService WalletServiceImpl
-	connIdMap     *sync.Map
-	cron          *cron.Cron
+	port               string
+	walletService      WalletServiceImpl
+	connIdMap          *sync.Map
+	cron               *cron.Cron
+	consumer *kafka.ConsumerRegister
+	eventTypeRoute     map[string]InvokeInfo
 }
 
-func NewSocketIOService(port string, walletService WalletServiceImpl) *SocketIOServiceImpl {
+func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []string) *SocketIOServiceImpl {
 	so := &SocketIOServiceImpl{}
 	so.port = port
 	so.walletService = walletService
 	so.connIdMap = &sync.Map{}
 	so.cron = cron.New()
+	so.consumer = &kafka.ConsumerRegister{}
+	so.consumer.Initialize(brokers)
 
-	// init event watcher
-	loopringTickerWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastLoopringTicker}
-	eventemitter.On(eventemitter.LoopringTickerUpdated, loopringTickerWatcher)
-	trendsWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastTrends}
-	eventemitter.On(eventemitter.TrendUpdated, trendsWatcher)
-	depthWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastDepth}
-	eventemitter.On(eventemitter.DepthUpdated, depthWatcher)
-	orderBookWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.broadcastOrderBook}
-	eventemitter.On(eventemitter.DepthUpdated, orderBookWatcher)
 
-	balanceWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleBalanceUpdate}
-	eventemitter.On(eventemitter.BalanceUpdated, balanceWatcher)
-	transactionWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleTransactionUpdate}
-	eventemitter.On(eventemitter.TransactionEvent, transactionWatcher)
-	pendingTxWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handlePendingTransaction}
-	eventemitter.On(eventemitter.TransactionEvent, pendingTxWatcher)
-	marketOrdersWatcher := &eventemitter.Watcher{Concurrent: false, Handle: so.handleMarketOrdersUpdate}
-	eventemitter.On(eventemitter.TransactionEvent, marketOrdersWatcher)
+	so.eventTypeRoute = map[string]InvokeInfo{
+		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second, so.broadcastTpTickers},
+		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second, so.broadcastLoopringTicker},
+		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrends},
+		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute, so.broadcastMarketCap},
+		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastDepth},
+		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastOrderBook},
+		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrades},
+
+		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleBalanceUpdate},
+		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleTransactionUpdate},
+		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handlePendingTransaction},
+		eventKeyMarketOrders: {"GetLatestMarketOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate},
+		//eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	}
+
+	var topic string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		topic = "DefaultSocketioTopic" + time.Now().String()
+	} else {
+		topic = addrs[0].String()
+	}
+
+	for k, v := range so.eventTypeRoute {
+		so.consumer.RegisterTopicAndHandler(k, topic, KafkaMsg{} , v.eventHandler)
+	}
+	so.consumer.RegisterTopicAndHandler(eventKeyTickers, "", KafkaMsg{} , so.broadcastLoopringTicker)
 	return so
 }
 
@@ -162,7 +168,7 @@ func (so *SocketIOServiceImpl) Start() {
 		fmt.Println(s.RemoteAddr())
 	})
 
-	for v := range EventTypeRoute {
+	for v := range so.eventTypeRoute {
 		aliasOfV := v
 
 		server.OnEvent("/", aliasOfV+EventPostfixReq, func(s socketio.Conn, msg string) {
@@ -185,7 +191,7 @@ func (so *SocketIOServiceImpl) Start() {
 		})
 	}
 
-	for k, events := range EventTypeRoute {
+	for k, events := range so.eventTypeRoute {
 		copyOfK := k
 		spec := events.spec
 
@@ -263,7 +269,7 @@ func (so *SocketIOServiceImpl) Start() {
 }
 
 func (so *SocketIOServiceImpl) EmitNowByEventType(bk string, v socketio.Conn, bv string) {
-	if invokeInfo, ok := EventTypeRoute[bk]; ok {
+	if invokeInfo, ok := so.eventTypeRoute[bk]; ok {
 		so.handleAfterEmit(bk, invokeInfo.Query, invokeInfo.MethodName, v, bv)
 	}
 }
@@ -311,7 +317,7 @@ func (so *SocketIOServiceImpl) handleAfterEmit(eventType string, query interface
 	conn.Emit(eventType+EventPostfixRes, result)
 }
 
-func (so *SocketIOServiceImpl) broadcastTpTickers(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error) {
 
 	mkts, _ := so.walletService.GetSupportedMarket()
 
@@ -351,7 +357,7 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input eventemitter.EventData) 
 	return nil
 }
 
-func (so *SocketIOServiceImpl) broadcastLoopringTicker(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err error) {
 
 	resp := SocketIOJsonResp{}
 	tickers, err := so.walletService.GetTicker()
@@ -379,7 +385,7 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input eventemitter.EventD
 	return nil
 }
 
-func (so *SocketIOServiceImpl) broadcastDepth(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastDepth(input interface{}) (err error) {
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input. %s", input)
 	markets := so.getConnectedMarketForDepth(eventKeyDepth)
 	respMap := so.getDepthPushData(eventKeyDepth, markets)
@@ -387,7 +393,7 @@ func (so *SocketIOServiceImpl) broadcastDepth(input eventemitter.EventData) (err
 	return nil
 }
 
-func (so *SocketIOServiceImpl) broadcastOrderBook(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastOrderBook(input interface{}) (err error) {
 	markets := so.getConnectedMarketForDepth(eventKeyOrderBook)
 	respMap := so.getDepthPushData(eventKeyOrderBook, markets)
 	so.pushDepthData(eventKeyOrderBook, respMap)
@@ -440,7 +446,7 @@ func (so *SocketIOServiceImpl) pushDepthData(eventKey string, respMap map[string
 	})
 }
 
-func (so *SocketIOServiceImpl) broadcastTrades(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastTrades(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input. %s", input)
 
@@ -482,7 +488,7 @@ func (so *SocketIOServiceImpl) broadcastTrades(input eventemitter.EventData) (er
 	return nil
 }
 
-func (so *SocketIOServiceImpl) broadcastMarketCap(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastMarketCap(input interface{}) (err error) {
 
 	cnyResp := so.getPriceQuoteResp(priceQuoteCNY)
 	usdResp := so.getPriceQuoteResp(priceQuoteUSD)
@@ -563,7 +569,7 @@ func (so *SocketIOServiceImpl) getConnectedMarketForFill() map[string]bool {
 	return markets
 }
 
-func (so *SocketIOServiceImpl) broadcastTrends(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] trend input. %s", input)
 
@@ -602,7 +608,7 @@ func (so *SocketIOServiceImpl) broadcastTrends(input eventemitter.EventData) (er
 	return nil
 }
 
-func (so *SocketIOServiceImpl) handleBalanceUpdate(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s", input)
 
@@ -649,7 +655,7 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 	return nil
 }
 
-//func (so *SocketIOServiceImpl) broadcastDepth(input eventemitter.EventData) (err error) {
+//func (so *SocketIOServiceImpl) broadcastDepth(input interface{}) (err error) {
 //
 //	log.Infof("[SOCKETIO-RECEIVE-EVENT] depth input. %s", input)
 //
@@ -688,7 +694,7 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 //	return nil
 //}
 
-func (so *SocketIOServiceImpl) handleTransactionUpdate(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] transaction input. %s", input)
 
@@ -731,7 +737,7 @@ func (so *SocketIOServiceImpl) handleTransactionUpdate(input eventemitter.EventD
 	return nil
 }
 
-func (so *SocketIOServiceImpl) handlePendingTransaction(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] transaction input (for pending). %s", input)
 
@@ -774,7 +780,7 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input eventemitter.Event
 	return nil
 }
 
-func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input eventemitter.EventData) (err error) {
+func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] market order input (for pending). %s", input)
 

@@ -199,7 +199,7 @@ func (n *Node) registerWebsocketService() {
 }
 
 func (n *Node) registerSocketIOService() {
-	n.socketIOService = *gateway.NewSocketIOService(n.globalConfig.Websocket.Port, n.walletService)
+	n.socketIOService = *gateway.NewSocketIOService(n.globalConfig.Websocket.Port, n.walletService, n.globalConfig.Kafka.Brokers)
 }
 
 func (n *Node) registerGateway() {
