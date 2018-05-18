@@ -118,9 +118,10 @@ type SingleOwner struct {
 	Owner string `json:"owner"`
 }
 
-type OwnerAndMarket struct {
+type LatestOrderQuery struct {
 	Owner  string `json:"owner"`
 	Market string `json:"market"`
+	OrderType string `json:"orderType"`
 }
 
 type TxNotify struct {
@@ -573,9 +574,9 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	return txHashRst, nil
 }
 
-func (w *WalletServiceImpl) GetLatestOrders(query *OwnerAndMarket) (res []OrderJsonResult, err error) {
-	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market})
-	queryRst, err := w.orderViewer.GetLatestOrders(orderQuery, 40)
+func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType:query.OrderType})
+	queryRst, err := w.orderManager.GetLatestOrders(orderQuery, 40)
 	if err != nil {
 		return res, err
 	}
@@ -585,6 +586,16 @@ func (w *WalletServiceImpl) GetLatestOrders(query *OwnerAndMarket) (res []OrderJ
 		res = append(res, orderStateToJson(d))
 	}
 	return res, err
+}
+
+func (w *WalletServiceImpl) GetLatestMarketOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+	query.OrderType = types.ORDER_TYPE_MARKET
+	return w.GetLatestOrders(query)
+}
+
+func (w *WalletServiceImpl) GetLatestP2POrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+	query.OrderType = types.ORDER_TYPE_P2P
+	return w.GetLatestOrders(query)
 }
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
@@ -921,6 +932,10 @@ func (w *WalletServiceImpl) GetTransactions(query TransactionQuery) (PageResult,
 	}
 
 	return rst, nil
+}
+
+func (w *WalletServiceImpl) GetLatestTransactions(query TransactionQuery) ([]txtyp.TransactionJsonResult, error) {
+	return txmanager.GetAllTransactions(query.Owner, query.Symbol, query.Status, query.TxType, 40, 0)
 }
 
 func pagination(pageIndex, pageSize int) (int, int, int, int) {

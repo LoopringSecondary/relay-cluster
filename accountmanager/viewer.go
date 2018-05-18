@@ -117,3 +117,26 @@ func HasUnlocked(owner string) (exists bool, err error) {
 	}
 	return rcache.Exists(unlockCacheKey(common.HexToAddress(owner)))
 }
+
+func InitializeView(options *AccountViewOptions) AccountManager {
+	if nil != accManager {
+		log.Fatalf("AccountManager has been init")
+	}
+	if err := isPackegeReady(); nil != err {
+		log.Fatalf(err.Error())
+	}
+
+	accountManager := AccountManager{}
+	if options.CacheDuration > 0 {
+		accountManager.cacheDuration = options.CacheDuration
+	} else {
+		accountManager.cacheDuration = 3600 * 24 * 100
+	}
+	//accountManager.maxBlockLength = 3000
+	b := &ChangedOfBlock{}
+	b.cachedDuration = big.NewInt(int64(500))
+	accountManager.block = b
+
+	accManager = &accountManager
+	return accountManager
+}

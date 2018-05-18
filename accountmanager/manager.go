@@ -51,6 +51,9 @@ func isPackegeReady() error {
 }
 
 func Initialize(options *AccountManagerOptions, brokers []string) AccountManager {
+	if nil != accManager {
+		log.Fatalf("AccountManager has been init")
+	}
 	if err := isPackegeReady(); nil != err {
 		log.Fatalf(err.Error())
 	}
@@ -70,13 +73,8 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 	if err := accountManager.producerWrapped.Initialize(brokers); nil != err {
 		log.Fatalf("Failed init producerWrapped %s", err.Error())
 	}
-
 	accManager = &accountManager
 	return accountManager
-}
-
-type KafkaMsg interface {
-	KafkaTopicAndKey() (string, string)
 }
 
 func sendKafkaMsg(msg interface{}) error {

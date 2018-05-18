@@ -38,6 +38,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/motan"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
@@ -59,6 +60,7 @@ type Node struct {
 	socketIOService   gateway.SocketIOServiceImpl
 	walletService     gateway.WalletServiceImpl
 	txManager         txmanager.TransactionManager
+	motanService      *gateway.MotanService
 
 	wg     *sync.WaitGroup
 	logger *zap.Logger
@@ -115,6 +117,7 @@ func (n *Node) Start() {
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
 	go gasprice_evaluator.InitGasPriceEvaluator()
+	go motan.RunServer(n.globalConfig.Motan)
 
 	n.wg.Add(1)
 }

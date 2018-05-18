@@ -34,6 +34,7 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/motan"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/Loopring/relay/config"
 	"github.com/naoina/toml"
@@ -83,6 +84,7 @@ type GlobalConfig struct {
 	AccountManager   accountmanager.AccountManagerOptions
 	Kafka            kafka.KafkaOptions
 	ZkLock           zklock.ZkLockConfig
+	Motan            motan.MotanServerOptions
 }
 
 type KeyStoreOptions struct {
