@@ -35,7 +35,7 @@ type Trend struct {
 	End        int64   `gorm:"column:end;type:bigint"`
 }
 
-func (s *RdsServiceImpl) TrendQueryLatest(query Trend, pageIndex, pageSize int) (trends []Trend, err error) {
+func (s *RdsService) TrendQueryLatest(query Trend, pageIndex, pageSize int) (trends []Trend, err error) {
 	trends = make([]Trend, 0)
 
 	if pageIndex <= 0 {
@@ -50,17 +50,17 @@ func (s *RdsServiceImpl) TrendQueryLatest(query Trend, pageIndex, pageSize int) 
 	return
 }
 
-func (s *RdsServiceImpl) TrendQueryByTime(intervals, market string, start, end int64) (trends []Trend, err error) {
+func (s *RdsService) TrendQueryByTime(intervals, market string, start, end int64) (trends []Trend, err error) {
 	err = s.Db.Model(&Trend{}).Where("intervals = ? and market = ? and start = ? and end = ?", intervals, market, start, end).Order("start desc").Find(&trends).Error
 	return
 }
 
-func (s *RdsServiceImpl) TrendQueryByInterval(intervals, market string, start, end int64) (trends []Trend, err error) {
+func (s *RdsService) TrendQueryByInterval(intervals, market string, start, end int64) (trends []Trend, err error) {
 	err = s.Db.Model(&Trend{}).Where("intervals = ? and market = ? and start >= ? and end <= ?", intervals, market, start, end).Order("start").Find(&trends).Error
 	return
 }
 
-func (s *RdsServiceImpl) TrendQueryForProof(mkt, interval string, start int64) (trends []Trend, err error) {
+func (s *RdsService) TrendQueryForProof(mkt, interval string, start int64) (trends []Trend, err error) {
 	trends = make([]Trend, 0)
 	err = s.Db.Model(&Trend{}).Where("intervals = ? and market = ? and start >= ?", interval, mkt, start).Find(&trends).Error
 	return

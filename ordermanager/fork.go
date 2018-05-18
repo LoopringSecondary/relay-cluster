@@ -29,11 +29,11 @@ import (
 )
 
 type ForkProcessor struct {
-	db *dao.RdsServiceImpl
+	db *dao.RdsService
 	mc marketcap.MarketCapProvider
 }
 
-func NewForkProcess(rds *dao.RdsServiceImpl, mc marketcap.MarketCapProvider) *ForkProcessor {
+func NewForkProcess(rds *dao.RdsService, mc marketcap.MarketCapProvider) *ForkProcessor {
 	processor := &ForkProcessor{}
 	processor.db = rds
 	processor.mc = mc

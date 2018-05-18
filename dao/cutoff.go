@@ -81,13 +81,13 @@ func (e *CutOffEvent) ConvertUp(dst *types.CutoffEvent) error {
 	return nil
 }
 
-func (s *RdsServiceImpl) GetCutoffEvent(txhash common.Hash) (CutOffEvent, error) {
+func (s *RdsService) GetCutoffEvent(txhash common.Hash) (CutOffEvent, error) {
 	var event CutOffEvent
 	err := s.Db.Where("tx_hash=?", txhash.Hex()).Where("fork=?", false).First(&event).Error
 	return event, err
 }
 
-func (s *RdsServiceImpl) GetCutoffForkEvents(from, to int64) ([]CutOffEvent, error) {
+func (s *RdsService) GetCutoffForkEvents(from, to int64) ([]CutOffEvent, error) {
 	var (
 		list []CutOffEvent
 		err  error
@@ -100,6 +100,6 @@ func (s *RdsServiceImpl) GetCutoffForkEvents(from, to int64) ([]CutOffEvent, err
 	return list, err
 }
 
-func (s *RdsServiceImpl) RollBackCutoff(from, to int64) error {
+func (s *RdsService) RollBackCutoff(from, to int64) error {
 	return s.Db.Model(&CutOffEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }

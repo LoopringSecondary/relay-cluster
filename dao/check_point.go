@@ -33,7 +33,7 @@ type CheckPoint struct {
 	ModifyTime   int64  `gorm:"column:modify_time;type:bigint"`
 }
 
-func (s *RdsServiceImpl) QueryCheckPointByType(businessType string) (point CheckPoint, err error) {
+func (s *RdsService) QueryCheckPointByType(businessType string) (point CheckPoint, err error) {
 	points := make([]CheckPoint, 0)
 
 	err = s.Db.Model(&CheckPoint{}).Where("business_type = ? ", businessType).Find(&points).Error

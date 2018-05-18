@@ -45,7 +45,7 @@ import (
 
 type Node struct {
 	globalConfig *GlobalConfig
-	rdsService   *dao.RdsServiceImpl
+	rdsService   *dao.RdsService
 	//ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
 	orderViewer       ordermanager.OrderViewer

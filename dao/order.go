@@ -171,13 +171,13 @@ func (o *Order) ConvertUp(state *types.OrderState) error {
 	return nil
 }
 
-func (s *RdsServiceImpl) GetOrderByHash(orderhash common.Hash) (*Order, error) {
+func (s *RdsService) GetOrderByHash(orderhash common.Hash) (*Order, error) {
 	order := &Order{}
 	err := s.Db.Where("order_hash = ?", orderhash.Hex()).First(order).Error
 	return order, err
 }
 
-func (s *RdsServiceImpl) GetOrdersByHash(orderhashs []string) (map[string]Order, error) {
+func (s *RdsService) GetOrdersByHash(orderhashs []string) (map[string]Order, error) {
 	var (
 		list []Order
 		err  error
@@ -195,7 +195,7 @@ func (s *RdsServiceImpl) GetOrdersByHash(orderhashs []string) (map[string]Order,
 	return ret, err
 }
 
-func (s *RdsServiceImpl) MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error {
+func (s *RdsService) MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error {
 	if len(filterOrderhashs) == 0 {
 		return nil
 	}
@@ -207,7 +207,7 @@ func (s *RdsServiceImpl) MarkMinerOrders(filterOrderhashs []string, blockNumber 
 	return err
 }
 
-func (s *RdsServiceImpl) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
+func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
 	var (
 		list []*Order
 		err  error
@@ -233,7 +233,7 @@ func (s *RdsServiceImpl) GetOrdersForMiner(protocol, tokenS, tokenB string, leng
 	return list, err
 }
 
-func (s *RdsServiceImpl) GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error) {
 	var (
 		list []Order
 		err  error
@@ -244,7 +244,7 @@ func (s *RdsServiceImpl) GetCutoffOrders(owner common.Address, cutoffTime *big.I
 	return list, err
 }
 
-func (s *RdsServiceImpl) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int) ([]Order, error) {
 	var (
 		list []Order
 		err  error
@@ -260,7 +260,7 @@ func (s *RdsServiceImpl) GetCutoffPairOrders(owner, token1, token2 common.Addres
 	return list, err
 }
 
-func (s *RdsServiceImpl) SetCutOffOrders(orderHashList []common.Hash, blockNumber *big.Int) error {
+func (s *RdsService) SetCutOffOrders(orderHashList []common.Hash, blockNumber *big.Int) error {
 	var list []string
 
 	items := map[string]interface{}{
@@ -275,7 +275,7 @@ func (s *RdsServiceImpl) SetCutOffOrders(orderHashList []common.Hash, blockNumbe
 	return err
 }
 
-func (s *RdsServiceImpl) GetOrderBook(delegate, tokenS, tokenB common.Address, length int) ([]Order, error) {
+func (s *RdsService) GetOrderBook(delegate, tokenS, tokenB common.Address, length int) ([]Order, error) {
 	var (
 		list []Order
 		err  error
@@ -295,7 +295,7 @@ func (s *RdsServiceImpl) GetOrderBook(delegate, tokenS, tokenB common.Address, l
 	return list, err
 }
 
-func (s *RdsServiceImpl) OrderPageQuery(query map[string]interface{}, statusList []int, pageIndex, pageSize int) (PageResult, error) {
+func (s *RdsService) OrderPageQuery(query map[string]interface{}, statusList []int, pageIndex, pageSize int) (PageResult, error) {
 	var (
 		orders        []Order
 		err           error
@@ -403,7 +403,7 @@ func (s *RdsServiceImpl) OrderPageQuery(query map[string]interface{}, statusList
 	return pageResult, err
 }
 
-func (s *RdsServiceImpl) GetLatestOrders(query map[string]interface{}, length int) ([]Order, error) {
+func (s *RdsService) GetLatestOrders(query map[string]interface{}, length int) ([]Order, error) {
 	var (
 		orders []Order
 		err    error
@@ -436,11 +436,11 @@ func allContain(left []int, right []types.OrderStatus) bool {
 	return true
 }
 
-func (s *RdsServiceImpl) UpdateBroadcastTimeByHash(hash string, bt int) error {
+func (s *RdsService) UpdateBroadcastTimeByHash(hash string, bt int) error {
 	return s.Db.Model(&Order{}).Where("order_hash = ?", hash).Update("broadcast_time", bt).Error
 }
 
-func (s *RdsServiceImpl) UpdateOrderWhileFill(hash common.Hash, status types.OrderStatus, dealtAmountS, dealtAmountB, splitAmountS, splitAmountB, blockNumber *big.Int) error {
+func (s *RdsService) UpdateOrderWhileFill(hash common.Hash, status types.OrderStatus, dealtAmountS, dealtAmountB, splitAmountS, splitAmountB, blockNumber *big.Int) error {
 	items := map[string]interface{}{
 		"status":         uint8(status),
 		"dealt_amount_s": dealtAmountS.String(),
@@ -452,7 +452,7 @@ func (s *RdsServiceImpl) UpdateOrderWhileFill(hash common.Hash, status types.Ord
 	return s.Db.Model(&Order{}).Where("order_hash = ?", hash.Hex()).Update(items).Error
 }
 
-func (s *RdsServiceImpl) UpdateOrderWhileCancel(hash common.Hash, status types.OrderStatus, cancelledAmountS, cancelledAmountB, blockNumber *big.Int) error {
+func (s *RdsService) UpdateOrderWhileCancel(hash common.Hash, status types.OrderStatus, cancelledAmountS, cancelledAmountB, blockNumber *big.Int) error {
 	items := map[string]interface{}{
 		"status":             uint8(status),
 		"cancelled_amount_s": cancelledAmountS.String(),
@@ -462,7 +462,7 @@ func (s *RdsServiceImpl) UpdateOrderWhileCancel(hash common.Hash, status types.O
 	return s.Db.Model(&Order{}).Where("order_hash = ?", hash.Hex()).Update(items).Error
 }
 
-func (s *RdsServiceImpl) UpdateOrderWhileRollbackCutoff(orderhash common.Hash, status types.OrderStatus, blockNumber *big.Int) error {
+func (s *RdsService) UpdateOrderWhileRollbackCutoff(orderhash common.Hash, status types.OrderStatus, blockNumber *big.Int) error {
 	items := map[string]interface{}{
 		"status":        uint8(status),
 		"updated_block": blockNumber.Int64(),
@@ -470,7 +470,7 @@ func (s *RdsServiceImpl) UpdateOrderWhileRollbackCutoff(orderhash common.Hash, s
 	return s.Db.Model(&Order{}).Where("order_hash = ?", orderhash.Hex()).Update(items).Error
 }
 
-func (s *RdsServiceImpl) GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) ([]Order, error) {
+func (s *RdsService) GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) ([]Order, error) {
 	var (
 		list []Order
 		err  error
@@ -484,7 +484,7 @@ func (s *RdsServiceImpl) GetFrozenAmount(owner common.Address, token common.Addr
 	return list, err
 }
 
-func (s *RdsServiceImpl) GetFrozenLrcFee(owner common.Address, statusSet []types.OrderStatus) ([]Order, error) {
+func (s *RdsService) GetFrozenLrcFee(owner common.Address, statusSet []types.OrderStatus) ([]Order, error) {
 	var (
 		list []Order
 		err  error

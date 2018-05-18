@@ -29,11 +29,11 @@ import (
 
 type WhiteListCache struct {
 	cache  *gocache.Cache
-	rds    *dao.RdsServiceImpl
+	rds    *dao.RdsService
 	expire time.Duration
 }
 
-func newWhiteListCache(options *UserManagerOptions, rds *dao.RdsServiceImpl) *WhiteListCache {
+func newWhiteListCache(options *UserManagerOptions, rds *dao.RdsService) *WhiteListCache {
 	c := &WhiteListCache{}
 	c.rds = rds
 

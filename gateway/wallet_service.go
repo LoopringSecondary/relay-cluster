@@ -316,12 +316,12 @@ type WalletServiceImpl struct {
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
-	rds             *dao.RdsServiceImpl
+	rds             *dao.RdsService
 	oldWethAddress  string
 }
 
 func NewWalletService(trendManager market.TrendManager, orderViewer ordermanager.OrderViewer, accountManager accountmanager.AccountManager,
-	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsServiceImpl, oldWethAddress string) *WalletServiceImpl {
+	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsService, oldWethAddress string) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
 	w.orderViewer = orderViewer

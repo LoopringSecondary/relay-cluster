@@ -80,7 +80,7 @@ func SaveEntityCache(entity dao.TransactionEntity) error {
 
 // GetEntityCache return map[hash][logindex]dao.transactionEntity
 // todo get multi key from redis with lua
-func GetEntityCache(db *dao.RdsServiceImpl, views []dao.TransactionView) TransactionEntityMap {
+func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) TransactionEntityMap {
 	var (
 		uncachedTxHashList []string
 		entityMap          = make(TransactionEntityMap)

@@ -89,7 +89,7 @@ func (tx *TransactionEntity) ConvertUp(dst *txtyp.TransactionEntity) error {
 }
 
 // 根据hash查询pending tx
-func (s *RdsServiceImpl) FindPendingTxEntity(hash string) (TransactionEntity, error) {
+func (s *RdsService) FindPendingTxEntity(hash string) (TransactionEntity, error) {
 	var tx TransactionEntity
 
 	err := s.Db.Where("tx_hash=?", hash).
@@ -100,7 +100,7 @@ func (s *RdsServiceImpl) FindPendingTxEntity(hash string) (TransactionEntity, er
 	return tx, err
 }
 
-func (s *RdsServiceImpl) GetTxEntity(hashlist []string) ([]TransactionEntity, error) {
+func (s *RdsService) GetTxEntity(hashlist []string) ([]TransactionEntity, error) {
 	var txs []TransactionEntity
 
 	err := s.Db.Where("tx_hash in (?)", hashlist).
@@ -111,7 +111,7 @@ func (s *RdsServiceImpl) GetTxEntity(hashlist []string) ([]TransactionEntity, er
 }
 
 // 根据交易发起者from地址及nonce获取pending tx
-func (s *RdsServiceImpl) GetPendingTxEntity(from string, nonce int64) ([]TransactionEntity, error) {
+func (s *RdsService) GetPendingTxEntity(from string, nonce int64) ([]TransactionEntity, error) {
 	var txs []TransactionEntity
 
 	err := s.Db.Where("tx_from=?", from).
@@ -124,7 +124,7 @@ func (s *RdsServiceImpl) GetPendingTxEntity(from string, nonce int64) ([]Transac
 }
 
 // 根据hash&status删除pending tx
-func (s *RdsServiceImpl) DelPendingTxEntity(hash string) error {
+func (s *RdsService) DelPendingTxEntity(hash string) error {
 	err := s.Db.Where("tx_hash=?", hash).
 		Where("status=?", types.TX_STATUS_PENDING).
 		Where("fork=?", false).
@@ -132,7 +132,7 @@ func (s *RdsServiceImpl) DelPendingTxEntity(hash string) error {
 	return err
 }
 
-func (s *RdsServiceImpl) SetPendingTxEntityFailed(hashlist []string) error {
+func (s *RdsService) SetPendingTxEntityFailed(hashlist []string) error {
 	err := s.Db.Model(&TransactionEntity{}).
 		Where("tx_hash in (?)", hashlist).
 		Where("status=?", types.TX_STATUS_PENDING).
@@ -143,7 +143,7 @@ func (s *RdsServiceImpl) SetPendingTxEntityFailed(hashlist []string) error {
 }
 
 // 根据hash&logIndex查找唯一tx
-func (s *RdsServiceImpl) FindTxEntity(txhash string, logIndex int64) (TransactionEntity, error) {
+func (s *RdsService) FindTxEntity(txhash string, logIndex int64) (TransactionEntity, error) {
 	var tx TransactionEntity
 
 	err := s.Db.Where("tx_hash=?", txhash).
@@ -154,6 +154,6 @@ func (s *RdsServiceImpl) FindTxEntity(txhash string, logIndex int64) (Transactio
 	return tx, err
 }
 
-func (s *RdsServiceImpl) RollBackTxEntity(from, to int64) error {
+func (s *RdsService) RollBackTxEntity(from, to int64) error {
 	return s.Db.Model(&TransactionEntity{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }

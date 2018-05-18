@@ -55,7 +55,7 @@ func (b *Block) ConvertUp(dst *types.Block) error {
 	return nil
 }
 
-func (s *RdsServiceImpl) FindBlockByHash(blockhash common.Hash) (*Block, error) {
+func (s *RdsService) FindBlockByHash(blockhash common.Hash) (*Block, error) {
 	var block Block
 	if types.IsZeroHash(blockhash) {
 		return nil, errors.New("block table findBlockByHash get an illegal hash")
@@ -66,17 +66,17 @@ func (s *RdsServiceImpl) FindBlockByHash(blockhash common.Hash) (*Block, error) 
 	return &block, err
 }
 
-func (s *RdsServiceImpl) FindLatestBlock() (*Block, error) {
+func (s *RdsService) FindLatestBlock() (*Block, error) {
 	var block Block
 	err := s.Db.Order("create_time desc").Where("fork = ?", false).First(&block).Error
 	return &block, err
 }
 
-func (s *RdsServiceImpl) SetForkBlock(from, to int64) error {
+func (s *RdsService) SetForkBlock(from, to int64) error {
 	return s.Db.Model(&Block{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
 
-func (s *RdsServiceImpl) SaveBlock(latest *Block) error {
+func (s *RdsService) SaveBlock(latest *Block) error {
 	var current Block
 	if err := s.Db.Where("block_hash=?", latest.BlockHash).Find(&current).Error; err == nil {
 		return nil

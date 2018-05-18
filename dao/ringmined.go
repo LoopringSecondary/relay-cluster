@@ -104,7 +104,7 @@ func (r *RingMinedEvent) FromSubmitRingMethod(event *types.SubmitRingMethodEvent
 	return nil
 }
 
-func (s *RdsServiceImpl) FindRingMined(txhash string) (*RingMinedEvent, error) {
+func (s *RdsService) FindRingMined(txhash string) (*RingMinedEvent, error) {
 	var (
 		model RingMinedEvent
 		err   error
@@ -115,11 +115,11 @@ func (s *RdsServiceImpl) FindRingMined(txhash string) (*RingMinedEvent, error) {
 	return &model, err
 }
 
-func (s *RdsServiceImpl) RollBackRingMined(from, to int64) error {
+func (s *RdsService) RollBackRingMined(from, to int64) error {
 	return s.Db.Model(&RingMinedEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
 
-func (s *RdsServiceImpl) RingMinedPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error) {
+func (s *RdsService) RingMinedPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error) {
 	ringMined := make([]RingMinedEvent, 0)
 	res = PageResult{PageIndex: pageIndex, PageSize: pageSize, Data: make([]interface{}, 0)}
 
@@ -139,7 +139,7 @@ func (s *RdsServiceImpl) RingMinedPageQuery(query map[string]interface{}, pageIn
 	return
 }
 
-func (s *RdsServiceImpl) GetRingminedMethods(lastId int, limit int) ([]RingMinedEvent, error) {
+func (s *RdsService) GetRingminedMethods(lastId int, limit int) ([]RingMinedEvent, error) {
 	var (
 		list []RingMinedEvent
 		err  error

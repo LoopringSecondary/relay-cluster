@@ -31,12 +31,12 @@ type PageResult struct {
 	Total     int           `json:"total"`
 }
 
-type RdsServiceImpl struct {
+type RdsService struct {
 	libdao.RdsServiceImpl
 }
 
-func NewDb(options *libdao.MysqlOptions) *RdsServiceImpl {
-	var s RdsServiceImpl
+func NewDb(options *libdao.MysqlOptions) *RdsService {
+	var s RdsService
 
 	s.RdsServiceImpl = libdao.NewRdsService(options)
 

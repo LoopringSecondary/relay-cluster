@@ -39,12 +39,12 @@ type UserManagerOptions struct {
 }
 
 type UserManagerImpl struct {
-	rds       *dao.RdsServiceImpl
+	rds       *dao.RdsService
 	options   *UserManagerOptions
 	whiteList *WhiteListCache
 }
 
-func NewUserManager(options *UserManagerOptions, rds *dao.RdsServiceImpl) *UserManagerImpl {
+func NewUserManager(options *UserManagerOptions, rds *dao.RdsService) *UserManagerImpl {
 	impl := &UserManagerImpl{}
 	impl.rds = rds
 	impl.options = options

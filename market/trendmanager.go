@@ -97,7 +97,7 @@ type Trend struct {
 type TrendManager struct {
 	cacheReady  bool
 	proofReady  bool
-	rds         *dao.RdsServiceImpl
+	rds         *dao.RdsService
 	cron        *cron.Cron
 	cronJobLock bool
 	localCache  *gocache.Cache
@@ -109,7 +109,7 @@ var trendManager TrendManager
 const trendKeyPre = "market_trend_"
 const tickerKey = "lpr_ticker_view_"
 
-func NewTrendManager(dao *dao.RdsServiceImpl, cronJobLock bool) TrendManager {
+func NewTrendManager(dao *dao.RdsService, cronJobLock bool) TrendManager {
 
 	once.Do(func() {
 		trendManager = TrendManager{rds: dao, cron: cron.New(), cronJobLock: cronJobLock}

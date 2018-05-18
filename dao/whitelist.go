@@ -50,7 +50,7 @@ func (w *WhiteList) ConvertUp(dst *types.WhiteListUser) error {
 	return nil
 }
 
-func (s *RdsServiceImpl) GetWhiteList() ([]WhiteList, error) {
+func (s *RdsService) GetWhiteList() ([]WhiteList, error) {
 	var (
 		list []WhiteList
 		err  error
@@ -61,7 +61,7 @@ func (s *RdsServiceImpl) GetWhiteList() ([]WhiteList, error) {
 	return list, err
 }
 
-func (s *RdsServiceImpl) FindWhiteListUserByAddress(address common.Address) (*WhiteList, error) {
+func (s *RdsService) FindWhiteListUserByAddress(address common.Address) (*WhiteList, error) {
 	var (
 		user WhiteList
 		err  error

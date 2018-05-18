@@ -110,7 +110,7 @@ func (f *FillEvent) ConvertUp(dst *types.OrderFilledEvent) error {
 	return nil
 }
 
-func (s *RdsServiceImpl) FindFillEvent(txhash string, FillIndex int64) (*FillEvent, error) {
+func (s *RdsService) FindFillEvent(txhash string, FillIndex int64) (*FillEvent, error) {
 	var (
 		fill FillEvent
 		err  error
@@ -120,7 +120,7 @@ func (s *RdsServiceImpl) FindFillEvent(txhash string, FillIndex int64) (*FillEve
 	return &fill, err
 }
 
-func (s *RdsServiceImpl) FindFillsByRingHash(ringHash common.Hash) ([]FillEvent, error) {
+func (s *RdsService) FindFillsByRingHash(ringHash common.Hash) ([]FillEvent, error) {
 	var (
 		fills []FillEvent
 		err   error
@@ -129,7 +129,7 @@ func (s *RdsServiceImpl) FindFillsByRingHash(ringHash common.Hash) ([]FillEvent,
 	return fills, err
 }
 
-func (s *RdsServiceImpl) FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error) {
+func (s *RdsService) FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (res PageResult, err error) {
 	fills := make([]FillEvent, 0)
 	res = PageResult{PageIndex: pageIndex, PageSize: pageSize, Data: make([]interface{}, 0)}
 	err = s.Db.Where(query).Where("fork=?", false).Order("create_time desc").Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&fills).Error
@@ -147,7 +147,7 @@ func (s *RdsServiceImpl) FillsPageQuery(query map[string]interface{}, pageIndex,
 	return
 }
 
-func (s *RdsServiceImpl) GetLatestFills(query map[string]interface{}, limit int) (res []FillEvent, err error) {
+func (s *RdsService) GetLatestFills(query map[string]interface{}, limit int) (res []FillEvent, err error) {
 	fills := make([]FillEvent, 0)
 	err = s.Db.Where(query).Where("fork=?", false).Order("create_time desc").Limit(limit).Find(&fills).Error
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *RdsServiceImpl) GetLatestFills(query map[string]interface{}, limit int)
 	return fills, nil
 }
 
-func (s *RdsServiceImpl) QueryRecentFills(market, owner string, start int64, end int64) (fills []FillEvent, err error) {
+func (s *RdsService) QueryRecentFills(market, owner string, start int64, end int64) (fills []FillEvent, err error) {
 
 	query := make(map[string]interface{})
 
@@ -190,7 +190,7 @@ func buildTimeQueryString(start, end int64) string {
 	return rst
 }
 
-func (s *RdsServiceImpl) GetFillForkEvents(from, to int64) ([]FillEvent, error) {
+func (s *RdsService) GetFillForkEvents(from, to int64) ([]FillEvent, error) {
 	var (
 		list []FillEvent
 		err  error
@@ -203,6 +203,6 @@ func (s *RdsServiceImpl) GetFillForkEvents(from, to int64) ([]FillEvent, error) 
 	return list, err
 }
 
-func (s *RdsServiceImpl) RollBackFill(from, to int64) error {
+func (s *RdsService) RollBackFill(from, to int64) error {
 	return s.Db.Model(&FillEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
