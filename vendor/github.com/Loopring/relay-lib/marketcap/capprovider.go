@@ -86,6 +86,8 @@ type MarketCapProvider interface {
 	GetMarketCap(tokenAddress common.Address) (*big.Rat, error)
 	GetEthCap() (*big.Rat, error)
 	GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error)
+	IsOrderValueDust(state *types.OrderState) bool
+	IsValueDusted(value *big.Rat) bool
 }
 
 type CapProvider_LocalCap struct {
@@ -208,6 +210,7 @@ type CapProvider_CoinMarketCap struct {
 	idToAddress     map[string]common.Address
 	currency        string
 	duration        int
+	dustValue       *big.Rat
 	stopFuncs       []func()
 }
 
@@ -389,10 +392,11 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 }
 
 type MarketCapOptions struct {
-	BaseUrl  string
-	Currency string
-	Duration int
-	IsSync   bool
+	BaseUrl   string
+	Currency  string
+	Duration  int
+	IsSync    bool
+	DustValue *big.Rat
 }
 
 func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap {
@@ -402,11 +406,17 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	provider.tokenMarketCaps = make(map[common.Address]*types.CurrencyMarketCap)
 	provider.idToAddress = make(map[string]common.Address)
 	provider.duration = options.Duration
+	provider.dustValue = options.DustValue
 	if provider.duration <= 0 {
 		//default 5 min
 		provider.duration = 5
 	}
 	provider.stopFuncs = []func(){}
+
+	// default dust value is 1.0 usd/cny
+	if provider.dustValue.Cmp(new(big.Rat).SetFloat64(0)) <= 0 {
+		provider.dustValue = new(big.Rat).SetFloat64(1.0)
+	}
 
 	for _, v := range util.AllTokens {
 		if "ARP" == v.Symbol || "VITE" == v.Symbol {
@@ -434,4 +444,15 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	}
 
 	return provider
+}
+
+func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bool {
+	remainedAmountS, _ := state.RemainedAmount()
+	remainedValue, _ := p.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
+
+	return p.IsValueDusted(remainedValue)
+}
+
+func (p *CapProvider_CoinMarketCap) IsValueDusted(value *big.Rat) bool {
+	return p.dustValue.Cmp(value) > 0
 }

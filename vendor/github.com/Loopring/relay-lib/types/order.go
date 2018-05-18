@@ -271,6 +271,17 @@ type OrderState struct {
 	BroadcastTime    int         `json:"broadcastTime"`
 }
 
+func (state *OrderState) IsOrderFullFinished(tokenSPrice, tokenBPrice *big.Rat, dustValue *big.Rat) bool {
+	remainedAmountS, _ := state.RemainedAmount()
+	remainedValue := new(big.Rat)
+	remainedValue.Mul(remainedAmountS, tokenSPrice)
+	return isValueDusted(remainedValue, dustValue)
+}
+
+func isValueDusted(remainedValue, dustValue *big.Rat) bool {
+	return remainedValue.Cmp(dustValue) <= 0
+}
+
 type OrderDelayList struct {
 	OrderHash    []common.Hash
 	DelayedCount int64

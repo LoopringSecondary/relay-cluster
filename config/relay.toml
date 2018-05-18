@@ -48,7 +48,6 @@ name = "Loopring corporation"
 [order_manager]
     cutoff_cache_expire_time = 864000
     cutoff_cache_clean_time = 0
-    dust_order_value = 1
 
 [gateway]
     is_broadcast = false
@@ -75,6 +74,7 @@ name = "Loopring corporation"
         currency = "USD"
         duration = 5
         is_sync = false
+        dust_value = 1.0
 
 [gateway_filters]
     [gateway_filters.base_filter]

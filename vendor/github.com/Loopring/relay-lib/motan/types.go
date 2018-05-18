@@ -32,6 +32,7 @@ type AccountBalanceAndAllowanceReq struct {
 
 type AccountBalanceAndAllowanceRes struct {
 	Balance, Allowance *big.Int
+	Err                string
 }
 
 type MinerOrdersReq struct {
