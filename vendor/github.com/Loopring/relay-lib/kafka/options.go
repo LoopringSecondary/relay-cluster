@@ -23,7 +23,7 @@ const (
 	Kafka_Topic_Extractor_EventOnChain       = "Kafka_Topic_Extractor_EventOnChain"
 
 	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
-	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
+	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
 
 	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
 )

@@ -50,11 +50,6 @@ func NewOrderViewer(options *OrderManagerOptions,
 func (om *OrderViewerImpl) MinerOrders(protocol, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
 	var list []*types.OrderState
 
-	// 订单在extractor同步结束后才可以提供给miner进行撮合
-	//if !om.ordersValidForMiner {
-	//	return list
-	//}
-
 	var (
 		modelList    []*dao.Order
 		err          error

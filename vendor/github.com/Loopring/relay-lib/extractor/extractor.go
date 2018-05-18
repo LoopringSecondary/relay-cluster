@@ -35,15 +35,14 @@ type ExtractorService struct {
 
 const (
 	kafka_topic = kafka.Kafka_Topic_Extractor_EventOnChain
-	kafka_group = kafka.Kafka_Group_Extractor_EventOnChain
 )
 
-func Initialize(options kafka.KafkaOptions) error {
+func Initialize(options kafka.KafkaOptions, group string) error {
 	var serv ExtractorService
 
 	serv.consumer = &kafka.ConsumerRegister{}
 	serv.consumer.Initialize(options.Brokers)
-	if err := serv.consumer.RegisterTopicAndHandler(kafka_topic, kafka_group, types.KafkaOnChainEvent{}, serv.handle); err != nil {
+	if err := serv.consumer.RegisterTopicAndHandler(kafka_topic, group, types.KafkaOnChainEvent{}, serv.handle); err != nil {
 		return err
 	}
 

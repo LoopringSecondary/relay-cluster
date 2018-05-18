@@ -35,6 +35,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/extractor"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -225,7 +226,7 @@ func (n *Node) registerZklock() {
 }
 
 func (n *Node) registerExtractor() {
-	if err := extractor.Initialize(n.globalConfig.Kafka); err != nil {
+	if err := extractor.Initialize(n.globalConfig.Kafka, kafka.Kafka_Group_RelayCluster_EventOnChain); err != nil {
 		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
 }
