@@ -29,8 +29,6 @@ import (
 	"math/big"
 )
 
-var dustOrderValue int64
-
 func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
 	blockNumberStr := blockNumberToString(blockNumber)
 
