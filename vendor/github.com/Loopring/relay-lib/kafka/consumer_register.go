@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"github.com/bsm/sarama-cluster"
 	"reflect"
-	"strings"
 	"sync"
 )
 
@@ -36,12 +35,12 @@ type ConsumerRegister struct {
 
 type HandlerFunc func(event interface{}) error
 
-func (cr *ConsumerRegister) Initialize(address string) {
+func (cr *ConsumerRegister) Initialize(brokerList []string) {
 	config := cluster.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Group.Return.Notifications = true
 	cr.conf = config
-	cr.brokers = strings.Split(address, ",")
+	cr.brokers = brokerList
 	cr.consumerMap = make(map[string]map[string]*cluster.Consumer) //map[topic][groupId]
 	cr.mutex = sync.Mutex{}
 }
