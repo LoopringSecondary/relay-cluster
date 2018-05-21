@@ -20,6 +20,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -100,7 +101,9 @@ type OrderFilledContent struct {
 }
 
 func (tx *TransactionEntity) FromApproveEvent(src *types.ApprovalEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content ApproveContent
 	content.Owner = src.Owner.Hex()
@@ -117,7 +120,9 @@ func (tx *TransactionEntity) FromApproveEvent(src *types.ApprovalEvent) error {
 }
 
 func (tx *TransactionEntity) FromCancelEvent(src *types.OrderCancelledEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content CancelContent
 	content.OrderHash = src.OrderHash.Hex()
@@ -133,7 +138,9 @@ func (tx *TransactionEntity) FromCancelEvent(src *types.OrderCancelledEvent) err
 }
 
 func (tx *TransactionEntity) FromCutoffEvent(src *types.CutoffEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content CutoffContent
 	content.Owner = src.Owner.Hex()
@@ -149,7 +156,9 @@ func (tx *TransactionEntity) FromCutoffEvent(src *types.CutoffEvent) error {
 }
 
 func (tx *TransactionEntity) FromCutoffPairEvent(src *types.CutoffPairEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content CutoffPairContent
 	content.Owner = src.Owner.Hex()
@@ -168,7 +177,9 @@ func (tx *TransactionEntity) FromCutoffPairEvent(src *types.CutoffPairEvent) err
 
 // 充值和提现from和to都是用户钱包自己的地址，因为合约限制了发送方msg.sender
 func (tx *TransactionEntity) FromWethDepositEvent(src *types.WethDepositEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content WethDepositContent
 	content.Dst = src.Dst.Hex()
@@ -184,7 +195,9 @@ func (tx *TransactionEntity) FromWethDepositEvent(src *types.WethDepositEvent) e
 }
 
 func (tx *TransactionEntity) FromWethWithdrawalEvent(src *types.WethWithdrawalEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content WethWithdrawalContent
 	content.Src = src.Src.Hex()
@@ -200,7 +213,9 @@ func (tx *TransactionEntity) FromWethWithdrawalEvent(src *types.WethWithdrawalEv
 }
 
 func (tx *TransactionEntity) FromTransferEvent(src *types.TransferEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content TransferContent
 	content.Sender = src.Sender.Hex()
@@ -217,13 +232,18 @@ func (tx *TransactionEntity) FromTransferEvent(src *types.TransferEvent) error {
 }
 
 func (tx *TransactionEntity) FromEthTransferEvent(src *types.TransferEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
+
 	tx.Content = ""
 	return nil
 }
 
 func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) error {
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
 
 	var content OrderFilledContent
 	content.RingHash = src.Ringhash.Hex()
@@ -249,14 +269,15 @@ func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) e
 	return nil
 }
 
-func (tx *TransactionEntity) fullFilled(src types.TxInfo) {
+func (tx *TransactionEntity) fullFilled(src types.TxInfo) error {
+	if src.Nonce == nil || src.GasPrice == nil || src.GasLimit == nil || src.Value == nil {
+		return fmt.Errorf("transaction manager, full fill tx entity error: nonce/gas/gasPrice/value cann't be nill")
+	}
+
 	tx.Hash = src.TxHash
 	tx.Protocol = src.Protocol
 	tx.From = src.From
 	tx.To = src.To
-	if src.BlockNumber != nil {
-		tx.BlockNumber = src.BlockNumber.Int64()
-	}
 	tx.LogIndex = src.TxLogIndex
 	tx.Value = src.Value
 	tx.Status = src.Status
@@ -265,6 +286,19 @@ func (tx *TransactionEntity) fullFilled(src types.TxInfo) {
 	tx.GasPrice = src.GasPrice
 	tx.Nonce = src.Nonce
 	tx.BlockTime = src.BlockTime
+
+	if src.BlockNumber != nil {
+		tx.BlockNumber = src.BlockNumber.Int64()
+	} else {
+		tx.BlockNumber = 0
+	}
+	if src.GasUsed != nil {
+		tx.GasUsed = src.GasUsed
+	} else {
+		tx.GasUsed = big.NewInt(0)
+	}
+
+	return nil
 }
 
 // Compare return true: is the same

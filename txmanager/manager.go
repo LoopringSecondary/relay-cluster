@@ -130,10 +130,15 @@ func (tm *TransactionManager) SaveApproveEvent(input eventemitter.EventData) err
 		list   []txtyp.TransactionView
 	)
 
-	entity.FromApproveEvent(event)
+	if err := entity.FromApproveEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+
 	view, err := txtyp.ApproveView(event)
 	if err != nil {
-		return err
+		log.Errorf(err.Error())
+		return nil
 	}
 	list = append(list, view)
 
@@ -148,10 +153,18 @@ func (tm *TransactionManager) SaveOrderCancelledEvent(input eventemitter.EventDa
 		list   []txtyp.TransactionView
 	)
 
-	entity.FromCancelEvent(event)
-	view := txtyp.CancelView(event)
-	list = append(list, view)
+	if err := entity.FromCancelEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 
+	view, err := txtyp.CancelView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+
+	list = append(list, view)
 	return tm.saveTransaction(&entity, list)
 }
 
@@ -162,8 +175,16 @@ func (tm *TransactionManager) SaveCutoffAllEvent(input eventemitter.EventData) e
 		entity txtyp.TransactionEntity
 		list   []txtyp.TransactionView
 	)
-	entity.FromCutoffEvent(event)
-	view := txtyp.CutoffView(event)
+
+	if err := entity.FromCutoffEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+	view, err := txtyp.CutoffView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 	list = append(list, view)
 
 	return tm.saveTransaction(&entity, list)
@@ -177,8 +198,15 @@ func (tm *TransactionManager) SaveCutoffPairEvent(input eventemitter.EventData) 
 		list   []txtyp.TransactionView
 	)
 
-	entity.FromCutoffPairEvent(event)
-	view := txtyp.CutoffPairView(event)
+	if err := entity.FromCutoffPairEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+	view, err := txtyp.CutoffPairView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 	list = append(list, view)
 
 	return tm.saveTransaction(&entity, list)
@@ -188,8 +216,16 @@ func (tm *TransactionManager) SaveWethDepositEvent(input eventemitter.EventData)
 	event := input.(*types.WethDepositEvent)
 
 	var entity txtyp.TransactionEntity
-	entity.FromWethDepositEvent(event)
-	list := txtyp.WethDepositView(event)
+	if err := entity.FromWethDepositEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+
+	list, err := txtyp.WethDepositView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 
 	return tm.saveTransaction(&entity, list)
 }
@@ -198,8 +234,15 @@ func (tm *TransactionManager) SaveWethWithdrawalEvent(input eventemitter.EventDa
 	event := input.(*types.WethWithdrawalEvent)
 
 	var entity txtyp.TransactionEntity
-	entity.FromWethWithdrawalEvent(event)
-	list := txtyp.WethWithdrawalView(event)
+	if err := entity.FromWethWithdrawalEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+	list, err := txtyp.WethWithdrawalView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 
 	return tm.saveTransaction(&entity, list)
 }
@@ -208,7 +251,10 @@ func (tm *TransactionManager) SaveTransferEvent(input eventemitter.EventData) er
 	event := input.(*types.TransferEvent)
 
 	var entity txtyp.TransactionEntity
-	entity.FromTransferEvent(event)
+	if err := entity.FromTransferEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 	list, err := txtyp.TransferView(event)
 	if err != nil {
 		return err
@@ -235,9 +281,15 @@ func (tm *TransactionManager) SaveEthTransferEvent(input eventemitter.EventData)
 	event := input.(*types.TransferEvent)
 
 	var entity txtyp.TransactionEntity
-	entity.FromEthTransferEvent(event)
-	list := txtyp.EthTransferView(event)
-
+	if err := entity.FromEthTransferEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+	list, err := txtyp.EthTransferView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 	return tm.saveTransaction(&entity, list)
 }
 
@@ -251,8 +303,15 @@ func (tm *TransactionManager) SaveOrderFilledEvent(input eventemitter.EventData)
 	event.TxLogIndex = event.TxLogIndex*10 + event.FillIndex.Int64()
 
 	var entity txtyp.TransactionEntity
-	entity.FromOrderFilledEvent(event)
-	list := txtyp.OrderFilledView(event)
+	if err := entity.FromOrderFilledEvent(event); err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
+	list, err := txtyp.OrderFilledView(event)
+	if err != nil {
+		log.Errorf(err.Error())
+		return nil
+	}
 
 	return tm.saveTransaction(&entity, list)
 }

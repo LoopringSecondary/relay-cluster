@@ -49,7 +49,9 @@ func ApproveView(src *types.ApprovalEvent) (TransactionView, error) {
 	if tx.Symbol, err = util.GetSymbolWithAddress(src.Protocol); err != nil {
 		return tx, err
 	}
-	tx.fullFilled(src.TxInfo)
+	if err = tx.fullFilled(src.TxInfo); err != nil {
+		return tx, err
+	}
 
 	tx.Owner = src.Owner
 	tx.Amount = src.Amount
@@ -59,51 +61,61 @@ func ApproveView(src *types.ApprovalEvent) (TransactionView, error) {
 }
 
 // 从entity中获取amount&orderHash
-func CancelView(src *types.OrderCancelledEvent) TransactionView {
+func CancelView(src *types.OrderCancelledEvent) (TransactionView, error) {
 	var tx TransactionView
 
 	tx.Symbol = SYMBOL_ETH
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return tx, err
+	}
 
 	tx.Owner = src.From
 	tx.Amount = src.AmountCancelled
 	tx.Type = TX_TYPE_CANCEL_ORDER
 
-	return tx
+	return tx, nil
 }
 
-func CutoffView(src *types.CutoffEvent) TransactionView {
+func CutoffView(src *types.CutoffEvent) (TransactionView, error) {
 	var tx TransactionView
 
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return tx, err
+	}
 	tx.Symbol = SYMBOL_ETH
 	tx.Owner = src.Owner
 	tx.Amount = src.Cutoff
 	tx.Type = TX_TYPE_CUTOFF
 
-	return tx
+	return tx, nil
 }
 
 // 从entity中获取token1,token2
-func CutoffPairView(src *types.CutoffPairEvent) TransactionView {
+func CutoffPairView(src *types.CutoffPairEvent) (TransactionView, error) {
 	var tx TransactionView
 
-	tx.fullFilled(src.TxInfo)
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return tx, err
+	}
+
 	tx.Symbol = SYMBOL_ETH
 	tx.Amount = src.Cutoff
 	tx.Owner = src.Owner
 	tx.Type = TX_TYPE_CUTOFF_PAIR
 
-	return tx
+	return tx, nil
 }
 
-func WethDepositView(src *types.WethDepositEvent) []TransactionView {
+func WethDepositView(src *types.WethDepositEvent) ([]TransactionView, error) {
 	var (
 		list     []TransactionView
 		tx1, tx2 TransactionView
 	)
 
-	tx1.fullFilled(src.TxInfo)
+	if err := tx1.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
+
 	tx1.Owner = src.Dst
 	tx1.Amount = src.Amount
 	tx1.Symbol = SYMBOL_ETH
@@ -114,16 +126,19 @@ func WethDepositView(src *types.WethDepositEvent) []TransactionView {
 	tx2.Type = TX_TYPE_CONVERT_INCOME
 
 	list = append(list, tx1, tx2)
-	return list
+	return list, nil
 }
 
-func WethWithdrawalView(src *types.WethWithdrawalEvent) []TransactionView {
+func WethWithdrawalView(src *types.WethWithdrawalEvent) ([]TransactionView, error) {
 	var (
 		list     []TransactionView
 		tx1, tx2 TransactionView
 	)
 
-	tx1.fullFilled(src.TxInfo)
+	if err := tx1.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
+
 	tx1.Owner = src.Src
 	tx1.Amount = src.Amount
 	tx1.Symbol = SYMBOL_ETH
@@ -135,7 +150,7 @@ func WethWithdrawalView(src *types.WethWithdrawalEvent) []TransactionView {
 
 	list = append(list, tx1, tx2)
 
-	return list
+	return list, nil
 }
 
 func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
@@ -147,9 +162,11 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 	if tx1.Symbol = util.AddressToAlias(src.Protocol.Hex()); tx1.Symbol == "" {
 		return list, fmt.Errorf("transaction manager,transfer view, unsupported symbol")
 	}
-	tx1.fullFilled(src.TxInfo)
-	tx1.Amount = src.Amount
+	if err := tx1.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
 
+	tx1.Amount = src.Amount
 	tx1.Owner = src.Sender
 	tx1.Type = TX_TYPE_SEND
 
@@ -161,13 +178,16 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 	return list, nil
 }
 
-func EthTransferView(src *types.TransferEvent) []TransactionView {
+func EthTransferView(src *types.TransferEvent) ([]TransactionView, error) {
 	var (
 		list     []TransactionView
 		tx1, tx2 TransactionView
 	)
 
-	tx1.fullFilled(src.TxInfo)
+	if err := tx1.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
+
 	tx1.Amount = src.Value
 	tx1.Symbol = SYMBOL_ETH
 
@@ -187,12 +207,12 @@ func EthTransferView(src *types.TransferEvent) []TransactionView {
 	}
 
 	list = append(list, tx1, tx2)
-	return list
+	return list, nil
 }
 
 // 用户币种最多3个tokenS,tokenB,lrc
 // 一个fill只有一个owner,我们这里最多存储3条数据
-func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
+func OrderFilledView(src *types.OrderFilledEvent) ([]TransactionView, error) {
 	var (
 		list []TransactionView
 	)
@@ -210,7 +230,10 @@ func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
 		}
 
 		var tx TransactionView
-		tx.fullFilled(src.TxInfo)
+		if err := tx.fullFilled(src.TxInfo); err != nil {
+			return list, err
+		}
+
 		tx.Owner = src.Owner
 		tx.Symbol = symbolS
 		tx.Type = TX_TYPE_SELL
@@ -228,7 +251,9 @@ func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
 		}
 
 		var tx TransactionView
-		tx.fullFilled(src.TxInfo)
+		if err := tx.fullFilled(src.TxInfo); err != nil {
+			return list, err
+		}
 		tx.Owner = src.Owner
 		tx.Symbol = symbolB
 		tx.Type = TX_TYPE_BUY
@@ -239,7 +264,9 @@ func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
 	// lrcReward&lrcFee只会有一个大于0
 	if symbolS != SYMBOL_LRC && symbolB != SYMBOL_LRC {
 		var tx TransactionView
-		tx.fullFilled(src.TxInfo)
+		if err := tx.fullFilled(src.TxInfo); err != nil {
+			return list, err
+		}
 		tx.Owner = src.Owner
 		tx.Symbol = SYMBOL_LRC
 
@@ -254,10 +281,14 @@ func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
 		}
 	}
 
-	return list
+	return list, nil
 }
 
-func (tx *TransactionView) fullFilled(src types.TxInfo) {
+func (tx *TransactionView) fullFilled(src types.TxInfo) error {
+	if src.Nonce == nil || src.GasLimit == nil || src.GasPrice == nil {
+		return fmt.Errorf("transaction manager, full fill tx view error: nonce/gas/gasPrice cann't be nill")
+	}
+
 	tx.TxHash = src.TxHash
 	if src.BlockNumber != nil {
 		tx.BlockNumber = src.BlockNumber.Int64()
@@ -267,6 +298,6 @@ func (tx *TransactionView) fullFilled(src types.TxInfo) {
 	tx.Nonce = src.Nonce
 	tx.CreateTime = src.BlockTime
 	tx.UpdateTime = src.BlockTime
-}
 
-// todo fill
+	return nil
+}
