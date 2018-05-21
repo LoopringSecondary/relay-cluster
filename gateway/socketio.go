@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
-	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/googollee/go-socket.io"
@@ -138,7 +138,8 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	for k, v := range so.eventTypeRoute {
-		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler); if err != nil {
+		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler)
+		if err != nil {
 			log.Fatalf("Failed init socketio consumer, %s", err.Error())
 		}
 	}
