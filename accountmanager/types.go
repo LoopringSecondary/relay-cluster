@@ -24,7 +24,6 @@ import (
 	rcache "github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	socketioUtil "github.com/Loopring/relay-cluster/util"
