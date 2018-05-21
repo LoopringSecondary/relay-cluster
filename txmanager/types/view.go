@@ -259,7 +259,9 @@ func OrderFilledView(src *types.OrderFilledEvent) []TransactionView {
 
 func (tx *TransactionView) fullFilled(src types.TxInfo) {
 	tx.TxHash = src.TxHash
-	tx.BlockNumber = src.BlockNumber.Int64()
+	if src.BlockNumber != nil {
+		tx.BlockNumber = src.BlockNumber.Int64()
+	}
 	tx.LogIndex = src.TxLogIndex
 	tx.Status = src.Status
 	tx.Nonce = src.Nonce

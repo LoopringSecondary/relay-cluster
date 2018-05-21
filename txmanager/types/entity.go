@@ -253,7 +253,9 @@ func (tx *TransactionEntity) fullFilled(src types.TxInfo) {
 	tx.Protocol = src.Protocol
 	tx.From = src.From
 	tx.To = src.To
-	tx.BlockNumber = src.BlockNumber.Int64()
+	if src.BlockNumber != nil {
+		tx.BlockNumber = src.BlockNumber.Int64()
+	}
 	tx.LogIndex = src.TxLogIndex
 	tx.Value = src.Value
 	tx.Status = src.Status
