@@ -219,6 +219,8 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	newFillModel.Fork = false
 	newFillModel.OrderType = state.RawOrder.OrderType
 	newFillModel.Side = util.GetSide(util.AddressToAlias(event.TokenS.Hex()), util.AddressToAlias(event.TokenB.Hex()))
+	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
+
 	if err := om.rds.Add(newFillModel); err != nil {
 		log.Debugf("order manager,handle order filled event error:fill %s insert failed", event.OrderHash.Hex())
 		return err

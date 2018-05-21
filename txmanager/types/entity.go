@@ -20,6 +20,7 @@ package types
 
 import (
 	"encoding/json"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -236,7 +237,7 @@ func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) e
 	content.LrcFee = src.LrcFee.String()
 	content.SplitS = src.SplitS.String()
 	content.SplitB = src.SplitB.String()
-	content.Market = src.Market
+	content.Market, _ = util.WrapMarketByAddress(src.TokenB.Hex(), src.TokenS.Hex())
 	content.FillIndex = src.FillIndex.String()
 
 	bs, err := json.Marshal(&content)
