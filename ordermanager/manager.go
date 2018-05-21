@@ -20,9 +20,7 @@ package ordermanager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eventemitter"
-	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -164,11 +162,11 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 
 	eventemitter.Emit(eventemitter.DepthUpdated, types.DepthUpdateEvent{DelegateAddress: model.DelegateAddress, Market: model.Market})
 	err = om.rds.Add(model)
-	if err == nil {
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
-	}
+	//if err == nil {
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+	//}
 	return err
 }
 
@@ -262,10 +260,10 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 		return err
 	}
 
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, newFillModel.Market)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, newFillModel.Market)
 
 	return nil
 }
@@ -321,9 +319,9 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 		return err
 	}
 
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
-	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	//socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
 
 	return nil
 }
@@ -370,11 +368,11 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 	newCutoffEventModel.Fork = false
 
 	err = om.rds.Add(newCutoffEventModel)
-	if err == nil {
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
-	}
+	//if err == nil {
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
+	//}
 	return err
 }
 
@@ -418,10 +416,10 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	newCutoffPairEventModel.Fork = false
 
 	err = om.rds.Add(newCutoffPairEventModel)
-	if err == nil {
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
-		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
-	}
+	//if err == nil {
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	//	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
+	//}
 	return err
 }

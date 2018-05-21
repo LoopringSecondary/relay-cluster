@@ -22,10 +22,8 @@ import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
-	"github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eventemitter"
-	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -446,8 +444,10 @@ func (tm *TransactionManager) addView(tx *txtyp.TransactionView) error {
 		return err
 	}
 
-	util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, &tx)
-	util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, &tx)
+	// todo
+	//util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, &tx)
+	//util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, &tx)
+
 	//eventemitter.Emit(eventemitter.TransactionEvent, &tx)
 	return nil
 }
