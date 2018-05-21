@@ -50,9 +50,7 @@ func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrd
 	res.List = s.orderViewer.MinerOrders(req.Protocol, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 
 	log.Debugf("motan service, GetMinerOrders list length:%d", len(res.List))
-	if len(res.List) > 0 {
-		log.Debugf("--------order1:%s", res.List[0].RawOrder.Hash.Hex())
-	}
+
 	return res
 }
 
