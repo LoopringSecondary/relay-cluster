@@ -167,3 +167,21 @@ func (h *EthPrivateKeyCrypto) MarshalText() ([]byte, error) {
 	}
 	return []byte(common.ToHex(common.LeftPadBytes(h.privateKey.D.Bytes(), 32))), nil
 }
+
+func (h *EthPrivateKeyCrypto) GobEncode() ([]byte, error) {
+	if h.privateKey == nil || nil == h.privateKey.D {
+		return []byte{}, nil
+	}
+	return []byte(common.ToHex(common.LeftPadBytes(h.privateKey.D.Bytes(), 32))), nil
+}
+
+func (h EthPrivateKeyCrypto) GobDecode(input []byte) error {
+	privateKeyHex := string(input)
+	if privateKey, err := toECDSA(privateKeyHex); nil != err {
+		return err
+	} else {
+		h.homestead = true
+		h.privateKey = privateKey
+		return nil
+	}
+}

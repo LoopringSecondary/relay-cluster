@@ -9,10 +9,9 @@ import (
 )
 
 type commandExecution struct {
-	Types            []string      `json:"types"`
-	Start            time.Time     `json:"start_time"`
-	RunDuration      time.Duration `json:"run_duration"`
-	ConcurrencyInUse float64       `json:"concurrency_inuse"`
+	Types       []string      `json:"types"`
+	Start       time.Time     `json:"start_time"`
+	RunDuration time.Duration `json:"run_duration"`
 }
 
 type metricExchange struct {
@@ -69,31 +68,29 @@ func (m *metricExchange) Monitor() {
 func (m *metricExchange) IncrementMetrics(wg *sync.WaitGroup, collector metricCollector.MetricCollector, update *commandExecution, totalDuration time.Duration) {
 	// granular metrics
 	r := metricCollector.MetricResult{
-		Attempts:         1,
-		TotalDuration:    totalDuration,
-		RunDuration:      update.RunDuration,
-		ConcurrencyInUse: update.ConcurrencyInUse,
+		Attempts:      1,
+		TotalDuration: totalDuration,
+		RunDuration:   update.RunDuration,
 	}
 
-	switch update.Types[0] {
-	case "success":
+	if update.Types[0] == "success" {
 		r.Successes = 1
-	case "failure":
+	}
+	if update.Types[0] == "failure" {
 		r.Failures = 1
 		r.Errors = 1
-	case "rejected":
+	}
+	if update.Types[0] == "rejected" {
 		r.Rejects = 1
 		r.Errors = 1
-	case "short-circuit":
+	}
+	if update.Types[0] == "short-circuit" {
 		r.ShortCircuits = 1
 		r.Errors = 1
-	case "timeout":
+	}
+	if update.Types[0] == "timeout" {
 		r.Timeouts = 1
 		r.Errors = 1
-	case "context_canceled":
-		r.ContextCanceled = 1
-	case "context_deadline_exceeded":
-		r.ContextDeadlineExceeded = 1
 	}
 
 	if len(update.Types) > 1 {

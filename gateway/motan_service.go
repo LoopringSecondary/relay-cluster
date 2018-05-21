@@ -21,9 +21,9 @@ package gateway
 import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
-	"github.com/Loopring/relay-lib/log"
 )
 
 type MotanService struct {
