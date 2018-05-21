@@ -36,7 +36,7 @@ type AccountBalanceAndAllowanceRes struct {
 }
 
 type MinerOrdersReq struct {
-	Protocol             common.Address
+	Delegate             common.Address
 	TokenS               common.Address
 	TokenB               common.Address
 	Length               int

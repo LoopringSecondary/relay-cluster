@@ -206,7 +206,7 @@ func (arguments Arguments) unpackTopics(v interface{}, decodedValues [][]byte) e
 	elem := reflect.ValueOf(v).Elem()
 	i := 0
 	for k, arg := range arguments {
-		if arg.Indexed {
+		if arg.Indexed && i < len(decodedValues) {
 			marshalledValue, err := toGoType(0, arg.Type, decodedValues[i])
 			if err != nil {
 				return err

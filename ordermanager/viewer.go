@@ -11,7 +11,7 @@ import (
 )
 
 type OrderViewer interface {
-	MinerOrders(protocol, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState
+	MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState
 	GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error)
 	GetOrders(query map[string]interface{}, statusList []types.OrderStatus, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestOrders(query map[string]interface{}, length int) ([]types.OrderState, error)
@@ -47,7 +47,7 @@ func NewOrderViewer(options *OrderManagerOptions,
 	return &viewer
 }
 
-func (om *OrderViewerImpl) MinerOrders(protocol, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
+func (om *OrderViewerImpl) MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
 	var list []*types.OrderState
 
 	var (
@@ -69,7 +69,7 @@ func (om *OrderViewerImpl) MinerOrders(protocol, tokenS, tokenB common.Address, 
 	}
 
 	// 从数据库获取订单
-	if modelList, err = om.rds.GetOrdersForMiner(protocol.Hex(), tokenS.Hex(), tokenB.Hex(), length, filterStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
+	if modelList, err = om.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, filterStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
 		log.Errorf("err:%s", err.Error())
 		return list
 	}
