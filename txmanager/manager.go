@@ -27,6 +27,8 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/relay-cluster/util"
+	"github.com/Loopring/relay-lib/kafka"
 )
 
 type TransactionManager struct {
@@ -385,7 +387,9 @@ func (tm *TransactionManager) addView(tx *txtyp.TransactionView) error {
 		return err
 	}
 
-	eventemitter.Emit(eventemitter.TransactionEvent, &tx)
+	util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, &tx)
+	util.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, &tx)
+	//eventemitter.Emit(eventemitter.TransactionEvent, &tx)
 	return nil
 }
 

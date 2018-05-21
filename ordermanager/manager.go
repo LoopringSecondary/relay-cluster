@@ -24,9 +24,11 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"github.com/Loopring/relay-lib/kafka"
 )
 
 type OrderManager interface {
@@ -161,7 +163,12 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 	}
 
 	eventemitter.Emit(eventemitter.DepthUpdated, types.DepthUpdateEvent{DelegateAddress: model.DelegateAddress, Market: model.Market})
-	return om.rds.Add(model)
+	err = om.rds.Add(model); if err == nil {
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+	}
+	return err
 }
 
 func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
@@ -217,6 +224,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	newFillModel := &dao.FillEvent{}
 	newFillModel.ConvertDown(event)
 	newFillModel.Fork = false
+	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
 	newFillModel.OrderType = state.RawOrder.OrderType
 	newFillModel.Side = util.GetSide(util.AddressToAlias(event.TokenS.Hex()), util.AddressToAlias(event.TokenB.Hex()))
 	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
@@ -252,6 +260,11 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	if err := om.rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
 		return err
 	}
+
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, newFillModel.Market)
 
 	return nil
 }
@@ -307,6 +320,10 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 		return err
 	}
 
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+	socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, state.RawOrder.Owner)
+
 	return nil
 }
 
@@ -351,7 +368,12 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 	newCutoffEventModel.ConvertDown(evt)
 	newCutoffEventModel.Fork = false
 
-	return om.rds.Add(newCutoffEventModel)
+	err = om.rds.Add(newCutoffEventModel); if err == nil {
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
+	}
+	return err
 }
 
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
@@ -393,5 +415,10 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	newCutoffPairEventModel.ConvertDown(evt)
 	newCutoffPairEventModel.Fork = false
 
-	return om.rds.Add(newCutoffPairEventModel)
+	err = om.rds.Add(newCutoffPairEventModel); if err == nil {
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, nil)
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, evt.Owner)
+	}
+	return err
 }

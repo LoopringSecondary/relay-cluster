@@ -27,10 +27,12 @@ import (
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
+	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strings"
+	"github.com/Loopring/relay-lib/kafka"
 )
 
 const (
@@ -377,7 +379,8 @@ type ChangedOfBlock struct {
 func (b *ChangedOfBlock) saveBalanceKey(owner, token common.Address) error {
 	err := rcache.SAdd(b.cacheBalanceKey(), int64(0), b.cacheBalanceField(owner, token))
 	if err == nil {
-		eventemitter.Emit(eventemitter.BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex()})
+		// eventemitter.Emit(eventemitter.BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex()})
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex()})
 	}
 	return err
 }
@@ -414,7 +417,8 @@ func (b *ChangedOfBlock) parseCacheAllowanceField(data []byte) (owner, token, sp
 func (b *ChangedOfBlock) saveAllowanceKey(owner, token, spender common.Address) error {
 	err := rcache.SAdd(b.cacheAllowanceKey(), int64(0), b.cacheAllowanceField(owner, token, spender))
 	if err == nil {
-		eventemitter.Emit(eventemitter.BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex(), DelegateAddress: spender.Hex()})
+		// eventemitter.Emit(eventemitter.BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex(), DelegateAddress: spender.Hex()})
+		socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, types.BalanceUpdateEvent{Owner: owner.Hex(), DelegateAddress: spender.Hex()})
 	}
 	return err
 }
