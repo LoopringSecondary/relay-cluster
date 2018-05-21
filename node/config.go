@@ -65,20 +65,20 @@ type GlobalConfig struct {
 	Log              zap.Config
 	Mysql            dao.MysqlOptions
 	Redis            redis.RedisOptions
-	Jsonrpc          gateway.JsonrpcOptions
-	Websocket        gateway.WebsocketOptions
-	GatewayFilters   gateway.GatewayFiltersOptions
 	OrderManager     ordermanager.OrderManagerOptions
 	Gateway          gateway.GateWayOptions
 	Accessor         accessor.AccessorOptions
 	LoopringProtocol loopringaccessor.LoopringProtocolOptions
 	Market           util.MarketOptions
 	MarketCap        marketcap.MarketCapOptions
+	GatewayFilters   gateway.GatewayFiltersOptions
 	UserManager      usermanager.UserManagerOptions
-	AccountManager   accountmanager.AccountManagerOptions
-	Kafka            kafka.KafkaOptions
 	ZkLock           zklock.ZkLockConfig
+	Kafka            kafka.KafkaOptions
 	MotanServer      motan.MotanServerOptions
+	Jsonrpc          gateway.JsonrpcOptions
+	Websocket        gateway.WebsocketOptions
+	AccountManager   accountmanager.AccountManagerOptions
 }
 
 func Validator(cv reflect.Value) (bool, error) {
