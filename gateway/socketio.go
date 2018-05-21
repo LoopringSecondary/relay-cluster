@@ -9,6 +9,7 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
+	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/googollee/go-socket.io"
@@ -74,11 +75,6 @@ type InvokeInfo struct {
 	eventHandler func(event interface{}) error
 }
 
-type KafkaMsg struct {
-	eventKey string
-	data     interface{}
-}
-
 const (
 	eventKeyTickers         = "tickers"
 	eventKeyLoopringTickers = "loopringTickers"
@@ -142,7 +138,9 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	for k, v := range so.eventTypeRoute {
-		so.consumer.RegisterTopicAndHandler(k, topic, KafkaMsg{}, v.eventHandler)
+		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler); if err != nil {
+			log.Fatalf("Failed init socketio consumer, %s", err.Error())
+		}
 	}
 	return so
 }
