@@ -181,11 +181,26 @@ func unlockAccounts() {
 	}
 }
 
-func Rds() *dao.RdsService     { return rds }
-func Cfg() *node.GlobalConfig  { return cfg }
-func Entity() *TestEntity      { return entity }
-func Protocol() common.Address { return protocol }
-func Delegate() common.Address { return delegate }
+func Rds() *dao.RdsService       { return rds }
+func Cfg() *node.GlobalConfig    { return cfg }
+func Entity() *TestEntity        { return entity }
+func Protocol() common.Address   { return protocol }
+func Delegate() common.Address   { return delegate }
+func TokenRegisterAbi() *abi.ABI { return loopringaccessor.TokenRegistryAbi() }
+func DelegateAbi() *abi.ABI      { return loopringaccessor.DelegateAbi() }
+func Erc20Abi() *abi.ABI         { return loopringaccessor.Erc20Abi() }
+func WethAbi() *abi.ABI          { return loopringaccessor.WethAbi() }
+func LprAbi() *abi.ABI           { return loopringaccessor.ProtocolImplAbi() }
+
+func TokenRegisterAddress() common.Address {
+	return loopringaccessor.ProtocolAddresses()[protocol].TokenRegistryAddress
+}
+func DelegateAddress() common.Address {
+	return loopringaccessor.ProtocolAddresses()[protocol].DelegateAddress
+}
+func LrcAddress() common.Address {
+	return loopringaccessor.ProtocolAddresses()[protocol].LrcTokenAddress
+}
 
 func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()

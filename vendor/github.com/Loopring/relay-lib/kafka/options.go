@@ -26,20 +26,4 @@ const (
 
 	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
 	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
-	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
-
-	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
-
-	// socket io messages
-	Kafka_Topic_SocketIO_Loopring_Ticker_Updated = "Kafka_Topic_SocketIO_Loopring_Ticker_Updated"
-	Kafka_Topic_SocketIO_Tickers_Updated = "Kafka_Topic_SocketIO_Tickers_Updated"
-	Kafka_Topic_SocketIO_Depth_Updated = "Kafka_Topic_SocketIO_Depth_Updated"
-	Kafka_Topic_SocketIO_Orderbook_Updated = "Kafka_Topic_SocketIO_Orderbook_Updated"
-	Kafka_Topic_SocketIO_Trades_Updated = "Kafka_Topic_SocketIO_Trades_Updated"
-
-	Kafka_Topic_SocketIO_BalanceUpdated = "Kafka_Topic_SocketIO_BalanceUpdated"
-	Kafka_Topic_SocketIO_Orders_Updated = "Kafka_Topic_SocketIO_Orders_Updated"
-	Kafka_Topic_SocketIO_Transactions_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
-	Kafka_Topic_SocketIO_PendingTx_Updated = "Kafka_Topic_SocketIO_PendingTx_Updated"
-	Kafka_Topic_SocketIO_Trends_Updated = "Kafka_Topic_SocketIO_Trends_Updated"
 )
