@@ -73,6 +73,7 @@ type InvokeInfo struct {
 	emitType     int
 	spec         string
 	eventHandler func(event interface{}) error
+	eventTopic     string
 }
 
 const (
@@ -114,18 +115,18 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer.Initialize(brokers)
 
 	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second, so.broadcastTpTickers},
-		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second, so.broadcastLoopringTicker},
-		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrends},
-		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute, so.broadcastMarketCap},
-		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastDepth},
-		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastOrderBook},
-		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrades},
+		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second, so.broadcastTpTickers, kafka.Kafka_Topic_SocketIO_Tickers_Updated},
+		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second, so.broadcastLoopringTicker, kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated},
+		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrends, kafka.Kafka_Topic_SocketIO_Trends_Updated},
+		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute, so.broadcastMarketCap, ""},
+		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastDepth, kafka.Kafka_Topic_SocketIO_Depth_Updated},
+		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastOrderBook, kafka.Kafka_Topic_SocketIO_Orderbook_Updated},
+		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrades, kafka.Kafka_Topic_SocketIO_Trades_Updated},
 
-		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleBalanceUpdate},
-		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleTransactionUpdate},
-		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handlePendingTransaction},
-		eventKeyMarketOrders: {"GetLatestMarketOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate},
+		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleBalanceUpdate, kafka.Kafka_Topic_SocketIO_BalanceUpdated},
+		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleTransactionUpdate, kafka.Kafka_Topic_SocketIO_Transactions_Updated},
+		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handlePendingTransaction, kafka.Kafka_Topic_SocketIO_PendingTx_Updated},
+		eventKeyMarketOrders: {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate, kafka.Kafka_Topic_SocketIO_Orders_Updated},
 		//eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 	}
 
@@ -138,8 +139,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	for k, v := range so.eventTypeRoute {
-		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler)
-		if err != nil {
+		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler); if err != nil && v.eventTopic != "" {
 			log.Fatalf("Failed init socketio consumer, %s", err.Error())
 		}
 	}
