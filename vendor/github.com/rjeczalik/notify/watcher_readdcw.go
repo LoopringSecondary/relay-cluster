@@ -284,18 +284,16 @@ func (r *readdcw) watch(path string, event Event, recursive bool) (err error) {
 			return
 		}
 		r.Lock()
-		defer r.Unlock()
 		if wd, ok = r.m[path]; ok {
-			dbgprint("watch: exists already")
+			r.Unlock()
 			return
 		}
 		if wd, err = newWatched(r.cph, uint32(event), recursive, path); err != nil {
+			r.Unlock()
 			return
 		}
 		r.m[path] = wd
-		dbgprint("watch: new watch added")
-	} else {
-		dbgprint("watch: exists already")
+		r.Unlock()
 	}
 	return nil
 }
@@ -339,32 +337,33 @@ func (r *readdcw) loop() {
 			continue
 		}
 		overEx := (*overlappedEx)(unsafe.Pointer(overlapped))
-		if n != 0 {
+		if n == 0 {
+			r.loopstate(overEx)
+		} else {
 			r.loopevent(n, overEx)
 			if err = overEx.parent.readDirChanges(); err != nil {
 				// TODO: error handling
 			}
 		}
-		r.loopstate(overEx)
 	}
 }
 
 // TODO(pknap) : doc
 func (r *readdcw) loopstate(overEx *overlappedEx) {
-	r.Lock()
-	defer r.Unlock()
-	filter := overEx.parent.parent.filter
+	filter := atomic.LoadUint32(&overEx.parent.parent.filter)
 	if filter&onlyMachineStates == 0 {
 		return
 	}
 	if overEx.parent.parent.count--; overEx.parent.parent.count == 0 {
 		switch filter & onlyMachineStates {
 		case stateRewatch:
-			dbgprint("loopstate rewatch")
+			r.Lock()
 			overEx.parent.parent.recreate(r.cph)
+			r.Unlock()
 		case stateUnwatch:
-			dbgprint("loopstate unwatch")
+			r.Lock()
 			delete(r.m, syscall.UTF16ToString(overEx.parent.pathw))
+			r.Unlock()
 		case stateCPClose:
 		default:
 			panic(`notify: windows loopstate logic error`)
@@ -451,8 +450,8 @@ func (r *readdcw) rewatch(path string, oldevent, newevent uint32, recursive bool
 	}
 	var wd *watched
 	r.Lock()
-	defer r.Unlock()
-	if wd, err = r.nonStateWatchedLocked(path); err != nil {
+	if wd, err = r.nonStateWatched(path); err != nil {
+		r.Unlock()
 		return
 	}
 	if wd.filter&(onlyNotifyChanges|onlyNGlobalEvents) != oldevent {
@@ -463,19 +462,21 @@ func (r *readdcw) rewatch(path string, oldevent, newevent uint32, recursive bool
 	if err = wd.closeHandle(); err != nil {
 		wd.filter = oldevent
 		wd.recursive = recursive
+		r.Unlock()
 		return
 	}
+	r.Unlock()
 	return
 }
 
 // TODO : pknap
-func (r *readdcw) nonStateWatchedLocked(path string) (wd *watched, err error) {
+func (r *readdcw) nonStateWatched(path string) (wd *watched, err error) {
 	wd, ok := r.m[path]
 	if !ok || wd == nil {
 		err = errors.New(`notify: ` + path + ` path is unwatched`)
 		return
 	}
-	if wd.filter&onlyMachineStates != 0 {
+	if filter := atomic.LoadUint32(&wd.filter); filter&onlyMachineStates != 0 {
 		err = errors.New(`notify: another re/unwatching operation in progress`)
 		return
 	}
@@ -496,26 +497,17 @@ func (r *readdcw) RecursiveUnwatch(path string) error {
 func (r *readdcw) unwatch(path string) (err error) {
 	var wd *watched
 	r.Lock()
-	defer r.Unlock()
-	if wd, err = r.nonStateWatchedLocked(path); err != nil {
+	if wd, err = r.nonStateWatched(path); err != nil {
+		r.Unlock()
 		return
 	}
 	wd.filter |= stateUnwatch
 	if err = wd.closeHandle(); err != nil {
 		wd.filter &^= stateUnwatch
+		r.Unlock()
 		return
 	}
-	if _, attrErr := syscall.GetFileAttributes(&wd.pathw[0]); attrErr != nil {
-		for _, g := range wd.digrip {
-			if g != nil {
-				dbgprint("unwatch: posting")
-				if err = syscall.PostQueuedCompletionStatus(r.cph, 0, 0, (*syscall.Overlapped)(unsafe.Pointer(g.ovlapped))); err != nil {
-					wd.filter &^= stateUnwatch
-					return
-				}
-			}
-		}
-	}
+	r.Unlock()
 	return
 }
 
