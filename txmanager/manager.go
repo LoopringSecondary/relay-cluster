@@ -22,13 +22,13 @@ import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/Loopring/relay-cluster/util"
-	"github.com/Loopring/relay-lib/kafka"
 )
 
 type TransactionManager struct {

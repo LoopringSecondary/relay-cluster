@@ -41,6 +41,10 @@ var (
 	gasPrice         = big.NewInt(21000000000)
 )
 
+func TestEthNodeAccessor_SetBalance(t *testing.T) {
+	test.SetTokenBalances()
+}
+
 func TestEthNodeAccessor_WethDeposit(t *testing.T) {
 	account := account1
 	wethAddr := wethTokenAddress
@@ -156,8 +160,6 @@ func TestEthNodeAccessor_Approval(t *testing.T) {
 func TestEthNodeAccessor_Allowance(t *testing.T) {
 	tokens := []common.Address{lrcTokenAddress, wethTokenAddress}
 	accounts := []common.Address{account1, account2}
-	//tokens := []common.Address{common.HexToAddress("0xb5f64747127be058Ee7239b363269FC8cF3F4A87")}
-	//accounts := []common.Address{common.HexToAddress("0x8311804426A24495bD4306DAf5f595A443a52E32")}
 	spender := delegateAddress
 
 	for _, tokenAddress := range tokens {

@@ -59,8 +59,9 @@ type TestEntity struct {
 }
 
 const (
-	Version   = "v1.5.1"
-	DebugFile = "debug.toml"
+	Version      = "v1.5.1"
+	DebugFile    = "debug.toml"
+	KeystorePath = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/ks_dir"
 )
 
 var (
@@ -91,14 +92,14 @@ func init() {
 
 func loadConfig() *node.GlobalConfig {
 	c := node.LoadConfig(Path)
-	log.Initialize(c.Log.ZapOpts)
+	log.Initialize(c.Log)
 
 	return c
 }
 
 func LoadConfig() *node.GlobalConfig {
 	c := node.LoadConfig(Path)
-	log.Initialize(c.Log.ZapOpts)
+	log.Initialize(c.Log)
 
 	return c
 }
@@ -153,7 +154,7 @@ func loadTestData() *TestEntity {
 	}
 
 	e.Creator = AccountEntity{Address: common.HexToAddress(testData.Creator.Address), Passphrase: testData.Creator.Passphrase}
-	e.KeystoreDir = cfg.Keystore.Keydir
+	e.KeystoreDir = KeystorePath
 	e.AllowanceAmount = testData.AllowanceAmount
 
 	e.PrivateKey, _ = crypto.NewPrivateKeyCrypto(false, testData.Auth.Privkey)
@@ -161,7 +162,7 @@ func loadTestData() *TestEntity {
 }
 
 func unlockAccounts() {
-	ks := keystore.NewKeyStore(cfg.Keystore.Keydir, keystore.StandardScryptN, keystore.StandardScryptP)
+	ks := keystore.NewKeyStore(KeystorePath, keystore.StandardScryptN, keystore.StandardScryptP)
 	c := crypto.NewKSCrypto(false, ks)
 	crypto.Initialize(c)
 

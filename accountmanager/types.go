@@ -21,17 +21,17 @@ package accountmanager
 import (
 	"encoding/json"
 	"errors"
+	socketioUtil "github.com/Loopring/relay-cluster/util"
 	rcache "github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
-	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"strings"
-	"github.com/Loopring/relay-lib/kafka"
 )
 
 const (

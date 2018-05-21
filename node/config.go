@@ -61,10 +61,8 @@ func LoadConfig(file string) *GlobalConfig {
 }
 
 type GlobalConfig struct {
-	Title string `required:"true"`
-	Owner struct {
-		Name string
-	}
+	Title            string `required:"true"`
+	Log              zap.Config
 	Mysql            dao.MysqlOptions
 	Redis            redis.RedisOptions
 	Jsonrpc          gateway.JsonrpcOptions
@@ -74,8 +72,6 @@ type GlobalConfig struct {
 	Gateway          gateway.GateWayOptions
 	Accessor         accessor.AccessorOptions
 	LoopringProtocol loopringaccessor.LoopringProtocolOptions
-	Log              LogOptions
-	Keystore         KeyStoreOptions
 	Market           util.MarketOptions
 	MarketCap        marketcap.MarketCapOptions
 	UserManager      usermanager.UserManagerOptions
@@ -83,16 +79,6 @@ type GlobalConfig struct {
 	Kafka            kafka.KafkaOptions
 	ZkLock           zklock.ZkLockConfig
 	MotanServer      motan.MotanServerOptions
-}
-
-type KeyStoreOptions struct {
-	Keydir  string
-	ScryptN int
-	ScryptP int
-}
-
-type LogOptions struct {
-	ZapOpts zap.Config
 }
 
 func Validator(cv reflect.Value) (bool, error) {

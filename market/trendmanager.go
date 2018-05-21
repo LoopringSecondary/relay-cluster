@@ -23,11 +23,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	socketioUtil "github.com/Loopring/relay-cluster/util"
 	redisCache "github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
-	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/robfig/cron"
@@ -36,7 +37,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/Loopring/relay-lib/kafka"
 )
 
 const (
@@ -1084,10 +1084,12 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			//t.c.Set(trendKeyPre+strings.ToLower(OneHour), newCache, cache.NoExpiration)
 			t.reCalTicker(market)
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, nil); if err != nil {
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, nil)
+		if err != nil {
 			log.Error("send ticker update message failed")
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, nil); if err != nil {
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, nil)
+		if err != nil {
 			log.Error("send trends update message failed")
 		}
 

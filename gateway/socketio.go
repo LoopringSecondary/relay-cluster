@@ -73,7 +73,7 @@ type InvokeInfo struct {
 	emitType     int
 	spec         string
 	eventHandler func(event interface{}) error
-	eventTopic     string
+	eventTopic   string
 }
 
 const (
@@ -139,7 +139,8 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	for k, v := range so.eventTypeRoute {
-		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler); if err != nil && v.eventTopic != "" {
+		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler)
+		if err != nil && v.eventTopic != "" {
 			log.Fatalf("Failed init socketio consumer, %s", err.Error())
 		}
 	}

@@ -50,3 +50,7 @@ func TestRing(t *testing.T) {
 	lrcFee2 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(3))
 	test.CreateOrder(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
 }
+
+func TestPrepare(t *testing.T) {
+	test.PrepareTestData()
+}
