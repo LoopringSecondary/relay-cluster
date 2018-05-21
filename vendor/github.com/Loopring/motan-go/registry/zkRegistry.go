@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
 	cluster "github.com/Loopring/motan-go/cluster"
 	motan "github.com/Loopring/motan-go/core"
 	"github.com/Loopring/motan-go/log"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 const (

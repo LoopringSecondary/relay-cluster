@@ -184,7 +184,7 @@ func (arguments Arguments) unpackAtomic(v interface{}, marshalledValues []interf
 	return set(elem.Field(0), reflectValue, arguments.NonIndexed()[0])
 }
 
-// unpackEmpty
+// unpackEmpty decodedBytes has only one item which should be settled with tx.value
 func unpackEmpty(v interface{}, decodedBytes [][]byte) error {
 	elem := reflect.ValueOf(v).Elem()
 	if elem.NumField() != 1 {
