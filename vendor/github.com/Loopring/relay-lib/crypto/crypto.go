@@ -175,7 +175,7 @@ func (h *EthPrivateKeyCrypto) GobEncode() ([]byte, error) {
 	return []byte(common.ToHex(common.LeftPadBytes(h.privateKey.D.Bytes(), 32))), nil
 }
 
-func (h EthPrivateKeyCrypto) GobDecode(input []byte) error {
+func (h *EthPrivateKeyCrypto) GobDecode(input []byte) error {
 	privateKeyHex := string(input)
 	if privateKey, err := toECDSA(privateKeyHex); nil != err {
 		return err
