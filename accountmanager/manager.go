@@ -26,6 +26,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 
 	"fmt"
+	"github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -79,16 +80,6 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 	}
 	accManager = &accountManager
 	return accountManager
-}
-
-func sendKafkaMsg(msg interface{}) error {
-	topic, key := kafka.Kafka_Topic_SocketIO_BalanceUpdated, "1"
-	//todo:if it occors error
-	if nil != accManager.producerWrapped {
-		_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
-		return err
-	}
-	return nil
 }
 
 func sendBlockEndKafkaMsg(msg interface{}) error {
@@ -194,7 +185,7 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 	for addr, _ := range changedAddrs {
 		event := &types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
-		sendKafkaMsg(event)
+		util.NotifyAccountBalanceUpdate(event)
 	}
 
 	// send blockEnd, miner use only
@@ -255,7 +246,7 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 	for addr, _ := range changedAddrs {
 		event := &types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
-		sendKafkaMsg(event)
+		util.NotifyAccountBalanceUpdate(event)
 	}
 	return nil
 }

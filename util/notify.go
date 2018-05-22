@@ -21,6 +21,7 @@ package util
 import (
 	"github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/kafka"
+	libTypes "github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -66,4 +67,10 @@ func NotifyTransactionView(tx *types.TransactionView) {
 	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, tx)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, tx)
+}
+
+func NotifyAccountBalanceUpdate(event *libTypes.BalanceUpdateEvent) error {
+	//todo:
+	//ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, event)
+	return nil
 }
