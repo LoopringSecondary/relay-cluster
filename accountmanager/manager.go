@@ -110,7 +110,6 @@ func (accountManager *AccountManager) Start() {
 func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err error) {
 	event := input.(*types.TransferEvent)
 
-
 	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
 		log.Info("received wrong status event, drop it")
 		return nil

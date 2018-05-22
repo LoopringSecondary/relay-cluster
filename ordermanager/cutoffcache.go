@@ -75,10 +75,10 @@ func (c *CutoffCache) GetCutoffPair(protocol, owner, token1, token2 common.Addre
 		return bytes2value(bs)
 	}
 
-	var cutoff *big.Int
-	if loopringaccessor.GetCutoffPair(cutoff, protocol, owner, token1, token2, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
-		c.UpdateCutoffPair(protocol, owner, token1, token2, cutoff)
-		return cutoff
+	var cutoff types.Big
+	if loopringaccessor.GetCutoffPair(&cutoff, protocol, owner, token1, token2, "latest"); cutoff.BigInt().Cmp(big.NewInt(0)) > 0 {
+		c.UpdateCutoffPair(protocol, owner, token1, token2, cutoff.BigInt())
+		return cutoff.BigInt()
 	}
 
 	return big.NewInt(0)

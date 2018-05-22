@@ -18,6 +18,7 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/test"
 	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -234,7 +235,7 @@ func TestEthNodeAccessor_CutoffAll(t *testing.T) {
 	cutoff := big.NewInt(1531808145)
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.LprAbi(), test.Protocol())
-	if result, err := callMethod(account, "cancelAllOrders", gas, gasPrice, nil, cutoff); nil != err {
+	if result, err := callMethod(account, contract.METHOD_CUTOFF_ALL, gas, gasPrice, nil, cutoff); nil != err {
 		t.Fatalf("call method cancelAllOrders error:%s", err.Error())
 	} else {
 		t.Logf("cutoff result:%s", result)
@@ -259,7 +260,7 @@ func TestEthNodeAccessor_CutoffPair(t *testing.T) {
 	token2 := wethTokenAddress
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.LprAbi(), test.Protocol())
-	if result, err := callMethod(account, "cancelAllOrdersByTradingPair", gas, gasPrice, nil, token1, token2, cutoff); nil != err {
+	if result, err := callMethod(account, contract.METHOD_CUTOFF_PAIR, gas, gasPrice, nil, token1, token2, cutoff); nil != err {
 		t.Fatalf("call method cancelAllOrdersByTradingPair error:%s", err.Error())
 	} else {
 		t.Logf("cutoff result:%s", result)

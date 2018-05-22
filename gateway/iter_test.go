@@ -71,7 +71,7 @@ func TestUnlockWallet(t *testing.T) {
 
 func TestPendingTransaction(t *testing.T) {
 	var tx ethtyp.Transaction
-	if err := accessor.GetTransactionByHash(&tx, "0xe9972f9b965db498c05a8b8d3fde8638c518a266c0d45d312d5f29fa75c20726", "latest"); err != nil {
+	if err := accessor.GetTransactionByHash(&tx, "0x93e1273fcdc193b6865856169bbef78d1eeeb6bec76c93543ae642567dbfaf59", "latest"); err != nil {
 		t.Fatalf(err.Error())
 	} else {
 		producer.SendMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, &tx, "extractor")
