@@ -37,6 +37,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/Loopring/relay-lib/zklock"
+	"github.com/Loopring/relay-lib/sns"
 )
 
 const (
@@ -101,7 +103,6 @@ type TrendManager struct {
 	proofReady  bool
 	rds         *dao.RdsService
 	cron        *cron.Cron
-	cronJobLock bool
 	localCache  *gocache.Cache
 }
 
@@ -110,16 +111,26 @@ var trendManager TrendManager
 
 const trendKeyPre = "market_trend_"
 const tickerKey = "lpr_ticker_view_"
+const trendCronJobZkLock = "trendZkLock"
+const snsNotifyMsg = "trendmanager try lock failed"
 
-func NewTrendManager(dao *dao.RdsService, cronJobLock bool) TrendManager {
+func NewTrendManager(dao *dao.RdsService) TrendManager {
 
 	once.Do(func() {
-		trendManager = TrendManager{rds: dao, cron: cron.New(), cronJobLock: cronJobLock}
+		trendManager = TrendManager{rds: dao, cron: cron.New()}
 		trendManager.localCache = gocache.New(5*time.Second, 5*time.Minute)
 		trendManager.LoadCache()
-		if cronJobLock {
-			trendManager.startScheduleUpdate()
-		}
+
+		go func() {
+			if zklock.TryLock(trendCronJobZkLock) == nil {
+				trendManager.startScheduleUpdate()
+			} else {
+				err := sns.PublishSns(snsNotifyMsg, snsNotifyMsg); if err != nil {
+					log.Error(err.Error())
+				}
+			}
+		}()
+
 		fillOrderWatcher := &eventemitter.Watcher{Concurrent: false, Handle: trendManager.HandleOrderFilled}
 		eventemitter.On(eventemitter.OrderFilled, fillOrderWatcher)
 

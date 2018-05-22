@@ -38,6 +38,7 @@ import (
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-lib/sns"
 )
 
 func LoadConfig(file string) *GlobalConfig {
@@ -74,6 +75,7 @@ type GlobalConfig struct {
 	GatewayFilters   gateway.GatewayFiltersOptions
 	UserManager      usermanager.UserManagerOptions
 	ZkLock           zklock.ZkLockConfig
+	Sns              sns.SnsConfig
 	Kafka            kafka.KafkaOptions
 	MotanServer      motan.MotanServerOptions
 	Jsonrpc          gateway.JsonrpcOptions

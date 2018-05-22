@@ -32,6 +32,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/Loopring/relay-lib/zklock"
+	"github.com/Loopring/relay-lib/sns"
 )
 
 type ExchangeType string
@@ -55,6 +57,8 @@ var exchanges = map[string]string{
 }
 
 const defaultSyncInterval = 5 // minutes
+const tickerCollectorCronJobZkLock = "tickerCollectorZkLock"
+const tryLockFailedMsg = "ticker collector try lock failed"
 
 type Exchange interface {
 	updateCache()
@@ -79,7 +83,6 @@ type CollectorImpl struct {
 	exs          []ExchangeImpl
 	syncInterval int
 	cron         *cron.Cron
-	cronJobLock  bool
 	localCache   *gocache.Cache
 }
 
@@ -220,8 +223,8 @@ func setHMCache(exchange string, tickers []TickerField) {
 	cache.HMSet(cacheKey, 3600*24*30, data...)
 }
 
-func NewCollector(cronJobLock bool) *CollectorImpl {
-	rst := &CollectorImpl{exs: make([]ExchangeImpl, 0), syncInterval: defaultSyncInterval, cron: cron.New(), cronJobLock: cronJobLock}
+func NewCollector() *CollectorImpl {
+	rst := &CollectorImpl{exs: make([]ExchangeImpl, 0), syncInterval: defaultSyncInterval, cron: cron.New()}
 	rst.localCache = gocache.New(5*time.Second, 5*time.Minute)
 	for _, v := range util.AllMarkets {
 		if strings.HasSuffix(v, "ETH") {
@@ -237,18 +240,22 @@ func NewCollector(cronJobLock bool) *CollectorImpl {
 }
 
 func (c *CollectorImpl) Start() {
-	// create cron job and exec sync
-	if c.cronJobLock {
-		//mockUpdateCache()
-		updateBinanceCache()
-		updateOkexCache()
-		updateHuobiCache()
-		c.cron.AddFunc("@every 20s", updateBinanceCache)
-		c.cron.AddFunc("@every 5s", updateOkexCache)
-		c.cron.AddFunc("@every 5s", updateHuobiCache)
-		log.Info("start collect cron jobs......... ")
-		c.cron.Start()
-	}
+	go func() {
+		if zklock.TryLock(tickerCollectorCronJobZkLock) == nil {
+			updateBinanceCache()
+			updateOkexCache()
+			updateHuobiCache()
+			c.cron.AddFunc("@every 20s", updateBinanceCache)
+			c.cron.AddFunc("@every 5s", updateOkexCache)
+			c.cron.AddFunc("@every 5s", updateHuobiCache)
+			log.Info("start collect cron jobs......... ")
+			c.cron.Start()
+		} else {
+			err := sns.PublishSns(tryLockFailedMsg, tryLockFailedMsg); if err != nil {
+				log.Error(err.Error())
+			}
+		}
+	}()
 }
 
 func (c *CollectorImpl) GetTickers(market string) ([]Ticker, error) {
