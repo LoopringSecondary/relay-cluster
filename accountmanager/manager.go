@@ -203,7 +203,7 @@ func (a *AccountManager) handleBlockNew(input eventemitter.EventData) error {
 }
 
 func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
-	event := input.(*types.TransferEvent)
+	event := input.(*types.EthTransferEvent)
 	a.block.saveBalanceKey(event.From, types.NilAddress)
 	a.block.saveBalanceKey(event.To, types.NilAddress)
 	return nil
