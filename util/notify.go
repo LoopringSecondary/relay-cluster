@@ -19,6 +19,7 @@
 package util
 
 import (
+	"github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -52,4 +53,9 @@ func NotifyCutoffPair(owner common.Address, market string) {
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+}
+
+func NotifyTransactionView(tx *types.TransactionView) {
+	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, tx)
+	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, tx)
 }

@@ -94,7 +94,7 @@ func GetBalanceAndAllowance(owner, token, spender common.Address) (balance, allo
 	accountBalances := &AccountBalances{}
 	accountBalances.Owner = owner
 	accountBalances.Balances = make(map[common.Address]Balance)
-	if err := accountBalances.getOrSave(accManager.cacheDuration, token);nil != err {
+	if err := accountBalances.getOrSave(accManager.cacheDuration, token); nil != err {
 		log.Errorf("err:%s", err.Error())
 	}
 
@@ -103,7 +103,7 @@ func GetBalanceAndAllowance(owner, token, spender common.Address) (balance, allo
 	accountAllowances := &AccountAllowances{}
 	accountAllowances.Owner = owner
 	accountAllowances.Allowances = make(map[common.Address]map[common.Address]Allowance)
-	if err := accountAllowances.getOrSave(accManager.cacheDuration, []common.Address{token}, []common.Address{spender});nil != err {
+	if err := accountAllowances.getOrSave(accManager.cacheDuration, []common.Address{token}, []common.Address{spender}); nil != err {
 		log.Errorf("err:%s", err.Error())
 	}
 	allowance = accountAllowances.Allowances[token][spender].Allowance.BigInt()
