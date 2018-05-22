@@ -21,6 +21,7 @@ package ordermanager
 import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
@@ -57,10 +58,11 @@ func (c *CutoffCache) GetCutoff(protocol, owner common.Address) *big.Int {
 		return bytes2value(bs)
 	}
 
-	var cutoff *big.Int
-	if loopringaccessor.GetCutoff(cutoff, protocol, owner, "latest"); cutoff.Cmp(big.NewInt(0)) > 0 {
-		c.UpdateCutoff(protocol, owner, cutoff)
-		return cutoff
+	var cutoff types.Big
+
+	if loopringaccessor.GetCutoff(&cutoff, protocol, owner, "latest"); cutoff.BigInt().Cmp(big.NewInt(0)) > 0 {
+		c.UpdateCutoff(protocol, owner, cutoff.BigInt())
+		return cutoff.BigInt()
 	}
 
 	return big.NewInt(0)

@@ -181,7 +181,7 @@ func TestEthNodeAccessor_CancelOrder(t *testing.T) {
 		state        types.OrderState
 		err          error
 		result       string
-		orderhash    = common.HexToHash("0x30c053e1f7da3161c36591eacd27077b07b91525ec849fc2b7911d13729e9a2d")
+		orderhash    = common.HexToHash("0xc0d710b036a622871974e8cc28dd5abe4065dfeebfc3a2724f1294c554d70e9c")
 		cancelAmount = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2))
 	)
 
