@@ -127,7 +127,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleTransactionUpdate, kafka.Kafka_Topic_SocketIO_Transactions_Updated},
 		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handlePendingTransaction, kafka.Kafka_Topic_SocketIO_PendingTx_Updated},
 		eventKeyMarketOrders: {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate, kafka.Kafka_Topic_SocketIO_Orders_Updated},
-		//eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate, kafka.Kafka_Topic_SocketIO_Orders_Updated},
 	}
 
 	var topic string
@@ -780,7 +780,7 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 
 func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] market order input (for pending). %s", input)
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] market order input. %s", input)
 
 	req := input.(*types.OrderState)
 	owner := req.RawOrder.Owner.Hex()
