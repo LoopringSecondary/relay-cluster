@@ -24,13 +24,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// todo delete return after test
+
 func NotifyGatewayOrder(owner common.Address, market string) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
 }
 
 func NotifyOrderFilled(owner common.Address, market string) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
@@ -38,24 +42,28 @@ func NotifyOrderFilled(owner common.Address, market string) {
 }
 
 func NotifyOrderCancelled(owner common.Address, market string) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
 }
 
 func NotifyCutoff(owner common.Address) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, "")
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, "")
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
 }
 
 func NotifyCutoffPair(owner common.Address, market string) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
 }
 
 func NotifyTransactionView(tx *types.TransactionView) {
+	return
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, tx)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, tx)
 }
