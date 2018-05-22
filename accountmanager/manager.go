@@ -110,12 +110,12 @@ func (accountManager *AccountManager) Start() {
 func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err error) {
 	event := input.(*types.TransferEvent)
 
-	//log.Info("received transfer event...")
 
 	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
 		log.Info("received wrong status event, drop it")
 		return nil
 	}
+	//log.Debugf("received transfer event, from:%s, sender:%s, receiver:%s, protocol:%s", event.From.Hex(), event.Sender.Hex(), event.Receiver.Hex(), event.Protocol.Hex())
 
 	//balance
 	a.block.saveBalanceKey(event.Sender, event.Protocol)

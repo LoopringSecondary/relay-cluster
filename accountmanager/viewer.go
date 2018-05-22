@@ -90,7 +90,7 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 }
 
 func GetBalanceAndAllowance(owner, token, spender common.Address) (balance, allowance *big.Int, err error) {
-	log.Debugf("--1 accountmanger:GetBalanceAndAllowance, owner:%s, token:%s, spender:%s", owner.Hex(), token.Hex(), spender.Hex())
+	//log.Debugf("--1 accountmanger:GetBalanceAndAllowance, owner:%s, token:%s, spender:%s", owner.Hex(), token.Hex(), spender.Hex())
 	accountBalances := &AccountBalances{}
 	accountBalances.Owner = owner
 	accountBalances.Balances = make(map[common.Address]Balance)
