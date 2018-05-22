@@ -43,6 +43,7 @@ import (
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-lib/sns"
 )
 
 type Node struct {
@@ -76,6 +77,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	// register
 	n.registerZklock()
 	n.registerSocketIOProducer()
+	n.registerSnsNotifier()
 
 	n.registerMysql()
 	n.registerCache()
@@ -169,7 +171,7 @@ func (n *Node) registerOrderViewer() {
 }
 
 func (n *Node) registerTrendManager() {
-	n.trendManager = market.NewTrendManager(n.rdsService, n.globalConfig.Market.CronJobLock)
+	n.trendManager = market.NewTrendManager(n.rdsService)
 }
 
 func (n *Node) registerAccountManager() {
@@ -185,7 +187,7 @@ func (n *Node) registerTransactionViewer() {
 }
 
 func (n *Node) registerTickerCollector() {
-	n.tickerCollector = *market.NewCollector(n.globalConfig.Market.CronJobLock)
+	n.tickerCollector = *market.NewCollector()
 }
 
 func (n *Node) registerWalletService() {
@@ -229,6 +231,10 @@ func (n *Node) registerZklock() {
 
 func (n *Node) registerSocketIOProducer() {
 	socketioutil.Initialize(n.globalConfig.Kafka.Brokers)
+}
+
+func (n *Node) registerSnsNotifier() {
+	sns.Initialize(n.globalConfig.Sns)
 }
 
 func (n *Node) registerExtractor() {

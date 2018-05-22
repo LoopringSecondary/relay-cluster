@@ -64,7 +64,6 @@ title = "miner"
 [market]
     token_file = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
     old_version_weth_address = "0x88699e7fee2da0462981a08a15a3b940304cc516"
-    cron_job_lock = true
 
 [market_cap]
         base_url = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
@@ -103,6 +102,9 @@ title = "miner"
 [zk_lock]
     zk_servers = "127.0.0.1:2181"
     connect_time_out = 10
+
+[sns]
+    sns_topic_arn = "arn:aws:sns:ap-northeast-1:639504797543:RelayNotification"
 
 [kafka]
     brokers = ["127.0.0.1:9092"]
