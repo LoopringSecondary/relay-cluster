@@ -277,7 +277,7 @@ func (tm *TransactionManager) SaveTransferEvent(input eventemitter.EventData) er
 // 当value大于0时认为是eth转账
 // 当value等于0时认为是调用系统不支持的合约,默认使用fromTransferEvent/send type为unsupported_contract
 func (tm *TransactionManager) SaveEthTransferEvent(input eventemitter.EventData) error {
-	event := input.(*types.TransferEvent)
+	event := input.(*types.EthTransferEvent)
 
 	var entity txtyp.TransactionEntity
 	if err := entity.FromEthTransferEvent(event); err != nil {

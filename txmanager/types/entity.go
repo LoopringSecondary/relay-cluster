@@ -231,7 +231,7 @@ func (tx *TransactionEntity) FromTransferEvent(src *types.TransferEvent) error {
 	return nil
 }
 
-func (tx *TransactionEntity) FromEthTransferEvent(src *types.TransferEvent) error {
+func (tx *TransactionEntity) FromEthTransferEvent(src *types.EthTransferEvent) error {
 	if err := tx.fullFilled(src.TxInfo); err != nil {
 		return err
 	}

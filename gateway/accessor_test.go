@@ -51,7 +51,7 @@ func TestEthNodeAccessor_WethDeposit(t *testing.T) {
 	wethAddr := wethTokenAddress
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2))
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.WethAbi(), wethAddr)
-	if result, err := callMethod(account, "deposit", gas, gasPrice, amount); nil != err {
+	if result, err := callMethod(account, contract.METHOD_WETH_DEPOSIT, gas, gasPrice, amount); nil != err {
 		t.Fatalf("call method weth-deposit error:%s", err.Error())
 	} else {
 		t.Logf("weth-deposit result:%s", result)
