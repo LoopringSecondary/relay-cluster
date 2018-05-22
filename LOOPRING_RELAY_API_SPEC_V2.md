@@ -62,6 +62,7 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [marketcap](#marketcap)
 * [depth](#depth)
 * [trends](#trends)
+* [pendingTx](#pendingtx)
 
 ## JSON RPC API Reference
 
@@ -1810,6 +1811,76 @@ params: {"market" : "LRC-WETH", "interval" : "1Hr"}
     "start" : 1512646617,
     "end" : 1512726001
   }.{}....
+]
+
+```
+
+***
+
+#### pendingTx
+
+Get pendingTx info per address.
+
+##### subscribe events
+- pendingTx_req : emit this event to receive push message.
+- pendingTx_res : subscribe this event to receive push message.
+- pendingTx_end : emit this event to stop receive push message.
+
+##### Parameters
+
+1. `owner` - The owner address.
+```js
+params: {"owner" : "0x5567ee920f7E62274284985D793344351A00142B"}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("pendingTx_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("pendingTx_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`PAGE RESULT of OBJECT`
+`ARRAY OF DATA` - The transaction list.
+  - `from` - The transaction sender.
+  - `to` - The transaction receiver.
+  - `owner` - the transaction main owner.
+  - `createTime` - The timestamp of transaction create time.
+  - `updateTime` - The timestamp of transaction update time.
+  - `hash` - The transaction hash.
+  - `blockNumber` - The number of the block which contains the transaction.
+  - `value` - The amount of transaction involved.
+  - `type` - The transaction type, like convert, transfer/receive.
+  - `status` - The current transaction status.
+
+##### Example
+```js
+// Request
+params: {
+  "owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"
+}
+
+// Result
+[
+  {
+      "owner":"0x66727f5DE8Fbd651Dc375BB926B16545DeD71EC9",
+      "from":"0x66727f5DE8Fbd651Dc375BB926B16545DeD71EC9",
+      "to":"0x23605cD09677600A91Df271C86E290cb09a17eeD",
+      "createTime":150134131,
+      "updateTime":150101931,
+      "hash":"0xa226639a5852df7a61a19a473a5f6feb98be5247077a7b22b8c868178772d01e",
+      "blockNumber":5029675,
+      "value":"0x0000000a7640001",
+      "type":"convert", // eth -> weth
+      "status":"PENDING"
+  },{}...
 ]
 
 ```
