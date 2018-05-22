@@ -62,6 +62,7 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [marketcap](#marketcap)
 * [depth](#depth)
 * [trends](#trends)
+* [pendingTx](#pendingtx)
 
 ## JSON RPC API Reference
 
