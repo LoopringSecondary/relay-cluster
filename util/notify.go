@@ -27,46 +27,59 @@ import (
 
 // todo delete return after test
 
-func NotifyGatewayOrder(owner common.Address, market string) {
-	return
+func NotifyGatewayOrder(owner common.Address, market string) error {
+	return nil
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+
+	return nil
 }
 
-func NotifyOrderFilled(owner common.Address, market string) {
-	return
+func NotifyOrderFilled(owner common.Address, market string) error {
+	return nil
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, market)
+
+	return nil
 }
 
-func NotifyOrderCancelled(owner common.Address, market string) {
-	return
+func NotifyOrderCancelled(owner common.Address, market string) error {
+	return nil
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+
+	return nil
 }
 
-func NotifyCutoff(owner common.Address) {
-	return
+func NotifyCutoff(owner common.Address) error {
+	return nil
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, "")
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, "")
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+
+	return nil
 }
 
-func NotifyCutoffPair(owner common.Address, market string) {
-	return
+func NotifyCutoffPair(owner common.Address, market string) error {
+	return nil
+
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+
+	return nil
 }
 
-func NotifyTransactionView(tx *types.TransactionView) {
-	return
+func NotifyTransactionView(tx *types.TransactionView) error {
+	return nil
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, tx)
 	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, tx)
+
+	return nil
 }
 
 func NotifyAccountBalanceUpdate(event *libTypes.BalanceUpdateEvent) error {
