@@ -610,7 +610,7 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s", input)
 
-	req := input.(types.BalanceUpdateEvent)
+	req := input.(*types.BalanceUpdateEvent)
 	if len(req.Owner) == 0 {
 		return errors.New("owner can't be nil")
 	}
