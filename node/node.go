@@ -39,6 +39,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
@@ -74,6 +75,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	// register
 	n.registerZklock()
+	n.registerSocketIOProducer()
 
 	n.registerMysql()
 	n.registerCache()
@@ -223,6 +225,10 @@ func (n *Node) registerZklock() {
 	if _, err := zklock.Initialize(n.globalConfig.ZkLock); err != nil {
 		log.Fatalf("node start, register zklock error:%s", err.Error())
 	}
+}
+
+func (n *Node) registerSocketIOProducer() {
+	socketioutil.Initialize(n.globalConfig.Kafka.Brokers)
 }
 
 func (n *Node) registerExtractor() {
