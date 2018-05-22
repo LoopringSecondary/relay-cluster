@@ -250,7 +250,8 @@ func (t *TrendManager) LoadCache() {
 	t.refreshMinIntervalCache()
 	intervals := append(allInterval[:0], allInterval[1:]...)
 	for _, i := range intervals {
-		t.refreshCacheByInterval(i)
+		aliasOfI := i
+		t.refreshCacheByInterval(aliasOfI)
 	}
 	t.cacheReady = true
 }
@@ -795,7 +796,8 @@ func (t *TrendManager) ScheduleUpdate() {
 	intervals := append(allInterval[:0], allInterval[1:]...)
 	for _, i := range intervals {
 		wgInterval.Add(1)
-		go t.insertTrendByInterval(i)
+		aliasOfI := i
+		go t.insertTrendByInterval(aliasOfI)
 		wgInterval.Done()
 	}
 	wgInterval.Wait()
@@ -905,22 +907,6 @@ func (t *TrendManager) GetTrends(market, interval string) (trends []Trend, err e
 			}
 
 		}
-		//if trendCache, ok := t.c.Get(trendKeyPre + interval); !ok {
-		//	err = errors.New("can't found trends by key : " + interval)
-		//} else {
-		//	tc := trendCache.(map[string]Cache)[market]
-		//	trends = make([]Trend, 0)
-		//	if strings.ToLower(interval) == "1hr" {
-		//		trendInFills, aggErr := t.aggregate(tc.Fills, tc.Trends)
-		//		if aggErr == nil {
-		//			trends = append(trends, trendInFills)
-		//		}
-		//	}
-		//	for _, t := range tc.Trends {
-		//		trends = append(trends, t)
-		//	}
-		//
-		//}
 	} else {
 		err = errors.New("cache is not ready , please access later")
 	}
@@ -959,18 +945,6 @@ func (t *TrendManager) GetTicker() (tickers []Ticker, err error) {
 		} else {
 			err = errors.New("get ticker from cache error, no value found")
 		}
-
-		//if tickerInCache, ok := t.c.Get(tickerKey); ok {
-		//	tickerMap := tickerInCache.(map[string]Ticker)
-		//	tickers = make([]Ticker, 0)
-		//	for _, v := range tickerMap {
-		//		v.Buy = strconv.FormatFloat(v.Last, 'f', -1, 64)
-		//		v.Sell = strconv.FormatFloat(v.Last, 'f', -1, 64)
-		//		tickers = append(tickers, v)
-		//	}
-		//} else {
-		//	err = errors.New("get ticker from cache error, no value found")
-		//}
 	} else {
 		err = errors.New("cache is not ready , please access later")
 	}
