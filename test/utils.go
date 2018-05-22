@@ -20,6 +20,7 @@ package test
 
 import (
 	"fmt"
+	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/node"
 	"github.com/Loopring/relay-cluster/ordermanager"
@@ -207,6 +208,10 @@ func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()
 	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc)
 	return ob
+}
+
+func GenerateAccountManager() accountmanager.AccountManager {
+	return accountmanager.Initialize(&cfg.AccountManager, cfg.Kafka.Brokers)
 }
 
 func GenerateMarketCap() *marketcap.CapProvider_CoinMarketCap {

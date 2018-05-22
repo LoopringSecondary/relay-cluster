@@ -20,9 +20,14 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/test"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	ethtyp "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/kafka"
+	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"math/big"
 	"testing"
+	"time"
 )
 
 const (
@@ -49,6 +54,36 @@ func TestRing(t *testing.T) {
 	amountB2, _ := new(big.Int).SetString("20"+suffix, 0)
 	lrcFee2 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(3))
 	test.CreateOrder(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
+}
+
+func TestUnlockWallet(t *testing.T) {
+	manager := test.GenerateAccountManager()
+	accounts := []string{
+		test.Entity().Accounts[0].Address.Hex(),
+		test.Entity().Accounts[1].Address.Hex(),
+		test.Entity().Creator.Address.Hex(),
+	}
+	for _, account := range accounts {
+		manager.UnlockedWallet(account)
+	}
+	time.Sleep(1 * time.Second)
+}
+
+func TestPendingTransaction(t *testing.T) {
+	var tx ethtyp.Transaction
+	if err := accessor.GetTransactionByHash(&tx, "0xe9972f9b965db498c05a8b8d3fde8638c518a266c0d45d312d5f29fa75c20726", "latest"); err != nil {
+		t.Fatalf(err.Error())
+	} else {
+		producer.SendMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, &tx, "extractor")
+	}
+}
+
+var producer = &kafka.MessageProducer{}
+
+func init() {
+	if err := producer.Initialize(test.Cfg().Kafka.Brokers); err != nil {
+		log.Fatal(err.Error())
+	}
 }
 
 func TestPrepare(t *testing.T) {
