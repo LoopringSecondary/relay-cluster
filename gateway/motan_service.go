@@ -36,12 +36,23 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 	if balance, allowance, err := accountmanager.GetBalanceAndAllowance(req.Owner, req.Token, req.Spender); nil != err {
 		res.Allowance = big.NewInt(int64(0))
 		res.Balance = big.NewInt(int64(0))
-		//res.Err = err.Error()
+		res.Err = err.Error()
 	} else {
+		err := ""
+		if nil == balance {
+			balance = big.NewInt(int64(0))
+			err = err + "balance is nil,"
+		}
+		if nil == allowance {
+			allowance = big.NewInt(int64(0))
+			err = err + " allowance is nil"
+		}
 		res.Balance = new(big.Int).Set(balance)
 		res.Allowance = new(big.Int).Set(allowance)
-		//res.Err = ""
+		res.Err = err
 	}
+	//log.Debugf("---finished, GetBalanceAndAllowance,owner:%s, token:%s, spender:%s", req.Owner.Hex(), req.Token.Hex(), req.Spender.Hex())
+
 	return res
 }
 

@@ -69,19 +69,26 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 	b.cachedDuration = big.NewInt(int64(500))
 	accountManager.block = b
 
-	accountManager.producerWrapped = &kafka.MessageProducer{}
-	if err := accountManager.producerWrapped.Initialize(brokers); nil != err {
-		log.Fatalf("Failed init producerWrapped %s", err.Error())
+	if len(brokers) > 0 {
+		accountManager.producerWrapped = &kafka.MessageProducer{}
+		if err := accountManager.producerWrapped.Initialize(brokers); nil != err {
+			log.Fatalf("Failed init producerWrapped %s", err.Error())
+		}
+	} else {
+		log.Errorf("There is not brokers of kafka to send msg.")
 	}
 	accManager = &accountManager
 	return accountManager
 }
 
 func sendKafkaMsg(msg interface{}) error {
-	topic, key := kafka.Kafka_Topic_AccountManager_BalanceUpdated, "1"
+	topic, key := kafka.Kafka_Topic_SocketIO_BalanceUpdated, "1"
 	//todo:if it occors error
-	_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
-	return err
+	if nil != accManager.producerWrapped {
+		_, _, err := accManager.producerWrapped.SendMessage(topic, msg, key)
+		return err
+	}
+	return nil
 }
 
 func sendBlockEndKafkaMsg(msg interface{}) error {
@@ -185,13 +192,15 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 		changedAddrs[addr] = true
 	}
 	for addr, _ := range changedAddrs {
-		event := types.BalanceUpdateEvent{}
+		event := &types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
 	}
 
 	// send blockEnd, miner use only
-	sendBlockEndKafkaMsg(event)
+	if err := sendBlockEndKafkaMsg(event); nil != err {
+		log.Errorf("err:%s", err.Error())
+	}
 
 	return nil
 }
@@ -244,7 +253,7 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 	}
 
 	for addr, _ := range changedAddrs {
-		event := types.BalanceUpdateEvent{}
+		event := &types.BalanceUpdateEvent{}
 		event.Owner = addr.Hex()
 		sendKafkaMsg(event)
 	}
