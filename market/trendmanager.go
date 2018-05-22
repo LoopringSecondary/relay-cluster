@@ -29,7 +29,9 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/robfig/cron"
 	"sort"
@@ -37,8 +39,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/Loopring/relay-lib/zklock"
-	"github.com/Loopring/relay-lib/sns"
 )
 
 const (
@@ -99,11 +99,11 @@ type Trend struct {
 }
 
 type TrendManager struct {
-	cacheReady  bool
-	proofReady  bool
-	rds         *dao.RdsService
-	cron        *cron.Cron
-	localCache  *gocache.Cache
+	cacheReady bool
+	proofReady bool
+	rds        *dao.RdsService
+	cron       *cron.Cron
+	localCache *gocache.Cache
 }
 
 var once sync.Once
@@ -125,7 +125,8 @@ func NewTrendManager(dao *dao.RdsService) TrendManager {
 			if zklock.TryLock(trendCronJobZkLock) == nil {
 				trendManager.startScheduleUpdate()
 			} else {
-				err := sns.PublishSns(snsNotifyMsg, snsNotifyMsg); if err != nil {
+				err := sns.PublishSns(snsNotifyMsg, snsNotifyMsg)
+				if err != nil {
 					log.Error(err.Error())
 				}
 			}

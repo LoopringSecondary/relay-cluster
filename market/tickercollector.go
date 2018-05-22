@@ -24,6 +24,8 @@ import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/sns"
+	"github.com/Loopring/relay-lib/zklock"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/robfig/cron"
 	"io/ioutil"
@@ -32,8 +34,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/Loopring/relay-lib/zklock"
-	"github.com/Loopring/relay-lib/sns"
 )
 
 type ExchangeType string
@@ -251,7 +251,8 @@ func (c *CollectorImpl) Start() {
 			log.Info("start collect cron jobs......... ")
 			c.cron.Start()
 		} else {
-			err := sns.PublishSns(tryLockFailedMsg, tryLockFailedMsg); if err != nil {
+			err := sns.PublishSns(tryLockFailedMsg, tryLockFailedMsg)
+			if err != nil {
 				log.Error(err.Error())
 			}
 		}

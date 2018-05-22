@@ -112,7 +112,7 @@ func TestEthNodeAccessor_EthBalance(t *testing.T) {
 func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
 	from := account1
 	to := account2
-	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(180))
+	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(150))
 
 	erc20abi := loopringaccessor.Erc20Abi()
 	tokenAddress := lrcTokenAddress
@@ -283,11 +283,11 @@ func TestEthNodeAccessor_GetCutoffPair(t *testing.T) {
 func TestEthNodeAccessor_TokenRegister(t *testing.T) {
 	account := accounts.Account{Address: test.Entity().Creator.Address}
 
-	address := common.HexToAddress("")
-	symbol := ""
+	address := lrcTokenAddress
+	symbol := "LRC"
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.TokenRegisterAbi(), test.TokenRegisterAddress())
-	if result, err := callMethod(account.Address, "registerToken", gas, gasPrice, nil, address, symbol); nil != err {
+	if result, err := callMethod(account.Address, contract.METHOD_TOKEN_REGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
 		t.Fatalf("call method registerToken error:%s", err.Error())
 	} else {
 		t.Logf("registerToken result:%s", result)
@@ -297,11 +297,11 @@ func TestEthNodeAccessor_TokenRegister(t *testing.T) {
 func TestEthNodeAccessor_TokenUnRegister(t *testing.T) {
 	account := accounts.Account{Address: test.Entity().Creator.Address}
 
-	address := common.HexToAddress("")
-	symbol := ""
+	address := lrcTokenAddress
+	symbol := "LRC"
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.TokenRegisterAbi(), test.TokenRegisterAddress())
-	if result, err := callMethod(account.Address, "unregisterToken", gas, gasPrice, nil, address, symbol); nil != err {
+	if result, err := callMethod(account.Address, contract.METHOD_TOKEN_UNREGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
 		t.Fatalf("call method unregisterToken error:%s", err.Error())
 	} else {
 		t.Logf("unregisterToken result:%s", result)
@@ -311,15 +311,13 @@ func TestEthNodeAccessor_TokenUnRegister(t *testing.T) {
 func TestEthNodeAccessor_IsTokenRegistried(t *testing.T) {
 	var result string
 
-	protocol := test.Protocol()
-	tokenRegistryAddress := loopringaccessor.ProtocolAddresses()[protocol].TokenRegistryAddress
 	symbol := "LRC"
-	callMethod := accessor.ContractCallMethod(test.TokenRegisterAbi(), tokenRegistryAddress)
 
-	if err := callMethod(&result, "isTokenRegistered", "latest", symbol); nil != err {
-		t.Fatalf("call method isTokenRegistered error:%s", err.Error())
+	callMethod := accessor.ContractCallMethod(test.TokenRegisterAbi(), test.TokenRegisterAddress())
+	if err := callMethod(&result, "isTokenRegisteredBySymbol", "latest", symbol); nil != err {
+		t.Fatalf("call method isTokenRegisteredBySymbol error:%s", err.Error())
 	} else {
-		t.Logf("isTokenRegistered result:%s", result)
+		t.Logf("isTokenRegisteredBySymbol result:%s", result)
 	}
 }
 
@@ -340,7 +338,7 @@ func TestEthNodeAccessor_AuthorizedAddress(t *testing.T) {
 	account := accounts.Account{Address: test.Entity().Creator.Address}
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.DelegateAbi(), test.DelegateAddress())
-	if result, err := callMethod(account.Address, "authorizeAddress", gas, gasPrice, nil, test.Protocol()); nil != err {
+	if result, err := callMethod(account.Address, contract.METHOD_ADDRESS_AUTHORIZED, gas, gasPrice, nil, test.Protocol()); nil != err {
 		t.Fatalf("call method authorizeAddress error:%s", err.Error())
 	} else {
 		t.Logf("authorizeAddress result:%s", result)
@@ -354,7 +352,7 @@ func TestEthNodeAccessor_DeAuthorizedAddress(t *testing.T) {
 	delegateAddress := loopringaccessor.ProtocolAddresses()[protocol].DelegateAddress
 	delegateAbi := loopringaccessor.DelegateAbi()
 	callMethod := accessor.ContractSendTransactionMethod("latest", delegateAbi, delegateAddress)
-	if result, err := callMethod(account.Address, "deauthorizeAddress", gas, gasPrice, nil, protocol); nil != err {
+	if result, err := callMethod(account.Address, contract.METHOD_ADDRESS_DEAUTHORIZED, gas, gasPrice, nil, protocol); nil != err {
 		t.Fatalf("call method deauthorizeAddress error:%s", err.Error())
 	} else {
 		t.Logf("deauthorizeAddress result:%s", result)
