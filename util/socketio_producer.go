@@ -21,7 +21,6 @@ package util
 import (
 	"github.com/Loopring/relay-lib/kafka"
 	"log"
-	"strings"
 )
 
 type KafkaMsg struct {
@@ -30,7 +29,6 @@ type KafkaMsg struct {
 }
 
 var socketIOProducer *kafka.MessageProducer
-var socketIOEventKeyPre = "socketio_"
 
 func Initialize(brokers []string) {
 	if socketIOProducer == nil {
@@ -42,6 +40,6 @@ func Initialize(brokers []string) {
 }
 
 func ProducerSocketIOMessage(eventKey string, data interface{}) error {
-	_, _, err := socketIOProducer.SendMessage(strings.ToLower(socketIOEventKeyPre+eventKey), KafkaMsg{eventKey, data}, "1")
+	_, _, err := socketIOProducer.SendMessage(eventKey, KafkaMsg{eventKey, data}, "1")
 	return err
 }

@@ -1084,11 +1084,11 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			//t.c.Set(trendKeyPre+strings.ToLower(OneHour), newCache, cache.NoExpiration)
 			t.reCalTicker(market)
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, nil)
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, market)
 		if err != nil {
 			log.Error("send ticker update message failed")
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, nil)
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, market)
 		if err != nil {
 			log.Error("send trends update message failed")
 		}
