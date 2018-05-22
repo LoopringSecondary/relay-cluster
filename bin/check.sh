@@ -1,10 +1,6 @@
 #!/bin/sh
 #ValidateService
 
-if [ -d /opt/loopring/miner ]; then
-    exit 0
-fi
-
 k=1
 RPC_PORT=8083
 WAIT_SECONDS=120
