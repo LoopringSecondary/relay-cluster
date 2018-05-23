@@ -1,0 +1,11 @@
+/var/log/relay/*.log {
+        daily
+        missingok
+        copytruncate
+        rotate 30
+        dateext
+        compress
+        delaycompress
+        notifempty
+        nocreate
+}
