@@ -1,6 +1,7 @@
 #!/bin/bash
 #AfterInstall
 
+echo "start build.sh......."
 WORK_DIR=/opt/loopring/relay
 SVC_DIR=/etc/service/relay
 GOROOT=/usr/lib/go-1.9
@@ -20,4 +21,5 @@ cd $SRC_DIR
 rm -rf ./*
 cp -r $WORK_DIR/src/* ./
 go build -ldflags -s -v  -o build/bin/relay cmd/main.go
+echo "go build finished......."
 cp build/bin/relay $WORK_DIR/bin
