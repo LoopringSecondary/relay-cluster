@@ -24,23 +24,10 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	libTypes "github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // todo delete return after test
 
-type OrderUpdateKafkaMsg struct {
-	orderState libTypes.OrderState `json:"orderState"`
-}
-
-type CutoffKafkaMsg struct {
-	Owner common.Address `json:"owner"`
-}
-
-type CutoffPairKafkaMsg struct {
-	Owner  common.Address `json:"owner"`
-	Market string         `json:"string"`
-}
 
 func NotifyOrderUpdate(o *libTypes.OrderState) error {
 	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o)
@@ -58,10 +45,11 @@ func NotifyOrderFilled(f *dao.FillEvent) error {
 	return err
 }
 
-func NotifyCutoff(owner common.Address) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff, owner)
+func NotifyCutoff(evt *libTypes.CutoffEvent) error {
+
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff, evt)
 	if err != nil {
-		log.Error("notify cutoff failed. " + owner.Hex())
+		log.Error("notify cutoff failed. " + evt.Owner.Hex())
 	}
 	return err
 }
