@@ -1,6 +1,16 @@
 #!/bin/sh
 #ValidateService
 
+#cron and logrotate are installed by default in ubuntu, don't check it again
+if [ ! -f /etc/logrotate.d/loopring-relay ]; then
+    sudo cp $WORK_DIR/src/bin/logrotate/loopring-relay /etc/logrotate.d/loopring-relay
+fi
+
+pgrep cron
+if [[ $? != 0 ]]; then
+    sudo /etc/init.d/cron start
+fi
+
 k=1
 RPC_PORT=8083
 WAIT_SECONDS=120
