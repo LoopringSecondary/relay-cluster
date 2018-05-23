@@ -601,7 +601,9 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] trend input. %s", input)
 
-	req := input.(TrendQuery)
+
+	inputMsg := input.(*socketioutil.KafkaMsg)
+	req := inputMsg.Data.(TrendQuery)
 	resp := SocketIOJsonResp{}
 	trends, err := so.walletService.GetTrend(req)
 
