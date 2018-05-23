@@ -12,7 +12,7 @@ for k in $(seq 1 $WAIT_SECONDS)
 do
     sleep 1
     STATUS_CODE=`curl -o /dev/null -s -w %{http_code} $TEST_URL`
-    if [ "$STATUS_CODE" = "415" ]; then
+    if [ "$STATUS_CODE" = "200" ]; then
         echo "request test_url:$TEST_URL succeeded!"
         echo "response code:$STATUS_CODE"
         exit 0;
