@@ -411,7 +411,6 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 		return err
 	}
 
-	market, _ := util.WrapMarketByAddress(evt.Token1.Hex(), evt.Token2.Hex())
 	notify.NotifyCutoffPair(evt)
 
 	return err
