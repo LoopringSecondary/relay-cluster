@@ -31,13 +31,13 @@ const (
 	// socket io messages
 	Kafka_Topic_SocketIO_Loopring_Ticker_Updated = "Kafka_Topic_SocketIO_Loopring_Ticker_Updated"
 	Kafka_Topic_SocketIO_Tickers_Updated         = "Kafka_Topic_SocketIO_Tickers_Updated"
-	Kafka_Topic_SocketIO_Depth_Updated           = "Kafka_Topic_SocketIO_Depth_Updated"
-	Kafka_Topic_SocketIO_Orderbook_Updated       = "Kafka_Topic_SocketIO_Orderbook_Updated"
 	Kafka_Topic_SocketIO_Trades_Updated          = "Kafka_Topic_SocketIO_Trades_Updated"
+	Kafka_Topic_SocketIO_Trends_Updated       = "Kafka_Topic_SocketIO_Trends_Updated"
+
+	Kafka_Topic_SocketIO_Order_Updated           = "Kafka_Topic_SocketIO_Order_Updated"
+	Kafka_Topic_SocketIO_Cutoff                  = "Kafka_Topic_SocketIO_Cutoff"
+	Kafka_Topic_SocketIO_Cutoff_Pair             = "Kafka_Topic_SocketIO_Cutoff_Pair"
 
 	Kafka_Topic_SocketIO_BalanceUpdated       = "Kafka_Topic_SocketIO_BalanceUpdated"
-	Kafka_Topic_SocketIO_Orders_Updated       = "Kafka_Topic_SocketIO_Orders_Updated"
-	Kafka_Topic_SocketIO_Transactions_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
-	Kafka_Topic_SocketIO_PendingTx_Updated    = "Kafka_Topic_SocketIO_PendingTx_Updated"
-	Kafka_Topic_SocketIO_Trends_Updated       = "Kafka_Topic_SocketIO_Trends_Updated"
+	Kafka_Topic_SocketIO_Transaction_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
 )
