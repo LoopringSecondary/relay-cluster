@@ -165,8 +165,7 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 		return err
 	}
 
-	notify.NotifyGatewayOrder(state.RawOrder.Owner, state.RawOrder.Market)
-
+	notify.NotifyOrderUpdate(state)
 	return nil
 }
 
@@ -259,7 +258,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 		return err
 	}
 
-	notify.NotifyOrderFilled(state.RawOrder.Owner, newFillModel.Market)
+	notify.NotifyOrderFilled(newFillModel)
 	return nil
 }
 
@@ -314,7 +313,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 		return err
 	}
 
-	notify.NotifyOrderCancelled(state.RawOrder.Owner, state.RawOrder.Market)
+	notify.NotifyOrderUpdate(state)
 
 	return nil
 }
@@ -413,7 +412,7 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	}
 
 	market, _ := util.WrapMarketByAddress(evt.Token1.Hex(), evt.Token2.Hex())
-	notify.NotifyCutoffPair(evt.Owner, market)
+	notify.NotifyCutoffPair(evt)
 
 	return err
 }

@@ -23,58 +23,63 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	libTypes "github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-cluster/dao"
 )
 
 // todo delete return after test
 
-func NotifyGatewayOrder(owner common.Address, market string) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
-
-	return nil
+type OrderUpdateKafkaMsg struct {
+	orderState libTypes.OrderState `json:"orderState"`
 }
 
-func NotifyOrderFilled(owner common.Address, market string) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, market)
-
-	return nil
+type CutoffKafkaMsg struct {
+	Owner common.Address `json:"owner"`
 }
 
-func NotifyOrderCancelled(owner common.Address, market string) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
+type CutoffPairKafkaMsg struct {
+	Owner common.Address `json:"owner"`
+	Market string `json:"string"`
+}
 
-	return nil
+func NotifyOrderUpdate(o *libTypes.OrderState) error {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o); if err != nil {
+		log.Error("notify new order failed. " + o.RawOrder.Hash.Hex())
+	}
+	return err
+}
+
+func NotifyOrderFilled(f *dao.FillEvent) error {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, f); if err != nil {
+		log.Error("notify order fill failed. " + f.OrderHash)
+	}
+	return err
 }
 
 func NotifyCutoff(owner common.Address) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, "")
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, "")
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
-
-	return nil
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff, owner); if err != nil {
+		log.Error("notify cutoff failed. " + owner.Hex())
+	}
+	return err
 }
 
-func NotifyCutoffPair(owner common.Address, market string) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Depth_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orderbook_Updated, market)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Orders_Updated, owner)
-
-	return nil
+func NotifyCutoffPair(evt *libTypes.CutoffPairEvent) error {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff_Pair, evt); if err != nil {
+		log.Error("notify cutoff pair failed. " + evt.Owner.Hex())
+	}
+	return err
 }
 
 func NotifyTransactionView(tx *types.TransactionView) error {
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transactions_Updated, tx)
-	ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_PendingTx_Updated, tx)
-
-	return nil
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transaction_Updated, tx); if err != nil {
+		log.Error("notify cutoff failed. " + tx.TxHash.Hex())
+	}
+	return err
 }
 
 func NotifyAccountBalanceUpdate(event *libTypes.BalanceUpdateEvent) error {
-	return ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, event)
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, event); if err != nil {
+		log.Error("notify cutoff failed. " + event.Owner)
+	}
+	return err
 }

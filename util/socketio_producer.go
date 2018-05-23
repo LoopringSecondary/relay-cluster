@@ -40,6 +40,6 @@ func Initialize(brokers []string) {
 }
 
 func ProducerSocketIOMessage(eventKey string, data interface{}) error {
-	_, _, err := socketIOProducer.SendMessage(eventKey, KafkaMsg{eventKey, data}, "1")
+	_, _, err := socketIOProducer.SendMessage(eventKey, &KafkaMsg{eventKey, data}, "1")
 	return err
 }
