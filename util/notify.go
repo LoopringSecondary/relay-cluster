@@ -19,12 +19,12 @@
 package util
 
 import (
+	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/kafka"
+	"github.com/Loopring/relay-lib/log"
 	libTypes "github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-cluster/dao"
 )
 
 // todo delete return after test
@@ -38,47 +38,53 @@ type CutoffKafkaMsg struct {
 }
 
 type CutoffPairKafkaMsg struct {
-	Owner common.Address `json:"owner"`
-	Market string `json:"string"`
+	Owner  common.Address `json:"owner"`
+	Market string         `json:"string"`
 }
 
 func NotifyOrderUpdate(o *libTypes.OrderState) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o)
+	if err != nil {
 		log.Error("notify new order failed. " + o.RawOrder.Hash.Hex())
 	}
 	return err
 }
 
 func NotifyOrderFilled(f *dao.FillEvent) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, f); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trades_Updated, f)
+	if err != nil {
 		log.Error("notify order fill failed. " + f.OrderHash)
 	}
 	return err
 }
 
 func NotifyCutoff(owner common.Address) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff, owner); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff, owner)
+	if err != nil {
 		log.Error("notify cutoff failed. " + owner.Hex())
 	}
 	return err
 }
 
 func NotifyCutoffPair(evt *libTypes.CutoffPairEvent) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff_Pair, evt); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Cutoff_Pair, evt)
+	if err != nil {
 		log.Error("notify cutoff pair failed. " + evt.Owner.Hex())
 	}
 	return err
 }
 
 func NotifyTransactionView(tx *types.TransactionView) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transaction_Updated, tx); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Transaction_Updated, tx)
+	if err != nil {
 		log.Error("notify cutoff failed. " + tx.TxHash.Hex())
 	}
 	return err
 }
 
 func NotifyAccountBalanceUpdate(event *libTypes.BalanceUpdateEvent) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, event); if err != nil {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_BalanceUpdated, event)
+	if err != nil {
 		log.Error("notify cutoff failed. " + event.Owner)
 	}
 	return err
