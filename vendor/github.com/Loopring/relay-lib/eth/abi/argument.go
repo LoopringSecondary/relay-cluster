@@ -184,23 +184,6 @@ func (arguments Arguments) unpackAtomic(v interface{}, marshalledValues []interf
 	return set(elem.Field(0), reflectValue, arguments.NonIndexed()[0])
 }
 
-// unpackEmpty decodedBytes has only one item which should be settled with tx.value
-func unpackEmpty(v interface{}, decodedBytes [][]byte) error {
-	elem := reflect.ValueOf(v).Elem()
-	if elem.NumField() != 1 {
-		return fmt.Errorf("abi: wrong length, method unpacking struct expected single field, got %d", elem.NumField())
-	}
-	if len(decodedBytes) != 1 {
-		return fmt.Errorf("abi: wrong length, method unpacking data expected single value, got %d", len(decodedBytes))
-	}
-
-	marshalledValue := readInteger(elem.Field(0).Kind(), decodedBytes[0])
-	reflectValue := reflect.ValueOf(marshalledValue)
-	elem.Field(0).Set(reflectValue)
-
-	return nil
-}
-
 // unpackTopics
 func (arguments Arguments) unpackTopics(v interface{}, decodedValues [][]byte) error {
 	elem := reflect.ValueOf(v).Elem()

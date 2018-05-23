@@ -66,7 +66,6 @@ var (
 type MarketOptions struct {
 	TokenFile             string
 	OldVersionWethAddress string
-	CronJobLock           bool
 }
 
 func StartRefreshCron(option *MarketOptions) {
