@@ -69,7 +69,6 @@ title = "miner"
         base_url = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
         currency = "USD"
         duration = 5
-        is_sync = false
         dust_value = 1.0
 
 [gateway_filters]
@@ -85,11 +84,6 @@ title = "miner"
             "RDN" = "10000000"
     [gateway_filters.pow_filter]
         difficulty = "0x67d5cc45bc84c10e58d1c9819cb5b794700cda79f8dcc6f7cdb31f6a53613b4f"
-
-
-[keystore]
-    keydir = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/ks_dir"
-
 
 [user_manager]
     white_list_open = false

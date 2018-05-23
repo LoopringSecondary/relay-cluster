@@ -108,6 +108,12 @@
 			"revisionTime": "2018-05-23T03:37:42Z"
 		},
 		{
+			"checksumSHA1": "SekIBoxwuM2m0BZ/bulbOoqBy3w=",
+			"path": "github.com/Loopring/relay-lib",
+			"revision": "6630953007bae8320e8da14865f5e01382878b03",
+			"revisionTime": "2018-05-22T10:56:39Z"
+		},
+		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
 			"path": "github.com/Loopring/relay-lib/broadcast/ipfs",
 			"revision": "11eeb86f1d8008cd6732cdbe4b330f440f326eb6",
