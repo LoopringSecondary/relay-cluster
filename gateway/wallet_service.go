@@ -615,23 +615,15 @@ func (w *WalletServiceImpl) GetLatestP2POrders(query *LatestOrderQuery) (res []O
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
-	defaultDepthLength := 10
+	defaultDepthLength := 40
+	asks, bids, err := w.getInnerOrderBook(query, defaultDepthLength)
+	if err != nil {
+		return
+	}
 
 	mkt := strings.ToUpper(query.Market)
 	delegateAddress := query.DelegateAddress
-
-	if mkt == "" || !common.IsHexAddress(delegateAddress) {
-		err = errors.New("market and correct contract address must be applied")
-		return
-	}
-
 	a, b := util.UnWrap(mkt)
-
-	_, err = util.WrapMarket(a, b)
-	if err != nil {
-		err = errors.New("unsupported market type")
-		return
-	}
 
 	empty := make([][]string, 0)
 
@@ -640,38 +632,29 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	}
 	askBid := AskBid{Buy: empty, Sell: empty}
 	depth := Depth{DelegateAddress: delegateAddress, Market: mkt, Depth: askBid}
-
-	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
-	asks, askErr := w.orderViewer.GetOrderBook(
-		common.HexToAddress(delegateAddress),
-		util.AllTokens[a].Protocol,
-		util.AllTokens[b].Protocol, defaultDepthLength*2)
-
-	if askErr != nil {
-		err = errors.New("get depth error , please refresh again")
-		return
-	}
-
 	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
-
-	bids, bidErr := w.orderViewer.GetOrderBook(
-		common.HexToAddress(delegateAddress),
-		util.AllTokens[b].Protocol,
-		util.AllTokens[a].Protocol, defaultDepthLength*2)
-
-	if bidErr != nil {
-		err = errors.New("get depth error , please refresh again")
-		return
-	}
-
 	depth.Depth.Buy = w.calculateDepth(bids, defaultDepthLength, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
-
 	return depth, err
 }
 
 func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBook, err error) {
 
-	defaultDepthLength := 20
+	defaultDepthLength := 40
+	asks, bids, err := w.getInnerOrderBook(query, defaultDepthLength)
+	if err != nil {
+		return
+	}
+
+	mkt := strings.ToUpper(query.Market)
+	delegateAddress := query.DelegateAddress
+	a, b := util.UnWrap(mkt)
+	orderBook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell: make([]OrderBookElement, 0)}
+	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals, defaultDepthLength)
+	orderBook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals, defaultDepthLength)
+	return orderBook, err
+}
+
+func (w *WalletServiceImpl) getInnerOrderBook(query DepthQuery, defaultDepthLength int) (asks, bids []types.OrderState, err error) {
 
 	mkt := strings.ToUpper(query.Market)
 	delegateAddress := query.DelegateAddress
@@ -694,7 +677,6 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 	for i := range empty {
 		empty[i] = make([]string, 0)
 	}
-	orderBook := OrderBook{DelegateAddress: delegateAddress, Market: mkt, Buy: make([]OrderBookElement, 0), Sell: make([]OrderBookElement, 0)}
 
 	//(TODO) 考虑到需要聚合的情况，所以每次取2倍的数据，先聚合完了再cut, 不是完美方案，后续再优化
 	asks, askErr := w.orderViewer.GetOrderBook(
@@ -707,8 +689,6 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderBook.Sell, _ = w.generateOrderBook(asks, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals, defaultDepthLength)
-
 	bids, bidErr := w.orderViewer.GetOrderBook(
 		common.HexToAddress(delegateAddress),
 		util.AllTokens[b].Protocol,
@@ -719,9 +699,7 @@ func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBoo
 		return
 	}
 
-	orderBook.Buy, _ = w.generateOrderBook(bids, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals, defaultDepthLength)
-
-	return orderBook, err
+	return asks, bids, err
 }
 
 func (w *WalletServiceImpl) GetFills(query FillQuery) (dao.PageResult, error) {

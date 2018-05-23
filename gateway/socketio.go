@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
@@ -67,13 +68,11 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type InvokeInfo struct {
-	MethodName   string
-	Query        interface{}
-	isBroadcast  bool
-	emitType     int
-	spec         string
-	eventHandler func(event interface{}) error
-	eventTopic   string
+	MethodName  string
+	Query       interface{}
+	isBroadcast bool
+	emitType    int
+	spec        string
 }
 
 const (
@@ -87,8 +86,8 @@ const (
 	eventKeyDepth           = "depth"
 	eventKeyOrderBook       = "orderBook"
 	eventKeyTrades          = "trades"
-	eventKeyMarketOrders    = "marketOrders"
-	eventKeyP2POrders       = "p2pOrders"
+	eventKeyOrders          = "orders"
+	eventKeyOrderTracing    = "orderTracing"
 )
 
 type SocketIOService interface {
@@ -114,33 +113,47 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer = &kafka.ConsumerRegister{}
 	so.consumer.Initialize(brokers)
 
-	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second, so.broadcastTpTickers, kafka.Kafka_Topic_SocketIO_Tickers_Updated},
-		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second, so.broadcastLoopringTicker, kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated},
-		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrends, kafka.Kafka_Topic_SocketIO_Trends_Updated},
-		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute, so.broadcastMarketCap, ""},
-		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastDepth, kafka.Kafka_Topic_SocketIO_Depth_Updated},
-		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastOrderBook, kafka.Kafka_Topic_SocketIO_Orderbook_Updated},
-		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second, so.broadcastTrades, kafka.Kafka_Topic_SocketIO_Trades_Updated},
+	var topicList = map[string]func(data interface{}) error{
+		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: so.broadcastLoopringTicker,
+		kafka.Kafka_Topic_SocketIO_Tickers_Updated:         so.broadcastTpTickers,
+		kafka.Kafka_Topic_SocketIO_Trades_Updated:          so.broadcastTrades,
+		kafka.Kafka_Topic_SocketIO_Trends_Updated:          so.broadcastTrends,
 
-		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleBalanceUpdate, kafka.Kafka_Topic_SocketIO_BalanceUpdated},
-		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleTransactionUpdate, kafka.Kafka_Topic_SocketIO_Transactions_Updated},
-		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handlePendingTransaction, kafka.Kafka_Topic_SocketIO_PendingTx_Updated},
-		eventKeyMarketOrders: {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate, kafka.Kafka_Topic_SocketIO_Orders_Updated},
-		eventKeyP2POrders:    {"GetLatestP2POrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second, so.handleMarketOrdersUpdate, kafka.Kafka_Topic_SocketIO_Orders_Updated},
+		kafka.Kafka_Topic_SocketIO_Order_Updated: so.handleOrderUpdate,
+		kafka.Kafka_Topic_SocketIO_Cutoff:        so.handleCutOff,
+		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   so.handleCutOffPair,
+
+		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      so.handleBalanceUpdate,
+		kafka.Kafka_Topic_SocketIO_Transaction_Updated: so.handleTransactionUpdate,
 	}
 
-	var topic string
+	so.eventTypeRoute = map[string]InvokeInfo{
+		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
+		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
+		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+
+		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrders:       {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrderTracing: {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+	}
+
+	var groupId string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		topic = "DefaultSocketioTopic" + time.Now().String()
+		groupId = "DefaultSocketioTopic" + time.Now().String()
 	} else {
-		topic = addrs[0].String()
+		groupId = addrs[0].String()
 	}
 
-	for k, v := range so.eventTypeRoute {
-		err = so.consumer.RegisterTopicAndHandler(k, topic, socketioutil.KafkaMsg{}, v.eventHandler)
-		if err != nil && v.eventTopic != "" {
+	for k, v := range topicList {
+		err = so.consumer.RegisterTopicAndHandler(k, groupId, socketioutil.KafkaMsg{}, v)
+		if err != nil {
 			log.Fatalf("Failed init socketio consumer, %s", err.Error())
 		}
 	}
@@ -384,15 +397,14 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err e
 }
 
 func (so *SocketIOServiceImpl) broadcastDepth(input interface{}) (err error) {
-	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input. %s", input)
-	markets := so.getConnectedMarketForDepth(eventKeyDepth)
+	markets := so.getConnectedMarketForDepth(eventKeyDepth, input)
 	respMap := so.getDepthPushData(eventKeyDepth, markets)
 	so.pushDepthData(eventKeyDepth, respMap)
 	return nil
 }
 
 func (so *SocketIOServiceImpl) broadcastOrderBook(input interface{}) (err error) {
-	markets := so.getConnectedMarketForDepth(eventKeyOrderBook)
+	markets := so.getConnectedMarketForDepth(eventKeyOrderBook, input)
 	respMap := so.getDepthPushData(eventKeyOrderBook, markets)
 	so.pushDepthData(eventKeyOrderBook, respMap)
 	return nil
@@ -447,8 +459,17 @@ func (so *SocketIOServiceImpl) pushDepthData(eventKey string, respMap map[string
 func (so *SocketIOServiceImpl) broadcastTrades(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input. %s", input)
+	markets := make(map[string]bool)
 
-	markets := so.getConnectedMarketForFill()
+	if input != nil {
+		req := input.(*socketioutil.KafkaMsg)
+		fillEvent := req.Data.(*dao.FillEvent)
+		delegateAddress := fillEvent.DelegateAddress
+		market := fillEvent.Market
+		markets[strings.ToLower(delegateAddress)+"_"+strings.ToLower(market)] = true
+	} else {
+		markets = so.getConnectedMarketForFill()
+	}
 
 	respMap := make(map[string]string, 0)
 	for mk := range markets {
@@ -525,8 +546,16 @@ func (so *SocketIOServiceImpl) getPriceQuoteResp(currency string) string {
 	return string(respJson)
 }
 
-func (so *SocketIOServiceImpl) getConnectedMarketForDepth(eventKey string) map[string]bool {
+func (so *SocketIOServiceImpl) getConnectedMarketForDepth(eventKey string, input interface{}) map[string]bool {
+
 	markets := make(map[string]bool, 0)
+
+	if input != nil {
+		depthQuery := input.(DepthQuery)
+		markets[strings.ToLower(depthQuery.DelegateAddress)+"_"+strings.ToLower(depthQuery.Market)] = true
+		return markets
+	}
+
 	count := 0
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
@@ -610,16 +639,17 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s", input)
 
-	req := input.(*types.BalanceUpdateEvent)
-	if len(req.Owner) == 0 {
+	req := input.(*socketioutil.KafkaMsg)
+	balanceUpdateEvent := req.Data.(*types.BalanceUpdateEvent)
+	if len(balanceUpdateEvent.Owner) == 0 {
 		return errors.New("owner can't be nil")
 	}
 
-	if common.IsHexAddress(req.DelegateAddress) {
-		so.notifyBalanceUpdateByDelegateAddress(req.Owner, req.DelegateAddress)
+	if common.IsHexAddress(balanceUpdateEvent.DelegateAddress) {
+		so.notifyBalanceUpdateByDelegateAddress(balanceUpdateEvent.Owner, balanceUpdateEvent.DelegateAddress)
 	} else {
 		for k := range loopringaccessor.DelegateAddresses() {
-			so.notifyBalanceUpdateByDelegateAddress(req.Owner, k.Hex())
+			so.notifyBalanceUpdateByDelegateAddress(balanceUpdateEvent.Owner, k.Hex())
 		}
 	}
 	return nil
@@ -653,50 +683,12 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 	return nil
 }
 
-//func (so *SocketIOServiceImpl) broadcastDepth(input interface{}) (err error) {
-//
-//	log.Infof("[SOCKETIO-RECEIVE-EVENT] depth input. %s", input)
-//
-//	req := input.(types.DepthUpdateEvent)
-//	resp := SocketIOJsonResp{}
-//	depths, err := so.walletService.GetDepth(DepthQuery{req.DelegateAddress, req.DelegateAddress})
-//
-//	if err != nil {
-//		resp = SocketIOJsonResp{Error: err.Error()}
-//	} else {
-//		resp.Data = depths
-//	}
-//
-//	respJson, _ := json.Marshal(resp)
-//
-//	so.connIdMap.Range(func(key, value interface{}) bool {
-//		v := value.(socketio.Conn)
-//		if v.Context() != nil {
-//			businesses := v.Context().(map[string]string)
-//			ctx, ok := businesses[eventKeyDepth]
-//
-//			if ok {
-//				depthQuery := &DepthQuery{}
-//				err = json.Unmarshal([]byte(ctx), depthQuery)
-//				if err != nil {
-//					log.Error("depth query unmarshal error, " + err.Error())
-//				} else if strings.ToUpper(req.DelegateAddress) == strings.ToUpper(depthQuery.DelegateAddress) &&
-//					strings.ToUpper(req.Market) == strings.ToUpper(depthQuery.Market) {
-//					log.Info("emit trend " + ctx)
-//					v.Emit(eventKeyDepth+EventPostfixRes, string(respJson[:]))
-//				}
-//			}
-//		}
-//		return true
-//	})
-//	return nil
-//}
-
-func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err error) {
+func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] transaction input. %s", input)
 
-	req := input.(*txtyp.TransactionView)
+	txInput := input.(*socketioutil.KafkaMsg)
+	req := txInput.Data.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
 	log.Infof("received owner is %s ", owner)
 	fmt.Println(so.connIdMap)
@@ -732,6 +724,12 @@ func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err e
 		return true
 	})
 
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err error) {
+	so.handleTransactions(input)
+	so.handlePendingTransaction(input)
 	return nil
 }
 
@@ -778,7 +776,7 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 	return nil
 }
 
-func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input interface{}) (err error) {
+func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error) {
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] market order input. %s", input)
 
@@ -791,7 +789,7 @@ func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input interface{}) (err 
 		fmt.Println(value)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			ctx, ok := businesses[eventKeyMarketOrders]
+			ctx, ok := businesses[eventKeyOrders]
 			log.Infof("cxt contains event key %b", ok)
 
 			if ok {
@@ -800,17 +798,59 @@ func (so *SocketIOServiceImpl) handleMarketOrdersUpdate(input interface{}) (err 
 				log.Info("single owner is: " + query.Owner)
 				if err != nil {
 					log.Error("query unmarshal error, " + err.Error())
-				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) && strings.ToLower(req.RawOrder.Market) == strings.ToLower(query.Market) {
+				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) &&
+					strings.ToLower(req.RawOrder.Market) == strings.ToLower(query.Market) &&
+					strings.ToLower(req.RawOrder.OrderType) == strings.ToLower(query.OrderType) {
 					log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
 					resp.Data = orderStateToJson(*req)
 					respJson, _ := json.Marshal(resp)
-					v.Emit(eventKeyMarketOrders+EventPostfixRes, string(respJson[:]))
+					v.Emit(eventKeyOrders+EventPostfixRes, string(respJson[:]))
 				}
 			}
 		}
 		return true
 	})
 
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) {
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update. %s", input)
+	req := input.(*socketioutil.KafkaMsg)
+	order := req.Data.(*types.OrderState)
+	so.handleOrdersUpdate(order)
+
+	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
+		return nil
+	}
+
+	//TODO finish the depth cache.
+	so.broadcastOrderBook(DepthQuery{DelegateAddress: order.RawOrder.DelegateAddress.Hex(), Market: order.RawOrder.Market})
+	so.broadcastDepth(DepthQuery{DelegateAddress: order.RawOrder.DelegateAddress.Hex(), Market: order.RawOrder.Market})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleCutOff(input interface{}) (err error) {
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update. %s", input)
+	//req := input.(*socketioutil.KafkaMsg)
+	//owner := req.Data.(string)
+	//so.e
+	so.broadcastOrderBook(nil)
+	so.broadcastDepth(nil)
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleCutOffPair(input interface{}) (err error) {
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update. %s", input)
+	req := input.(*socketioutil.KafkaMsg)
+	cutoffPair := req.Data.(*types.CutoffPairEvent)
+	//so.handleOrdersUpdate(req.Data.(*types.CutoffPairEvent))
+	market, err := util.WrapMarketByAddress(cutoffPair.Token1.Hex(), cutoffPair.Token2.Hex())
+	if err != nil {
+		return err
+	}
+	so.broadcastOrderBook(DepthQuery{DelegateAddress: cutoffPair.DelegateAddress.Hex(), Market: market})
+	so.broadcastDepth(DepthQuery{DelegateAddress: cutoffPair.DelegateAddress.Hex(), Market: market})
 	return nil
 }
