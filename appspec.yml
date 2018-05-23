@@ -19,7 +19,7 @@ hooks:
       runas: root
   AfterInstall:
     - location: bin/build.sh
-      timeout: 30
+      timeout: 120
       runas: ubuntu
   ApplicationStart:
     - location: bin/start.sh
