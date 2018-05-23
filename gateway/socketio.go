@@ -603,9 +603,10 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 
 
 	inputMsg := input.(*socketioutil.KafkaMsg)
-	req := inputMsg.Data.(TrendQuery)
+	req := inputMsg.Data.(string)
+	trendQuery := TrendQuery{Market:req, Interval:"1Hr"}
 	resp := SocketIOJsonResp{}
-	trends, err := so.walletService.GetTrend(req)
+	trends, err := so.walletService.GetTrend(trendQuery)
 
 	if err != nil {
 		resp = SocketIOJsonResp{Error: err.Error()}
@@ -626,8 +627,8 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 				err = json.Unmarshal([]byte(ctx), trendQuery)
 				if err != nil {
 					log.Error("trend query unmarshal error, " + err.Error())
-				} else if strings.ToUpper(req.Market) == strings.ToUpper(trendQuery.Market) &&
-					strings.ToUpper(req.Interval) == strings.ToUpper(trendQuery.Interval) {
+				} else if strings.ToUpper(trendQuery.Market) == strings.ToUpper(trendQuery.Market) &&
+					strings.ToUpper(trendQuery.Interval) == strings.ToUpper(trendQuery.Interval) {
 					log.Info("emit trend " + ctx)
 					v.Emit(eventKeyTrends+EventPostfixRes, string(respJson[:]))
 				}
