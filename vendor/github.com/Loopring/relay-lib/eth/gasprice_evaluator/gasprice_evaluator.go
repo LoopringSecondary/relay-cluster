@@ -20,6 +20,7 @@ package gasprice_evaluator
 
 import (
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/log"
@@ -30,8 +31,9 @@ import (
 )
 
 const (
-	CacheKey_Evaluated_GasPrice = "evaluated_gasprice"
-	ZkName_Evaluated_GasPrice   = "evaluated_gasprice"
+	CacheKey_Evaluated_GasPrice  = "evaluated_gasprice"
+	ZkName_Evaluated_GasPrice    = "evaluated_gasprice"
+	HEARTBEAT_Evaluated_GasPrice = "evaluated_gasprice"
 )
 
 var priceEvaluator *GasPriceEvaluator
@@ -60,6 +62,9 @@ func (e *GasPriceEvaluator) start() {
 					return
 				default:
 					blockInterface, err := iterator.Next()
+					if err := cloudwatch.PutHeartBeatMetric(HEARTBEAT_Evaluated_GasPrice); nil != err {
+						log.Errorf("err:%s", err.Error())
+					}
 					if nil == err {
 						blockWithTxAndReceipt := blockInterface.(*ethtyp.BlockWithTxAndReceipt)
 						log.Debugf("gasPriceEvaluator, blockNumber:%s, gasPrice:%s", blockWithTxAndReceipt.Number.BigInt().String(), e.gasPrice.String())

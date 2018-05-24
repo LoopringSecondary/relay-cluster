@@ -31,6 +31,7 @@ import (
 	"github.com/Loopring/relay-cluster/usermanager"
 	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
@@ -105,6 +106,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerSocketIOService()
 
 	n.registerExtractor()
+	cloudwatch.Initialize()
 
 	return n
 }
