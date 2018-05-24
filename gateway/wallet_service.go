@@ -1086,7 +1086,7 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 		minAmountS, minAmountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)
 
 		if err != nil {
-			log.Errorf("calculate min amount error " + err.Error())
+			//log.Errorf("calculate min amount error " + err.Error())
 			continue
 		}
 
@@ -1211,7 +1211,6 @@ func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isA
 	minAmountB := amountB
 	minAmountS := amountS
 
-	log.Info(">>>>> calculate order vaailable min amount , " + state.RawOrder.Hash.Hex())
 	minAmountS, err = w.getAvailableMinAmount(amountS, state.RawOrder.Owner, state.RawOrder.TokenS, state.RawOrder.DelegateAddress, tokenSDecimal)
 	if err != nil {
 		return nil, nil, err
