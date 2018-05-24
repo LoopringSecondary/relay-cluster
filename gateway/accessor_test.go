@@ -125,8 +125,8 @@ func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
 }
 
 func TestEthNodeAccessor_ERC20Balance(t *testing.T) {
-	accounts := []common.Address{account1, account2, miner.Address}
-	tokens := []common.Address{lrcTokenAddress, wethTokenAddress}
+	accounts := []common.Address{common.HexToAddress("0x750ad4351bb728cec7d639a9511f9d6488f1e259"), common.HexToAddress("0x251f3bd45b06a8b29cb6d171131e192c1254fec1")}
+	tokens := []common.Address{common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), common.HexToAddress("0xe1C541BA900cbf212Bc830a5aaF88aB499931751")}
 
 	for _, tokenAddress := range tokens {
 		for _, account := range accounts {
@@ -134,7 +134,8 @@ func TestEthNodeAccessor_ERC20Balance(t *testing.T) {
 			if err != nil {
 				t.Fatalf("accessor get erc20 balance error:%s", err.Error())
 			}
-			amount := new(big.Rat).SetFrac(balance, big.NewInt(1e18)).FloatString(2)
+			//amount := new(big.Rat).SetFrac(balance, big.NewInt(1e18)).FloatString(2)
+			amount := balance.String()
 			symbol, _ := util.GetSymbolWithAddress(tokenAddress)
 			t.Logf("token:%s account:%s amount:%s", symbol, account.Hex(), amount)
 		}
@@ -159,8 +160,11 @@ func TestEthNodeAccessor_Approval(t *testing.T) {
 }
 
 func TestEthNodeAccessor_Allowance(t *testing.T) {
-	tokens := []common.Address{lrcTokenAddress, wethTokenAddress}
-	accounts := []common.Address{account1, account2}
+	/*accounts := []common.Address{account1, account2}
+	tokens := []common.Address{lrcTokenAddress, wethTokenAddress}*/
+	accounts := []common.Address{common.HexToAddress("0x750ad4351bb728cec7d639a9511f9d6488f1e259"), common.HexToAddress("0x251f3bd45b06a8b29cb6d171131e192c1254fec1")}
+	tokens := []common.Address{common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), common.HexToAddress("0xe1C541BA900cbf212Bc830a5aaF88aB499931751")}
+
 	spender := delegateAddress
 
 	for _, tokenAddress := range tokens {
