@@ -1134,12 +1134,15 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 
 	})
 
-	if isAsk {
-		return depth[len(depth)-length-1:]
+	if len(depth) > length {
+		if isAsk {
+			return depth[len(depth)-length-1:]
+		} else {
+			return depth[:length]
+		}
 	} else {
-		return depth[:length]
+		return depth
 	}
-	return depth
 }
 
 func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int, length int) (elements []OrderBookElement, err error) {
