@@ -108,6 +108,12 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
+			"checksumSHA1": "LF1ESj42O5OsNJ41RZ9vSsh9YhI=",
+			"path": "github.com/Loopring/relay-lib",
+			"revision": "125cc390b078a7f015b61b7270a31af279b796b3",
+			"revisionTime": "2018-05-24T07:33:39Z"
+		},
+		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
 			"path": "github.com/Loopring/relay-lib/broadcast/ipfs",
 			"revision": "538fbbe6fe65cbedae588f1a3ef0f37ac3725339",
@@ -230,8 +236,8 @@
 		{
 			"checksumSHA1": "MUWnycwBM59fGrJuD4k1svFkiEw=",
 			"path": "github.com/Loopring/relay-lib/types",
-			"revision": "125cc390b078a7f015b61b7270a31af279b796b3",
-			"revisionTime": "2018-05-24T07:33:39Z"
+			"revision": "bdc77f543693f25554c32c4a427626552c79a66a",
+			"revisionTime": "2018-05-24T07:54:43Z"
 		},
 		{
 			"checksumSHA1": "XR1GHWlreOTlHmWFHQT0frthkGU=",
