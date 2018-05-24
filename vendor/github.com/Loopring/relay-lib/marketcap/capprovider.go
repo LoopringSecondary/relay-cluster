@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -38,8 +39,9 @@ import (
 type LegalCurrency int
 
 const (
-	CACHEKEY_COIN_MARKETCAP = "coin_marketcap"
-	ZKNAME_COIN_MARKETCAP   = "coin_marketcap"
+	CACHEKEY_COIN_MARKETCAP  = "coin_marketcap_"
+	ZKNAME_COIN_MARKETCAP    = "coin_marketcap_"
+	HEARTBEAT_COIN_MARKETCAP = "coin_marketcap"
 )
 
 func StringToLegalCurrency(currency string) LegalCurrency {
@@ -305,9 +307,17 @@ func (p *CapProvider_CoinMarketCap) Start() {
 	go p.syncMarketCapFromAPIWithZk()
 }
 
+func (p *CapProvider_CoinMarketCap) zklockName() string {
+	return ZKNAME_COIN_MARKETCAP + p.currency
+}
+
+func (p *CapProvider_CoinMarketCap) cacheKey() string {
+	return CACHEKEY_COIN_MARKETCAP + p.currency
+}
+
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 	//todo:
-	zklock.TryLock(ZKNAME_COIN_MARKETCAP)
+	zklock.TryLock(p.zklockName())
 	log.Debugf("syncMarketCapFromAPIWithZk....")
 	stopChan := make(chan bool)
 	p.stopFuncs = append(p.stopFuncs, func() {
@@ -320,9 +330,12 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap from api...")
 				p.syncMarketCapFromAPI()
+				if err := cloudwatch.PutHeartBeatMetric(HEARTBEAT_COIN_MARKETCAP); nil != err {
+					log.Errorf("err:%s", err.Error())
+				}
 			case stopped := <-stopChan:
 				if stopped {
-					zklock.ReleaseLock(ZKNAME_COIN_MARKETCAP)
+					zklock.ReleaseLock(p.zklockName())
 					return
 				}
 			}
@@ -332,8 +345,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
 	log.Debugf("syncMarketCapFromAPI...")
-	//make sync as cny, as when set usd it will not return price_cny
-	url := fmt.Sprintf(p.baseUrl, "CNY")
+	url := fmt.Sprintf(p.baseUrl, p.currency)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Errorf("err:%s", err.Error())
@@ -350,13 +362,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
 		log.Errorf("err:%s", err.Error())
 		return []byte{}, err
 	}
-	err = cache.Set(CACHEKEY_COIN_MARKETCAP, body, int64((p.duration+1)*60))
+	err = cache.Set(p.cacheKey(), body, int64((p.duration+1)*60))
 	return body, err
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	//todo:use zk to keep
-	body, err := cache.Get(CACHEKEY_COIN_MARKETCAP)
+	body, err := cache.Get(p.cacheKey())
 	if nil != err {
 		body, err = p.syncMarketCapFromAPI()
 	}
