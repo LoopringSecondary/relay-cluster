@@ -83,6 +83,7 @@ const (
 	eventKeyMarketCap       = "marketcap"
 	eventKeyBalance         = "balance"
 	eventKeyTransaction     = "transaction"
+	eventKeyLatestTransaction     = "latestTransaction"
 	eventKeyPendingTx       = "pendingTx"
 	eventKeyDepth           = "depth"
 	eventKeyOrderBook       = "orderBook"
@@ -143,7 +144,8 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 
 		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTransaction:  {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyLatestTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyOrders:       {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyOrderTracing: {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
@@ -695,7 +697,6 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
 	log.Infof("received owner is %s ", owner)
-	fmt.Println(so.connIdMap)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
@@ -731,9 +732,52 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 	return nil
 }
 
+func (so *SocketIOServiceImpl) handleLatestTransactions(input interface{}) (err error) {
+
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] latest transactions input. %s", input)
+
+	req := input.(*txtyp.TransactionView)
+	owner := req.Owner.Hex()
+	log.Infof("received owner is %s ", owner)
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyLatestTransaction]
+			log.Infof("cxt contains event key %b", ok)
+
+			if ok {
+				txQuery := &TransactionQuery{}
+				log.Info("txQuery owner is " + txQuery.Owner)
+				err = json.Unmarshal([]byte(ctx), txQuery)
+				if err != nil {
+					log.Error("tx query unmarshal error, " + err.Error())
+				} else if strings.ToUpper(owner) == strings.ToUpper(txQuery.Owner) {
+					log.Info("emit trend " + ctx)
+
+					txs, err := so.walletService.GetLatestTransactions(*txQuery)
+					resp := SocketIOJsonResp{}
+
+					if err != nil {
+						resp = SocketIOJsonResp{Error: err.Error()}
+					} else {
+						resp.Data = txs
+					}
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyTransaction+EventPostfixRes, string(respJson[:]))
+				}
+			}
+		}
+		return true
+	})
+
+	return nil
+}
+
 func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err error) {
 	so.handleTransactions(input)
 	so.handlePendingTransaction(input)
+	so.handleLatestTransactions(input)
 	return nil
 }
 
