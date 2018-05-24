@@ -32,12 +32,12 @@ const (
 	Kafka_Topic_SocketIO_Loopring_Ticker_Updated = "Kafka_Topic_SocketIO_Loopring_Ticker_Updated"
 	Kafka_Topic_SocketIO_Tickers_Updated         = "Kafka_Topic_SocketIO_Tickers_Updated"
 	Kafka_Topic_SocketIO_Trades_Updated          = "Kafka_Topic_SocketIO_Trades_Updated"
-	Kafka_Topic_SocketIO_Trends_Updated       = "Kafka_Topic_SocketIO_Trends_Updated"
+	Kafka_Topic_SocketIO_Trends_Updated          = "Kafka_Topic_SocketIO_Trends_Updated"
 
-	Kafka_Topic_SocketIO_Order_Updated           = "Kafka_Topic_SocketIO_Order_Updated"
-	Kafka_Topic_SocketIO_Cutoff                  = "Kafka_Topic_SocketIO_Cutoff"
-	Kafka_Topic_SocketIO_Cutoff_Pair             = "Kafka_Topic_SocketIO_Cutoff_Pair"
+	Kafka_Topic_SocketIO_Order_Updated = "Kafka_Topic_SocketIO_Order_Updated"
+	Kafka_Topic_SocketIO_Cutoff        = "Kafka_Topic_SocketIO_Cutoff"
+	Kafka_Topic_SocketIO_Cutoff_Pair   = "Kafka_Topic_SocketIO_Cutoff_Pair"
 
-	Kafka_Topic_SocketIO_BalanceUpdated       = "Kafka_Topic_SocketIO_BalanceUpdated"
+	Kafka_Topic_SocketIO_BalanceUpdated      = "Kafka_Topic_SocketIO_BalanceUpdated"
 	Kafka_Topic_SocketIO_Transaction_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
 )

@@ -10,7 +10,7 @@ import (
 )
 
 /*
- need config following config files for aws sns service connect
+ need following local config files for aws service connect
 	~/.aws/config/config
 	~/.aws/config/credentials
 */
