@@ -252,7 +252,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	state.SplitAmountB = new(big.Int).Add(state.SplitAmountB, event.SplitB)
 
 	// update order status
-	settleOrderStatus(state, om.mc, ORDER_FROM_FILL)
+	settleOrderStatus(state, om.mc, false)
 
 	// update rds.Order
 	if err := model.ConvertDown(state); err != nil {
@@ -310,7 +310,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 	}
 
 	// update order status
-	settleOrderStatus(state, om.mc, ORDER_FROM_CANCEL)
+	settleOrderStatus(state, om.mc, true)
 	state.UpdatedBlock = event.BlockNumber
 
 	// update rds.Order

@@ -790,8 +790,6 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 	log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
-		fmt.Println(key)
-		fmt.Println(value)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyPendingTx]
@@ -833,8 +831,6 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 	log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
-		fmt.Println(key)
-		fmt.Println(value)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrders]
@@ -872,8 +868,6 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 	log.Infof("received orderHash is %s ", orderHash)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
-		fmt.Println(key)
-		fmt.Println(value)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrderTracing]
