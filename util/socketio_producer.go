@@ -23,11 +23,6 @@ import (
 	"log"
 )
 
-type KafkaMsg struct {
-	EventKey string
-	Data     interface{}
-}
-
 var socketIOProducer *kafka.MessageProducer
 
 func Initialize(brokers []string) {
@@ -40,6 +35,6 @@ func Initialize(brokers []string) {
 }
 
 func ProducerSocketIOMessage(eventKey string, data interface{}) error {
-	_, _, err := socketIOProducer.SendMessage(eventKey, &KafkaMsg{eventKey, data}, "1")
+	_, _, err := socketIOProducer.SendMessage(eventKey, data, "1")
 	return err
 }

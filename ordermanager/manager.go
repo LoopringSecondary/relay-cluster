@@ -363,7 +363,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 		return err
 	}
 
-	notify.NotifyCutoff(evt.Owner)
+	notify.NotifyCutoff(evt)
 
 	return nil
 }

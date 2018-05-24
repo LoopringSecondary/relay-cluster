@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
-	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
@@ -22,6 +21,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/Loopring/relay-cluster/market"
 )
 
 const (
@@ -105,6 +105,11 @@ type SocketIOServiceImpl struct {
 	eventTypeRoute map[string]InvokeInfo
 }
 
+type SocketMsgHandler struct {
+	Data  interface{}
+	Handler func(data interface{}) error
+}
+
 func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []string) *SocketIOServiceImpl {
 	so := &SocketIOServiceImpl{}
 	so.port = port
@@ -114,18 +119,18 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer = &kafka.ConsumerRegister{}
 	so.consumer.Initialize(brokers)
 
-	var topicList = map[string]func(data interface{}) error{
-		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: so.broadcastLoopringTicker,
-		kafka.Kafka_Topic_SocketIO_Tickers_Updated:         so.broadcastTpTickers,
-		kafka.Kafka_Topic_SocketIO_Trades_Updated:          so.broadcastTrades,
-		kafka.Kafka_Topic_SocketIO_Trends_Updated:          so.broadcastTrends,
+	var topicList = map[string]SocketMsgHandler {
+		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {nil, so.broadcastLoopringTicker},
+		kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
+		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {nil, so.broadcastTrades},
+		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {market.TrendUpdateMsg{}, so.broadcastTrends},
 
-		kafka.Kafka_Topic_SocketIO_Order_Updated: so.handleOrderUpdate,
-		kafka.Kafka_Topic_SocketIO_Cutoff:        so.handleCutOff,
-		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   so.handleCutOffPair,
+		kafka.Kafka_Topic_SocketIO_Order_Updated: {&types.OrderState{}, so.handleOrderUpdate},
+		kafka.Kafka_Topic_SocketIO_Cutoff:        {&types.CutoffEvent{}, so.handleCutOff},
+		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   {&types.CutoffPairEvent{}, so.handleCutOffPair},
 
-		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      so.handleBalanceUpdate,
-		kafka.Kafka_Topic_SocketIO_Transaction_Updated: so.handleTransactionUpdate,
+		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {&types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
+		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {&txtyp.TransactionView{},so.handleTransactionUpdate},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -153,7 +158,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	for k, v := range topicList {
-		err = so.consumer.RegisterTopicAndHandler(k, groupId, socketioutil.KafkaMsg{}, v)
+		err = so.consumer.RegisterTopicAndHandler(k, groupId, v.Data, v.Handler)
 		if err != nil {
 			log.Fatalf("Failed init socketio consumer, %s", err.Error())
 		}
@@ -463,8 +468,7 @@ func (so *SocketIOServiceImpl) broadcastTrades(input interface{}) (err error) {
 	markets := make(map[string]bool)
 
 	if input != nil {
-		req := input.(*socketioutil.KafkaMsg)
-		fillEvent := req.Data.(*dao.FillEvent)
+		fillEvent := input.(*dao.FillEvent)
 		delegateAddress := fillEvent.DelegateAddress
 		market := fillEvent.Market
 		markets[strings.ToLower(delegateAddress)+"_"+strings.ToLower(market)] = true
@@ -601,9 +605,11 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] trend input. %s", input)
 
-	req := input.(TrendQuery)
+
+	req := input.(*market.TrendUpdateMsg)
+	trendQuery := TrendQuery{Market:req.Market, Interval:req.Interval}
 	resp := SocketIOJsonResp{}
-	trends, err := so.walletService.GetTrend(req)
+	trends, err := so.walletService.GetTrend(trendQuery)
 
 	if err != nil {
 		resp = SocketIOJsonResp{Error: err.Error()}
@@ -624,8 +630,8 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 				err = json.Unmarshal([]byte(ctx), trendQuery)
 				if err != nil {
 					log.Error("trend query unmarshal error, " + err.Error())
-				} else if strings.ToUpper(req.Market) == strings.ToUpper(trendQuery.Market) &&
-					strings.ToUpper(req.Interval) == strings.ToUpper(trendQuery.Interval) {
+				} else if strings.ToUpper(trendQuery.Market) == strings.ToUpper(trendQuery.Market) &&
+					strings.ToUpper(trendQuery.Interval) == strings.ToUpper(trendQuery.Interval) {
 					log.Info("emit trend " + ctx)
 					v.Emit(eventKeyTrends+EventPostfixRes, string(respJson[:]))
 				}
@@ -640,8 +646,7 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s", input)
 
-	req := input.(*socketioutil.KafkaMsg)
-	balanceUpdateEvent := req.Data.(*types.BalanceUpdateEvent)
+	balanceUpdateEvent := input.(*types.BalanceUpdateEvent)
 	if len(balanceUpdateEvent.Owner) == 0 {
 		return errors.New("owner can't be nil")
 	}
@@ -688,8 +693,7 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] transactions input. %s", input)
 
-	txInput := input.(*socketioutil.KafkaMsg)
-	req := txInput.Data.(*txtyp.TransactionView)
+	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
 	log.Infof("received owner is %s ", owner)
 	fmt.Println(so.connIdMap)
@@ -855,8 +859,7 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 
 func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) {
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update. %s", input)
-	req := input.(*socketioutil.KafkaMsg)
-	order := req.Data.(*types.OrderState)
+	order := input.(*types.OrderState)
 	so.handleOrdersUpdate(order)
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
@@ -881,8 +884,7 @@ func (so *SocketIOServiceImpl) handleCutOff(input interface{}) (err error) {
 
 func (so *SocketIOServiceImpl) handleCutOffPair(input interface{}) (err error) {
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update. %s", input)
-	req := input.(*socketioutil.KafkaMsg)
-	cutoffPair := req.Data.(*types.CutoffPairEvent)
+	cutoffPair := input.(*types.CutoffPairEvent)
 	//so.handleOrdersUpdate(req.Data.(*types.CutoffPairEvent))
 	market, err := util.WrapMarketByAddress(cutoffPair.Token1.Hex(), cutoffPair.Token2.Hex())
 	if err != nil {
