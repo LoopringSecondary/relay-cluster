@@ -51,7 +51,7 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	settleOrderCancelAndFilled(state, cancelAmount, dealtAmount)
 
 	// check order finished status
-	settleOrderStatus(state, mc, ORDER_FROM_FILL)
+	settleOrderStatus(state, mc, false)
 
 	// convert order
 	model := &dao.Order{}
@@ -60,15 +60,7 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	return model, nil
 }
 
-// 写入订单状态
-type OrderFillOrCancelType string
-
-const (
-	ORDER_FROM_FILL   OrderFillOrCancelType = "fill"
-	ORDER_FROM_CANCEL OrderFillOrCancelType = "cancel"
-)
-
-func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, source OrderFillOrCancelType) {
+func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, isCancel bool) {
 	zero := big.NewInt(0)
 	finishAmountS := big.NewInt(0).Add(state.CancelledAmountS, state.DealtAmountS)
 	totalAmountS := big.NewInt(0).Add(finishAmountS, state.SplitAmountS)
@@ -78,21 +70,12 @@ func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 
 	if totalAmount.Cmp(zero) <= 0 {
 		state.Status = types.ORDER_NEW
-		return
-	}
-
-	if !mc.IsOrderValueDust(state) {
+	} else if !mc.IsOrderValueDust(state) {
 		state.Status = types.ORDER_PARTIAL
-		return
-	}
-
-	if source == ORDER_FROM_FILL {
-		state.Status = types.ORDER_FINISHED
-		return
-	}
-	if source == ORDER_FROM_CANCEL {
+	} else if isCancel {
 		state.Status = types.ORDER_CANCEL
-		return
+	} else {
+		state.Status = types.ORDER_FINISHED
 	}
 }
 
