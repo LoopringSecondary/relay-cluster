@@ -108,6 +108,12 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
+			"checksumSHA1": "8hxAC/ZwEQV5e9DR8rQGxjHLR08=",
+			"path": "github.com/Loopring/relay-lib",
+			"revision": "0648f9cb8ffb5c64a05270bf3007896f0c26bb2c",
+			"revisionTime": "2018-05-24T07:34:28Z"
+		},
+		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
 			"path": "github.com/Loopring/relay-lib/broadcast/ipfs",
 			"revision": "538fbbe6fe65cbedae588f1a3ef0f37ac3725339",
@@ -198,10 +204,10 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
-			"checksumSHA1": "irn7x+QQnRurz+qPfrNb5kkicU4=",
+			"checksumSHA1": "lxH5HvYc8dexObLUKlH0D5sSwzw=",
 			"path": "github.com/Loopring/relay-lib/marketcap",
-			"revision": "538fbbe6fe65cbedae588f1a3ef0f37ac3725339",
-			"revisionTime": "2018-05-23T06:50:25Z"
+			"revision": "0648f9cb8ffb5c64a05270bf3007896f0c26bb2c",
+			"revisionTime": "2018-05-24T07:34:28Z"
 		},
 		{
 			"checksumSHA1": "fw20/0H/Skz3G8MR/PY0OQ2lIVE=",
