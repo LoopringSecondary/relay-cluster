@@ -108,10 +108,10 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
-			"checksumSHA1": "bThiqfiAeQ/MjPnf4WhdMSveNko=",
+			"checksumSHA1": "P6Tm4qU40N+SsDajhY01vKTXjOE=",
 			"path": "github.com/Loopring/relay-lib",
-			"revision": "bdc77f543693f25554c32c4a427626552c79a66a",
-			"revisionTime": "2018-05-24T07:54:43Z"
+			"revision": "e2fb698b389bc54c60bf2bd42f9db224836f3178",
+			"revisionTime": "2018-05-24T07:59:47Z"
 		},
 		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
@@ -162,10 +162,10 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
-			"checksumSHA1": "SWtslVMSqAaGxrGt3VFIG15ynuI=",
+			"checksumSHA1": "04a3WMb0kx4Xrw1jtNuzOWLZOrM=",
 			"path": "github.com/Loopring/relay-lib/eth/gasprice_evaluator",
-			"revision": "538fbbe6fe65cbedae588f1a3ef0f37ac3725339",
-			"revisionTime": "2018-05-23T06:50:25Z"
+			"revision": "e2fb698b389bc54c60bf2bd42f9db224836f3178",
+			"revisionTime": "2018-05-24T07:59:47Z"
 		},
 		{
 			"checksumSHA1": "M5+FPH7uBTrUdkYTiZcRp7OHAco=",
@@ -204,10 +204,10 @@
 			"revisionTime": "2018-05-23T06:50:25Z"
 		},
 		{
-			"checksumSHA1": "lxH5HvYc8dexObLUKlH0D5sSwzw=",
+			"checksumSHA1": "jsjcFmBY7L3qEhgg1X6OHdRp7go=",
 			"path": "github.com/Loopring/relay-lib/marketcap",
-			"revision": "0648f9cb8ffb5c64a05270bf3007896f0c26bb2c",
-			"revisionTime": "2018-05-24T07:34:28Z"
+			"revision": "e2fb698b389bc54c60bf2bd42f9db224836f3178",
+			"revisionTime": "2018-05-24T07:59:47Z"
 		},
 		{
 			"checksumSHA1": "fw20/0H/Skz3G8MR/PY0OQ2lIVE=",
