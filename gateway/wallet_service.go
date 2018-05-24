@@ -1211,6 +1211,7 @@ func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isA
 	minAmountB := amountB
 	minAmountS := amountS
 
+	log.Info(">>>>> calculate order vaailable min amount , " + state.RawOrder.Hash.Hex())
 	minAmountS, err = w.getAvailableMinAmount(amountS, state.RawOrder.Owner, state.RawOrder.TokenS, state.RawOrder.DelegateAddress, tokenSDecimal)
 	if err != nil {
 		return nil, nil, err
