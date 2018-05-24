@@ -37,10 +37,13 @@ const (
 	ORDER_CUTOFF     OrderStatus = 5
 	ORDER_EXPIRE     OrderStatus = 6
 	ORDER_PENDING    OrderStatus = 7
-	ORDER_P2P_LOCKED OrderStatus = 17
-	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 7
-	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 8
+	ORDER_CANCELLING OrderStatus = 8
 
+	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 9
+	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 10
+)
+
+const (
 	ORDER_TYPE_MARKET = "market_order"
 	ORDER_TYPE_P2P    = "p2p_order"
 )
@@ -188,26 +191,6 @@ func (o *Order) GeneratePrice() {
 	o.Price = new(big.Rat).SetFrac(o.AmountS, o.AmountB)
 }
 
-// 根据big.Rat价格计算big.int remainAmount
-// buyNoMoreThanAmountB == true  已知remainAmountB计算remainAmountS
-// buyNoMoreThanAmountB == false 已知remainAmountS计算remainAmountB
-//func (ord *OrderState) CalculateRemainAmount() {
-//	const RATE = 1.0e18
-//
-//	price, _ := ord.RawOrder.Price.Float64()
-//	price = price * RATE
-//	bigPrice := big.NewInt(int64(price))
-//	bigRate := big.NewInt(RATE)
-//
-//	if ord.RawOrder.BuyNoMoreThanAmountB == true {
-//		beenRateAmountB := new(big.Int).Mul(ord.DealtAmountB, bigPrice)
-//		ord.DealtAmountS = new(big.Int).Div(beenRateAmountB, bigRate)
-//	} else {
-//		beenRateAmountS := new(big.Int).Mul(ord.DealtAmountS, bigRate)
-//		ord.DealtAmountB = new(big.Int).Div(beenRateAmountS, bigPrice)
-//	}
-//}
-
 //RateAmountS、FeeSelection 需要提交到contract
 type FilledOrder struct {
 	OrderState       OrderState `json:"orderState" gencodec:"required"`
@@ -287,19 +270,6 @@ type OrderDelayList struct {
 	DelayedCount int64
 }
 
-func InUnchangeableStatus(status OrderStatus) bool {
-	unchangeableList := []OrderStatus{
-		ORDER_FINISHED, ORDER_UNKNOWN, ORDER_CANCEL, ORDER_CUTOFF}
-
-	for _, v := range unchangeableList {
-		if status == v {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (ord *OrderState) IsExpired() bool {
 	if (ord.Status == ORDER_NEW || ord.Status == ORDER_PARTIAL) && ord.RawOrder.ValidUntil.Int64() < time.Now().Unix() {
 		return true
@@ -315,52 +285,6 @@ func (ord *OrderState) IsEffective() bool {
 	}
 	return false
 }
-
-// 解释订单最终状态
-func (ord *OrderState) ResolveStatus(allowance, balance *big.Int) {
-	if InUnchangeableStatus(ord.Status) {
-		return
-	}
-
-	if ord.RawOrder.ValidUntil.Int64() < time.Now().Unix() {
-		ord.Status = ORDER_EXPIRE
-		return
-	}
-
-	//cancelOrFilled := new(big.Int).Add(ord.CancelledAmountS, ord.DealtAmountS)
-	//finished := new(big.Int).Add(cancelOrFilled, ord.SplitAmountS)
-
-	//if finished.Cmp(allowance) >= 0 {
-	//	ord.Status = ORDER_ALLOWANCE_INSUFFICIENT
-	//	return
-	//}
-	//
-	//if finished.Cmp(balance) >= 0 {
-	//	ord.Status = ORDER_BALANCE_INSUFFICIENT
-	//	return
-	//}
-}
-
-//const (
-//	SIDE_SELL    = "sell"
-//	SIDE_BUY     = "buy"
-//	SIDE_INVALID = ""
-//)
-
-// 根据市场确定订单方向
-//func (ord *OrderState) Side(market common.Address) string {
-//	var side string
-//	switch market {
-//	case ord.RawOrder.TokenS:
-//		side = SIDE_SELL
-//	case ord.RawOrder.TokenB:
-//		side = SIDE_BUY
-//	default:
-//		side = SIDE_INVALID
-//	}
-//
-//	return side
-//}
 
 func (orderState *OrderState) RemainedAmount() (remainedAmountS *big.Rat, remainedAmountB *big.Rat) {
 	remainedAmountS = new(big.Rat)
