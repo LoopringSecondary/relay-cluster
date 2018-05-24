@@ -22,7 +22,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/aws/aws-sdk-go/private/protocol/query"
 )
 
 const (
