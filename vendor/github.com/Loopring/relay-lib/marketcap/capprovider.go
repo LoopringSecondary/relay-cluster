@@ -362,7 +362,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
 		log.Errorf("err:%s", err.Error())
 		return []byte{}, err
 	}
-	err = cache.Set(p.cacheKey(), body, int64((p.duration+1)*60))
+	err = cache.Set(p.cacheKey(), body, int64(0))
 	return body, err
 }
 
