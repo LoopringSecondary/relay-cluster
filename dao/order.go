@@ -116,6 +116,7 @@ func (o *Order) ConvertDown(state *types.OrderState) error {
 	o.BroadcastTime = state.BroadcastTime
 	o.Side = state.RawOrder.Side
 	o.OrderType = state.RawOrder.OrderType
+	o.Market = state.RawOrder.Market
 
 	return nil
 }

@@ -131,6 +131,12 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 	order.Hash = order.GenerateHash()
 	orderHash = order.Hash.Hex()
 
+	market, err := util.WrapMarketByAddress(order.TokenB.Hex(), order.TokenS.Hex())
+	if err != nil {
+		return orderHash, err
+	}
+	order.Market = market
+
 	//var broadcastTime int
 
 	//TODO(xiaolu) 这里需要测试一下，超时error和查询数据为空的error，处理方式不应该一样

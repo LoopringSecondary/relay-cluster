@@ -77,19 +77,19 @@ type InvokeInfo struct {
 }
 
 const (
-	eventKeyTickers         = "tickers"
-	eventKeyLoopringTickers = "loopringTickers"
-	eventKeyTrends          = "trends"
-	eventKeyMarketCap       = "marketcap"
-	eventKeyBalance         = "balance"
-	eventKeyTransaction     = "transaction"
-	eventKeyLatestTransaction     = "latestTransaction"
-	eventKeyPendingTx       = "pendingTx"
-	eventKeyDepth           = "depth"
-	eventKeyOrderBook       = "orderBook"
-	eventKeyTrades          = "trades"
-	eventKeyOrders          = "orders"
-	eventKeyOrderTracing    = "orderTracing"
+	eventKeyTickers           = "tickers"
+	eventKeyLoopringTickers   = "loopringTickers"
+	eventKeyTrends            = "trends"
+	eventKeyMarketCap         = "marketcap"
+	eventKeyBalance           = "balance"
+	eventKeyTransaction       = "transaction"
+	eventKeyLatestTransaction = "latestTransaction"
+	eventKeyPendingTx         = "pendingTx"
+	eventKeyDepth             = "depth"
+	eventKeyOrderBook         = "orderBook"
+	eventKeyTrades            = "trades"
+	eventKeyOrders            = "orders"
+	eventKeyOrderTracing      = "orderTracing"
 )
 
 type SocketIOService interface {
@@ -120,11 +120,11 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer = &kafka.ConsumerRegister{}
 	so.consumer.Initialize(brokers)
 
-	var topicList = map[string]SocketMsgHandler {
+	var topicList = map[string]SocketMsgHandler{
 		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
 		//kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
-		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {dao.FillEvent{}, so.broadcastTrades},
-		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {market.TrendUpdateMsg{}, so.broadcastTrends},
+		kafka.Kafka_Topic_SocketIO_Trades_Updated: {dao.FillEvent{}, so.broadcastTrades},
+		kafka.Kafka_Topic_SocketIO_Trends_Updated: {market.TrendUpdateMsg{}, so.broadcastTrends},
 
 		kafka.Kafka_Topic_SocketIO_Order_Updated: {types.OrderState{}, so.handleOrderUpdate},
 		kafka.Kafka_Topic_SocketIO_Cutoff:        {types.CutoffEvent{}, so.handleCutOff},
@@ -143,12 +143,12 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 
-		eventKeyBalance:      {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTransaction:  {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyLatestTransaction:  {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyPendingTx:    {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrders:       {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderTracing: {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
 	}
 
 	var groupId string

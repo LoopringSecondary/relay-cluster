@@ -25,38 +25,19 @@ import (
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Workiva/go-datastructures/threadsafe/err"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
 func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
-	blockNumberStr := blockNumberToString(blockNumber)
-
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)
 	state.SplitAmountS = big.NewInt(0)
 	state.SplitAmountB = big.NewInt(0)
 	state.CancelledAmountB = big.NewInt(0)
 	state.CancelledAmountS = big.NewInt(0)
-
 	state.RawOrder.Side = util.GetSide(state.RawOrder.TokenS.Hex(), state.RawOrder.TokenB.Hex())
-
-	protocol := state.RawOrder.DelegateAddress
-	cancelAmount, dealtAmount, getAmountErr := getCancelledAndDealtAmount(protocol, state.RawOrder.Hash, blockNumberStr)
-	if getAmountErr != nil {
-		return nil, getAmountErr
-	}
-
-	if state.RawOrder.BuyNoMoreThanAmountB {
-		state.DealtAmountB = dealtAmount
-		state.CancelledAmountB = cancelAmount
-	} else {
-		state.DealtAmountS = dealtAmount
-		state.CancelledAmountS = cancelAmount
-	}
-
-	// check order finished status
-	settleOrderStatus(state, mc, ORDER_FROM_FILL)
 
 	if blockNumber == nil {
 		state.UpdatedBlock = big.NewInt(0)
@@ -64,12 +45,18 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 		state.UpdatedBlock = blockNumber
 	}
 
-	model := &dao.Order{}
-	var err error
-	model.Market, err = util.WrapMarketByAddress(state.RawOrder.TokenB.Hex(), state.RawOrder.TokenS.Hex())
-	if err != nil {
-		return nil, fmt.Errorf("order manager,newOrderEntity error:%s", err.Error())
+	// calculate order amount and settled
+	cancelAmount, dealtAmount, getAmountErr := getCancelledAndDealtAmount(state, blockNumber)
+	if getAmountErr != nil {
+		return nil, getAmountErr
 	}
+	settleOrderCancelAndFilled(state, cancelAmount, dealtAmount)
+
+	// check order finished status
+	settleOrderStatus(state, mc, ORDER_FROM_FILL)
+
+	// convert order
+	model := &dao.Order{}
 	model.ConvertDown(state)
 
 	return model, nil
@@ -111,6 +98,16 @@ func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
+func settleOrderCancelAndFilled(state *types.OrderState, cancelAmount, dealtAmount *big.Int) {
+	if state.RawOrder.BuyNoMoreThanAmountB {
+		state.DealtAmountB = dealtAmount
+		state.CancelledAmountB = cancelAmount
+	} else {
+		state.DealtAmountS = dealtAmount
+		state.CancelledAmountS = cancelAmount
+	}
+}
+
 func blockNumberToString(blockNumber *big.Int) string {
 	var blockNumberStr string
 	if blockNumber == nil {
@@ -122,7 +119,7 @@ func blockNumberToString(blockNumber *big.Int) string {
 	return blockNumberStr
 }
 
-func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, blockNumberStr string) (*big.Int, *big.Int, error) {
+func getCancelledAndDealtAmount(state *types.OrderState, blockNumber *big.Int) (*big.Int, *big.Int, error) {
 	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
 	return big.NewInt(0), big.NewInt(0), nil
 
@@ -130,6 +127,10 @@ func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, 
 		cancelled, cancelOrFilled, dealt *big.Int
 		err                              error
 	)
+
+	blockNumberStr := blockNumberToString(blockNumber)
+	protocol := state.RawOrder.DelegateAddress
+	orderhash := state.RawOrder.Hash
 
 	// get order cancelled amount from chain
 	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, blockNumberStr); err != nil {
