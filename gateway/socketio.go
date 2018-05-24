@@ -543,9 +543,9 @@ func (so *SocketIOServiceImpl) getPriceQuoteResp(currency string) string {
 	price, err := so.walletService.GetPriceQuote(PriceQuoteQuery{Currency: currency})
 	if err != nil {
 		log.Debug("query cny price error")
-		resp.Data = price
-	} else {
 		resp = SocketIOJsonResp{Error: err.Error()}
+	} else {
+		resp.Data = price
 	}
 	respJson, _ := json.Marshal(resp)
 	return string(respJson)
