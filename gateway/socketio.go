@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/market"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/kafka"
@@ -21,7 +22,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/Loopring/relay-cluster/market"
 )
 
 const (
@@ -106,7 +106,7 @@ type SocketIOServiceImpl struct {
 }
 
 type SocketMsgHandler struct {
-	Data  interface{}
+	Data    interface{}
 	Handler func(data interface{}) error
 }
 
@@ -119,7 +119,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer = &kafka.ConsumerRegister{}
 	so.consumer.Initialize(brokers)
 
-	var topicList = map[string]SocketMsgHandler {
+	var topicList = map[string]SocketMsgHandler{
 		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {nil, so.broadcastLoopringTicker},
 		kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
 		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {nil, so.broadcastTrades},
@@ -130,7 +130,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   {&types.CutoffPairEvent{}, so.handleCutOffPair},
 
 		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {&types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
-		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {&txtyp.TransactionView{},so.handleTransactionUpdate},
+		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {&txtyp.TransactionView{}, so.handleTransactionUpdate},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -605,9 +605,8 @@ func (so *SocketIOServiceImpl) broadcastTrends(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] trend input. %s", input)
 
-
 	req := input.(*market.TrendUpdateMsg)
-	trendQuery := TrendQuery{Market:req.Market, Interval:req.Interval}
+	trendQuery := TrendQuery{Market: req.Market, Interval: req.Interval}
 	resp := SocketIOJsonResp{}
 	trends, err := so.walletService.GetTrend(trendQuery)
 

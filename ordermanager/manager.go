@@ -138,14 +138,16 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 
 	model, err = om.rds.FindRingMined(event.TxHash.Hex())
 	if err == nil {
-		log.Debugf("order manager,handle ringmined event,tx %s has already exist", event.TxHash.Hex())
+		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
 		return nil
 	}
 	model.FromSubmitRingMethod(event)
 	if err = om.rds.Add(model); err != nil {
-		log.Debugf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		log.Debugf("order manager,handle submitRing method,tx:%s insert ring error:%s", event.TxHash.Hex(), err.Error())
 		return nil
 	}
+
+	log.Debugf("order manager,handle submitRing method,tx:%s status:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
 
 	return nil
 }
@@ -153,7 +155,6 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 // 所有来自gateway的订单都是新订单
 func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
 	state := input.(*types.OrderState)
-	log.Debugf("order manager,handle gateway order,order.hash:%s amountS:%s", state.RawOrder.Hash.Hex(), state.RawOrder.AmountS.String())
 
 	model, err := newOrderEntity(state, om.mc, nil)
 	if err != nil {
@@ -164,6 +165,8 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 	if err = om.rds.Add(model); err != nil {
 		return err
 	}
+
+	log.Debugf("order manager,handle gateway order,order.hash:%s amountS:%s", state.RawOrder.Hash.Hex(), state.RawOrder.AmountS.String())
 
 	notify.NotifyOrderUpdate(state)
 	return nil
@@ -183,14 +186,16 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 
 	model, err = om.rds.FindRingMined(event.TxHash.Hex())
 	if err == nil {
-		log.Debugf("order manager,handle ringmined event,ring %s has already exist", event.Ringhash.Hex())
+		log.Debugf("order manager,handle ringmined event,tx:%s ring %s has already exist", event.TxHash.Hex(), event.Ringhash.Hex())
 		return nil
 	}
 	model.ConvertDown(event)
 	if err = om.rds.Add(model); err != nil {
-		log.Debugf("order manager,handle ringmined event,insert ring error:%s", err.Error())
+		log.Debugf("order manager,handle ringmined event,tx:%s insert ring :%s error:%s", event.TxHash.Hex(), event.Ringhash.Hex(), err.Error())
 		return nil
 	}
+
+	log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s", event.TxHash.Hex(), event.Ringhash.Hex())
 
 	return nil
 }
@@ -205,7 +210,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	// save fill event
 	_, err := om.rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
 	if err == nil {
-		log.Debugf("order manager,handle order filled event,fill already exist tx:%s fillIndex:%d", event.TxHash.String(), event.FillIndex)
+		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%d fill already exist", event.TxHash.String(), event.FillIndex)
 		return nil
 	}
 
@@ -227,13 +232,15 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
 
 	if err := om.rds.Add(newFillModel); err != nil {
-		log.Debugf("order manager,handle order filled event error:fill %s insert failed", event.OrderHash.Hex())
+		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s error:insert failed",
+			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
 		return err
 	}
 
 	// judge order status
 	if state.Status == types.ORDER_CUTOFF || state.Status == types.ORDER_FINISHED || state.Status == types.ORDER_UNKNOWN {
-		log.Debugf("order manager,handle order filled event,order %s status is %d ", state.RawOrder.Hash.Hex(), state.Status)
+		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s status:%d invalid",
+			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
 		return nil
 	}
 
@@ -243,8 +250,6 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	state.DealtAmountB = new(big.Int).Add(state.DealtAmountB, event.AmountB)
 	state.SplitAmountS = new(big.Int).Add(state.SplitAmountS, event.SplitS)
 	state.SplitAmountB = new(big.Int).Add(state.SplitAmountB, event.SplitB)
-
-	log.Debugf("order manager,handle order filled event orderhash:%s,dealAmountS:%s,dealtAmountB:%s", state.RawOrder.Hash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
 	// update order status
 	settleOrderStatus(state, om.mc, ORDER_FROM_FILL)
@@ -257,6 +262,9 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	if err := om.rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
 		return err
 	}
+
+	log.Debugf("order manager,handle order filled event tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s",
+		event.TxHash.Hex(), event.FillIndex.String(), state.RawOrder.Hash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
 	notify.NotifyOrderFilled(newFillModel)
 	return nil
@@ -272,7 +280,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 	// save cancel event
 	_, err := om.rds.GetCancelEvent(event.TxHash)
 	if err == nil {
-		log.Debugf("order manager,handle order cancelled event error:event %s have already exist", event.OrderHash.Hex())
+		log.Debugf("order manager,handle order cancelled event tx:%s, orderhash:%s error:order have already exist", event.TxHash.Hex(), event.OrderHash.Hex())
 		return nil
 	}
 	newCancelEventModel := &dao.CancelEvent{}
@@ -295,10 +303,10 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
 	if state.RawOrder.BuyNoMoreThanAmountB {
 		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event,order:%s cancelled amountb:%s", state.RawOrder.Hash.Hex(), state.CancelledAmountB.String())
+		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amountb:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountB.String())
 	} else {
 		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event,order:%s cancelled amounts:%s", state.RawOrder.Hash.Hex(), state.CancelledAmountS.String())
+		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amounts:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountS.String())
 	}
 
 	// update order status
@@ -329,7 +337,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 	// check tx exist
 	_, err := om.rds.GetCutoffEvent(evt.TxHash)
 	if err == nil {
-		log.Debugf("order manager,handle order cutoff event error:event %s have already exist", evt.TxHash.Hex())
+		log.Debugf("order manager,handle order cutoff event tx:%s error:transaction have already exist", evt.TxHash.Hex())
 		return nil
 	}
 
@@ -339,7 +347,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 
 	// 首次存储到缓存，lastCutoff == currentCutoff
 	if evt.Cutoff.Cmp(lastCutoff) < 0 {
-		log.Debugf("order manager,handle cutoff event, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoff.String(), evt.Cutoff.String())
+		log.Debugf("order manager,handle cutoff event tx:%s, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", evt.TxHash.Hex(), evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoff.String(), evt.Cutoff.String())
 	} else {
 		om.cutoffCache.UpdateCutoff(evt.Protocol, evt.Owner, evt.Cutoff)
 		if orders, _ := om.rds.GetCutoffOrders(evt.Owner, evt.Cutoff); len(orders) > 0 {
@@ -350,7 +358,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 			}
 			om.rds.SetCutOffOrders(orderHashList, evt.BlockNumber)
 		}
-		log.Debugf("order manager,handle cutoff event, owner:%s, cutoffTimestamp:%s", evt.Owner.Hex(), evt.Cutoff.String())
+		log.Debugf("order manager,handle cutoff event tx:%s, owner:%s, cutoffTimestamp:%s", evt.TxHash.Hex(), evt.Owner.Hex(), evt.Cutoff.String())
 	}
 
 	// save cutoff event
@@ -378,7 +386,7 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	// check tx exist
 	_, err := om.rds.GetCutoffPairEvent(evt.TxHash)
 	if err == nil {
-		log.Debugf("order manager,handle order cutoffPair event error:event %s have already exist", evt.TxHash.Hex())
+		log.Debugf("order manager,handle order cutoffPair event tx:%s error:transaction have already exist", evt.TxHash.Hex())
 		return nil
 	}
 
@@ -387,7 +395,7 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	var orderHashList []common.Hash
 	// 首次存储到缓存，lastCutoffPair == currentCutoffPair
 	if evt.Cutoff.Cmp(lastCutoffPair) < 0 {
-		log.Debugf("order manager,handle cutoffPair event, protocol:%s - owner:%s lastCutoffPairtime:%s > currentCutoffPairTime:%s", evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoffPair.String(), evt.Cutoff.String())
+		log.Debugf("order manager,handle cutoffPair event tx:%s, protocol:%s - owner:%s lastCutoffPairtime:%s > currentCutoffPairTime:%s", evt.TxHash.Hex(), evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoffPair.String(), evt.Cutoff.String())
 	} else {
 		om.cutoffCache.UpdateCutoffPair(evt.Protocol, evt.Owner, evt.Token1, evt.Token2, evt.Cutoff)
 		if orders, _ := om.rds.GetCutoffPairOrders(evt.Owner, evt.Token1, evt.Token2, evt.Cutoff); len(orders) > 0 {
@@ -398,7 +406,7 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 			}
 			om.rds.SetCutOffOrders(orderHashList, evt.BlockNumber)
 		}
-		log.Debugf("order manager,handle cutoffPair event, owner:%s, token1:%s, token2:%s, cutoffTimestamp:%s", evt.Owner.Hex(), evt.Token1.Hex(), evt.Token2.Hex(), evt.Cutoff.String())
+		log.Debugf("order manager,handle cutoffPair event tx:%s, owner:%s, token1:%s, token2:%s, cutoffTimestamp:%s", evt.TxHash.Hex(), evt.Owner.Hex(), evt.Token1.Hex(), evt.Token2.Hex(), evt.Cutoff.String())
 	}
 
 	// save transaction

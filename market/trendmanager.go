@@ -107,7 +107,7 @@ type TrendManager struct {
 }
 
 type TrendUpdateMsg struct {
-	Market string `json:"market"`
+	Market   string `json:"market"`
 	Interval string `json:"interval"`
 }
 
@@ -1075,11 +1075,11 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			//t.c.Set(trendKeyPre+strings.ToLower(OneHour), newCache, cache.NoExpiration)
 			t.reCalTicker(market)
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, &TrendUpdateMsg{Market:market})
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated, &TrendUpdateMsg{Market: market})
 		if err != nil {
 			log.Error("send ticker update message failed")
 		}
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, &TrendUpdateMsg{Market:market, Interval:OneHour})
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, &TrendUpdateMsg{Market: market, Interval: OneHour})
 		if err != nil {
 			log.Error("send trends update message failed")
 		}

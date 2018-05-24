@@ -28,7 +28,6 @@ import (
 
 // todo delete return after test
 
-
 func NotifyOrderUpdate(o *libTypes.OrderState) error {
 	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o)
 	if err != nil {
