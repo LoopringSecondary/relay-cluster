@@ -32,6 +32,8 @@ func NotifyOrderUpdate(o *libTypes.OrderState) error {
 	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, o)
 	if err != nil {
 		log.Error("notify new order failed. " + o.RawOrder.Hash.Hex())
+	} else {
+		log.Info("notify new order success")
 	}
 	return err
 }
