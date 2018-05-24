@@ -35,7 +35,6 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	state.SplitAmountB = big.NewInt(0)
 	state.CancelledAmountB = big.NewInt(0)
 	state.CancelledAmountS = big.NewInt(0)
-	state.RawOrder.Side = util.GetSide(state.RawOrder.TokenS.Hex(), state.RawOrder.TokenB.Hex())
 
 	if blockNumber == nil {
 		state.UpdatedBlock = big.NewInt(0)
@@ -44,11 +43,7 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	}
 
 	// calculate order amount and settled
-	cancelAmount, dealtAmount, getAmountErr := getCancelledAndDealtAmount(state, blockNumber)
-	if getAmountErr != nil {
-		return nil, getAmountErr
-	}
-	settleOrderCancelAndFilled(state, cancelAmount, dealtAmount)
+	settleOrderAmountOnChain(state)
 
 	// check order finished status
 	settleOrderStatus(state, mc, false)
@@ -79,55 +74,41 @@ func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-func settleOrderCancelAndFilled(state *types.OrderState, cancelAmount, dealtAmount *big.Int) {
-	if state.RawOrder.BuyNoMoreThanAmountB {
-		state.DealtAmountB = dealtAmount
-		state.CancelledAmountB = cancelAmount
-	} else {
-		state.DealtAmountS = dealtAmount
-		state.CancelledAmountS = cancelAmount
-	}
-}
-
-func blockNumberToString(blockNumber *big.Int) string {
-	var blockNumberStr string
-	if blockNumber == nil {
-		blockNumberStr = "latest"
-	} else {
-		blockNumberStr = types.BigintToHex(blockNumber)
-	}
-
-	return blockNumberStr
-}
-
-func getCancelledAndDealtAmount(state *types.OrderState, blockNumber *big.Int) (*big.Int, *big.Int, error) {
+func settleOrderAmountOnChain(state *types.OrderState) error {
 	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
-	return big.NewInt(0), big.NewInt(0), nil
+	return nil
 
 	var (
 		cancelled, cancelOrFilled, dealt *big.Int
 		err                              error
 	)
 
-	blockNumberStr := blockNumberToString(blockNumber)
 	protocol := state.RawOrder.DelegateAddress
 	orderhash := state.RawOrder.Hash
 
 	// get order cancelled amount from chain
-	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, blockNumberStr); err != nil {
-		return nil, nil, fmt.Errorf("order manager,handle gateway order,order %s getCancelled error:%s", orderhash.Hex(), err.Error())
+	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, "latest"); err != nil {
+		return fmt.Errorf("order manager,handle gateway order,order %s getCancelled error:%s", orderhash.Hex(), err.Error())
 	}
 
 	// get order cancelledOrFilled amount from chain
-	if cancelOrFilled, err = loopringaccessor.GetCancelledOrFilled(protocol, orderhash, blockNumberStr); err != nil {
-		return nil, nil, fmt.Errorf("order manager,handle gateway order,order %s getCancelledOrFilled error:%s", orderhash.Hex(), err.Error())
+	if cancelOrFilled, err = loopringaccessor.GetCancelledOrFilled(protocol, orderhash, "latest"); err != nil {
+		return fmt.Errorf("order manager,handle gateway order,order %s getCancelledOrFilled error:%s", orderhash.Hex(), err.Error())
 	}
 
 	if cancelOrFilled.Cmp(cancelled) < 0 {
-		return nil, nil, fmt.Errorf("order manager,handle gateway order,order %s cancelOrFilledAmount:%s < cancelledAmount:%s", orderhash.Hex(), cancelOrFilled.String(), cancelled.String())
+		return fmt.Errorf("order manager,handle gateway order,order %s cancelOrFilledAmount:%s < cancelledAmount:%s", orderhash.Hex(), cancelOrFilled.String(), cancelled.String())
 	}
 
 	dealt = big.NewInt(0).Sub(cancelOrFilled, cancelled)
 
-	return cancelled, dealt, nil
+	if state.RawOrder.BuyNoMoreThanAmountB {
+		state.DealtAmountB = dealt
+		state.CancelledAmountB = cancelled
+	} else {
+		state.DealtAmountS = dealt
+		state.CancelledAmountS = cancelled
+	}
+
+	return nil
 }

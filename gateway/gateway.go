@@ -136,6 +136,7 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		return orderHash, err
 	}
 	order.Market = market
+	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
 	//var broadcastTime int
 
