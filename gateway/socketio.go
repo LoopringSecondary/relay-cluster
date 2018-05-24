@@ -120,17 +120,17 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer.Initialize(brokers)
 
 	var topicList = map[string]SocketMsgHandler {
-		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {&market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
+		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
 		//kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
-		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {&dao.FillEvent{}, so.broadcastTrades},
-		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {&market.TrendUpdateMsg{}, so.broadcastTrends},
+		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {dao.FillEvent{}, so.broadcastTrades},
+		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {market.TrendUpdateMsg{}, so.broadcastTrends},
 
-		kafka.Kafka_Topic_SocketIO_Order_Updated: {&types.OrderState{}, so.handleOrderUpdate},
-		kafka.Kafka_Topic_SocketIO_Cutoff:        {&types.CutoffEvent{}, so.handleCutOff},
-		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   {&types.CutoffPairEvent{}, so.handleCutOffPair},
+		kafka.Kafka_Topic_SocketIO_Order_Updated: {types.OrderState{}, so.handleOrderUpdate},
+		kafka.Kafka_Topic_SocketIO_Cutoff:        {types.CutoffEvent{}, so.handleCutOff},
+		kafka.Kafka_Topic_SocketIO_Cutoff_Pair:   {types.CutoffPairEvent{}, so.handleCutOffPair},
 
-		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {&types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
-		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {&txtyp.TransactionView{}, so.handleTransactionUpdate},
+		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
+		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
