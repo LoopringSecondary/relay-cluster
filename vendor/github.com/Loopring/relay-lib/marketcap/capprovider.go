@@ -332,7 +332,8 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() ([]byte, error) {
 	log.Debugf("syncMarketCapFromAPI...")
-	url := fmt.Sprintf(p.baseUrl, p.currency)
+	//make sync as cny, as when set usd it will not return price_cny
+	url := fmt.Sprintf(p.baseUrl, "CNY")
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Errorf("err:%s", err.Error())
