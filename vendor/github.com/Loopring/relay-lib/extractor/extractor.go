@@ -24,7 +24,6 @@ import (
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay-lib/log"
 )
 
 // 接收来自kafka消息,解析成不同数据类型后使用lib/eventemitter模块发送
@@ -61,7 +60,7 @@ func (s *ExtractorService) handle(input interface{}) error {
 	}
 
 	// todo: delete after test
-	log.Debugf("extractor, consume topic:%s ,data:%s", src.Topic, src.Data)
+	fmt.Printf("extractor, consume topic:%s ,data:%s\n", src.Topic, src.Data)
 
 	eventemitter.Emit(src.Topic, event)
 
