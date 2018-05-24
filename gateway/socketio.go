@@ -119,11 +119,11 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.consumer = &kafka.ConsumerRegister{}
 	so.consumer.Initialize(brokers)
 
-	var topicList = map[string]SocketMsgHandler{
-		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {nil, so.broadcastLoopringTicker},
-		kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
-		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {nil, so.broadcastTrades},
-		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {market.TrendUpdateMsg{}, so.broadcastTrends},
+	var topicList = map[string]SocketMsgHandler {
+		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {&market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
+		//kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
+		kafka.Kafka_Topic_SocketIO_Trades_Updated:          {&dao.FillEvent{}, so.broadcastTrades},
+		kafka.Kafka_Topic_SocketIO_Trends_Updated:          {&market.TrendUpdateMsg{}, so.broadcastTrends},
 
 		kafka.Kafka_Topic_SocketIO_Order_Updated: {&types.OrderState{}, so.handleOrderUpdate},
 		kafka.Kafka_Topic_SocketIO_Cutoff:        {&types.CutoffEvent{}, so.handleCutOff},
