@@ -30,8 +30,6 @@ import (
 )
 
 func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
-	blockNumberStr := blockNumberToString(blockNumber)
-
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)
 	state.SplitAmountS = big.NewInt(0)
@@ -42,7 +40,7 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	state.RawOrder.Side = util.GetSide(state.RawOrder.TokenS.Hex(), state.RawOrder.TokenB.Hex())
 
 	protocol := state.RawOrder.DelegateAddress
-	cancelAmount, dealtAmount, getAmountErr := getCancelledAndDealtAmount(protocol, state.RawOrder.Hash, blockNumberStr)
+	cancelAmount, dealtAmount, getAmountErr := getCancelledAndDealtAmount(protocol, state.RawOrder.Hash, blockNumber)
 	if getAmountErr != nil {
 		return nil, getAmountErr
 	}
@@ -122,7 +120,7 @@ func blockNumberToString(blockNumber *big.Int) string {
 	return blockNumberStr
 }
 
-func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, blockNumberStr string) (*big.Int, *big.Int, error) {
+func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, blockNumber *big.Int) (*big.Int, *big.Int, error) {
 	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
 	return big.NewInt(0), big.NewInt(0), nil
 
@@ -130,6 +128,8 @@ func getCancelledAndDealtAmount(protocol common.Address, orderhash common.Hash, 
 		cancelled, cancelOrFilled, dealt *big.Int
 		err                              error
 	)
+
+	blockNumberStr := blockNumberToString(blockNumber)
 
 	// get order cancelled amount from chain
 	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, blockNumberStr); err != nil {
