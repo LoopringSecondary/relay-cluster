@@ -1086,7 +1086,7 @@ func (w *WalletServiceImpl) calculateDepth(states []types.OrderState, length int
 		minAmountS, minAmountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)
 
 		if err != nil {
-			log.Errorf("calculate min amount error " + err.Error())
+			//log.Errorf("calculate min amount error " + err.Error())
 			continue
 		}
 
