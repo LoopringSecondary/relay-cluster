@@ -1181,12 +1181,15 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 		elements = append(elements, o)
 	}
 
-	if isAsk {
-		return elements[len(elements)-length-1:], nil
-	} else {
-		return elements[:length], nil
+	if len(elements) > length {
+		if isAsk {
+			return elements[len(elements)-length-1:], nil
+		} else {
+			return elements[:length], nil
+		}
 	}
 
+	return elements, nil
 }
 
 func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isAsk bool, tokenSDecimal, tokenBDecimal *big.Int) (amountS, amountB *big.Rat, err error) {
