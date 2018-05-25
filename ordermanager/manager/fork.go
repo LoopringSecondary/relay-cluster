@@ -16,11 +16,12 @@
 
 */
 
-package ordermanager
+package manager
 
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	. "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
@@ -102,7 +103,7 @@ func (p *ForkProcessor) RollBackSingleFill(evt *types.OrderFilledEvent) error {
 	log.Debugf("fork fill event, orderhash:%s,dealAmountS:%s,dealtAmountB:%s", state.RawOrder.Hash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
 	// update order status
-	settleOrderStatus(state, p.mc, false)
+	SettleOrderStatus(state, p.mc, false)
 
 	// update rds.Order
 	model.ConvertDown(state)
@@ -133,7 +134,7 @@ func (p *ForkProcessor) RollBackSingleCancel(evt *types.OrderCancelledEvent) err
 	}
 
 	// update order status
-	settleOrderStatus(state, p.mc, false)
+	SettleOrderStatus(state, p.mc, false)
 	state.UpdatedBlock = evt.BlockNumber
 
 	// update rds.Order
@@ -161,7 +162,7 @@ func (p *ForkProcessor) RollBackSingleCutoff(evt *types.CutoffEvent) error {
 		model.ConvertUp(state)
 
 		// update order status
-		settleOrderStatus(state, p.mc, false)
+		SettleOrderStatus(state, p.mc, false)
 
 		if err := p.db.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
 			return fmt.Errorf("fork cutoff event,error:%s", err.Error())
@@ -190,7 +191,7 @@ func (p *ForkProcessor) RollBackSingleCutoffPair(evt *types.CutoffPairEvent) err
 
 		// update order status
 		// 在ordermanager 已完成的订单不会再更新,因此,cutoff事件发生之前,从钱包的角度来看只会有fillEvent,默认cancel取消所有的量
-		settleOrderStatus(state, p.mc, false)
+		SettleOrderStatus(state, p.mc, false)
 
 		if err := p.db.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
 			return fmt.Errorf("fork cutoffPair event,error:%s", err.Error())

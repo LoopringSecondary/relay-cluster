@@ -16,7 +16,7 @@
 
 */
 
-package ordermanager
+package common
 
 import (
 	"github.com/Loopring/relay-lib/cache"

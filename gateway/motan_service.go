@@ -20,14 +20,14 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/accountmanager"
-	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
 )
 
 type MotanService struct {
 	accountManager accountmanager.AccountManager
-	orderViewer    ordermanager.OrderViewer
+	orderViewer    viewer.OrderViewer
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
@@ -64,7 +64,7 @@ func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrd
 	return res
 }
 
-func StartMotanService(options motan.MotanServerOptions, accountManager accountmanager.AccountManager, orderViewer ordermanager.OrderViewer) {
+func StartMotanService(options motan.MotanServerOptions, accountManager accountmanager.AccountManager, orderViewer viewer.OrderViewer) {
 	service := &MotanService{}
 	service.accountManager = accountManager
 	service.orderViewer = orderViewer

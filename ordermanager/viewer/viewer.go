@@ -1,7 +1,8 @@
-package ordermanager
+package viewer
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	. "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"

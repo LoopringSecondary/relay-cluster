@@ -25,7 +25,8 @@ import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/market"
-	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/ordermanager/manager"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-cluster/txmanager"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/cache"
@@ -312,7 +313,7 @@ type P2PRingRequest struct {
 
 type WalletServiceImpl struct {
 	trendManager    market.TrendManager
-	orderViewer     ordermanager.OrderViewer
+	orderViewer     viewer.OrderViewer
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
@@ -320,7 +321,7 @@ type WalletServiceImpl struct {
 	oldWethAddress  string
 }
 
-func NewWalletService(trendManager market.TrendManager, orderViewer ordermanager.OrderViewer, accountManager accountmanager.AccountManager,
+func NewWalletService(trendManager market.TrendManager, orderViewer viewer.OrderViewer, accountManager accountmanager.AccountManager,
 	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsService, oldWethAddress string) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
@@ -570,7 +571,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50005)
 	}
 
-	if ordermanager.IsP2PMakerLocked(maker.RawOrder.Hash.Hex()) {
+	if manager.IsP2PMakerLocked(maker.RawOrder.Hash.Hex()) {
 		//return res, errors.New("maker order has been locked by other taker or expired")
 		return res, errors.New(P2P_50006)
 	}
@@ -581,7 +582,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, err
 	}
 
-	err = ordermanager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst)
+	err = manager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst)
 	if err != nil {
 		return res, errors.New(SYS_10001)
 	}
@@ -1044,7 +1045,7 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_EXPIRE"
 	}
 
-	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && ordermanager.IsP2PMakerLocked(order.RawOrder.Hash.Hex()) {
+	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PMakerLocked(order.RawOrder.Hash.Hex()) {
 		return "ORDER_P2P_LOCKED"
 	}
 
