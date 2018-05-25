@@ -519,11 +519,18 @@ func (w *WalletServiceImpl) SubmitOrder(order *types.OrderJsonRequest) (res stri
 
 func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err error) {
 	orderQuery, statusList, pi, ps := convertFromQuery(query)
-	queryRst, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
+	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
 	if err != nil {
 		log.Info("query order error : " + err.Error())
 	}
-	return buildOrderResult(queryRst), err
+
+	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
+
+	for _, d := range src.Data {
+		o := d.(types.OrderState)
+		rst.Data = append(rst.Data, orderStateToJson(o))
+	}
+	return rst, err
 }
 
 func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
@@ -1337,17 +1344,6 @@ func ringMinedQueryToMap(q RingMinedQuery) (map[string]interface{}, int, int) {
 	}
 
 	return rst, pi, ps
-}
-
-func buildOrderResult(src dao.PageResult) PageResult {
-
-	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
-
-	for _, d := range src.Data {
-		o := d.(types.OrderState)
-		rst.Data = append(rst.Data, orderStateToJson(o))
-	}
-	return rst
 }
 
 func orderStateToJson(src types.OrderState) OrderJsonResult {
