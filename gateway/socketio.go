@@ -895,6 +895,7 @@ func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	order := input.(*types.OrderState)
 	so.handleOrdersUpdate(order)
+	so.handleOrderTracing(order)
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
 		return nil
