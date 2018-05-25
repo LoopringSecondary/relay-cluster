@@ -16,7 +16,7 @@
 
 */
 
-package ordermanager
+package common
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ import (
 	"math/big"
 )
 
-func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
+func NewOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)
 	state.SplitAmountS = big.NewInt(0)
@@ -42,10 +42,10 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	}
 
 	// calculate order amount and settled
-	settleOrderAmountOnChain(state)
+	SettleOrderAmountOnChain(state)
 
 	// check order finished status
-	settleOrderStatus(state, mc, false)
+	SettleOrderStatus(state, mc, false)
 
 	// convert order
 	model := &dao.Order{}
@@ -54,7 +54,7 @@ func newOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	return model, nil
 }
 
-func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, isCancel bool) {
+func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, isCancel bool) {
 	zero := big.NewInt(0)
 	finishAmountS := big.NewInt(0).Add(state.CancelledAmountS, state.DealtAmountS)
 	totalAmountS := big.NewInt(0).Add(finishAmountS, state.SplitAmountS)
@@ -73,7 +73,7 @@ func settleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-func settleOrderAmountOnChain(state *types.OrderState) error {
+func SettleOrderAmountOnChain(state *types.OrderState) error {
 	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
 	return nil
 

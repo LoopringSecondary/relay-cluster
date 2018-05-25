@@ -26,7 +26,8 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-cluster/market"
-	"github.com/Loopring/relay-cluster/ordermanager"
+	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
+	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-cluster/txmanager"
 	"github.com/Loopring/relay-cluster/usermanager"
 	socketioutil "github.com/Loopring/relay-cluster/util"
@@ -52,7 +53,7 @@ type Node struct {
 	rdsService   *dao.RdsService
 	//ipfsSubService    gateway.IPFSSubService
 	orderManager      ordermanager.OrderManager
-	orderViewer       ordermanager.OrderViewer
+	orderViewer       orderviewer.OrderViewer
 	userManager       usermanager.UserManager
 	marketCapProvider marketcap.MarketCapProvider
 	accountManager    accountmanager.AccountManager
@@ -169,7 +170,7 @@ func (n *Node) registerOrderManager() {
 }
 
 func (n *Node) registerOrderViewer() {
-	n.orderViewer = ordermanager.NewOrderViewer(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager)
+	n.orderViewer = orderviewer.NewOrderViewer(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager)
 }
 
 func (n *Node) registerTrendManager() {

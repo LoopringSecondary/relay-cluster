@@ -16,16 +16,16 @@
 
 */
 
-package ordermanager_test
+package viewer_test
 
 import (
-	"github.com/Loopring/relay-cluster/ordermanager"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-lib/motan"
 	"testing"
 )
 
 func TestOrderViewerImpl_MotanRpcServer(t *testing.T) {
-	serverInstance := &ordermanager.OrderViewerImpl{}
+	serverInstance := &viewer.OrderViewerImpl{}
 	options := motan.MotanServerOptions{}
 	options.ConfFile = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/config/ordermanager.yaml"
 	options.ServerInstance = serverInstance

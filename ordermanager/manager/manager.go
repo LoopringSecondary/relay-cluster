@@ -16,10 +16,11 @@
 
 */
 
-package ordermanager
+package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	. "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
@@ -50,11 +51,6 @@ type OrderManagerImpl struct {
 	forkWatcher             *eventemitter.Watcher
 	warningWatcher          *eventemitter.Watcher
 	submitRingMethodWatcher *eventemitter.Watcher
-}
-
-type OrderManagerOptions struct {
-	CutoffCacheExpireTime int64
-	CutoffCacheCleanTime  int64
 }
 
 func NewOrderManager(
@@ -156,7 +152,7 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
 	state := input.(*types.OrderState)
 
-	model, err := newOrderEntity(state, om.mc, nil)
+	model, err := NewOrderEntity(state, om.mc, nil)
 	if err != nil {
 		log.Errorf("order manager,handle gateway order:%s error", state.RawOrder.Hash.Hex())
 		return err
@@ -252,7 +248,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 	state.SplitAmountB = new(big.Int).Add(state.SplitAmountB, event.SplitB)
 
 	// update order status
-	settleOrderStatus(state, om.mc, false)
+	SettleOrderStatus(state, om.mc, false)
 
 	// update rds.Order
 	if err := model.ConvertDown(state); err != nil {
@@ -310,7 +306,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 	}
 
 	// update order status
-	settleOrderStatus(state, om.mc, true)
+	SettleOrderStatus(state, om.mc, true)
 	state.UpdatedBlock = event.BlockNumber
 
 	// update rds.Order

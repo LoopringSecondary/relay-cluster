@@ -25,7 +25,7 @@ import (
 
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-cluster/ordermanager"
+	ordermanager "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/dao"
