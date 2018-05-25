@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #ValidateService
 
 WORK_DIR=/opt/loopring/relay
