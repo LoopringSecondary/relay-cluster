@@ -139,9 +139,9 @@ func InitializeView(options *AccountViewOptions) AccountManager {
 		accountManager.cacheDuration = 3600 * 24 * 100
 	}
 	//accountManager.maxBlockLength = 3000
-	b := &ChangedOfBlock{}
-	b.cachedDuration = big.NewInt(int64(500))
-	accountManager.block = b
+	//b := &ChangedOfBlock{}
+	//b.cachedDuration = big.NewInt(int64(500))
+	//accountManager.block = b
 
 	accManager = &accountManager
 	return accountManager

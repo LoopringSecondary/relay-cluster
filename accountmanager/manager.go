@@ -37,7 +37,8 @@ import (
 type AccountManager struct {
 	cacheDuration int64
 	//maxBlockLength uint64
-	block           *ChangedOfBlock
+	cachedBlockCount *big.Int
+	//block           *ChangedOfBlock
 	producerWrapped *kafka.MessageProducer
 }
 
@@ -66,9 +67,11 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 		accountManager.cacheDuration = 3600 * 24 * 100
 	}
 	//accountManager.maxBlockLength = 3000
-	b := &ChangedOfBlock{}
-	b.cachedDuration = big.NewInt(int64(500))
-	accountManager.block = b
+	accountManager.cachedBlockCount = big.NewInt(int64(500))
+
+	//b := &ChangedOfBlock{}
+	//b.cachedDuration = big.NewInt(int64(500))
+	//accountManager.block = b
 
 	if len(brokers) > 0 {
 		accountManager.producerWrapped = &kafka.MessageProducer{}
@@ -116,15 +119,18 @@ func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err 
 	}
 	//log.Debugf("received transfer event, from:%s, sender:%s, receiver:%s, protocol:%s", event.From.Hex(), event.Sender.Hex(), event.Receiver.Hex(), event.Protocol.Hex())
 
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
 	//balance
-	a.block.saveBalanceKey(event.Sender, event.Protocol)
-	a.block.saveBalanceKey(event.From, types.NilAddress)
-	a.block.saveBalanceKey(event.Receiver, event.Protocol)
+	block.saveBalanceKey(event.Sender, event.Protocol)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	block.saveBalanceKey(event.Receiver, event.Protocol)
 
 	//allowance
 	if spender, err := loopringaccessor.GetSpenderAddress(event.To); nil == err {
 		log.Debugf("handleTokenTransfer allowance owner:%s", event.Sender.Hex(), event.Protocol.Hex(), spender.Hex())
-		a.block.saveAllowanceKey(event.Sender, event.Protocol, spender)
+		block.saveAllowanceKey(event.Sender, event.Protocol, spender)
 	}
 
 	return nil
@@ -138,9 +144,13 @@ func (a *AccountManager) handleApprove(input eventemitter.EventData) error {
 		return nil
 	}
 
-	a.block.saveAllowanceKey(event.Owner, event.Protocol, event.Spender)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
 
-	a.block.saveBalanceKey(event.Owner, types.NilAddress)
+	block.saveAllowanceKey(event.Owner, event.Protocol, event.Spender)
+
+	block.saveBalanceKey(event.Owner, types.NilAddress)
 
 	return nil
 }
@@ -151,8 +161,11 @@ func (a *AccountManager) handleWethDeposit(input eventemitter.EventData) (err er
 		log.Info("received wrong status event, drop it")
 		return nil
 	}
-	a.block.saveBalanceKey(event.Dst, event.Protocol)
-	a.block.saveBalanceKey(event.From, types.NilAddress)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.Dst, event.Protocol)
+	block.saveBalanceKey(event.From, types.NilAddress)
 	return
 }
 
@@ -163,8 +176,12 @@ func (a *AccountManager) handleWethWithdrawal(input eventemitter.EventData) (err
 		return nil
 	}
 
-	a.block.saveBalanceKey(event.Src, event.Protocol)
-	a.block.saveBalanceKey(event.From, types.NilAddress)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+
+	block.saveBalanceKey(event.Src, event.Protocol)
+	block.saveBalanceKey(event.From, types.NilAddress)
 
 	return
 }
@@ -173,10 +190,13 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 	event := input.(*types.BlockEvent)
 	log.Debugf("handleBlockEndhandleBlockEndhandleBlockEnd:%s", event.BlockNumber.String())
 
-	changedAddrs, _ := a.block.syncAndSaveBalances()
-	changedAllowanceAddrs, _ := a.block.syncAndSaveAllowances()
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	changedAddrs, _ := block.syncAndSaveBalances()
+	changedAllowanceAddrs, _ := block.syncAndSaveAllowances()
 
-	removeExpiredBlock(a.block.currentBlockNumber, a.block.cachedDuration)
+	removeExpiredBlock(block.currentBlockNumber, block.cachedDuration)
 
 	for addr, _ := range changedAllowanceAddrs {
 		changedAddrs[addr] = true
@@ -198,14 +218,20 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 func (a *AccountManager) handleBlockNew(input eventemitter.EventData) error {
 	event := input.(*types.BlockEvent)
 	log.Debugf("handleBlockNewhandleBlockNewhandleBlockNewhandleBlockNew:%s", event.BlockNumber.String())
-	a.block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
 	return nil
 }
 
 func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
 	event := input.(*types.EthTransferEvent)
-	a.block.saveBalanceKey(event.From, types.NilAddress)
-	a.block.saveBalanceKey(event.To, types.NilAddress)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	block.saveBalanceKey(event.To, types.NilAddress)
 	return nil
 }
 
