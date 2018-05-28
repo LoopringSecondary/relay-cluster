@@ -136,13 +136,13 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:         {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
-		eventKeyLoopringTickers: {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyTrends:          {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyMarketCap:       {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
+		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
+		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
 		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
