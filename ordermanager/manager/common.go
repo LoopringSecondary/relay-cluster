@@ -16,7 +16,7 @@
 
 */
 
-package common
+package manager
 
 import (
 	"fmt"
