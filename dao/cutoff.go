@@ -36,6 +36,7 @@ type CutOffEvent struct {
 	BlockNumber     int64  `gorm:"column:block_number"`
 	Cutoff          int64  `gorm:"column:cutoff"`
 	LogIndex        int64  `gorm:"column:log_index"`
+	Status          uint8  `gorm:"column:status"`
 	Fork            bool   `gorm:"column:fork"`
 	CreateTime      int64  `gorm:"column:create_time"`
 }

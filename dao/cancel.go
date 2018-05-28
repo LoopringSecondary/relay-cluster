@@ -34,6 +34,7 @@ type CancelEvent struct {
 	CreateTime      int64  `gorm:"column:create_time"`
 	AmountCancelled string `gorm:"column:amount_cancelled;type:varchar(40)"`
 	LogIndex        int64  `gorm:"column:log_index"`
+	Status          uint8  `gorm:"column:status"`
 	Fork            bool   `gorm:"column:fork"`
 }
 
