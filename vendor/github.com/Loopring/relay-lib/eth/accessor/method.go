@@ -101,8 +101,13 @@ func (accessor *ethNodeAccessor) BatchTransactions(routeParam string, retry int,
 				}
 			}
 		}
+
+		// 第一次后如果没拿到则等待1s
+		if repeatCnt > 0 {
+			time.Sleep(1 * time.Second)
+		}
 		repeatCnt++
-		time.Sleep(1 * time.Second)
+
 		log.Debugf("accessor,BatchTransactions %d's time to get Transaction:%s", repeatCnt, reqs[idx].TxHash)
 		_, v.Error = accessor.Call(routeParam, &reqs[idx].TxContent, "eth_getTransactionByHash", reqs[idx].TxHash)
 		goto mark
@@ -145,8 +150,12 @@ func (accessor *ethNodeAccessor) BatchTransactionRecipients(routeParam string, r
 				}
 			}
 		}
+
+		if repeatCnt > 0 {
+			time.Sleep(1 * time.Second)
+		}
 		repeatCnt++
-		time.Sleep(1 * time.Second)
+
 		log.Debugf("accessor,BatchTransactions %d's time to get TransactionReceipt:%s and statusInvalid:%t", repeatCnt, reqs[idx].TxHash, reqs[idx].TxContent.StatusInvalid())
 		_, v.Error = accessor.Call(routeParam, &reqs[idx].TxContent, "eth_getTransactionReceipt", reqs[idx].TxHash)
 		goto mark

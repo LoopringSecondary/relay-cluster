@@ -148,13 +148,17 @@ func (impl *RedisCacheImpl) Del(key string) error {
 	return err
 }
 
-func (impl *RedisCacheImpl) Dels(keys []string) error {
+func (impl *RedisCacheImpl) Dels(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("redis dels args empty")
+	}
+
 	conn := impl.pool.Get()
 	defer conn.Close()
 
 	var list []interface{}
 
-	for _, v := range keys {
+	for _, v := range args {
 		list = append(list, v)
 	}
 
@@ -195,7 +199,9 @@ func (impl *RedisCacheImpl) Keys(keyFormat string) ([][]byte, error) {
 }
 
 func (impl *RedisCacheImpl) HMSet(key string, ttl int64, args ...[]byte) error {
-
+	if len(args) == 0 {
+		return fmt.Errorf("redis hmset args empty")
+	}
 	//log.Info("[REDIS-HMSET] key : " + key)
 
 	conn := impl.pool.Get()
@@ -223,7 +229,9 @@ func (impl *RedisCacheImpl) HMSet(key string, ttl int64, args ...[]byte) error {
 }
 
 func (impl *RedisCacheImpl) ZAdd(key string, ttl int64, args ...[]byte) error {
-
+	if len(args) == 0 {
+		return fmt.Errorf("redis zadd args empty")
+	}
 	//log.Info("[REDIS-ZAdd] key : " + key)
 
 	conn := impl.pool.Get()
@@ -251,7 +259,9 @@ func (impl *RedisCacheImpl) ZAdd(key string, ttl int64, args ...[]byte) error {
 }
 
 func (impl *RedisCacheImpl) HMGet(key string, fields ...[]byte) ([][]byte, error) {
-
+	if len(fields) == 0 {
+		return [][]byte{}, fmt.Errorf("redis hmget fields empty")
+	}
 	//log.Info("[REDIS-HMGET] key : " + key)
 
 	conn := impl.pool.Get()
@@ -311,7 +321,9 @@ func (impl *RedisCacheImpl) ZRange(key string, start, stop int64, withScores boo
 }
 
 func (impl *RedisCacheImpl) HDel(key string, fields ...[]byte) (int64, error) {
-
+	if len(fields) == 0 {
+		return 0, fmt.Errorf("redis hdel fields empty")
+	}
 	//log.Info("[REDIS-HDEL] key : " + key)
 
 	conn := impl.pool.Get()
@@ -374,7 +386,9 @@ func (impl *RedisCacheImpl) ZRemRangeByScore(key string, start, stop int64) (int
 }
 
 func (impl *RedisCacheImpl) SRem(key string, members ...[]byte) (int64, error) {
-
+	if len(members) == 0 {
+		return 0, fmt.Errorf("redis srem members empty")
+	}
 	//log.Info("[REDIS-SRem] key : " + key)
 
 	conn := impl.pool.Get()
@@ -470,7 +484,9 @@ func (impl *RedisCacheImpl) HExists(key string, field []byte) (bool, error) {
 }
 
 func (impl *RedisCacheImpl) SAdd(key string, ttl int64, members ...[]byte) error {
-
+	if len(members) == 0 {
+		return fmt.Errorf("redis sadd members empty")
+	}
 	//log.Info("[REDIS-SAdd] key : " + key)
 
 	conn := impl.pool.Get()

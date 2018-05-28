@@ -257,3 +257,8 @@ type KafkaOnChainEvent struct {
 	Data  string `json:"data"`
 	Topic string `json:"topic"`
 }
+
+type SubmitOrderEvent struct {
+	Orderhash  common.Hash `json:"order_hash"`
+	SubmitTime int64       `json:"submit_time"`
+}

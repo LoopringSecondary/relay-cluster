@@ -43,12 +43,12 @@ func (md *MessageProducer) Initialize(brokerList []string) (err error) {
 
 func (md *MessageProducer) SendMessage(topic string, data interface{}, key string) (partition int32, offset int64, sendErr error) {
 	if data == nil {
-		return -1, -1, fmt.Errorf("message to send is null")
+		return -1, -1, fmt.Errorf("kafka message to send is null for topic : %s", topic)
 	}
 
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		fmt.Errorf("Failed to Marshal Msg")
+		return -1, -1, fmt.Errorf("failed to Marshal kafka Msg %+v for topic : %s", data, topic)
 	}
 	return md.pd.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,

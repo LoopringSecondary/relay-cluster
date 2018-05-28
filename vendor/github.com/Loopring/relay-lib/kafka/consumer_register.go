@@ -21,6 +21,7 @@ package kafka
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/bsm/sarama-cluster"
 	"reflect"
 	"sync"
@@ -52,7 +53,7 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 		_, ok1 := groupConsumerMap[groupId]
 		if ok1 {
 			cr.mutex.Unlock()
-			return fmt.Errorf("consumer alreay registered !!")
+			return fmt.Errorf("kafka consumer alreay registered for [%s, %s]!!\n", topic, groupId)
 		}
 	} else {
 		cr.consumerMap[topic] = make(map[string]*cluster.Consumer)
@@ -63,18 +64,19 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 		return err
 	}
 	cr.consumerMap[topic][groupId] = consumer
+	log.Infof("Register kafka consumer success for [%s, %s]\n", topic, groupId)
 	cr.mutex.Unlock()
 
 	go func() {
 		for err := range consumer.Errors() {
-			fmt.Printf("Error: %s\n", err.Error())
+			log.Errorf("kafka consumer error [%s, %s]: %s\n", topic, groupId, err.Error())
 		}
 	}()
 
 	// consume notifications
 	go func() {
 		for ntf := range consumer.Notifications() {
-			fmt.Printf("Notification : %+v\n", ntf)
+			log.Infof("Notification for [%s, %s] : %+v\n", topic, groupId, ntf)
 		}
 	}()
 
@@ -84,9 +86,18 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 			case msg, ok := <-consumer.Messages():
 				if ok {
 					data := (reflect.New(reflect.TypeOf(data))).Interface()
-					json.Unmarshal(msg.Value, data)
-					action(data)
+					err := json.Unmarshal(msg.Value, data)
+					if err != nil {
+						log.Errorf("Kafka consumer for [%s, %s] failed Unmarshal data for data type : %s\n", topic, groupId, reflect.TypeOf(data).Name())
+					} else {
+						err := action(data)
+						if err != nil {
+							log.Errorf("Kafka consumer for [%s, %s], message handler execute failed : %s\n", topic, groupId, err.Error())
+						}
+					}
 					consumer.MarkOffset(msg, "") // mark message as processed
+				} else {
+					log.Errorf("Kafka consumer for [%s, %s] receive message failed\n", topic, groupId)
 				}
 			}
 		}
