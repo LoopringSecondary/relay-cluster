@@ -105,6 +105,7 @@ type OrderBookElement struct {
 	LrcFee    *big.Rat `json:"lrcFee"`
 	SplitS    *big.Rat `json:"splitS"`
 	SplitB    *big.Rat `json:"splitB"`
+	ValidUntil int64   `json:"validUntil"`
 }
 
 type CommonTokenRequest struct {
@@ -1159,6 +1160,7 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 		o.SplitB = new(big.Rat).SetFrac(s.SplitAmountB, tokenBDecimal)
 		lrcToken := util.AllTokens["LRC"]
 		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, lrcToken.Decimals)
+		o.ValidUntil = s.RawOrder.ValidUntil.Int64()
 
 		price := *s.RawOrder.Price
 		amountS, amountB, err := w.calculateOrderBookAmount(s, isAsk, tokenSDecimal, tokenBDecimal)

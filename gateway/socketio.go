@@ -90,6 +90,7 @@ const (
 	eventKeyTrades            = "trades"
 	eventKeyOrders            = "orders"
 	eventKeyOrderTracing      = "orderTracing"
+	eventKeyEstimatedGasPrice = "estimatedGasPrice"
 )
 
 type SocketIOService interface {
@@ -142,6 +143,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyDepth:           {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyOrderBook:       {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyTrades:          {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
 		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
@@ -226,6 +228,8 @@ func (so *SocketIOServiceImpl) Start() {
 		case eventKeyTrades:
 			so.cron.AddFunc(spec, func() { so.broadcastTrades(nil) })
 		case eventKeyMarketCap:
+			so.cron.AddFunc(spec, func() { so.broadcastMarketCap(nil) })
+		case eventKeyEstimatedGasPrice:
 			so.cron.AddFunc(spec, func() { so.broadcastMarketCap(nil) })
 		default:
 			log.Infof("add cron emit %d ", events.emitType)
@@ -529,6 +533,34 @@ func (so *SocketIOServiceImpl) broadcastMarketCap(input interface{}) (err error)
 				if err == nil {
 					v.Emit(eventKeyMarketCap+EventPostfixRes, cnyResp)
 				}
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastGasPrice(input interface{}) (err error) {
+
+	resp := SocketIOJsonResp{}
+	gasPrice, err := so.walletService.GetEstimateGasPrice()
+
+	if err != nil {
+		resp = SocketIOJsonResp{Error: err.Error()}
+	} else {
+		resp.Data = gasPrice
+	}
+
+	respJson, _ := json.Marshal(resp)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			_, ok := businesses[eventKeyEstimatedGasPrice]
+			if ok {
+				//log.Info("emit loopring gas price info")
+				v.Emit(eventKeyEstimatedGasPrice+EventPostfixRes, string(respJson[:]))
 			}
 		}
 		return true
