@@ -219,17 +219,17 @@ func (ethAccessor *ethNodeAccessor) SignAndSendTransaction(result interface{}, s
 	}
 }
 
-func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string, sender common.Address, to common.Address, gas, gasPrice, value *big.Int, callData []byte, needPreExe bool) (string, *ethTypes.Transaction, error) {
+func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string, sender common.Address, to common.Address, gas, gasPrice, value *big.Int, callData []byte, needPreExe bool) (string, error) {
 	if nil == gasPrice || gasPrice.Cmp(big.NewInt(0)) <= 0 {
-		return "", nil, errors.New("gasPrice must be setted.")
+		return "", errors.New("gasPrice must be setted.")
 	}
 	if nil == gas || gas.Cmp(big.NewInt(0)) <= 0 {
-		return "", nil, errors.New("gas must be setted.")
+		return "", errors.New("gas must be setted.")
 	}
 	var txHash string
 	if needPreExe {
 		if estimagetGas, _, err := EstimateGas(callData, to, "latest"); nil != err {
-			return txHash, nil, err
+			return txHash, err
 		} else {
 			gas = estimagetGas
 		}
@@ -261,25 +261,25 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 			callData)
 		if err := accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
 			log.Errorf("send raw transaction err:%s, manual check it please.", err.Error())
-			return "", nil, err
+			return "", err
 		}
 		//} else {
 		//
 		//}
 	}
 	accessor.addressNextNonce(sender)
-	return txHash, transaction, nil
+	return txHash, nil
 }
 
 //gas, gasPrice can be set to nil
-func (accessor *ethNodeAccessor) ContractSendTransactionMethod(routeParam string, a *abi.ABI, contractAddress common.Address) func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, *ethTypes.Transaction, error) {
-	return func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, *ethTypes.Transaction, error) {
+func (accessor *ethNodeAccessor) ContractSendTransactionMethod(routeParam string, a *abi.ABI, contractAddress common.Address) func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, error) {
+	return func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, error) {
 		if callData, err := a.Pack(methodName, args...); nil != err {
-			return "", nil, err
+			return "", err
 		} else {
 			if nil == gas || nil == gasPrice {
 				if gas, gasPrice, err = accessor.EstimateGas(routeParam, callData, contractAddress); nil != err {
-					return "", nil, err
+					return "", err
 				}
 			}
 			gas.Add(gas, big.NewInt(int64(1000)))

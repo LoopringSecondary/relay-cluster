@@ -94,6 +94,7 @@ func (cfg *Config) normalize() error {
 		cfg.Addr = ensureHavePort(cfg.Addr)
 	}
 
+<<<<<<< HEAD
 	if cfg.tls != nil {
 		if cfg.tls.ServerName == "" && !cfg.tls.InsecureSkipVerify {
 			host, _, err := net.SplitHostPort(cfg.Addr)
@@ -103,6 +104,8 @@ func (cfg *Config) normalize() error {
 		}
 	}
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return nil
 }
 
@@ -407,6 +410,10 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 
 		// cfg params
 		switch value := param[1]; param[0] {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		// Disable INFILE whitelist / enable all files
 		case "allowAllFiles":
 			var isBool bool
@@ -530,6 +537,13 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 				if boolValue {
 					cfg.TLSConfig = "true"
 					cfg.tls = &tls.Config{}
+<<<<<<< HEAD
+=======
+					host, _, err := net.SplitHostPort(cfg.Addr)
+					if err == nil {
+						cfg.tls.ServerName = host
+					}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 				} else {
 					cfg.TLSConfig = "false"
 				}
@@ -543,6 +557,16 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 				}
 
 				if tlsConfig := getTLSConfigClone(name); tlsConfig != nil {
+<<<<<<< HEAD
+=======
+					if len(tlsConfig.ServerName) == 0 && !tlsConfig.InsecureSkipVerify {
+						host, _, err := net.SplitHostPort(cfg.Addr)
+						if err == nil {
+							tlsConfig.ServerName = host
+						}
+					}
+
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 					cfg.TLSConfig = name
 					cfg.tls = tlsConfig
 				} else {

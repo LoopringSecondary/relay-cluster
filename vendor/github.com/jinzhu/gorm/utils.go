@@ -23,7 +23,11 @@ var NowFunc = func() time.Time {
 }
 
 // Copied from golint
+<<<<<<< HEAD
 var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UID", "UI", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
+=======
+var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 var commonInitialismsReplacer *strings.Replacer
 
 var goSrcRegexp = regexp.MustCompile(`jinzhu/gorm/.*.go`)

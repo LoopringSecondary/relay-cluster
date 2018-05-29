@@ -10,9 +10,12 @@ import (
 
 // preloadCallback used to preload associations
 func preloadCallback(scope *Scope) {
+<<<<<<< HEAD
 	if _, skip := scope.InstanceGet("gorm:skip_query_callback"); skip {
 		return
 	}
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	if _, ok := scope.Get("gorm:auto_preload"); ok {
 		autoPreload(scope)
@@ -327,10 +330,13 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 
 		scope.scan(rows, columns, append(fields, joinTableFields...))
 
+<<<<<<< HEAD
 		scope.New(elem.Addr().Interface()).
 			InstanceSet("gorm:skip_query_callback", true).
 			callCallbacks(scope.db.parent.callbacks.queries)
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		var foreignKeys = make([]interface{}, len(sourceKeys))
 		// generate hashed forkey keys in join table
 		for idx, joinTableField := range joinTableFields {

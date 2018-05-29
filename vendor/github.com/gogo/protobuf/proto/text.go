@@ -522,6 +522,7 @@ func (tm *TextMarshaler) writeAny(w *textWriter, v reflect.Value, props *Propert
 				}
 				return nil
 			}
+<<<<<<< HEAD
 		} else if len(props.CastType) > 0 {
 			if _, ok := v.Interface().(interface {
 				String() string
@@ -533,6 +534,8 @@ func (tm *TextMarshaler) writeAny(w *textWriter, v reflect.Value, props *Propert
 					return err
 				}
 			}
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		} else if props.StdTime {
 			t, ok := v.Interface().(time.Time)
 			if !ok {

@@ -14,6 +14,7 @@
       "version": "0.0.0"
     },
     {
+<<<<<<< HEAD
       "author": "mr-tron",
       "hash": "QmWFAMPqsEyUX7gDUsRVmMWz59FxSpJ1b2v6bJ1yYzo7jY",
       "name": "go-base58-fast",
@@ -24,12 +25,25 @@
       "hash": "QmZtJMfZZvoD3EKpQaf8xsFi83HMtX5acQekY8exMbcWEi",
       "name": "keccakpg",
       "version": "0.0.1"
+=======
+      "author": "whyrusleeping",
+      "hash": "QmT8rehPR3F6bmwL6zjUN8XpiDBFFpMP2myPdC6ApsWfJf",
+      "name": "go-base58",
+      "version": "0.0.0"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmQPWTeQJnJE7MYu6dJTiNTQRNuqBr41dis6UgY6Uekmgd",
+      "name": "keccakpg",
+      "version": "0.0.0"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     },
     {
       "author": "whyrusleeping",
       "hash": "QmfJHywXQu98UeZtGJBQrPAR6AtmDjjbe3qjTo9piXHPnx",
       "name": "murmur3",
       "version": "0.0.0"
+<<<<<<< HEAD
     },
     {
       "author": "minio",
@@ -42,6 +56,8 @@
       "hash": "QmZp3eKdYQHHAneECmeK6HhiMwTPufmjC8DuuaGKv3unvx",
       "name": "blake2b-simd",
       "version": "0.1.1"
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     }
   ],
   "gxVersion": "0.9.0",
@@ -49,6 +65,10 @@
   "license": "MIT",
   "name": "go-multihash",
   "releaseCmd": "git commit -a -m \"gx release $VERSION\"",
+<<<<<<< HEAD
   "version": "1.0.7"
+=======
+  "version": "1.0.5"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 

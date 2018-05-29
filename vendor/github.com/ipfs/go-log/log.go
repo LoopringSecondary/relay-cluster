@@ -4,6 +4,7 @@
 package log
 
 import (
+<<<<<<< HEAD
 	"bytes"
 	"context"
 	"encoding/json"
@@ -19,6 +20,14 @@ import (
 
 var log = Logger("eventlog")
 
+=======
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+)
+
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // StandardLogger provides API compatibility with standard printf loggers
 // eg. go-logging
 type StandardLogger interface {
@@ -54,6 +63,7 @@ type EventLogger interface {
 	//
 	// Finally the timestamp and package name are added to the accumulator and
 	// the metadata is logged.
+<<<<<<< HEAD
 	// DEPRECATED
 	Event(ctx context.Context, event string, m ...Loggable)
 
@@ -141,6 +151,11 @@ type EventLogger interface {
 	// it to bytes. An error is returned if the `ctx` cannot be serialized to
 	// a bytes array
 	SerializeContext(ctx context.Context) ([]byte, error)
+=======
+	Event(ctx context.Context, event string, m ...Loggable)
+
+	EventBegin(ctx context.Context, event string, m ...Loggable) *EventInProgress
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Logger retrieves an event logger by name
@@ -167,6 +182,7 @@ type eventLogger struct {
 	// TODO add log-level
 }
 
+<<<<<<< HEAD
 func (el *eventLogger) Start(ctx context.Context, operationName string) context.Context {
 	span, ctx := opentrace.StartSpanFromContext(ctx, operationName)
 	span.SetTag("system", el.system)
@@ -289,10 +305,26 @@ func (el *eventLogger) EventBegin(ctx context.Context, event string, metadata ..
 			}
 		}
 		el.Finish(ctx)
+=======
+func (el *eventLogger) EventBegin(ctx context.Context, event string, metadata ...Loggable) *EventInProgress {
+	start := time.Now()
+	el.Event(ctx, fmt.Sprintf("%sBegin", event), metadata...)
+
+	eip := &EventInProgress{}
+	eip.doneFunc = func(additional []Loggable) {
+
+		metadata = append(metadata, additional...)                      // anything added during the operation
+		metadata = append(metadata, LoggableMap(map[string]interface{}{ // finally, duration of event
+			"duration": time.Now().Sub(start),
+		}))
+
+		el.Event(ctx, event, metadata...)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 	return eip
 }
 
+<<<<<<< HEAD
 type activeEventKeyType struct{}
 
 var activeEventKey = activeEventKeyType{}
@@ -302,6 +334,12 @@ func (el *eventLogger) Event(ctx context.Context, event string, metadata ...Logg
 
 	// short circuit if theres nothing to write to
 	if !writer.WriterGroup.Active() {
+=======
+func (el *eventLogger) Event(ctx context.Context, event string, metadata ...Loggable) {
+
+	// short circuit if theres nothing to write to
+	if !WriterGroup.Active() {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		return
 	}
 
@@ -342,23 +380,35 @@ func (el *eventLogger) Event(ctx context.Context, event string, metadata ...Logg
 		return
 	}
 
+<<<<<<< HEAD
 	writer.WriterGroup.Write(append(out, '\n'))
 }
 
 // DEPRECATED
+=======
+	WriterGroup.Write(append(out, '\n'))
+}
+
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // EventInProgress represent and event which is happening
 type EventInProgress struct {
 	loggables []Loggable
 	doneFunc  func([]Loggable)
 }
 
+<<<<<<< HEAD
 // DEPRECATED use `LogKV` or `SetTag`
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // Append adds loggables to be included in the call to Done
 func (eip *EventInProgress) Append(l Loggable) {
 	eip.loggables = append(eip.loggables, l)
 }
 
+<<<<<<< HEAD
 // DEPRECATED use `SetError(ctx, error)`
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // SetError includes the provided error
 func (eip *EventInProgress) SetError(err error) {
 	eip.loggables = append(eip.loggables, LoggableMap{
@@ -366,13 +416,17 @@ func (eip *EventInProgress) SetError(err error) {
 	})
 }
 
+<<<<<<< HEAD
 // DEPRECATED use `Finish`
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // Done creates a new Event entry that includes the duration and appended
 // loggables.
 func (eip *EventInProgress) Done() {
 	eip.doneFunc(eip.loggables) // create final event with extra data
 }
 
+<<<<<<< HEAD
 // DEPRECATED use `FinishWithErr`
 // DoneWithErr creates a new Event entry that includes the duration and appended
 // loggables. DoneWithErr accepts an error, if err is non-nil, it is set on
@@ -385,6 +439,8 @@ func (eip *EventInProgress) DoneWithErr(err error) {
 }
 
 // DEPRECATED use `Finish`
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // Close is an alias for done
 func (eip *EventInProgress) Close() error {
 	eip.Done()

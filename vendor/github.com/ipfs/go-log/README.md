@@ -28,6 +28,7 @@ Once the pacakge is imported under the name `logging`, an instance of `EventLogg
 var log = logging.Logger("subsystem name")
 ```
 
+<<<<<<< HEAD
 It can then be used to emit log messages, either plain printf-style messages at six standard levels or structured messages using `Start`, `StartFromParentState`, `Finish` and `FinishWithErr` methods.
 
 ## Example
@@ -63,6 +64,9 @@ func (s *Session) GetBlock(ctx context.Context, c *cid.Cid) (blk blocks.Block, e
 `go-log` implements its own tracer - `loggabletracer` - based on the [basictracer-go](https://github.com/opentracing/basictracer-go) implementation. If there is an active [`WriterGroup`](https://github.com/ipfs/go-log/blob/master/writer/option.go) the `loggabletracer` will [record](https://github.com/ipfs/go-log/blob/master/tracer/recorder.go) span data to the `WriterGroup`. An example of this can be seen in the [`log tail`](https://github.com/ipfs/go-ipfs/blob/master/core/commands/log.go) command of `go-ipfs`. 
 
 Third party tracers may be used by calling `opentracing.SetGlobalTracer()` with your desired tracing implementation. An example of this can be seen using the [`go-jaeger-plugin`](https://github.com/ipfs/go-jaeger-plugin) and the `go-ipfs` [tracer plugin](https://github.com/ipfs/go-ipfs/blob/master/plugin/tracer.go)
+=======
+It can then be used to emit log messages, either plain printf-style messages at six standard levels or structured messages using `Event` and `EventBegin` methods.
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 ## Contribute
 

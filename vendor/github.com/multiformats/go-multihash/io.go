@@ -45,6 +45,7 @@ func (r *mhReader) ReadByte() (byte, error) {
 	if br, ok := r.r.(io.ByteReader); ok {
 		return br.ReadByte()
 	}
+<<<<<<< HEAD
 	var b [1]byte
 	n, err := r.r.Read(b[:])
 	if n == 1 {
@@ -57,6 +58,14 @@ func (r *mhReader) ReadByte() (byte, error) {
 		err = io.ErrNoProgress
 	}
 	return 0, err
+=======
+	b := make([]byte, 1)
+	_, err := r.r.Read(b)
+	if err != nil {
+		return 0, err
+	}
+	return b[0], nil
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 func (r *mhReader) ReadMultihash() (Multihash, error) {

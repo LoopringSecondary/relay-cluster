@@ -9,7 +9,10 @@
 package mysql
 
 const defaultCollation = "utf8_general_ci"
+<<<<<<< HEAD
 const binaryCollation = "binary"
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 // A list of available collations mapped to the internal ID.
 // To update this map use the following MySQL query:

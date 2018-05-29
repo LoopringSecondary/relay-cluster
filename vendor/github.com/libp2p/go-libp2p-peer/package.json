@@ -9,6 +9,7 @@
   "gxDependencies": [
     {
       "author": "whyrusleeping",
+<<<<<<< HEAD
       "hash": "QmTG23dvpBCBjqQwyDxV8CQT6jmS4PSftNr1VqHhE3MLy7",
       "name": "go-log",
       "version": "1.4.1"
@@ -30,6 +31,35 @@
       "hash": "QmWFAMPqsEyUX7gDUsRVmMWz59FxSpJ1b2v6bJ1yYzo7jY",
       "name": "go-base58-fast",
       "version": "0.1.1"
+=======
+      "hash": "QmSpJByNKFX1sCsHBEp3R73FL4NF6FnQTEGyNAXHm2GS52",
+      "name": "go-log",
+      "version": "1.2.0"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmaPbCnUMBohSGo3KnxEa2bHqyJVVeEEcwtqJAYxerieBo",
+      "name": "go-libp2p-crypto",
+      "version": "1.5.0"
+    },
+    {
+      "author": "multiformats",
+      "hash": "QmU9a9NV9RdPNwZQDYd5uKsm6N6LJLSvLbywDDYFbaaC6P",
+      "name": "go-multihash",
+      "version": "1.0.5"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmNhVCV7kgAqW6oh6n8m9myxT2ksGPhVZnHkzkBvR5qg2d",
+      "name": "go-multicodec-packed",
+      "version": "0.1.0"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmT8rehPR3F6bmwL6zjUN8XpiDBFFpMP2myPdC6ApsWfJf",
+      "name": "go-base58",
+      "version": "0.0.0"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     }
   ],
   "gxVersion": "0.4.0",
@@ -37,6 +67,10 @@
   "license": "MIT",
   "name": "go-libp2p-peer",
   "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+<<<<<<< HEAD
   "version": "2.3.2"
+=======
+  "version": "2.2.0"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 

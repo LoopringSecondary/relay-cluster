@@ -79,14 +79,24 @@ func (s *JoinTableHandler) Setup(relationship *Relationship, tableName string, s
 
 // Table return join table's table name
 func (s JoinTableHandler) Table(db *DB) string {
+<<<<<<< HEAD
 	return DefaultTableNameHandler(db, s.TableName)
 }
 
 func (s JoinTableHandler) updateConditionMap(conditionMap map[string]interface{}, db *DB, joinTableSources []JoinTableSource, sources ...interface{}) {
+=======
+	return s.TableName
+}
+
+func (s JoinTableHandler) getSearchMap(db *DB, sources ...interface{}) map[string]interface{} {
+	values := map[string]interface{}{}
+
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	for _, source := range sources {
 		scope := db.NewScope(source)
 		modelType := scope.GetModelStruct().ModelType
 
+<<<<<<< HEAD
 		for _, joinTableSource := range joinTableSources {
 			if joinTableSource.ModelType == modelType {
 				for _, foreignKey := range joinTableSource.ForeignKeys {
@@ -98,10 +108,28 @@ func (s JoinTableHandler) updateConditionMap(conditionMap map[string]interface{}
 			}
 		}
 	}
+=======
+		if s.Source.ModelType == modelType {
+			for _, foreignKey := range s.Source.ForeignKeys {
+				if field, ok := scope.FieldByName(foreignKey.AssociationDBName); ok {
+					values[foreignKey.DBName] = field.Field.Interface()
+				}
+			}
+		} else if s.Destination.ModelType == modelType {
+			for _, foreignKey := range s.Destination.ForeignKeys {
+				if field, ok := scope.FieldByName(foreignKey.AssociationDBName); ok {
+					values[foreignKey.DBName] = field.Field.Interface()
+				}
+			}
+		}
+	}
+	return values
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Add create relationship in join table for source and destination
 func (s JoinTableHandler) Add(handler JoinTableHandlerInterface, db *DB, source interface{}, destination interface{}) error {
+<<<<<<< HEAD
 	var (
 		scope        = db.NewScope("")
 		conditionMap = map[string]interface{}{}
@@ -116,6 +144,14 @@ func (s JoinTableHandler) Add(handler JoinTableHandlerInterface, db *DB, source 
 	var assignColumns, binVars, conditions []string
 	var values []interface{}
 	for key, value := range conditionMap {
+=======
+	scope := db.NewScope("")
+	searchMap := s.getSearchMap(db, source, destination)
+
+	var assignColumns, binVars, conditions []string
+	var values []interface{}
+	for key, value := range searchMap {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		assignColumns = append(assignColumns, scope.Quote(key))
 		binVars = append(binVars, `?`)
 		conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(key)))
@@ -143,6 +179,7 @@ func (s JoinTableHandler) Add(handler JoinTableHandlerInterface, db *DB, source 
 // Delete delete relationship in join table for sources
 func (s JoinTableHandler) Delete(handler JoinTableHandlerInterface, db *DB, sources ...interface{}) error {
 	var (
+<<<<<<< HEAD
 		scope        = db.NewScope(nil)
 		conditions   []string
 		values       []interface{}
@@ -152,6 +189,14 @@ func (s JoinTableHandler) Delete(handler JoinTableHandlerInterface, db *DB, sour
 	s.updateConditionMap(conditionMap, db, []JoinTableSource{s.Source, s.Destination}, sources...)
 
 	for key, value := range conditionMap {
+=======
+		scope      = db.NewScope(nil)
+		conditions []string
+		values     []interface{}
+	)
+
+	for key, value := range s.getSearchMap(db, sources...) {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(key)))
 		values = append(values, value)
 	}

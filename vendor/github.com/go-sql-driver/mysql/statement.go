@@ -132,16 +132,20 @@ func (stmt *mysqlStmt) query(args []driver.Value) (*binaryRows, error) {
 
 type converter struct{}
 
+<<<<<<< HEAD
 // ConvertValue mirrors the reference/default converter in database/sql/driver
 // with _one_ exception.  We support uint64 with their high bit and the default
 // implementation does not.  This function should be kept in sync with
 // database/sql/driver defaultConverter.ConvertValue() except for that
 // deliberate difference.
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 func (c converter) ConvertValue(v interface{}) (driver.Value, error) {
 	if driver.IsValue(v) {
 		return v, nil
 	}
 
+<<<<<<< HEAD
 	if vr, ok := v.(driver.Valuer); ok {
 		sv, err := callValuerValue(vr)
 		if err != nil {
@@ -153,15 +157,22 @@ func (c converter) ConvertValue(v interface{}) (driver.Value, error) {
 		return sv, nil
 	}
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	rv := reflect.ValueOf(v)
 	switch rv.Kind() {
 	case reflect.Ptr:
 		// indirect pointers
 		if rv.IsNil() {
 			return nil, nil
+<<<<<<< HEAD
 		} else {
 			return c.ConvertValue(rv.Elem().Interface())
 		}
+=======
+		}
+		return c.ConvertValue(rv.Elem().Interface())
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return rv.Int(), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
@@ -174,6 +185,7 @@ func (c converter) ConvertValue(v interface{}) (driver.Value, error) {
 		return int64(u64), nil
 	case reflect.Float32, reflect.Float64:
 		return rv.Float(), nil
+<<<<<<< HEAD
 	case reflect.Bool:
 		return rv.Bool(), nil
 	case reflect.Slice:
@@ -209,3 +221,8 @@ func callValuerValue(vr driver.Valuer) (v driver.Value, err error) {
 	}
 	return vr.Value()
 }
+=======
+	}
+	return nil, fmt.Errorf("unsupported type %T, a %s", v, rv.Kind())
+}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

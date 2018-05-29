@@ -61,8 +61,11 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 		dbSQL, err = sql.Open(driver, source)
 	case SQLCommon:
 		dbSQL = value
+<<<<<<< HEAD
 	default:
 		return nil, fmt.Errorf("invalid database source: %v is not a valid type", value)
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 
 	db = &DB{
@@ -179,6 +182,7 @@ func (s *DB) QueryExpr() *expr {
 	return Expr(scope.SQL, scope.SQLVars...)
 }
 
+<<<<<<< HEAD
 // SubQuery returns the query as sub query
 func (s *DB) SubQuery() *expr {
 	scope := s.NewScope(s.Value)
@@ -188,6 +192,8 @@ func (s *DB) SubQuery() *expr {
 	return Expr(fmt.Sprintf("(%v)", scope.SQL), scope.SQLVars...)
 }
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // Where return a new relation, filter records with given conditions, accepts `map`, `struct` or `string` as conditions, refer http://jinzhu.github.io/gorm/crud.html#query
 func (s *DB) Where(query interface{}, args ...interface{}) *DB {
 	return s.clone().search.Where(query, args...).db
@@ -285,12 +291,17 @@ func (s *DB) Assign(attrs ...interface{}) *DB {
 
 // First find first record that match given conditions, order by primary key
 func (s *DB) First(out interface{}, where ...interface{}) *DB {
+<<<<<<< HEAD
 	newScope := s.NewScope(out)
+=======
+	newScope := s.clone().NewScope(out)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	newScope.Search.Limit(1)
 	return newScope.Set("gorm:order_by_primary_key", "ASC").
 		inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
 }
 
+<<<<<<< HEAD
 // Take return a record that match given conditions, the order will depend on the database implementation
 func (s *DB) Take(out interface{}, where ...interface{}) *DB {
 	newScope := s.NewScope(out)
@@ -301,6 +312,11 @@ func (s *DB) Take(out interface{}, where ...interface{}) *DB {
 // Last find last record that match given conditions, order by primary key
 func (s *DB) Last(out interface{}, where ...interface{}) *DB {
 	newScope := s.NewScope(out)
+=======
+// Last find last record that match given conditions, order by primary key
+func (s *DB) Last(out interface{}, where ...interface{}) *DB {
+	newScope := s.clone().NewScope(out)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	newScope.Search.Limit(1)
 	return newScope.Set("gorm:order_by_primary_key", "DESC").
 		inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
@@ -308,12 +324,20 @@ func (s *DB) Last(out interface{}, where ...interface{}) *DB {
 
 // Find find records that match given conditions
 func (s *DB) Find(out interface{}, where ...interface{}) *DB {
+<<<<<<< HEAD
 	return s.NewScope(out).inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
+=======
+	return s.clone().NewScope(out).inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Scan scan value to a struct
 func (s *DB) Scan(dest interface{}) *DB {
+<<<<<<< HEAD
 	return s.NewScope(s.Value).Set("gorm:query_destination", dest).callCallbacks(s.parent.callbacks.queries).db
+=======
+	return s.clone().NewScope(s.Value).Set("gorm:query_destination", dest).callCallbacks(s.parent.callbacks.queries).db
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Row return `*sql.Row` with given conditions
@@ -329,8 +353,13 @@ func (s *DB) Rows() (*sql.Rows, error) {
 // ScanRows scan `*sql.Rows` to give struct
 func (s *DB) ScanRows(rows *sql.Rows, result interface{}) error {
 	var (
+<<<<<<< HEAD
 		scope        = s.NewScope(result)
 		clone        = scope.db
+=======
+		clone        = s.clone()
+		scope        = clone.NewScope(result)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		columns, err = rows.Columns()
 	)
 
@@ -355,7 +384,11 @@ func (s *DB) Count(value interface{}) *DB {
 
 // Related get related associations
 func (s *DB) Related(value interface{}, foreignKeys ...string) *DB {
+<<<<<<< HEAD
 	return s.NewScope(s.Value).related(value, foreignKeys...).db
+=======
+	return s.clone().NewScope(s.Value).related(value, foreignKeys...).db
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // FirstOrInit find first matched record or initialize a new one with given conditions (only works with struct, map conditions)
@@ -395,7 +428,11 @@ func (s *DB) Update(attrs ...interface{}) *DB {
 
 // Updates update attributes with callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
 func (s *DB) Updates(values interface{}, ignoreProtectedAttrs ...bool) *DB {
+<<<<<<< HEAD
 	return s.NewScope(s.Value).
+=======
+	return s.clone().NewScope(s.Value).
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		Set("gorm:ignore_protected_attrs", len(ignoreProtectedAttrs) > 0).
 		InstanceSet("gorm:update_interface", values).
 		callCallbacks(s.parent.callbacks.updates).db
@@ -408,7 +445,11 @@ func (s *DB) UpdateColumn(attrs ...interface{}) *DB {
 
 // UpdateColumns update attributes without callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
 func (s *DB) UpdateColumns(values interface{}) *DB {
+<<<<<<< HEAD
 	return s.NewScope(s.Value).
+=======
+	return s.clone().NewScope(s.Value).
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		Set("gorm:update_column", true).
 		Set("gorm:save_associations", false).
 		InstanceSet("gorm:update_interface", values).
@@ -417,7 +458,11 @@ func (s *DB) UpdateColumns(values interface{}) *DB {
 
 // Save update value in database, if the value doesn't have primary key, will insert it
 func (s *DB) Save(value interface{}) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(value)
+=======
+	scope := s.clone().NewScope(value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	if !scope.PrimaryKeyZero() {
 		newDB := scope.callCallbacks(s.parent.callbacks.updates).db
 		if newDB.Error == nil && newDB.RowsAffected == 0 {
@@ -430,13 +475,21 @@ func (s *DB) Save(value interface{}) *DB {
 
 // Create insert the value into database
 func (s *DB) Create(value interface{}) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(value)
+=======
+	scope := s.clone().NewScope(value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return scope.callCallbacks(s.parent.callbacks.creates).db
 }
 
 // Delete delete value match given conditions, if the value has primary key, then will including the primary key as condition
 func (s *DB) Delete(value interface{}, where ...interface{}) *DB {
+<<<<<<< HEAD
 	return s.NewScope(value).inlineCondition(where...).callCallbacks(s.parent.callbacks.deletes).db
+=======
+	return s.clone().NewScope(value).inlineCondition(where...).callCallbacks(s.parent.callbacks.deletes).db
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Raw use raw sql as conditions, won't run it unless invoked by other methods
@@ -447,8 +500,13 @@ func (s *DB) Raw(sql string, values ...interface{}) *DB {
 
 // Exec execute raw sql
 func (s *DB) Exec(sql string, values ...interface{}) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(nil)
 	generatedSQL := scope.buildCondition(map[string]interface{}{"query": sql, "args": values}, true)
+=======
+	scope := s.clone().NewScope(nil)
+	generatedSQL := scope.buildWhereCondition(map[string]interface{}{"query": sql, "args": values})
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	generatedSQL = strings.TrimSuffix(strings.TrimPrefix(generatedSQL, "("), ")")
 	scope.Raw(generatedSQL)
 	return scope.Exec().db
@@ -493,8 +551,12 @@ func (s *DB) Begin() *DB {
 
 // Commit commit a transaction
 func (s *DB) Commit() *DB {
+<<<<<<< HEAD
 	var emptySQLTx *sql.Tx
 	if db, ok := s.db.(sqlTx); ok && db != nil && db != emptySQLTx {
+=======
+	if db, ok := s.db.(sqlTx); ok && db != nil {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		s.AddError(db.Commit())
 	} else {
 		s.AddError(ErrInvalidTransaction)
@@ -504,8 +566,12 @@ func (s *DB) Commit() *DB {
 
 // Rollback rollback a transaction
 func (s *DB) Rollback() *DB {
+<<<<<<< HEAD
 	var emptySQLTx *sql.Tx
 	if db, ok := s.db.(sqlTx); ok && db != nil && db != emptySQLTx {
+=======
+	if db, ok := s.db.(sqlTx); ok && db != nil {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		s.AddError(db.Rollback())
 	} else {
 		s.AddError(ErrInvalidTransaction)
@@ -515,7 +581,11 @@ func (s *DB) Rollback() *DB {
 
 // NewRecord check if value's primary key is blank
 func (s *DB) NewRecord(value interface{}) bool {
+<<<<<<< HEAD
 	return s.NewScope(value).PrimaryKeyZero()
+=======
+	return s.clone().NewScope(value).PrimaryKeyZero()
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // RecordNotFound check if returning ErrRecordNotFound error
@@ -564,7 +634,11 @@ func (s *DB) DropTableIfExists(values ...interface{}) *DB {
 // HasTable check has table or not
 func (s *DB) HasTable(value interface{}) bool {
 	var (
+<<<<<<< HEAD
 		scope     = s.NewScope(value)
+=======
+		scope     = s.clone().NewScope(value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		tableName string
 	)
 
@@ -590,14 +664,22 @@ func (s *DB) AutoMigrate(values ...interface{}) *DB {
 
 // ModifyColumn modify column to type
 func (s *DB) ModifyColumn(column string, typ string) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(s.Value)
+=======
+	scope := s.clone().NewScope(s.Value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	scope.modifyColumn(column, typ)
 	return scope.db
 }
 
 // DropColumn drop a column
 func (s *DB) DropColumn(column string) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(s.Value)
+=======
+	scope := s.clone().NewScope(s.Value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	scope.dropColumn(column)
 	return scope.db
 }
@@ -618,7 +700,11 @@ func (s *DB) AddUniqueIndex(indexName string, columns ...string) *DB {
 
 // RemoveIndex remove index with name
 func (s *DB) RemoveIndex(indexName string) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(s.Value)
+=======
+	scope := s.clone().NewScope(s.Value)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	scope.removeIndex(indexName)
 	return scope.db
 }
@@ -626,6 +712,7 @@ func (s *DB) RemoveIndex(indexName string) *DB {
 // AddForeignKey Add foreign key to the given scope, e.g:
 //     db.Model(&User{}).AddForeignKey("city_id", "cities(id)", "RESTRICT", "RESTRICT")
 func (s *DB) AddForeignKey(field string, dest string, onDelete string, onUpdate string) *DB {
+<<<<<<< HEAD
 	scope := s.NewScope(s.Value)
 	scope.addForeignKey(field, dest, onDelete, onUpdate)
 	return scope.db
@@ -636,6 +723,10 @@ func (s *DB) AddForeignKey(field string, dest string, onDelete string, onUpdate 
 func (s *DB) RemoveForeignKey(field string, dest string) *DB {
 	scope := s.clone().NewScope(s.Value)
 	scope.removeForeignKey(field, dest)
+=======
+	scope := s.clone().NewScope(s.Value)
+	scope.addForeignKey(field, dest, onDelete, onUpdate)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return scope.db
 }
 

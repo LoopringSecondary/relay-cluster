@@ -1,13 +1,20 @@
 package crypto
 
 import (
+<<<<<<< HEAD
+=======
+	"crypto/sha256"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	"fmt"
 	"io"
 
 	btcec "github.com/btcsuite/btcd/btcec"
 	proto "github.com/gogo/protobuf/proto"
 	pb "github.com/libp2p/go-libp2p-crypto/pb"
+<<<<<<< HEAD
 	sha256 "github.com/minio/sha256-simd"
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 type Secp256k1PrivateKey btcec.PrivateKey
@@ -23,7 +30,11 @@ func GenerateSecp256k1Key(src io.Reader) (PrivKey, PubKey, error) {
 	return k, k.GetPublic(), nil
 }
 
+<<<<<<< HEAD
 func UnmarshalSecp256k1PrivateKey(data []byte) (PrivKey, error) {
+=======
+func UnmarshalSecp256k1PrivateKey(data []byte) (*Secp256k1PrivateKey, error) {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	if len(data) != btcec.PrivKeyBytesLen {
 		return nil, fmt.Errorf("expected secp256k1 data size to be %d", btcec.PrivKeyBytesLen)
 	}
@@ -32,7 +43,11 @@ func UnmarshalSecp256k1PrivateKey(data []byte) (PrivKey, error) {
 	return (*Secp256k1PrivateKey)(privk), nil
 }
 
+<<<<<<< HEAD
 func UnmarshalSecp256k1PublicKey(data []byte) (PubKey, error) {
+=======
+func UnmarshalSecp256k1PublicKey(data []byte) (*Secp256k1PublicKey, error) {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	k, err := btcec.ParsePubKey(data, btcec.S256())
 	if err != nil {
 		return nil, err

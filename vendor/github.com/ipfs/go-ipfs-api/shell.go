@@ -15,11 +15,19 @@ import (
 	"strings"
 	"time"
 
+<<<<<<< HEAD
 	files "github.com/ipfs/go-ipfs-cmdkit/files"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr-net"
 	tar "github.com/whyrusleeping/tar-utils"
+=======
+	ma "github.com/multiformats/go-multiaddr"
+	manet "github.com/multiformats/go-multiaddr-net"
+	files "github.com/whyrusleeping/go-multipart-files"
+	tar "github.com/whyrusleeping/tar-utils"
+	homedir "github.com/mitchellh/go-homedir"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 const (
@@ -147,15 +155,26 @@ type object struct {
 
 // Add a file to ipfs from the given reader, returns the hash of the added file
 func (s *Shell) Add(r io.Reader) (string, error) {
+<<<<<<< HEAD
 	return s.AddWithOpts(r, true, false)
+=======
+	return s.addWithOpts(r, true)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // AddNoPin a file to ipfs from the given reader, returns the hash of the added file without pinning the file
 func (s *Shell) AddNoPin(r io.Reader) (string, error) {
+<<<<<<< HEAD
 	return s.AddWithOpts(r, false, false)
 }
 
 func (s *Shell) AddWithOpts(r io.Reader, pin bool, rawLeaves bool) (string, error) {
+=======
+	return s.addWithOpts(r, false)
+}
+
+func (s *Shell) addWithOpts(r io.Reader, pin bool) (string, error) {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	var rc io.ReadCloser
 	if rclose, ok := r.(io.ReadCloser); ok {
 		rc = rclose
@@ -175,10 +194,13 @@ func (s *Shell) AddWithOpts(r io.Reader, pin bool, rawLeaves bool) (string, erro
 		req.Opts["pin"] = "false"
 	}
 
+<<<<<<< HEAD
 	if rawLeaves {
 		req.Opts["raw-leaves"] = "true"
 	}
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	resp, err := req.Send(s.httpcli)
 	if err != nil {
 		return "", err
@@ -230,7 +252,11 @@ func (s *Shell) AddDir(dir string) (string, error) {
 		return "", err
 	}
 
+<<<<<<< HEAD
 	sf, err := files.NewSerialFile(path.Base(dir), dir, false, stat)
+=======
+	sf, err := files.NewSerialFile("", dir, stat)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	if err != nil {
 		return "", err
 	}
@@ -780,7 +806,11 @@ func (s *Shell) PubSubPublish(topic, data string) (err error) {
 	if err != nil {
 		return
 	}
+<<<<<<< HEAD
 	defer func() {
+=======
+	defer func(){
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		err1 := resp.Close()
 		if err == nil {
 			err = err1
@@ -821,3 +851,27 @@ func (s *Shell) ObjectStat(key string) (*ObjectStats, error) {
 
 	return stat, nil
 }
+<<<<<<< HEAD
+=======
+
+func (s *Shell) DiagNet(format string) ([]byte, error) {
+	var result = new(bytes.Buffer)
+
+	req := s.newRequest(context.Background(), "diag/net")
+	req.Opts["vis"] = format
+
+	resp, err := req.Send(s.httpcli)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	defer resp.Close()
+	if resp.Error != nil {
+		return []byte{}, resp.Error
+	}
+
+	result.ReadFrom(resp.Output)
+
+	return result.Bytes(), nil
+}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

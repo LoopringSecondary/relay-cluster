@@ -2,7 +2,10 @@ package tar
 
 import (
 	"archive/tar"
+<<<<<<< HEAD
 	"fmt"
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	"io"
 	"os"
 	gopath "path"
@@ -11,6 +14,7 @@ import (
 )
 
 type Extractor struct {
+<<<<<<< HEAD
 	Path     string
 	Progress func(int64) int64
 
@@ -35,6 +39,12 @@ func (te *Extractor) Extract(reader io.Reader) error {
 		return nil
 	}
 
+=======
+	Path string
+}
+
+func (te *Extractor) Extract(reader io.Reader) error {
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	tarReader := tar.NewReader(reader)
 
 	// Check if the output path already exists, so we know whether we should
@@ -60,6 +70,7 @@ func (te *Extractor) Extract(reader io.Reader) error {
 			break
 		}
 
+<<<<<<< HEAD
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := te.extractDir(header, i); err != nil {
@@ -133,10 +144,46 @@ func (te *Extractor) extractDir(h *tar.Header, depth int) error {
 
 func (te *Extractor) extractSymlink(h *tar.Header) error {
 	path, err := te.outputPath(h.Name)
+=======
+		if header.Typeflag == tar.TypeDir {
+			if err := te.extractDir(header, i); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err := te.extractFile(header, tarReader, i, rootExists, rootIsDir); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// outputPath returns the path at whicht o place tarPath
+func (te *Extractor) outputPath(tarPath string) string {
+	elems := strings.Split(tarPath, "/") // break into elems
+	elems = elems[1:]                    // remove original root
+
+	path := fp.Join(elems...)     // join elems
+	path = fp.Join(te.Path, path) // rebase on extractor root
+	return path
+}
+
+func (te *Extractor) extractDir(h *tar.Header, depth int) error {
+	path := te.outputPath(h.Name)
+
+	if depth == 0 {
+		// if this is the root root directory, use it as the output path for remaining files
+		te.Path = path
+	}
+
+	err := os.MkdirAll(path, 0755)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	if err != nil {
 		return err
 	}
 
+<<<<<<< HEAD
 	if te.LinkFunc != nil {
 		return te.LinkFunc(Link{Root: te.Path, Name: h.Name, Target: h.Linkname})
 	}
@@ -151,6 +198,15 @@ func (te *Extractor) extractFile(h *tar.Header, r *tar.Reader, depth int, rootEx
 	}
 
 	if depth == 0 { // if depth is 0, this is the only file (we aren't extracting a directory)
+=======
+	return nil
+}
+
+func (te *Extractor) extractFile(h *tar.Header, r *tar.Reader, depth int, rootExists bool, rootIsDir bool) error {
+	path := te.outputPath(h.Name)
+
+	if depth == 0 { // if depth is 0, this is the only file (we aren't 'ipfs get'ing a directory)
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		if rootExists && rootIsDir {
 			// putting file inside of a root dir.
 			fnameo := gopath.Base(h.Name)
@@ -168,6 +224,7 @@ func (te *Extractor) extractFile(h *tar.Header, r *tar.Reader, depth int, rootEx
 	}
 	defer file.Close()
 
+<<<<<<< HEAD
 	return copyWithProgress(file, r, te.Progress)
 }
 
@@ -212,6 +269,12 @@ func childrenOnly(inLink Link) error {
 	if strings.HasPrefix(resolvedTarget, inLink.Root) {
 		return fmt.Errorf("Symlink target %q escapes and re-enters its own root %q (forbidden)", inLink.Target, inLink.Root)
 	}
+=======
+	_, err = io.Copy(file, r)
+	if err != nil {
+		return err
+	}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	return nil
 }

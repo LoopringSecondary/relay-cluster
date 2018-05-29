@@ -13,6 +13,7 @@ import (
 	"reflect"
 )
 
+<<<<<<< HEAD
 func (mf *mysqlField) typeDatabaseName() string {
 	switch mf.fieldType {
 	case fieldTypeBit:
@@ -95,6 +96,37 @@ func (mf *mysqlField) typeDatabaseName() string {
 	default:
 		return ""
 	}
+=======
+var typeDatabaseName = map[fieldType]string{
+	fieldTypeBit:        "BIT",
+	fieldTypeBLOB:       "BLOB",
+	fieldTypeDate:       "DATE",
+	fieldTypeDateTime:   "DATETIME",
+	fieldTypeDecimal:    "DECIMAL",
+	fieldTypeDouble:     "DOUBLE",
+	fieldTypeEnum:       "ENUM",
+	fieldTypeFloat:      "FLOAT",
+	fieldTypeGeometry:   "GEOMETRY",
+	fieldTypeInt24:      "MEDIUMINT",
+	fieldTypeJSON:       "JSON",
+	fieldTypeLong:       "INT",
+	fieldTypeLongBLOB:   "LONGBLOB",
+	fieldTypeLongLong:   "BIGINT",
+	fieldTypeMediumBLOB: "MEDIUMBLOB",
+	fieldTypeNewDate:    "DATE",
+	fieldTypeNewDecimal: "DECIMAL",
+	fieldTypeNULL:       "NULL",
+	fieldTypeSet:        "SET",
+	fieldTypeShort:      "SMALLINT",
+	fieldTypeString:     "CHAR",
+	fieldTypeTime:       "TIME",
+	fieldTypeTimestamp:  "TIMESTAMP",
+	fieldTypeTiny:       "TINYINT",
+	fieldTypeTinyBLOB:   "TINYBLOB",
+	fieldTypeVarChar:    "VARCHAR",
+	fieldTypeVarString:  "VARCHAR",
+	fieldTypeYear:       "YEAR",
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 var (
@@ -122,7 +154,10 @@ type mysqlField struct {
 	flags     fieldFlag
 	fieldType fieldType
 	decimals  byte
+<<<<<<< HEAD
 	charSet   uint8
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 func (mf *mysqlField) scanType() reflect.Type {

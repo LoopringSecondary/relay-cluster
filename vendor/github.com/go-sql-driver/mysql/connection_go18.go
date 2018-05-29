@@ -195,6 +195,7 @@ func (mc *mysqlConn) startWatcher() {
 		}
 	}()
 }
+<<<<<<< HEAD
 
 func (mc *mysqlConn) CheckNamedValue(nv *driver.NamedValue) (err error) {
 	nv.Value, err = converter{}.ConvertValue(nv.Value)
@@ -209,3 +210,5 @@ func (mc *mysqlConn) ResetSession(ctx context.Context) error {
 	}
 	return nil
 }
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

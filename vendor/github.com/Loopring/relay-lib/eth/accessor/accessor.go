@@ -21,10 +21,9 @@ package accessor
 import (
 	"fmt"
 	"github.com/Loopring/relay-lib/eth/abi"
-	libEthTypes "github.com/Loopring/relay-lib/eth/types"
+	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 	"math/big"
 	"sync"
@@ -48,7 +47,7 @@ func GetTransactionCount(result interface{}, address common.Address, blockNumber
 	return accessor.RetryCall(blockNumber, 2, result, "eth_getTransactionCount", address, blockNumber)
 }
 
-func Call(result interface{}, ethCall *libEthTypes.CallArg, blockNumber string) error {
+func Call(result interface{}, ethCall *ethtyp.CallArg, blockNumber string) error {
 	return accessor.RetryCall(blockNumber, 2, result, "eth_call", ethCall, blockNumber)
 }
 
@@ -98,11 +97,11 @@ func EstimateGas(callData []byte, to common.Address, blockNumber string) (gas, g
 	return accessor.EstimateGas(blockNumber, callData, to)
 }
 
-func SignAndSendTransaction(sender common.Address, to common.Address, gas, gasPrice, value *big.Int, callData []byte, needPreExe bool) (string, *ethTypes.Transaction, error) {
+func SignAndSendTransaction(sender common.Address, to common.Address, gas, gasPrice, value *big.Int, callData []byte, needPreExe bool) (string, error) {
 	return accessor.ContractSendTransactionByData("latest", sender, to, gas, gasPrice, value, callData, needPreExe)
 }
 
-func ContractSendTransactionMethod(routeParam string, a *abi.ABI, contractAddress common.Address) func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, *ethTypes.Transaction, error) {
+func ContractSendTransactionMethod(routeParam string, a *abi.ABI, contractAddress common.Address) func(sender common.Address, methodName string, gas, gasPrice, value *big.Int, args ...interface{}) (string, error) {
 	return accessor.ContractSendTransactionMethod(routeParam, a, contractAddress)
 }
 

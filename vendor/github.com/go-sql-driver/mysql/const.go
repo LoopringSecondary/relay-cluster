@@ -19,11 +19,18 @@ const (
 // http://dev.mysql.com/doc/internals/en/client-server-protocol.html
 
 const (
+<<<<<<< HEAD
 	iOK           byte = 0x00
 	iAuthMoreData byte = 0x01
 	iLocalInFile  byte = 0xfb
 	iEOF          byte = 0xfe
 	iERR          byte = 0xff
+=======
+	iOK          byte = 0x00
+	iLocalInFile byte = 0xfb
+	iEOF         byte = 0xfe
+	iERR         byte = 0xff
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 // https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags
@@ -165,9 +172,12 @@ const (
 	statusInTransReadonly
 	statusSessionStateChanged
 )
+<<<<<<< HEAD
 
 const (
 	cachingSha2PasswordRequestPublicKey          = 2
 	cachingSha2PasswordFastAuthSuccess           = 3
 	cachingSha2PasswordPerformFullAuthentication = 4
 )
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

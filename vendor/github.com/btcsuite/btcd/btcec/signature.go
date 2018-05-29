@@ -29,6 +29,10 @@ type Signature struct {
 }
 
 var (
+	// Curve order and halforder, used to tame ECDSA malleability (see BIP-0062)
+	order     = new(big.Int).Set(S256().N)
+	halforder = new(big.Int).Rsh(order, 1)
+
 	// Used in RFC6979 implementation when testing the nonce for correctness
 	one = big.NewInt(1)
 
@@ -47,8 +51,8 @@ var (
 func (sig *Signature) Serialize() []byte {
 	// low 'S' malleability breaker
 	sigS := sig.S
-	if sigS.Cmp(S256().halfOrder) == 1 {
-		sigS = new(big.Int).Sub(S256().N, sigS)
+	if sigS.Cmp(halforder) == 1 {
+		sigS = new(big.Int).Sub(order, sigS)
 	}
 	// Ensure the encoded bytes for the r and s values are canonical and
 	// thus suitable for DER encoding.
@@ -416,8 +420,7 @@ func RecoverCompact(curve *KoblitzCurve, signature,
 func signRFC6979(privateKey *PrivateKey, hash []byte) (*Signature, error) {
 
 	privkey := privateKey.ToECDSA()
-	N := S256().N
-	halfOrder := S256().halfOrder
+	N := order
 	k := nonceRFC6979(privkey.D, hash)
 	inv := new(big.Int).ModInverse(k, N)
 	r, _ := privkey.Curve.ScalarBaseMult(k.Bytes())
@@ -435,7 +438,7 @@ func signRFC6979(privateKey *PrivateKey, hash []byte) (*Signature, error) {
 	s.Mul(s, inv)
 	s.Mod(s, N)
 
-	if s.Cmp(halfOrder) == 1 {
+	if s.Cmp(halforder) == 1 {
 		s.Sub(N, s)
 	}
 	if s.Sign() == 0 {

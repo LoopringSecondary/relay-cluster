@@ -2,13 +2,18 @@
 box: golang
 
 services:
+<<<<<<< HEAD
     - name: mariadb
       id: mariadb:latest
+=======
+    - id: mariadb:10.0
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
       env:
           MYSQL_DATABASE: gorm
           MYSQL_USER: gorm
           MYSQL_PASSWORD: gorm
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+<<<<<<< HEAD
     - name: mysql57
       id: mysql:5.7
       env:
@@ -56,10 +61,14 @@ services:
           POSTGRES_DB: gorm
     - name: postgres93
       id: postgres:9.3
+=======
+    - id: postgres
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
       env:
           POSTGRES_USER: gorm
           POSTGRES_PASSWORD: gorm
           POSTGRES_DB: gorm
+<<<<<<< HEAD
     - name: mssql
       id: mcmoe/mssqldocker:latest
       env:
@@ -68,6 +77,8 @@ services:
         MSSQL_DB: gorm
         MSSQL_USER: gorm
         MSSQL_PASSWORD: LoremIpsum86
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 # The steps that will be executed in the build pipeline
 build:
@@ -98,6 +109,7 @@ build:
                     go test ./...
 
         - script:
+<<<<<<< HEAD
                 name: test mariadb
                 code: |
                     GORM_DIALECT=mysql GORM_DSN="gorm:gorm@tcp(mariadb:3306)/gorm?charset=utf8&parseTime=True" go test ./...
@@ -116,10 +128,16 @@ build:
                 name: test mysql5.5
                 code: |
                     GORM_DIALECT=mysql GORM_DSN="gorm:gorm@tcp(mysql55:3306)/gorm?charset=utf8&parseTime=True" go test ./...
+=======
+                name: test mysql
+                code: |
+                    GORM_DIALECT=mysql GORM_DBADDRESS=mariadb:3306 go test ./...
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
         - script:
                 name: test postgres
                 code: |
+<<<<<<< HEAD
                     GORM_DIALECT=postgres GORM_DSN="host=postgres user=gorm password=gorm DB.name=gorm port=5432 sslmode=disable" go test ./...
 
         - script:
@@ -146,3 +164,6 @@ build:
                 name: test mssql
                 code: |
                     GORM_DIALECT=mssql GORM_DSN="sqlserver://gorm:LoremIpsum86@mssql:1433?database=gorm" go test ./...
+=======
+                    GORM_DIALECT=postgres GORM_DBHOST=postgres go test ./...
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

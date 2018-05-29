@@ -21,6 +21,7 @@ var (
 // Errors contains all happened errors
 type Errors []error
 
+<<<<<<< HEAD
 // IsRecordNotFoundError returns current error has record not found error or not
 func IsRecordNotFoundError(err error) bool {
 	if errs, ok := err.(Errors); ok {
@@ -33,6 +34,8 @@ func IsRecordNotFoundError(err error) bool {
 	return err == ErrRecordNotFound
 }
 
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // GetErrors gets all happened errors
 func (errs Errors) GetErrors() []error {
 	return errs

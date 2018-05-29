@@ -9,6 +9,7 @@
   "gxDependencies": [
     {
       "author": "whyrusleeping",
+<<<<<<< HEAD
       "hash": "Qmd1HfU1m9mR839VhGp5JrcvteF7b5LoTtPMqcxLuriCTY",
       "name": "go-libp2p-pubsub",
       "version": "0.1.0"
@@ -54,13 +55,22 @@
       "hash": "QmQine7gvHncNevKtG9QXxf3nXcwSj6aDDmMm52mHofEEp",
       "name": "tar-utils",
       "version": "0.0.3"
+=======
+      "hash": "QmV5jot2GfVXmgvetHExJCa2hprebf3AKjprZtuwaXSr1v",
+      "name": "floodsub",
+      "version": "0.8.2"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     }
   ],
   "gxVersion": "0.7.0",
   "language": "go",
   "license": "MIT",
   "name": "go-ipfs-api",
+<<<<<<< HEAD
   "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
   "version": "1.2.6"
+=======
+  "version": "1.1.0"
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 

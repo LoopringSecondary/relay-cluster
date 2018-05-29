@@ -60,7 +60,14 @@ func (rows *mysqlRows) Columns() []string {
 }
 
 func (rows *mysqlRows) ColumnTypeDatabaseTypeName(i int) string {
+<<<<<<< HEAD
 	return rows.rs.columns[i].typeDatabaseName()
+=======
+	if name, ok := typeDatabaseName[rows.rs.columns[i].fieldType]; ok {
+		return name
+	}
+	return ""
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // func (rows *mysqlRows) ColumnTypeLength(i int) (length int64, ok bool) {

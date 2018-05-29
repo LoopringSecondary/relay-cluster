@@ -9,6 +9,7 @@
       "hash": "QmQvJiADDe7JR4m968MwXobTCCzUqQkP87aRHe29MEBGHV",
       "name": "go-logging",
       "version": "0.0.0"
+<<<<<<< HEAD
     },
     {
       "author": "forrestweston",
@@ -21,6 +22,8 @@
       "hash": "QmVrtgFpU2Q7FmuqHuiB62BZJrAtatBAxwFSmwYQpzA1eA",
       "name": "go-colorable",
       "version": "0.1.0"
+=======
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     }
   ],
   "gxVersion": "0.7.0",
@@ -28,6 +31,11 @@
   "language": "go",
   "license": "",
   "name": "go-log",
+<<<<<<< HEAD
   "version": "1.5.0"
 }
 
+=======
+  "version": "1.2.0"
+}
+>>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
