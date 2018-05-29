@@ -28,7 +28,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/naming"
-	"google.golang.org/grpc/status"
 )
 
 // Address represents a server the client connects to.
@@ -311,7 +310,7 @@ func (rr *roundRobin) Get(ctx context.Context, opts BalancerGetOptions) (addr Ad
 	if !opts.BlockingWait {
 		if len(rr.addrs) == 0 {
 			rr.mu.Unlock()
-			err = status.Errorf(codes.Unavailable, "there is no address available")
+			err = Errorf(codes.Unavailable, "there is no address available")
 			return
 		}
 		// Returns the next addr on rr.addrs for failfast RPCs.
@@ -404,6 +403,6 @@ type pickFirst struct {
 	*roundRobin
 }
 
-func pickFirstBalancerV1(r naming.Resolver) Balancer {
+func pickFirstBalancer(r naming.Resolver) Balancer {
 	return &pickFirst{&roundRobin{r: r}}
 }
