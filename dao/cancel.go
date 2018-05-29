@@ -48,6 +48,7 @@ func (e *CancelEvent) ConvertDown(src *types.OrderCancelledEvent) error {
 	e.CreateTime = src.BlockTime
 	e.BlockNumber = src.BlockNumber.Int64()
 	e.LogIndex = src.TxLogIndex
+	e.Status = uint8(src.Status)
 
 	return nil
 }
@@ -62,6 +63,7 @@ func (e *CancelEvent) ConvertUp(dst *types.OrderCancelledEvent) error {
 	dst.BlockTime = e.CreateTime
 	dst.BlockNumber = big.NewInt(e.BlockNumber)
 	dst.TxLogIndex = e.LogIndex
+	dst.Status = types.TxStatus(e.Status)
 
 	return nil
 }

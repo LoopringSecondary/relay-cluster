@@ -102,7 +102,17 @@ func (r *RingMinedEvent) FromSubmitRingMethod(event *types.SubmitRingMethodEvent
 	r.GasPrice = event.GasPrice.String()
 	r.Err = event.Err
 
+	var list []common.Hash
+	for _, v := range event.OrderList {
+		list = append(list, v.Hash)
+	}
+	r.OrderHashList = marshalHashListToStr(list)
+
 	return nil
+}
+
+func (r *RingMinedEvent) GetOrderHashList() []common.Hash {
+	return unmarshalStrToHashList(r.OrderHashList)
 }
 
 func (s *RdsService) FindRingMined(txhash string) (*RingMinedEvent, error) {

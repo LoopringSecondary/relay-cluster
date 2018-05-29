@@ -19,7 +19,6 @@
 package dao
 
 import (
-	"encoding/json"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -51,13 +50,8 @@ func (e *CutOffEvent) ConvertDown(src *types.CutoffEvent) error {
 	e.LogIndex = src.TxLogIndex
 	e.BlockNumber = src.BlockNumber.Int64()
 	e.CreateTime = src.BlockTime
-
-	list := []string{}
-	for _, v := range src.OrderHashList {
-		list = append(list, v.Hex())
-	}
-	bs, _ := json.Marshal(list)
-	e.OrderHashList = string(bs)
+	e.Status = uint8(src.Status)
+	e.OrderHashList = marshalHashListToStr(src.OrderHashList)
 
 	return nil
 }
@@ -72,13 +66,9 @@ func (e *CutOffEvent) ConvertUp(dst *types.CutoffEvent) error {
 	dst.TxLogIndex = e.LogIndex
 	dst.Cutoff = big.NewInt(e.Cutoff)
 	dst.BlockTime = e.CreateTime
-	dst.OrderHashList = []common.Hash{}
+	dst.Status = types.TxStatus(e.Status)
+	dst.OrderHashList = unmarshalStrToHashList(e.OrderHashList)
 
-	list := []string{}
-	json.Unmarshal([]byte(e.OrderHashList), &list)
-	for _, v := range list {
-		dst.OrderHashList = append(dst.OrderHashList, common.HexToHash(v))
-	}
 	return nil
 }
 
