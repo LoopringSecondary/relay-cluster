@@ -139,7 +139,6 @@ func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err 
 func (a *AccountManager) handleApprove(input eventemitter.EventData) error {
 	event := input.(*types.ApprovalEvent)
 	log.Debugf("approve,owner:%s, token:%s", event.Owner.Hex(), event.Protocol.Hex())
-	log.Debugf("received approval event, %s, %s", event.Protocol.Hex(), event.Owner.Hex())
 	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
 		log.Info("received wrong status event, drop it")
 		return nil
