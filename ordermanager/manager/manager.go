@@ -123,7 +123,7 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
 	event := input.(*types.SubmitRingMethodEvent)
 
-	if event.Status != types.TX_STATUS_FAILED {
+	if event.Status != types.TX_STATUS_FAILED && event.Status != types.TX_STATUS_PENDING {
 		return nil
 	}
 
@@ -132,20 +132,22 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 		err   error
 	)
 
-	model, err = om.rds.FindRingMined(event.TxHash.Hex())
-	if err == nil {
+	// 数据不存在(err:record not found): 插入新数据
+	// 数据存在,状态相同: 不处理
+	// 数据存在,状态不同: 更新数据
+
+	if model, err = om.rds.FindRingMined(event.TxHash.Hex()); err != nil {
+		model.FromSubmitRingMethod(event)
+		err = om.rds.Add(model)
+	} else if model.Status == uint8(event.Status) {
 		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
-		return nil
-	}
-	model.FromSubmitRingMethod(event)
-	if err = om.rds.Add(model); err != nil {
-		log.Debugf("order manager,handle submitRing method,tx:%s insert ring error:%s", event.TxHash.Hex(), err.Error())
-		return nil
+	} else {
+		model.FromSubmitRingMethod(event)
+		err = om.rds.Save(model)
+		log.Debugf("order manager,handle submitRing method,tx:%s status:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
 	}
 
-	log.Debugf("order manager,handle submitRing method,tx:%s status:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
-
-	return nil
+	return err
 }
 
 // 所有来自gateway的订单都是新订单
