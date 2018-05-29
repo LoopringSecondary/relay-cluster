@@ -158,7 +158,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	if err != nil {
 		groupId = "DefaultSocketioTopic" + time.Now().String()
 	} else {
-		groupId = addrs[0].String()
+		groupId = addrs[1].String()
 	}
 
 	for k, v := range topicList {
