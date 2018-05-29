@@ -97,7 +97,7 @@ func allocateBody(key, version int16) protocolBody {
 	case 9:
 		return &OffsetFetchRequest{}
 	case 10:
-		return &FindCoordinatorRequest{}
+		return &ConsumerMetadataRequest{}
 	case 11:
 		return &JoinGroupRequest{}
 	case 12:
@@ -118,8 +118,6 @@ func allocateBody(key, version int16) protocolBody {
 		return &CreateTopicsRequest{}
 	case 20:
 		return &DeleteTopicsRequest{}
-	case 21:
-		return &DeleteRecordsRequest{}
 	case 22:
 		return &InitProducerIDRequest{}
 	case 24:
@@ -142,8 +140,6 @@ func allocateBody(key, version int16) protocolBody {
 		return &AlterConfigsRequest{}
 	case 37:
 		return &CreatePartitionsRequest{}
-	case 42:
-		return &DeleteGroupsRequest{}
 	}
 	return nil
 }
