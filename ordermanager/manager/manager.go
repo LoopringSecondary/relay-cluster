@@ -20,7 +20,7 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	. "github.com/Loopring/relay-cluster/ordermanager/common"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
@@ -37,10 +37,10 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options                 *OrderManagerOptions
+	options                 *omcm.OrderManagerOptions
 	rds                     *dao.RdsService
 	processor               *ForkProcessor
-	cutoffCache             *CutoffCache
+	cutoffCache             *omcm.CutoffCache
 	mc                      marketcap.MarketCapProvider
 	newOrderWatcher         *eventemitter.Watcher
 	ringMinedWatcher        *eventemitter.Watcher
@@ -54,7 +54,7 @@ type OrderManagerImpl struct {
 }
 
 func NewOrderManager(
-	options *OrderManagerOptions,
+	options *omcm.OrderManagerOptions,
 	rds *dao.RdsService,
 	market marketcap.MarketCapProvider) *OrderManagerImpl {
 
@@ -63,7 +63,7 @@ func NewOrderManager(
 	om.rds = rds
 	om.processor = NewForkProcess(om.rds, market)
 	om.mc = market
-	om.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
+	om.cutoffCache = omcm.NewCutoffCache(options.CutoffCacheCleanTime)
 
 	return om
 }
