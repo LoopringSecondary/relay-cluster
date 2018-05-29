@@ -38,16 +38,6 @@ func (commonDialect) Quote(key string) string {
 	return fmt.Sprintf(`"%s"`, key)
 }
 
-<<<<<<< HEAD
-func (s *commonDialect) fieldCanAutoIncrement(field *StructField) bool {
-	if value, ok := field.TagSettings["AUTO_INCREMENT"]; ok {
-		return strings.ToLower(value) != "false"
-	}
-	return field.IsPrimaryKey
-}
-
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 func (s *commonDialect) DataTypeOf(field *StructField) string {
 	var dataValue, sqlType, size, additionalType = ParseFieldStructForDialect(field, s)
 
@@ -56,21 +46,13 @@ func (s *commonDialect) DataTypeOf(field *StructField) string {
 		case reflect.Bool:
 			sqlType = "BOOLEAN"
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uintptr:
-<<<<<<< HEAD
-			if s.fieldCanAutoIncrement(field) {
-=======
 			if _, ok := field.TagSettings["AUTO_INCREMENT"]; ok {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 				sqlType = "INTEGER AUTO_INCREMENT"
 			} else {
 				sqlType = "INTEGER"
 			}
 		case reflect.Int64, reflect.Uint64:
-<<<<<<< HEAD
-			if s.fieldCanAutoIncrement(field) {
-=======
 			if _, ok := field.TagSettings["AUTO_INCREMENT"]; ok {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 				sqlType = "BIGINT AUTO_INCREMENT"
 			} else {
 				sqlType = "BIGINT"
@@ -110,12 +92,7 @@ func (s *commonDialect) DataTypeOf(field *StructField) string {
 
 func (s commonDialect) HasIndex(tableName string, indexName string) bool {
 	var count int
-<<<<<<< HEAD
-	currentDatabase, tableName := currentDatabaseAndTable(&s, tableName)
-	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = ? AND table_name = ? AND index_name = ?", currentDatabase, tableName, indexName).Scan(&count)
-=======
 	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema = ? AND table_name = ? AND index_name = ?", s.CurrentDatabase(), tableName, indexName).Scan(&count)
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return count > 0
 }
 
@@ -130,34 +107,16 @@ func (s commonDialect) HasForeignKey(tableName string, foreignKeyName string) bo
 
 func (s commonDialect) HasTable(tableName string) bool {
 	var count int
-<<<<<<< HEAD
-	currentDatabase, tableName := currentDatabaseAndTable(&s, tableName)
-	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_name = ?", currentDatabase, tableName).Scan(&count)
-=======
 	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = ? AND table_name = ?", s.CurrentDatabase(), tableName).Scan(&count)
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return count > 0
 }
 
 func (s commonDialect) HasColumn(tableName string, columnName string) bool {
 	var count int
-<<<<<<< HEAD
-	currentDatabase, tableName := currentDatabaseAndTable(&s, tableName)
-	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = ? AND table_name = ? AND column_name = ?", currentDatabase, tableName, columnName).Scan(&count)
-	return count > 0
-}
-
-func (s commonDialect) ModifyColumn(tableName string, columnName string, typ string) error {
-	_, err := s.db.Exec(fmt.Sprintf("ALTER TABLE %v ALTER COLUMN %v TYPE %v", tableName, columnName, typ))
-	return err
-}
-
-=======
 	s.db.QueryRow("SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = ? AND table_name = ? AND column_name = ?", s.CurrentDatabase(), tableName, columnName).Scan(&count)
 	return count > 0
 }
 
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 func (s commonDialect) CurrentDatabase() (name string) {
 	s.db.QueryRow("SELECT DATABASE()").Scan(&name)
 	return
@@ -185,20 +144,9 @@ func (commonDialect) LastInsertIDReturningSuffix(tableName, columnName string) s
 	return ""
 }
 
-<<<<<<< HEAD
-func (commonDialect) DefaultValueStr() string {
-	return "DEFAULT VALUES"
-}
-
-// BuildKeyName returns a valid key name (foreign key, index key) for the given table, field and reference
-func (DefaultForeignKeyNamer) BuildKeyName(kind, tableName string, fields ...string) string {
-	keyName := fmt.Sprintf("%s_%s_%s", kind, tableName, strings.Join(fields, "_"))
-	keyName = regexp.MustCompile("[^a-zA-Z0-9]+").ReplaceAllString(keyName, "_")
-=======
 func (DefaultForeignKeyNamer) BuildForeignKeyName(tableName, field, dest string) string {
 	keyName := fmt.Sprintf("%s_%s_%s_foreign", tableName, field, dest)
 	keyName = regexp.MustCompile("(_*[^a-zA-Z]+_*|_+)").ReplaceAllString(keyName, "_")
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return keyName
 }
 

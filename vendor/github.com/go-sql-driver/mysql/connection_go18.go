@@ -195,20 +195,3 @@ func (mc *mysqlConn) startWatcher() {
 		}
 	}()
 }
-<<<<<<< HEAD
-
-func (mc *mysqlConn) CheckNamedValue(nv *driver.NamedValue) (err error) {
-	nv.Value, err = converter{}.ConvertValue(nv.Value)
-	return
-}
-
-// ResetSession implements driver.SessionResetter.
-// (From Go 1.10)
-func (mc *mysqlConn) ResetSession(ctx context.Context) error {
-	if mc.closed.IsSet() {
-		return driver.ErrBadConn
-	}
-	return nil
-}
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

@@ -19,44 +19,44 @@
 package market
 
 import (
-	"encoding/json"
-	"sort"
-	"reflect"
-	"strings"
-	"strconv"
-	"github.com/pkg/errors"
 	"crypto/hmac"
-	"encoding/base64"
 	"crypto/sha256"
-	"time"
-	"github.com/robfig/cron"
+	"encoding/base64"
+	"encoding/json"
+	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay/market/util"
+	"github.com/pkg/errors"
+	"github.com/robfig/cron"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var globalMarket *GlobalMarket
 
 type GlobalMarket struct {
 	config MyTokenConfig
-	cron         *cron.Cron
+	cron   *cron.Cron
 }
 
 type GlobalTrend struct {
 }
 
 type MyTokenConfig struct {
-	AppId string
+	AppId     string
 	AppSecret string
-	baseUrl  string
+	baseUrl   string
 }
 
 type GlobalTrendReq struct {
 	TrendAnchor string `json:"trend_anchor"`
-	Symbol string `json:"symbol"`
+	Symbol      string `json:"symbol"`
 }
 
 type GlobalTickerReq struct {
@@ -64,7 +64,7 @@ type GlobalTickerReq struct {
 }
 
 func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
-	return GlobalMarket{config:config}
+	return GlobalMarket{config: config}
 }
 
 func getResp(url string, result interface{}) error {
@@ -90,25 +90,14 @@ func getResp(url string, result interface{}) error {
 func (g *GlobalMarket) GetGlobalTrend(token string) (trend GlobalTrend, err error) {
 
 	url := g.config.baseUrl + "symbol/trend?"
-	request := GlobalTrendReq{TrendAnchor:"USDT", Symbol: token}
-	urlParam, err := g.Sign(request); if err != nil {
+	request := GlobalTrendReq{TrendAnchor: "USDT", Symbol: token}
+	urlParam, err := g.Sign(request)
+	if err != nil {
 		return trend, err
 	}
 
 	var resp GlobalTrend
-	getResp(url + urlParam, resp)
-
-
-
-
-
-
-
-
-
-
-
-
+	getResp(url+urlParam, resp)
 
 	return GlobalTrend{}, nil
 }
@@ -118,11 +107,13 @@ func (g *GlobalMarket) GetGlobalTicker(token string) (tickers []Ticker, err erro
 }
 
 func (g *GlobalMarket) Sign(param interface{}) (urlParam string, err error) {
-	jsonStr, err := json.Marshal(param); if err != nil {
+	jsonStr, err := json.Marshal(param)
+	if err != nil {
 		return urlParam, err
 	}
 	var jsonMap map[string]interface{}
-	err = json.Unmarshal(jsonStr, &jsonMap); if err != nil {
+	err = json.Unmarshal(jsonStr, &jsonMap)
+	if err != nil {
 		return urlParam, err
 	}
 
@@ -139,14 +130,13 @@ func (g *GlobalMarket) Sign(param interface{}) (urlParam string, err error) {
 	for _, k := range keys {
 		v := jsonMap[k]
 		if reflect.TypeOf(v).Kind() == reflect.String {
-			signatureList = append(signatureList, k + "=" + v.(string))
+			signatureList = append(signatureList, k+"="+v.(string))
 		} else if reflect.TypeOf(v).Kind() == reflect.Int64 {
-			signatureList = append(signatureList, k + "=" + strconv.FormatInt(v.(int64), 10))
+			signatureList = append(signatureList, k+"="+strconv.FormatInt(v.(int64), 10))
 		} else {
 			return urlParam, errors.New("unsupported data type " + reflect.TypeOf(v).String())
 		}
 	}
-
 
 	waitToSign := strings.Join(signatureList, "&") + "&app_secret=" + g.config.AppSecret
 	sign := computeHmac256(waitToSign, g.config.AppSecret)
@@ -183,7 +173,6 @@ func syncGlobalTrend() {
 
 func (g *GlobalMarket) syncGlobalTrend(token string) error {
 
-
 	return nil
 }
 
@@ -201,10 +190,3 @@ func computeHmac256(message string, secret string) string {
 	h.Write([]byte(message))
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
-
-
-
-
-
-
-

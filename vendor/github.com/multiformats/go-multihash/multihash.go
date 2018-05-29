@@ -10,21 +10,13 @@ import (
 	"fmt"
 	"math"
 
-<<<<<<< HEAD
-	b58 "github.com/mr-tron/base58/base58"
-=======
 	b58 "github.com/jbenet/go-base58"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 // errors
 var (
 	ErrUnknownCode      = errors.New("unknown multihash code")
-<<<<<<< HEAD
-	ErrTooShort         = errors.New("multihash too short. must be >= 2 bytes")
-=======
 	ErrTooShort         = errors.New("multihash too short. must be > 3 bytes")
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	ErrTooLong          = errors.New("multihash too long. must be < 129 bytes")
 	ErrLenNotSupported  = errors.New("multihash does not yet support digests longer than 127 bytes")
 	ErrInvalidMultihash = errors.New("input isn't valid multihash")
@@ -205,10 +197,6 @@ func (m Multihash) B58String() string {
 
 // FromB58String parses a B58-encoded multihash.
 func FromB58String(s string) (m Multihash, err error) {
-<<<<<<< HEAD
-	b, err := b58.Decode(s)
-	if err != nil {
-=======
 	// panic handler, in case we try accessing bytes incorrectly.
 	defer func() {
 		if e := recover(); e != nil {
@@ -220,7 +208,6 @@ func FromB58String(s string) (m Multihash, err error) {
 	//b58 smells like it can panic...
 	b := b58.Decode(s)
 	if len(b) == 0 {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		return Multihash{}, ErrInvalidMultihash
 	}
 
@@ -245,11 +232,7 @@ func Cast(buf []byte) (Multihash, error) {
 // Decode parses multihash bytes into a DecodedMultihash.
 func Decode(buf []byte) (*DecodedMultihash, error) {
 
-<<<<<<< HEAD
-	if len(buf) < 2 {
-=======
 	if len(buf) < 3 {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 		return nil, ErrTooShort
 	}
 

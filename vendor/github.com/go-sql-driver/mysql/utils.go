@@ -10,10 +10,6 @@ package mysql
 
 import (
 	"crypto/sha1"
-<<<<<<< HEAD
-	"crypto/sha256"
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	"crypto/tls"
 	"database/sql/driver"
 	"encoding/binary"
@@ -215,37 +211,6 @@ func scrambleOldPassword(scramble, password []byte) []byte {
 	return out[:]
 }
 
-<<<<<<< HEAD
-// Encrypt password using 8.0 default method
-func scrambleCachingSha2Password(scramble, password []byte) []byte {
-	if len(password) == 0 {
-		return nil
-	}
-
-	// XOR(SHA256(password), SHA256(SHA256(SHA256(password)), scramble))
-
-	crypt := sha256.New()
-	crypt.Write(password)
-	message1 := crypt.Sum(nil)
-
-	crypt.Reset()
-	crypt.Write(message1)
-	message1Hash := crypt.Sum(nil)
-
-	crypt.Reset()
-	crypt.Write(message1Hash)
-	crypt.Write(scramble)
-	message2 := crypt.Sum(nil)
-
-	for i := range message1 {
-		message1[i] ^= message2[i]
-	}
-
-	return message1
-}
-
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 /******************************************************************************
 *                           Time related utils                                *
 ******************************************************************************/
@@ -572,11 +537,7 @@ func readLengthEncodedString(b []byte) ([]byte, bool, int, error) {
 
 	// Check data length
 	if len(b) >= n {
-<<<<<<< HEAD
-		return b[n-int(num) : n : n], false, n, nil
-=======
 		return b[n-int(num) : n], false, n, nil
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 	return nil, false, n, io.EOF
 }
@@ -605,13 +566,8 @@ func readLengthEncodedInteger(b []byte) (uint64, bool, int) {
 	if len(b) == 0 {
 		return 0, true, 1
 	}
-<<<<<<< HEAD
-
-	switch b[0] {
-=======
 	switch b[0] {
 
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	// 251: NULL
 	case 0xfb:
 		return 0, true, 1
@@ -844,11 +800,7 @@ func (ab *atomicBool) TrySet(value bool) bool {
 	return atomic.SwapUint32(&ab.value, 0) > 0
 }
 
-<<<<<<< HEAD
-// atomicError is a wrapper for atomically accessed error values
-=======
 // atomicBool is a wrapper for atomically accessed error values
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 type atomicError struct {
 	_noCopy noCopy
 	value   atomic.Value

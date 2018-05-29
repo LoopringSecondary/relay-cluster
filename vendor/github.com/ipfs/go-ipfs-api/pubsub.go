@@ -4,13 +4,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 
-<<<<<<< HEAD
-	"github.com/libp2p/go-libp2p-peer"
-	pb "github.com/libp2p/go-libp2p-pubsub/pb"
-=======
 	"github.com/libp2p/go-floodsub"
 	"github.com/libp2p/go-libp2p-peer"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 // PubSubRecord is a record received via PubSub.
@@ -28,21 +23,8 @@ type PubSubRecord interface {
 	TopicIDs() []string
 }
 
-<<<<<<< HEAD
-type message struct {
-	*pb.Message
-}
-
-func (m *message) GetFrom() peer.ID {
-	return peer.ID(m.Message.GetFrom())
-}
-
-type floodsubRecord struct {
-	msg *message
-=======
 type floodsubRecord struct {
 	msg *floodsub.Message
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 func (r floodsubRecord) From() peer.ID {
@@ -73,10 +55,7 @@ func newPubSubSubscription(resp *Response) *PubSubSubscription {
 		resp: resp,
 	}
 
-<<<<<<< HEAD
-=======
 	sub.Next() // skip empty element used for flushing
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return sub
 }
 
@@ -88,11 +67,7 @@ func (s *PubSubSubscription) Next() (PubSubRecord, error) {
 
 	d := json.NewDecoder(s.resp.Output)
 
-<<<<<<< HEAD
-	r := &message{}
-=======
 	r := &floodsub.Message{}
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	err := d.Decode(r)
 
 	return floodsubRecord{msg: r}, err

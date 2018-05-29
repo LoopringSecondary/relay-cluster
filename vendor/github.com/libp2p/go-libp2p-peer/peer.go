@@ -2,36 +2,13 @@
 package peer
 
 import (
-<<<<<<< HEAD
-	"encoding/hex"
-=======
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	"fmt"
 	"strings"
 
 	logging "github.com/ipfs/go-log" // ID represents the identity of a peer.
-<<<<<<< HEAD
-	ic "github.com/libp2p/go-libp2p-crypto"
-	b58 "github.com/mr-tron/base58/base58"
-	mh "github.com/multiformats/go-multihash"
-)
-
-// MaxInlineKeyLength is the maximum length a key can be for it to be inlined in
-// the peer ID.
-//
-// * When `len(pubKey.Bytes()) <= MaxInlineKeyLength`, the peer ID is the
-//   identity multihash hash of the public key.
-// * When `len(pubKey.Bytes()) > MaxInlineKeyLength`, the peer ID is the
-//   sha2-256 multihash of the public key.
-const MaxInlineKeyLength = 42
-
-var log = logging.Logger("peer")
-
-// ID is a libp2p peer identity.
-=======
 	b58 "github.com/jbenet/go-base58"
 	ic "github.com/libp2p/go-libp2p-crypto"
 	mc "github.com/multiformats/go-multicodec-packed"
@@ -40,7 +17,6 @@ var log = logging.Logger("peer")
 
 var log = logging.Logger("peer")
 
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 type ID string
 
 // Pretty returns a b58-encoded string of the ID
@@ -90,25 +66,6 @@ func (id ID) MatchesPublicKey(pk ic.PubKey) bool {
 	return oid == id
 }
 
-<<<<<<< HEAD
-// ExtractPublicKey attempts to extract the public key from an ID
-//
-// This method returns nil, nil if the peer ID looks valid but it can't extract
-// the public key.
-func (id ID) ExtractPublicKey() (ic.PubKey, error) {
-	decoded, err := mh.Decode([]byte(id))
-	if err != nil {
-		return nil, err
-	}
-	if decoded.Code != mh.ID {
-		return nil, nil
-	}
-	pk, err := ic.UnmarshalPublicKey(decoded.Digest)
-	if err != nil {
-		return nil, err
-	}
-	return pk, nil
-=======
 var MultihashDecodeErr = errors.New("unable to decode multihash")
 var MultihashCodecErr = errors.New("unexpected multihash codec")
 var MultihashLengthErr = errors.New("unexpected multihash length")
@@ -180,7 +137,6 @@ func (id ID) ExtractPublicKey() ic.PubKey {
 	}*/
 
 	return pk
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // IDFromString cast a string to ID type, and validate
@@ -215,11 +171,7 @@ func IDB58Encode(id ID) string {
 	return b58.Encode([]byte(id))
 }
 
-<<<<<<< HEAD
-// IDHexDecode returns a hex-decoded Peer
-=======
 // IDHexDecode returns a b58-decoded Peer
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 func IDHexDecode(s string) (ID, error) {
 	m, err := mh.FromHexString(s)
 	if err != nil {
@@ -228,11 +180,7 @@ func IDHexDecode(s string) (ID, error) {
 	return ID(m), err
 }
 
-<<<<<<< HEAD
-// IDHexEncode returns hex-encoded string
-=======
 // IDHexEncode returns b58-encoded string
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 func IDHexEncode(id ID) string {
 	return hex.EncodeToString([]byte(id))
 }
@@ -243,13 +191,6 @@ func IDFromPublicKey(pk ic.PubKey) (ID, error) {
 	if err != nil {
 		return "", err
 	}
-<<<<<<< HEAD
-	var alg uint64 = mh.SHA2_256
-	if len(b) <= MaxInlineKeyLength {
-		alg = mh.ID
-	}
-	hash, _ := mh.Sum(b, alg, -1)
-=======
 	hash, _ := mh.Sum(b, mh.SHA2_256, -1)
 	return ID(hash), nil
 }
@@ -270,7 +211,6 @@ func IDFromEd25519PublicKey(pk ic.PubKey) (ID, error) {
 		return "", err
 	}
 
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	return ID(hash), nil
 }
 

@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-export IPFS_API ?= v04x.ipfs.io
-
-gx:
-	go get -u github.com/whyrusleeping/gx
-	go get -u github.com/whyrusleeping/gx-go
-
-deps: gx
-	gx --verbose install --global
-	gx-go rewrite
-=======
 export PATH := bin:$(PATH)
 
 deps: gxbins
@@ -37,4 +26,3 @@ bin/gx-go-v1.2.0:
 clean:
 	rm -f bin/gx*
 	rm -rf bin/tmp
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

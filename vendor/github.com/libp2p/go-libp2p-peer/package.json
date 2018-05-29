@@ -9,29 +9,6 @@
   "gxDependencies": [
     {
       "author": "whyrusleeping",
-<<<<<<< HEAD
-      "hash": "QmTG23dvpBCBjqQwyDxV8CQT6jmS4PSftNr1VqHhE3MLy7",
-      "name": "go-log",
-      "version": "1.4.1"
-    },
-    {
-      "author": "whyrusleeping",
-      "hash": "Qme1knMqwt1hKZbc1BmQFmnm9f36nyQGwXxPGVpVJ9rMK5",
-      "name": "go-libp2p-crypto",
-      "version": "1.6.2"
-    },
-    {
-      "author": "multiformats",
-      "hash": "QmZyZDi491cCNTLfAhwcaDii2Kg4pwKRkhqQzURGDvY6ua",
-      "name": "go-multihash",
-      "version": "1.0.7"
-    },
-    {
-      "author": "mr-tron",
-      "hash": "QmWFAMPqsEyUX7gDUsRVmMWz59FxSpJ1b2v6bJ1yYzo7jY",
-      "name": "go-base58-fast",
-      "version": "0.1.1"
-=======
       "hash": "QmSpJByNKFX1sCsHBEp3R73FL4NF6FnQTEGyNAXHm2GS52",
       "name": "go-log",
       "version": "1.2.0"
@@ -59,7 +36,6 @@
       "hash": "QmT8rehPR3F6bmwL6zjUN8XpiDBFFpMP2myPdC6ApsWfJf",
       "name": "go-base58",
       "version": "0.0.0"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
     }
   ],
   "gxVersion": "0.4.0",
@@ -67,10 +43,6 @@
   "license": "MIT",
   "name": "go-libp2p-peer",
   "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
-<<<<<<< HEAD
-  "version": "2.3.2"
-=======
   "version": "2.2.0"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 

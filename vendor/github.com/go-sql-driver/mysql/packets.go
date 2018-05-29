@@ -10,20 +10,9 @@ package mysql
 
 import (
 	"bytes"
-<<<<<<< HEAD
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha1"
-	"crypto/tls"
-	"crypto/x509"
-	"database/sql/driver"
-	"encoding/binary"
-	"encoding/pem"
-=======
 	"crypto/tls"
 	"database/sql/driver"
 	"encoding/binary"
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	"errors"
 	"fmt"
 	"io"
@@ -165,21 +154,6 @@ func (mc *mysqlConn) writePacket(data []byte) error {
 
 // Handshake Initialization Packet
 // http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::Handshake
-<<<<<<< HEAD
-func (mc *mysqlConn) readInitPacket() ([]byte, string, error) {
-	data, err := mc.readPacket()
-	if err != nil {
-		// for init we can rewrite this to ErrBadConn for sql.Driver to retry, since
-		// in connection initialization we don't risk retrying non-idempotent actions.
-		if err == ErrInvalidConn {
-			return nil, "", driver.ErrBadConn
-		}
-		return nil, "", err
-	}
-
-	if data[0] == iERR {
-		return nil, "", mc.handleErrorPacket(data)
-=======
 func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 	data, err := mc.readPacket()
 	if err != nil {
@@ -188,16 +162,11 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 
 	if data[0] == iERR {
 		return nil, mc.handleErrorPacket(data)
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 
 	// protocol version [1 byte]
 	if data[0] < minProtocolVersion {
-<<<<<<< HEAD
-		return nil, "", fmt.Errorf(
-=======
 		return nil, fmt.Errorf(
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 			"unsupported protocol version %d. Version %d or higher is required",
 			data[0],
 			minProtocolVersion,
@@ -217,16 +186,6 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 	// capability flags (lower 2 bytes) [2 bytes]
 	mc.flags = clientFlag(binary.LittleEndian.Uint16(data[pos : pos+2]))
 	if mc.flags&clientProtocol41 == 0 {
-<<<<<<< HEAD
-		return nil, "", ErrOldProtocol
-	}
-	if mc.flags&clientSSL == 0 && mc.cfg.tls != nil {
-		return nil, "", ErrNoTLS
-	}
-	pos += 2
-
-	pluginName := "mysql_native_password"
-=======
 		return nil, ErrOldProtocol
 	}
 	if mc.flags&clientSSL == 0 && mc.cfg.tls != nil {
@@ -234,7 +193,6 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 	}
 	pos += 2
 
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	if len(data) > pos {
 		// character set [1 byte]
 		// status flags [2 bytes]
@@ -256,17 +214,6 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 		// The official Python library uses the fixed length 12
 		// which seems to work but technically could have a hidden bug.
 		cipher = append(cipher, data[pos:pos+12]...)
-<<<<<<< HEAD
-		pos += 13
-
-		// EOF if version (>= 5.5.7 and < 5.5.10) or (>= 5.6.0 and < 5.6.2)
-		// \NUL otherwise
-		if end := bytes.IndexByte(data[pos:], 0x00); end != -1 {
-			pluginName = string(data[pos : pos+end])
-		} else {
-			pluginName = string(data[pos:])
-		}
-=======
 
 		// TODO: Verify string termination
 		// EOF if version (>= 5.5.7 and < 5.5.10) or (>= 5.6.0 and < 5.6.2)
@@ -276,39 +223,22 @@ func (mc *mysqlConn) readInitPacket() ([]byte, error) {
 		//	return
 		//}
 		//return ErrMalformPkt
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 		// make a memory safe copy of the cipher slice
 		var b [20]byte
 		copy(b[:], cipher)
-<<<<<<< HEAD
-		return b[:], pluginName, nil
-=======
 		return b[:], nil
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 
 	// make a memory safe copy of the cipher slice
 	var b [8]byte
 	copy(b[:], cipher)
-<<<<<<< HEAD
-	return b[:], pluginName, nil
-=======
 	return b[:], nil
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Client Authentication Packet
 // http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::HandshakeResponse
-<<<<<<< HEAD
-func (mc *mysqlConn) writeAuthPacket(cipher []byte, pluginName string) error {
-	if pluginName != "mysql_native_password" && pluginName != "caching_sha2_password" {
-		return fmt.Errorf("unknown authentication plugin name '%s'", pluginName)
-	}
-
-=======
 func (mc *mysqlConn) writeAuthPacket(cipher []byte) error {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	// Adjust client flags based on server support
 	clientFlags := clientProtocol41 |
 		clientSecureConn |
@@ -333,17 +263,7 @@ func (mc *mysqlConn) writeAuthPacket(cipher []byte) error {
 	}
 
 	// User Password
-<<<<<<< HEAD
-	var scrambleBuff []byte
-	switch pluginName {
-	case "mysql_native_password":
-		scrambleBuff = scramblePassword(cipher, []byte(mc.cfg.Passwd))
-	case "caching_sha2_password":
-		scrambleBuff = scrambleCachingSha2Password(cipher, []byte(mc.cfg.Passwd))
-	}
-=======
 	scrambleBuff := scramblePassword(cipher, []byte(mc.cfg.Passwd))
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	pktLen := 4 + 4 + 1 + 23 + len(mc.cfg.User) + 1 + 1 + len(scrambleBuff) + 21 + 1
 
@@ -424,12 +344,8 @@ func (mc *mysqlConn) writeAuthPacket(cipher []byte) error {
 		pos++
 	}
 
-<<<<<<< HEAD
-	pos += copy(data[pos:], pluginName)
-=======
 	// Assume native client during response
 	pos += copy(data[pos:], "mysql_native_password")
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	data[pos] = 0x00
 
 	// Send Auth packet
@@ -501,41 +417,6 @@ func (mc *mysqlConn) writeNativeAuthPacket(cipher []byte) error {
 	return mc.writePacket(data)
 }
 
-<<<<<<< HEAD
-//  Caching sha2 authentication. Public key request and send encrypted password
-// http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthSwitchResponse
-func (mc *mysqlConn) writePublicKeyAuthPacket(cipher []byte) error {
-	// request public key
-	data := mc.buf.takeSmallBuffer(4 + 1)
-	data[4] = cachingSha2PasswordRequestPublicKey
-	mc.writePacket(data)
-
-	data, err := mc.readPacket()
-	if err != nil {
-		return err
-	}
-
-	block, _ := pem.Decode(data[1:])
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return err
-	}
-
-	plain := make([]byte, len(mc.cfg.Passwd)+1)
-	copy(plain, mc.cfg.Passwd)
-	for i := range plain {
-		j := i % len(cipher)
-		plain[i] ^= cipher[j]
-	}
-	sha1 := sha1.New()
-	enc, _ := rsa.EncryptOAEP(sha1, rand.Reader, pub.(*rsa.PublicKey), plain, nil)
-	data = mc.buf.takeSmallBuffer(4 + len(enc))
-	copy(data[4:], enc)
-	return mc.writePacket(data)
-}
-
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 /******************************************************************************
 *                             Command Packets                                 *
 ******************************************************************************/
@@ -608,55 +489,6 @@ func (mc *mysqlConn) writeCommandPacketUint32(command byte, arg uint32) error {
 *                              Result Packets                                 *
 ******************************************************************************/
 
-<<<<<<< HEAD
-func readAuthSwitch(data []byte) ([]byte, error) {
-	if len(data) > 1 {
-		pluginEndIndex := bytes.IndexByte(data, 0x00)
-		plugin := string(data[1:pluginEndIndex])
-		cipher := data[pluginEndIndex+1:]
-
-		switch plugin {
-		case "mysql_old_password":
-			// using old_passwords
-			return cipher, ErrOldPassword
-		case "mysql_clear_password":
-			// using clear text password
-			return cipher, ErrCleartextPassword
-		case "mysql_native_password":
-			// using mysql default authentication method
-			return cipher, ErrNativePassword
-		default:
-			return cipher, ErrUnknownPlugin
-		}
-	}
-
-	// https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::OldAuthSwitchRequest
-	return nil, ErrOldPassword
-}
-
-// Returns error if Packet is not an 'Result OK'-Packet
-func (mc *mysqlConn) readResultOK() ([]byte, error) {
-	data, err := mc.readPacket()
-	if err != nil {
-		return nil, err
-	}
-
-	// packet indicator
-	switch data[0] {
-
-	case iOK:
-		return nil, mc.handleOkPacket(data)
-
-	case iAuthMoreData:
-		return data[1:], nil
-
-	case iEOF:
-		return readAuthSwitch(data)
-
-	default: // Error otherwise
-		return nil, mc.handleErrorPacket(data)
-	}
-=======
 // Returns error if Packet is not an 'Result OK'-Packet
 func (mc *mysqlConn) readResultOK() ([]byte, error) {
 	data, err := mc.readPacket()
@@ -696,7 +528,6 @@ func (mc *mysqlConn) readResultOK() ([]byte, error) {
 		}
 	}
 	return nil, err
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 // Result Set Header Packet
@@ -866,21 +697,10 @@ func (mc *mysqlConn) readColumns(count int) ([]mysqlField, error) {
 		if err != nil {
 			return nil, err
 		}
-<<<<<<< HEAD
-		pos += n
-
-		// Filler [uint8]
-		pos++
-
-		// Charset [charset, collation uint8]
-		columns[i].charSet = data[pos]
-		pos += 2
-=======
 
 		// Filler [uint8]
 		// Charset [charset, collation uint8]
 		pos += n + 1 + 2
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 		// Length [uint32]
 		columns[i].length = binary.LittleEndian.Uint32(data[pos : pos+4])
@@ -1092,15 +912,6 @@ func (stmt *mysqlStmt) writeExecutePacket(args []driver.Value) error {
 	const minPktLen = 4 + 1 + 4 + 1 + 4
 	mc := stmt.mc
 
-<<<<<<< HEAD
-	// Determine threshould dynamically to avoid packet size shortage.
-	longDataSize := mc.maxAllowedPacket / (stmt.paramCount + 1)
-	if longDataSize < 64 {
-		longDataSize = 64
-	}
-
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	// Reset packet-sequence
 	mc.sequence = 0
 
@@ -1228,11 +1039,7 @@ func (stmt *mysqlStmt) writeExecutePacket(args []driver.Value) error {
 					paramTypes[i+i] = byte(fieldTypeString)
 					paramTypes[i+i+1] = 0x00
 
-<<<<<<< HEAD
-					if len(v) < longDataSize {
-=======
 					if len(v) < mc.maxAllowedPacket-pos-len(paramValues)-(len(args)-(i+1))*64 {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 						paramValues = appendLengthEncodedInteger(paramValues,
 							uint64(len(v)),
 						)
@@ -1254,11 +1061,7 @@ func (stmt *mysqlStmt) writeExecutePacket(args []driver.Value) error {
 				paramTypes[i+i] = byte(fieldTypeString)
 				paramTypes[i+i+1] = 0x00
 
-<<<<<<< HEAD
-				if len(v) < longDataSize {
-=======
 				if len(v) < mc.maxAllowedPacket-pos-len(paramValues)-(len(args)-(i+1))*64 {
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 					paramValues = appendLengthEncodedInteger(paramValues,
 						uint64(len(v)),
 					)

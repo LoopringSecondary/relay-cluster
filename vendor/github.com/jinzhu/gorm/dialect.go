@@ -33,11 +33,6 @@ type Dialect interface {
 	HasTable(tableName string) bool
 	// HasColumn check has column or not
 	HasColumn(tableName string, columnName string) bool
-<<<<<<< HEAD
-	// ModifyColumn modify column's type
-	ModifyColumn(tableName string, columnName string, typ string) error
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	// LimitAndOffsetSQL return generated SQL with Limit and Offset, as mssql has special case
 	LimitAndOffsetSQL(limit, offset interface{}) string
@@ -45,17 +40,9 @@ type Dialect interface {
 	SelectFromDummyTable() string
 	// LastInsertIdReturningSuffix most dbs support LastInsertId, but postgres needs to use `RETURNING`
 	LastInsertIDReturningSuffix(tableName, columnName string) string
-<<<<<<< HEAD
-	// DefaultValueStr
-	DefaultValueStr() string
-
-	// BuildKeyName returns a valid key name (foreign key, index key) for the given table, field and reference
-	BuildKeyName(kind, tableName string, fields ...string) string
-=======
 
 	// BuildForeignKeyName returns a foreign key name for the given table, field and reference
 	BuildForeignKeyName(tableName, field, dest string) string
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	// CurrentDatabase return current database name
 	CurrentDatabase() string
@@ -81,15 +68,6 @@ func RegisterDialect(name string, dialect Dialect) {
 	dialectsMap[name] = dialect
 }
 
-<<<<<<< HEAD
-// GetDialect gets the dialect for the specified dialect name
-func GetDialect(name string) (dialect Dialect, ok bool) {
-	dialect, ok = dialectsMap[name]
-	return
-}
-
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 // ParseFieldStructForDialect get field's sql data type
 var ParseFieldStructForDialect = func(field *StructField, dialect Dialect) (fieldValue reflect.Value, sqlType string, size int, additionalType string) {
 	// Get redirected field type
@@ -112,18 +90,6 @@ var ParseFieldStructForDialect = func(field *StructField, dialect Dialect) (fiel
 	}
 
 	// Get scanner's real value
-<<<<<<< HEAD
-	if dataType == "" {
-		var getScannerValue func(reflect.Value)
-		getScannerValue = func(value reflect.Value) {
-			fieldValue = value
-			if _, isScanner := reflect.New(fieldValue.Type()).Interface().(sql.Scanner); isScanner && fieldValue.Kind() == reflect.Struct {
-				getScannerValue(fieldValue.Field(0))
-			}
-		}
-		getScannerValue(fieldValue)
-	}
-=======
 	var getScannerValue func(reflect.Value)
 	getScannerValue = func(value reflect.Value) {
 		fieldValue = value
@@ -132,7 +98,6 @@ var ParseFieldStructForDialect = func(field *StructField, dialect Dialect) (fiel
 		}
 	}
 	getScannerValue(fieldValue)
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 
 	// Default Size
 	if num, ok := field.TagSettings["SIZE"]; ok {
@@ -149,14 +114,3 @@ var ParseFieldStructForDialect = func(field *StructField, dialect Dialect) (fiel
 
 	return fieldValue, dataType, size, strings.TrimSpace(additionalType)
 }
-<<<<<<< HEAD
-
-func currentDatabaseAndTable(dialect Dialect, tableName string) (string, string) {
-	if strings.Contains(tableName, ".") {
-		splitStrings := strings.SplitN(tableName, ".", 2)
-		return splitStrings[0], splitStrings[1]
-	}
-	return dialect.CurrentDatabase(), tableName
-}
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe

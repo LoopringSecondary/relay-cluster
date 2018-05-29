@@ -13,90 +13,6 @@ import (
 	"reflect"
 )
 
-<<<<<<< HEAD
-func (mf *mysqlField) typeDatabaseName() string {
-	switch mf.fieldType {
-	case fieldTypeBit:
-		return "BIT"
-	case fieldTypeBLOB:
-		if mf.charSet != collations[binaryCollation] {
-			return "TEXT"
-		}
-		return "BLOB"
-	case fieldTypeDate:
-		return "DATE"
-	case fieldTypeDateTime:
-		return "DATETIME"
-	case fieldTypeDecimal:
-		return "DECIMAL"
-	case fieldTypeDouble:
-		return "DOUBLE"
-	case fieldTypeEnum:
-		return "ENUM"
-	case fieldTypeFloat:
-		return "FLOAT"
-	case fieldTypeGeometry:
-		return "GEOMETRY"
-	case fieldTypeInt24:
-		return "MEDIUMINT"
-	case fieldTypeJSON:
-		return "JSON"
-	case fieldTypeLong:
-		return "INT"
-	case fieldTypeLongBLOB:
-		if mf.charSet != collations[binaryCollation] {
-			return "LONGTEXT"
-		}
-		return "LONGBLOB"
-	case fieldTypeLongLong:
-		return "BIGINT"
-	case fieldTypeMediumBLOB:
-		if mf.charSet != collations[binaryCollation] {
-			return "MEDIUMTEXT"
-		}
-		return "MEDIUMBLOB"
-	case fieldTypeNewDate:
-		return "DATE"
-	case fieldTypeNewDecimal:
-		return "DECIMAL"
-	case fieldTypeNULL:
-		return "NULL"
-	case fieldTypeSet:
-		return "SET"
-	case fieldTypeShort:
-		return "SMALLINT"
-	case fieldTypeString:
-		if mf.charSet == collations[binaryCollation] {
-			return "BINARY"
-		}
-		return "CHAR"
-	case fieldTypeTime:
-		return "TIME"
-	case fieldTypeTimestamp:
-		return "TIMESTAMP"
-	case fieldTypeTiny:
-		return "TINYINT"
-	case fieldTypeTinyBLOB:
-		if mf.charSet != collations[binaryCollation] {
-			return "TINYTEXT"
-		}
-		return "TINYBLOB"
-	case fieldTypeVarChar:
-		if mf.charSet == collations[binaryCollation] {
-			return "VARBINARY"
-		}
-		return "VARCHAR"
-	case fieldTypeVarString:
-		if mf.charSet == collations[binaryCollation] {
-			return "VARBINARY"
-		}
-		return "VARCHAR"
-	case fieldTypeYear:
-		return "YEAR"
-	default:
-		return ""
-	}
-=======
 var typeDatabaseName = map[fieldType]string{
 	fieldTypeBit:        "BIT",
 	fieldTypeBLOB:       "BLOB",
@@ -126,7 +42,6 @@ var typeDatabaseName = map[fieldType]string{
 	fieldTypeVarChar:    "VARCHAR",
 	fieldTypeVarString:  "VARCHAR",
 	fieldTypeYear:       "YEAR",
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 var (
@@ -154,10 +69,6 @@ type mysqlField struct {
 	flags     fieldFlag
 	fieldType fieldType
 	decimals  byte
-<<<<<<< HEAD
-	charSet   uint8
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 }
 
 func (mf *mysqlField) scanType() reflect.Type {

@@ -15,10 +15,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
-<<<<<<< HEAD
-	"fmt"
-=======
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 )
 
 func cloneTLSConfig(c *tls.Config) *tls.Config {
@@ -48,10 +44,6 @@ func mapIsolationLevel(level driver.IsolationLevel) (string, error) {
 	case sql.LevelSerializable:
 		return "SERIALIZABLE", nil
 	default:
-<<<<<<< HEAD
-		return "", fmt.Errorf("mysql: unsupported isolation level: %v", level)
-=======
 		return "", errors.New("mysql: unsupported isolation level: " + string(level))
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 	}
 }

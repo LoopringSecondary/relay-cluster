@@ -249,21 +249,11 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 							)
 
 							if foreignKey := field.TagSettings["FOREIGNKEY"]; foreignKey != "" {
-<<<<<<< HEAD
-								foreignKeys = strings.Split(foreignKey, ",")
-							}
-
-							if foreignKey := field.TagSettings["ASSOCIATION_FOREIGNKEY"]; foreignKey != "" {
-								associationForeignKeys = strings.Split(foreignKey, ",")
-							} else if foreignKey := field.TagSettings["ASSOCIATIONFOREIGNKEY"]; foreignKey != "" {
-								associationForeignKeys = strings.Split(foreignKey, ",")
-=======
 								foreignKeys = strings.Split(field.TagSettings["FOREIGNKEY"], ",")
 							}
 
 							if foreignKey := field.TagSettings["ASSOCIATIONFOREIGNKEY"]; foreignKey != "" {
 								associationForeignKeys = strings.Split(field.TagSettings["ASSOCIATIONFOREIGNKEY"], ",")
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 							}
 
 							for elemType.Kind() == reflect.Slice || elemType.Kind() == reflect.Ptr {
@@ -274,67 +264,6 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 								if many2many := field.TagSettings["MANY2MANY"]; many2many != "" {
 									relationship.Kind = "many_to_many"
 
-<<<<<<< HEAD
-									{ // Foreign Keys for Source
-										joinTableDBNames := []string{}
-
-										if foreignKey := field.TagSettings["JOINTABLE_FOREIGNKEY"]; foreignKey != "" {
-											joinTableDBNames = strings.Split(foreignKey, ",")
-										}
-
-										// if no foreign keys defined with tag
-										if len(foreignKeys) == 0 {
-											for _, field := range modelStruct.PrimaryFields {
-												foreignKeys = append(foreignKeys, field.DBName)
-											}
-										}
-
-										for idx, foreignKey := range foreignKeys {
-											if foreignField := getForeignField(foreignKey, modelStruct.StructFields); foreignField != nil {
-												// source foreign keys (db names)
-												relationship.ForeignFieldNames = append(relationship.ForeignFieldNames, foreignField.DBName)
-
-												// setup join table foreign keys for source
-												if len(joinTableDBNames) > idx {
-													// if defined join table's foreign key
-													relationship.ForeignDBNames = append(relationship.ForeignDBNames, joinTableDBNames[idx])
-												} else {
-													defaultJointableForeignKey := ToDBName(reflectType.Name()) + "_" + foreignField.DBName
-													relationship.ForeignDBNames = append(relationship.ForeignDBNames, defaultJointableForeignKey)
-												}
-											}
-										}
-									}
-
-									{ // Foreign Keys for Association (Destination)
-										associationJoinTableDBNames := []string{}
-
-										if foreignKey := field.TagSettings["ASSOCIATION_JOINTABLE_FOREIGNKEY"]; foreignKey != "" {
-											associationJoinTableDBNames = strings.Split(foreignKey, ",")
-										}
-
-										// if no association foreign keys defined with tag
-										if len(associationForeignKeys) == 0 {
-											for _, field := range toScope.PrimaryFields() {
-												associationForeignKeys = append(associationForeignKeys, field.DBName)
-											}
-										}
-
-										for idx, name := range associationForeignKeys {
-											if field, ok := toScope.FieldByName(name); ok {
-												// association foreign keys (db names)
-												relationship.AssociationForeignFieldNames = append(relationship.AssociationForeignFieldNames, field.DBName)
-
-												// setup join table foreign keys for association
-												if len(associationJoinTableDBNames) > idx {
-													relationship.AssociationForeignDBNames = append(relationship.AssociationForeignDBNames, associationJoinTableDBNames[idx])
-												} else {
-													// join table foreign keys for association
-													joinTableDBName := ToDBName(elemType.Name()) + "_" + field.DBName
-													relationship.AssociationForeignDBNames = append(relationship.AssociationForeignDBNames, joinTableDBName)
-												}
-											}
-=======
 									// if no foreign keys defined with tag
 									if len(foreignKeys) == 0 {
 										for _, field := range modelStruct.PrimaryFields {
@@ -366,7 +295,6 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 											// join table foreign keys for association
 											joinTableDBName := ToDBName(elemType.Name()) + "_" + field.DBName
 											relationship.AssociationForeignDBNames = append(relationship.AssociationForeignDBNames, joinTableDBName)
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 										}
 									}
 
@@ -471,21 +399,11 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 							)
 
 							if foreignKey := field.TagSettings["FOREIGNKEY"]; foreignKey != "" {
-<<<<<<< HEAD
-								tagForeignKeys = strings.Split(foreignKey, ",")
-							}
-
-							if foreignKey := field.TagSettings["ASSOCIATION_FOREIGNKEY"]; foreignKey != "" {
-								tagAssociationForeignKeys = strings.Split(foreignKey, ",")
-							} else if foreignKey := field.TagSettings["ASSOCIATIONFOREIGNKEY"]; foreignKey != "" {
-								tagAssociationForeignKeys = strings.Split(foreignKey, ",")
-=======
 								tagForeignKeys = strings.Split(field.TagSettings["FOREIGNKEY"], ",")
 							}
 
 							if foreignKey := field.TagSettings["ASSOCIATIONFOREIGNKEY"]; foreignKey != "" {
 								tagAssociationForeignKeys = strings.Split(field.TagSettings["ASSOCIATIONFOREIGNKEY"], ",")
->>>>>>> 258d5c409a01370dfe542ceadc3d1669659150fe
 							}
 
 							if polymorphic := field.TagSettings["POLYMORPHIC"]; polymorphic != "" {

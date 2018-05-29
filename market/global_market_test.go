@@ -19,9 +19,9 @@
 package market_test
 
 import (
-	"testing"
-	"github.com/Loopring/relay-cluster/market"
 	"fmt"
+	"github.com/Loopring/relay-cluster/market"
+	"testing"
 )
 
 func TestGlobalMarket_Sign(t *testing.T) {
