@@ -19,7 +19,6 @@
 package eventemitter
 
 import (
-	"fmt"
 	"github.com/Loopring/relay-lib/log"
 	"sync"
 )
