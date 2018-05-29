@@ -138,7 +138,7 @@ func emptySubmitRingInputs(feeReceipt common.Address) *SubmitRingMethodInputs {
 }
 
 // should add protocol, miner, feeRecipient
-func (m *SubmitRingMethodInputs) ConvertDown() (*types.SubmitRingMethodEvent, error) {
+func (m *SubmitRingMethodInputs) ConvertDown(protocol common.Address) (*types.SubmitRingMethodEvent, error) {
 	var (
 		list  []types.Order
 		event types.SubmitRingMethodEvent
@@ -157,7 +157,7 @@ func (m *SubmitRingMethodInputs) ConvertDown() (*types.SubmitRingMethodEvent, er
 	for i := 0; i < length; i++ {
 		var order types.Order
 
-		order.Protocol = m.Protocol
+		order.Protocol = protocol
 		order.Owner = m.AddressList[i][0]
 		order.TokenS = m.AddressList[i][1]
 		if i == length-1 {
@@ -183,6 +183,7 @@ func (m *SubmitRingMethodInputs) ConvertDown() (*types.SubmitRingMethodEvent, er
 		order.R = m.RList[i]
 		order.S = m.SList[i]
 
+		order.Hash = order.GenerateHash()
 		list = append(list, order)
 	}
 
@@ -205,9 +206,11 @@ type CancelOrderMethod struct {
 }
 
 // todo(fuk): modify internal cancelOrderMethod and implement related functions
-func (m *CancelOrderMethod) ConvertDown() (*types.Order, *big.Int, error) {
+func (m *CancelOrderMethod) ConvertDown(protocol, delegate common.Address) (*types.Order, *big.Int, error) {
 	var order types.Order
 
+	order.Protocol = protocol
+	order.DelegateAddress = delegate
 	order.Owner = m.AddressList[0]
 	order.TokenS = m.AddressList[1]
 	order.TokenB = m.AddressList[2]
@@ -228,6 +231,8 @@ func (m *CancelOrderMethod) ConvertDown() (*types.Order, *big.Int, error) {
 	order.S = m.S
 	order.R = m.R
 
+	order.Hash = order.GenerateHash()
+
 	return &order, cancelAmount, nil
 }
 
@@ -235,9 +240,10 @@ type CutoffMethod struct {
 	Cutoff *big.Int `fieldName:"cutoff" fieldId:"0"`
 }
 
-func (method *CutoffMethod) ConvertDown() *types.CutoffEvent {
+func (method *CutoffMethod) ConvertDown(owner common.Address) *types.CutoffEvent {
 	evt := &types.CutoffEvent{}
 	evt.Cutoff = method.Cutoff
+	evt.Owner = owner
 
 	return evt
 }
@@ -248,11 +254,12 @@ type CutoffPairMethod struct {
 	Cutoff *big.Int       `fieldName:"cutoff" fieldId:"2"`
 }
 
-func (method *CutoffPairMethod) ConvertDown() *types.CutoffPairEvent {
+func (method *CutoffPairMethod) ConvertDown(owner common.Address) *types.CutoffPairEvent {
 	evt := &types.CutoffPairEvent{}
 	evt.Cutoff = method.Cutoff
 	evt.Token1 = method.Token1
 	evt.Token2 = method.Token2
+	evt.Owner = owner
 
 	return evt
 }
@@ -270,9 +277,10 @@ type WethWithdrawalMethod struct {
 	Value *big.Int `fieldName:"wad" fieldId:"0"`
 }
 
-func (e *WethWithdrawalMethod) ConvertDown() *types.WethWithdrawalEvent {
+func (e *WethWithdrawalMethod) ConvertDown(src common.Address) *types.WethWithdrawalEvent {
 	evt := &types.WethWithdrawalEvent{}
 	evt.Amount = e.Value
+	evt.Src = src
 
 	return evt
 }
@@ -282,10 +290,11 @@ type ApproveMethod struct {
 	Value   *big.Int       `fieldName:"value" fieldId:"1"`
 }
 
-func (e *ApproveMethod) ConvertDown() *types.ApprovalEvent {
+func (e *ApproveMethod) ConvertDown(owner common.Address) *types.ApprovalEvent {
 	evt := &types.ApprovalEvent{}
 	evt.Spender = e.Spender
 	evt.Amount = e.Value
+	evt.Owner = owner
 
 	return evt
 }
@@ -296,10 +305,11 @@ type TransferMethod struct {
 	Value    *big.Int       `fieldName:"value" fieldId:"1"`
 }
 
-func (e *TransferMethod) ConvertDown() *types.TransferEvent {
+func (e *TransferMethod) ConvertDown(sender common.Address) *types.TransferEvent {
 	evt := &types.TransferEvent{}
 	evt.Receiver = e.Receiver
 	evt.Amount = e.Value
+	evt.Sender = sender
 
 	return evt
 }

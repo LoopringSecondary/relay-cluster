@@ -23,7 +23,7 @@ const (
 	Kafka_Topic_Extractor_EventOnChain        = "Kafka_Topic_Extractor_EventOnChain"
 	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
 	Kafka_Topic_RelayCluster_BlockEnd         = "Kafka_Topic_RelayCluster_BlockEnd"
-	Kafka_Topic_Miner_SubmitOrder             = "Kafka_Topic_Miner_SubmitOrder"
+	Kafka_Topic_Miner_SubmitInfo_Prefix       = "Kafka_Topic_Miner_SubmitInfo_Prefix"
 
 	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
 	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
