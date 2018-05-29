@@ -176,6 +176,7 @@ func (a *AccountManager) handleWethWithdrawal(input eventemitter.EventData) (err
 		return nil
 	}
 
+	log.Debugf("owner:%s", event.Src.Hex())
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
