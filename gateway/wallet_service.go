@@ -38,6 +38,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
+	kafkaUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -45,6 +46,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/Loopring/relay-lib/kafka"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -488,7 +490,8 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 	tx.TransactionIndex = *types.NewBigWithInt(0)
 
 	log.Debug("emit Pending tx >>>>>>>>>>>>>>>> " + tx.Hash)
-	eventemitter.Emit(eventemitter.PendingTransaction, tx)
+	//eventemitter.Emit(eventemitter.PendingTransaction, tx)
+	kafkaUtil.ProducerNormalMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, tx)
 	txByte, err := json.Marshal(txNotify)
 	if err == nil {
 		err = cache.Set(PendingTxPreKey+strings.ToUpper(txNotify.Hash), txByte, 3600*24*7)

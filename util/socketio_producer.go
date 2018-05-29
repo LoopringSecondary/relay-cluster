@@ -38,3 +38,8 @@ func ProducerSocketIOMessage(eventKey string, data interface{}) error {
 	_, _, err := socketIOProducer.SendMessage(eventKey, data, "1")
 	return err
 }
+
+func ProducerNormalMessage(topic string, data interface{}) error {
+	_, _, err := socketIOProducer.SendMessage(topic, data, "1")
+	return err
+}
