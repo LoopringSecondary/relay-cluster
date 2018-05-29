@@ -126,10 +126,10 @@
 			"revisionTime": "2018-05-29T11:12:57Z"
 		},
 		{
-			"checksumSHA1": "VJNfzNC8y270/BgShTUhLt2WkpQ=",
+			"checksumSHA1": "EgSwtN35UZxZTfxc3Eo0099AtO0=",
 			"path": "github.com/Loopring/relay-lib/cloudwatch",
-			"revision": "f848dc523ba83881bfba42441ecb10231e1c4e0d",
-			"revisionTime": "2018-05-29T11:12:57Z"
+			"revision": "4ab8027e2b723610c890123b6ff78b0011475887",
+			"revisionTime": "2018-05-29T13:11:10Z"
 		},
 		{
 			"checksumSHA1": "gf49Dx4JoaGzqJICZ4e6ESrxtvE=",
