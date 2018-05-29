@@ -139,15 +139,20 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 	if model, err = om.rds.FindRingMined(event.TxHash.Hex()); err != nil {
 		model.FromSubmitRingMethod(event)
 		err = om.rds.Add(model)
-	} else if model.Status == uint8(event.Status) {
-		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
-	} else {
+		log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
+	} else if model.Status != uint8(event.Status) {
 		model.FromSubmitRingMethod(event)
 		err = om.rds.Save(model)
-		log.Debugf("order manager,handle submitRing method,tx:%s status:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
+		log.Debugf("order manager,handle submitRing method,tx:%s status:%s updated", event.TxHash.Hex(), types.StatusStr(event.Status))
+	} else {
+		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
 	}
 
-	return err
+	if err != nil {
+		log.Errorf("order manager,handle submitRing method,tx:%s error:%s", event.TxHash.Hex(), err.Error())
+	}
+
+	return nil
 }
 
 // 所有来自gateway的订单都是新订单
@@ -182,18 +187,21 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 		err   error
 	)
 
-	model, err = om.rds.FindRingMined(event.TxHash.Hex())
-	if err == nil {
-		log.Debugf("order manager,handle ringmined event,tx:%s ring %s has already exist", event.TxHash.Hex(), event.Ringhash.Hex())
-		return nil
-	}
-	model.ConvertDown(event)
-	if err = om.rds.Add(model); err != nil {
-		log.Debugf("order manager,handle ringmined event,tx:%s insert ring :%s error:%s", event.TxHash.Hex(), event.Ringhash.Hex(), err.Error())
-		return nil
+	if model, err = om.rds.FindRingMined(event.TxHash.Hex()); err != nil {
+		model.ConvertDown(event)
+		err = om.rds.Add(model)
+		log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s inserted", event.TxHash.Hex(), event.Ringhash.Hex())
+	} else if model.Status != uint8(event.Status) {
+		model.ConvertDown(event)
+		err = om.rds.Save(model)
+		log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s updated", event.TxHash.Hex(), event.Ringhash.Hex())
+	} else {
+		log.Debugf("order manager,handle ringmined event,tx:%s ringhash:%s has already exist", event.TxHash.Hex(), event.Ringhash.Hex())
 	}
 
-	log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s", event.TxHash.Hex(), event.Ringhash.Hex())
+	if err != nil {
+		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s err:%s", event.TxHash.Hex(), event.Ringhash.Hex(), err.Error())
+	}
 
 	return nil
 }
