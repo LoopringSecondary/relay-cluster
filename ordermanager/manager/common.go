@@ -111,3 +111,18 @@ func SettleOrderAmountOnChain(state *types.OrderState) error {
 
 	return nil
 }
+
+var ValidOrderStatus = []types.OrderStatus{
+	types.ORDER_NEW,
+	types.ORDER_PARTIAL,
+	types.ORDER_PENDING,
+	types.ORDER_CANCELLING,
+	types.ORDER_CUTOFFING,
+}
+
+var InvalidOrderStatus = []types.OrderStatus{
+	types.ORDER_UNKNOWN,
+	types.ORDER_CANCEL,
+	types.ORDER_CUTOFF,
+	types.ORDER_FINISHED,
+}
