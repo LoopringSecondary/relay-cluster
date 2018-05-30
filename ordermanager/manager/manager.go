@@ -120,15 +120,6 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 	return nil
 }
 
-func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
-	handler := &SubmitRingHandler{
-		Event: input.(*types.SubmitRingMethodEvent),
-		Rds:   om.rds,
-	}
-
-	return handler.HandleFailed()
-}
-
 // 所有来自gateway的订单都是新订单
 func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
 	state := input.(*types.OrderState)
@@ -149,25 +140,22 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 	return nil
 }
 
+func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
+	handler := &SubmitRingHandler{
+		Event: input.(*types.SubmitRingMethodEvent),
+		Rds:   om.rds,
+	}
+
+	return handler.HandleFailed()
+}
+
 func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
-	event := input.(*types.RingMinedEvent)
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
+	handler := &RingMinedHandler{
+		Event: input.(*types.RingMinedEvent),
+		Rds:   om.rds,
 	}
 
-	var (
-		model = &dao.RingMinedEvent{}
-		err   error
-	)
-
-	if model, err = om.rds.FindRingMined(event.TxHash.Hex()); err == nil {
-		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s err:%s", event.TxHash.Hex(), event.Ringhash.Hex(), err.Error())
-	}
-
-	log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s inserted", event.TxHash.Hex(), event.Ringhash.Hex())
-	model.ConvertDown(event)
-	return om.rds.Add(model)
+	return handler.HandleSuccess()
 }
 
 func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
