@@ -24,6 +24,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
@@ -52,25 +53,6 @@ func NewOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blo
 	model.ConvertDown(state)
 
 	return model, nil
-}
-
-func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, isCancel bool) {
-	zero := big.NewInt(0)
-	finishAmountS := big.NewInt(0).Add(state.CancelledAmountS, state.DealtAmountS)
-	totalAmountS := big.NewInt(0).Add(finishAmountS, state.SplitAmountS)
-	finishAmountB := big.NewInt(0).Add(state.CancelledAmountB, state.DealtAmountB)
-	totalAmountB := big.NewInt(0).Add(finishAmountB, state.SplitAmountB)
-	totalAmount := big.NewInt(0).Add(totalAmountS, totalAmountB)
-
-	if totalAmount.Cmp(zero) <= 0 {
-		state.Status = types.ORDER_NEW
-	} else if !mc.IsOrderValueDust(state) {
-		state.Status = types.ORDER_PARTIAL
-	} else if isCancel {
-		state.Status = types.ORDER_CANCEL
-	} else {
-		state.Status = types.ORDER_FINISHED
-	}
 }
 
 func SettleOrderAmountOnChain(state *types.OrderState) error {
@@ -110,19 +92,4 @@ func SettleOrderAmountOnChain(state *types.OrderState) error {
 	}
 
 	return nil
-}
-
-var ValidOrderStatus = []types.OrderStatus{
-	types.ORDER_NEW,
-	types.ORDER_PARTIAL,
-	types.ORDER_PENDING,
-	types.ORDER_CANCELLING,
-	types.ORDER_CUTOFFING,
-}
-
-var InvalidOrderStatus = []types.OrderStatus{
-	types.ORDER_UNKNOWN,
-	types.ORDER_CANCEL,
-	types.ORDER_CUTOFF,
-	types.ORDER_FINISHED,
 }

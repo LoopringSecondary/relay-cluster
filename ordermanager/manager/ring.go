@@ -20,6 +20,7 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 )
@@ -48,8 +49,31 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 	}
 }
 
-// todo
 func (handler *SubmitRingHandler) HandlePending() error {
+	event := handler.Event
+	rds := handler.Rds
+
+	status := types.ORDER_PENDING
+	for _, v := range event.OrderList {
+		// save tx
+		state, err := cache.BaseInfo(rds, v.Hash)
+		if err != nil {
+			continue
+		}
+
+		// require valid status
+		if !IsValidPendingStatus(state.Status) {
+			continue
+		}
+
+		// update status in dao.order
+		rds.UpdateOrderStatus(v.Hash, status)
+
+		var tx dao.OrderTransaction
+		tx.ConvertUp(v.Hash, status, event.TxInfo)
+		rds.Add(&tx)
+	}
+
 	return nil
 }
 

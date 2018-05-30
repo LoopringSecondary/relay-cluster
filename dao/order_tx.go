@@ -18,10 +18,12 @@
 
 package dao
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
+)
 
-// order amountS 上限1e30
-
+// txhash唯一索引
 type OrderTransaction struct {
 	ID        int    `gorm:"column:id;primary_key;"`
 	Owner     string `gorm:"column:owner;type:varchar(42)"`
@@ -31,8 +33,19 @@ type OrderTransaction struct {
 	Nonce     int64  `gorm:"column:nonce;type:bigint"`
 }
 
-func (s *RdsService) MaxNonce(owner common.Address) (OrderTransaction, error) {
-	var tx OrderTransaction
-	err := s.Db.Where("owner=?", owner.Hex()).Find(&tx).Order("nonce desc").Error
-	return tx, err
+// convert dao/fill to types/fill
+func (f *OrderTransaction) ConvertUp(orderhash common.Hash, orderstatus types.OrderStatus, txinfo types.TxInfo) error {
+	f.OrderHash = orderhash.Hex()
+	f.Status = uint8(orderstatus)
+	f.TxHash = txinfo.TxHash.Hex()
+	f.Owner = txinfo.From.Hex()
+	f.Nonce = txinfo.Nonce.Int64()
+
+	return nil
+}
+
+func (s *RdsService) MaxNonce(owner common.Address) (int64, error) {
+	var nonce int64
+	err := s.Db.Where("owner=?", owner.Hex()).Pluck("max(nonce)", &nonce).Error
+	return nonce, err
 }
