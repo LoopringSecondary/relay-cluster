@@ -22,7 +22,6 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )

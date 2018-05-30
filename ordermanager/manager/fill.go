@@ -41,13 +41,13 @@ func (handler *FillHandler) HandlePending() error {
 }
 
 func (handler *FillHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	mc := handler.MarketCap
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
 
 	// save fill event
 	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())

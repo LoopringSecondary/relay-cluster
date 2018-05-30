@@ -31,13 +31,13 @@ type SubmitRingHandler struct {
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
+	if handler.Event.Status != types.TX_STATUS_FAILED {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	mc := handler.MarketCap
-
-	if event.Status != types.TX_STATUS_FAILED {
-		return nil
-	}
 
 	for _, v := range event.OrderList {
 		// save tx
@@ -66,6 +66,10 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 }
 
 func (handler *SubmitRingHandler) HandlePending() error {
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 
@@ -107,12 +111,12 @@ func (handler *RingMinedHandler) HandlePending() error {
 }
 
 func (handler *RingMinedHandler) HandleSuccess() error {
-	event := handler.Event
-	rds := handler.Rds
-
-	if event.Status != types.TX_STATUS_SUCCESS {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
+
+	event := handler.Event
+	rds := handler.Rds
 
 	if model, err := rds.FindRingMined(event.TxHash.Hex()); err == nil {
 		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s already exist", event.TxHash.Hex(), event.Ringhash.Hex())
