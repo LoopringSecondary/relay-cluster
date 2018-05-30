@@ -25,7 +25,6 @@ import (
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
-	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
@@ -159,73 +158,13 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 }
 
 func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
-	event := input.(*types.OrderFilledEvent)
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
+	handler := &FillHandler{
+		Event:     input.(*types.OrderFilledEvent),
+		Rds:       om.rds,
+		MarketCap: om.mc,
 	}
 
-	// save fill event
-	_, err := om.rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
-	if err == nil {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%d fill already exist", event.TxHash.String(), event.FillIndex)
-		return nil
-	}
-
-	// get rds.Order and types.OrderState
-	state := &types.OrderState{UpdatedBlock: event.BlockNumber}
-	model, err := om.rds.GetOrderByHash(event.OrderHash)
-	if err != nil {
-		return err
-	}
-	if err := model.ConvertUp(state); err != nil {
-		return err
-	}
-
-	newFillModel := &dao.FillEvent{}
-	newFillModel.ConvertDown(event)
-	newFillModel.Fork = false
-	newFillModel.OrderType = state.RawOrder.OrderType
-	newFillModel.Side = util.GetSide(util.AddressToAlias(event.TokenS.Hex()), util.AddressToAlias(event.TokenB.Hex()))
-	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
-
-	if err := om.rds.Add(newFillModel); err != nil {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s error:insert failed",
-			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
-		return err
-	}
-
-	// judge order status
-	if state.Status == types.ORDER_CUTOFF || state.Status == types.ORDER_FINISHED || state.Status == types.ORDER_UNKNOWN {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s status:%d invalid",
-			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
-		return nil
-	}
-
-	// calculate dealt amount
-	state.UpdatedBlock = event.BlockNumber
-	state.DealtAmountS = new(big.Int).Add(state.DealtAmountS, event.AmountS)
-	state.DealtAmountB = new(big.Int).Add(state.DealtAmountB, event.AmountB)
-	state.SplitAmountS = new(big.Int).Add(state.SplitAmountS, event.SplitS)
-	state.SplitAmountB = new(big.Int).Add(state.SplitAmountB, event.SplitB)
-
-	// update order status
-	SettleOrderStatus(state, om.mc, false)
-
-	// update rds.Order
-	if err := model.ConvertDown(state); err != nil {
-		log.Errorf(err.Error())
-		return err
-	}
-	if err := om.rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
-		return err
-	}
-
-	log.Debugf("order manager,handle order filled event tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s",
-		event.TxHash.Hex(), event.FillIndex.String(), state.RawOrder.Hash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
-
-	notify.NotifyOrderFilled(newFillModel)
-	return nil
+	return handler.HandleSuccess()
 }
 
 func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
