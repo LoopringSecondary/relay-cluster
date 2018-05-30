@@ -27,7 +27,6 @@ import (
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"math/big"
 )
 
 type OrderManager interface {
@@ -168,59 +167,13 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 }
 
 func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
-	event := input.(*types.OrderCancelledEvent)
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
+	handler := &OrderCancelHandler{
+		Event:     input.(*types.OrderCancelledEvent),
+		Rds:       om.rds,
+		MarketCap: om.mc,
 	}
 
-	// save cancel event
-	_, err := om.rds.GetCancelEvent(event.TxHash)
-	if err == nil {
-		log.Debugf("order manager,handle order cancelled event tx:%s, orderhash:%s error:order have already exist", event.TxHash.Hex(), event.OrderHash.Hex())
-		return nil
-	}
-	newCancelEventModel := &dao.CancelEvent{}
-	newCancelEventModel.ConvertDown(event)
-	newCancelEventModel.Fork = false
-	if err := om.rds.Add(newCancelEventModel); err != nil {
-		return err
-	}
-
-	// get rds.Order and types.OrderState
-	state := &types.OrderState{}
-	model, err := om.rds.GetOrderByHash(event.OrderHash)
-	if err != nil {
-		return err
-	}
-	if err := model.ConvertUp(state); err != nil {
-		return err
-	}
-
-	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
-	if state.RawOrder.BuyNoMoreThanAmountB {
-		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amountb:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountB.String())
-	} else {
-		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amounts:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountS.String())
-	}
-
-	// update order status
-	SettleOrderStatus(state, om.mc, true)
-	state.UpdatedBlock = event.BlockNumber
-
-	// update rds.Order
-	if err := model.ConvertDown(state); err != nil {
-		return err
-	}
-	if err := om.rds.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
-		return err
-	}
-
-	notify.NotifyOrderUpdate(state)
-
-	return nil
+	return handler.HandleSuccess()
 }
 
 // 所有cutoff event都应该存起来,但不是所有event都会影响订单
