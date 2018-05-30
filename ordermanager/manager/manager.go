@@ -129,8 +129,8 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 
 func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
 	handler := &SubmitRingHandler{
-		Event: input.(*types.SubmitRingMethodEvent),
-		Rds:   om.rds,
+		Event:       input.(*types.SubmitRingMethodEvent),
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -138,8 +138,8 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 
 func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
 	handler := &RingMinedHandler{
-		Event: input.(*types.RingMinedEvent),
-		Rds:   om.rds,
+		Event:       input.(*types.RingMinedEvent),
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -147,9 +147,8 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 
 func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
 	handler := &FillHandler{
-		Event:     input.(*types.OrderFilledEvent),
-		Rds:       om.rds,
-		MarketCap: om.mc,
+		Event:       input.(*types.OrderFilledEvent),
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -157,9 +156,8 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 
 func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
 	handler := &OrderCancelHandler{
-		Event:     input.(*types.OrderCancelledEvent),
-		Rds:       om.rds,
-		MarketCap: om.mc,
+		Event:       input.(*types.OrderCancelledEvent),
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -169,8 +167,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 	handler := &CutoffHandler{
 		Event:       input.(*types.CutoffEvent),
-		Rds:         om.rds,
-		CutoffCache: om.cutoffCache,
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -179,8 +176,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
 	handler := &CutoffPairHandler{
 		Event:       input.(*types.CutoffPairEvent),
-		Rds:         om.rds,
-		CutoffCache: om.cutoffCache,
+		BaseHandler: om.basehandler(),
 	}
 
 	return working(handler)
@@ -192,4 +188,13 @@ func working(handler EventStatusHandler) error {
 	handler.HandleSuccess()
 
 	return nil
+}
+
+func (om *OrderManagerImpl) basehandler() BaseHandler {
+	var base BaseHandler
+	base.Rds = om.rds
+	base.CutoffCache = om.cutoffCache
+	base.MarketCap = om.mc
+
+	return base
 }

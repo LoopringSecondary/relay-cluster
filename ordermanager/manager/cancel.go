@@ -28,9 +28,8 @@ import (
 )
 
 type OrderCancelHandler struct {
-	Event     *types.OrderCancelledEvent
-	Rds       *dao.RdsService
-	MarketCap marketcap.MarketCapProvider
+	Event *types.OrderCancelledEvent
+	BaseHandler
 }
 
 func (handler *OrderCancelHandler) HandleFailed() error {

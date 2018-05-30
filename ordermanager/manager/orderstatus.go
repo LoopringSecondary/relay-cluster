@@ -44,17 +44,24 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 }
 
 // cancelling/cutoffing与pending冲突的问题,以用户行为cancelling/cutoffing为准
-var ValidPendingStatus = []types.OrderStatus{
-	types.ORDER_NEW,
-	types.ORDER_PARTIAL,
-}
 
 func IsValidPendingStatus(status types.OrderStatus) bool {
-	for _, v := range ValidPendingStatus {
+	list := []types.OrderStatus{
+		types.ORDER_NEW,
+		types.ORDER_PARTIAL,
+	}
+
+	for _, v := range list {
 		if v == status {
 			return true
 		}
 	}
 
 	return false
+}
+
+var IngStatus = []types.OrderStatus{
+	types.ORDER_PENDING,
+	types.ORDER_CANCELLING,
+	types.ORDER_CUTOFFING,
 }

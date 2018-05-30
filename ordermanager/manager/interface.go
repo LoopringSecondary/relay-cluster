@@ -18,8 +18,20 @@
 
 package manager
 
+import (
+	"github.com/Loopring/relay-cluster/dao"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
+	"github.com/Loopring/relay-lib/marketcap"
+)
+
 type EventStatusHandler interface {
 	HandleFailed() error
 	HandlePending() error
 	HandleSuccess() error
+}
+
+type BaseHandler struct {
+	Rds         *dao.RdsService
+	MarketCap   marketcap.MarketCapProvider
+	CutoffCache *omcm.CutoffCache
 }

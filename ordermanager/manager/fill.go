@@ -22,16 +22,14 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )
 
 type FillHandler struct {
-	Event     *types.OrderFilledEvent
-	Rds       *dao.RdsService
-	MarketCap marketcap.MarketCapProvider
+	Event *types.OrderFilledEvent
+	BaseHandler
 }
 
 func (handler *FillHandler) HandleFailed() error {

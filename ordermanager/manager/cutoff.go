@@ -20,7 +20,6 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -28,9 +27,8 @@ import (
 )
 
 type CutoffHandler struct {
-	Event       *types.CutoffEvent
-	Rds         *dao.RdsService
-	CutoffCache *omcm.CutoffCache
+	Event *types.CutoffEvent
+	BaseHandler
 }
 
 func (handler *CutoffHandler) HandleFailed() error {

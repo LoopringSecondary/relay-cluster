@@ -27,15 +27,31 @@ import (
 
 type SubmitRingHandler struct {
 	Event *types.SubmitRingMethodEvent
-	Rds   *dao.RdsService
+	BaseHandler
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
 	event := handler.Event
 	rds := handler.Rds
+	mc := handler.MarketCap
 
 	if event.Status != types.TX_STATUS_FAILED {
 		return nil
+	}
+
+	for _, v := range event.OrderList {
+		// save tx
+		state, err := cache.BaseInfo(rds, v.Hash)
+		if err != nil {
+			continue
+		}
+		if state.Status != types.ORDER_PENDING {
+			continue
+		}
+
+		// reset order status
+		SettleOrderStatus(state, mc, false)
+		rds.UpdateOrderStatus(v.Hash, state.Status)
 	}
 
 	model, err := rds.FindRingMined(event.TxHash.Hex())
@@ -53,24 +69,20 @@ func (handler *SubmitRingHandler) HandlePending() error {
 	event := handler.Event
 	rds := handler.Rds
 
-	status := types.ORDER_PENDING
 	for _, v := range event.OrderList {
-		// save tx
 		state, err := cache.BaseInfo(rds, v.Hash)
 		if err != nil {
 			continue
 		}
-
-		// require valid status
 		if !IsValidPendingStatus(state.Status) {
 			continue
 		}
 
 		// update status in dao.order
-		rds.UpdateOrderStatus(v.Hash, status)
+		rds.UpdateOrderStatus(v.Hash, types.ORDER_PENDING)
 
 		var tx dao.OrderTransaction
-		tx.ConvertUp(v.Hash, status, event.TxInfo)
+		tx.ConvertUp(v.Hash, types.ORDER_PENDING, event.TxInfo)
 		rds.Add(&tx)
 	}
 
@@ -83,7 +95,7 @@ func (handler *SubmitRingHandler) HandleSuccess() error {
 
 type RingMinedHandler struct {
 	Event *types.RingMinedEvent
-	Rds   *dao.RdsService
+	BaseHandler
 }
 
 func (handler *RingMinedHandler) HandleFailed() error {
