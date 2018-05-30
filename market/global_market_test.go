@@ -29,10 +29,13 @@ func TestGlobalMarket_Sign(t *testing.T) {
 	config := market.MyTokenConfig{}
 	config.AppId = "83ga_-yxA_yKiFyL"
 	config.AppSecret = "glQVQRP8ro-QRN59CpXj12TzwgJ1rM8w"
-	config.Address = "http://12.33.22.11"
+	config.BaseUrl = "https://open.api.mytoken.io/"
 	g := market.NewGlobalMarket(config)
 
 	req := market.GlobalTrendReq{}
 	req.TrendAnchor = "USDT"
-	fmt.Println(g.Sign(req))
+	req.Symbol = "LRC"
+	//fmt.Println(g.Sign(req))
+	//fmt.Println(g.GetGlobalTicker("0x"))
+	fmt.Println(g.GetGlobalTrend("0x"))
 }
