@@ -20,8 +20,7 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
-	notify "github.com/Loopring/relay-cluster/util"
+	"github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
@@ -34,10 +33,10 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options                 *omcm.OrderManagerOptions
+	options                 *common.OrderManagerOptions
 	rds                     *dao.RdsService
 	processor               *ForkProcessor
-	cutoffCache             *omcm.CutoffCache
+	cutoffCache             *common.CutoffCache
 	mc                      marketcap.MarketCapProvider
 	newOrderWatcher         *eventemitter.Watcher
 	ringMinedWatcher        *eventemitter.Watcher
@@ -51,7 +50,7 @@ type OrderManagerImpl struct {
 }
 
 func NewOrderManager(
-	options *omcm.OrderManagerOptions,
+	options *common.OrderManagerOptions,
 	rds *dao.RdsService,
 	market marketcap.MarketCapProvider) *OrderManagerImpl {
 
@@ -60,7 +59,7 @@ func NewOrderManager(
 	om.rds = rds
 	om.processor = NewForkProcess(om.rds, market)
 	om.mc = market
-	om.cutoffCache = omcm.NewCutoffCache(options.CutoffCacheCleanTime)
+	om.cutoffCache = common.NewCutoffCache(options.CutoffCacheCleanTime)
 
 	return om
 }
@@ -119,22 +118,13 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 
 // 所有来自gateway的订单都是新订单
 func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
-	state := input.(*types.OrderState)
-
-	model, err := NewOrderEntity(state, om.mc, nil)
-	if err != nil {
-		log.Errorf("order manager,handle gateway order:%s error", state.RawOrder.Hash.Hex())
-		return err
+	handler := &GatewayOrderHandler{
+		State:     input.(*types.OrderState),
+		Rds:       om.rds,
+		MarketCap: om.mc,
 	}
 
-	if err = om.rds.Add(model); err != nil {
-		return err
-	}
-
-	log.Debugf("order manager,handle gateway order,order.hash:%s amountS:%s", state.RawOrder.Hash.Hex(), state.RawOrder.AmountS.String())
-
-	notify.NotifyOrderUpdate(state)
-	return nil
+	return working(handler)
 }
 
 func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
@@ -143,7 +133,7 @@ func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData)
 		Rds:   om.rds,
 	}
 
-	return handler.HandleFailed()
+	return working(handler)
 }
 
 func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
@@ -152,7 +142,7 @@ func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error 
 		Rds:   om.rds,
 	}
 
-	return handler.HandleSuccess()
+	return working(handler)
 }
 
 func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
@@ -162,7 +152,7 @@ func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) erro
 		MarketCap: om.mc,
 	}
 
-	return handler.HandleSuccess()
+	return working(handler)
 }
 
 func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
@@ -172,7 +162,7 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 		MarketCap: om.mc,
 	}
 
-	return handler.HandleSuccess()
+	return working(handler)
 }
 
 // 所有cutoff event都应该存起来,但不是所有event都会影响订单
@@ -183,7 +173,7 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 		CutoffCache: om.cutoffCache,
 	}
 
-	return handler.HandleSuccess()
+	return working(handler)
 }
 
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
@@ -193,5 +183,13 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 		CutoffCache: om.cutoffCache,
 	}
 
-	return handler.HandleSuccess()
+	return working(handler)
+}
+
+func working(handler EventStatusHandler) error {
+	handler.HandlePending()
+	handler.HandleFailed()
+	handler.HandleSuccess()
+
+	return nil
 }
