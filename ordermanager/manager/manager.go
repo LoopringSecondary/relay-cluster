@@ -26,7 +26,6 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 type OrderManager interface {
@@ -188,49 +187,11 @@ func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 }
 
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
-	evt := input.(*types.CutoffPairEvent)
-
-	if evt.Status != types.TX_STATUS_SUCCESS {
-		return nil
+	handler := &CutoffPairHandler{
+		Event:       input.(*types.CutoffPairEvent),
+		Rds:         om.rds,
+		CutoffCache: om.cutoffCache,
 	}
 
-	// check tx exist
-	_, err := om.rds.GetCutoffPairEvent(evt.TxHash)
-	if err == nil {
-		log.Debugf("order manager,handle order cutoffPair event tx:%s error:transaction have already exist", evt.TxHash.Hex())
-		return nil
-	}
-
-	lastCutoffPair := om.cutoffCache.GetCutoffPair(evt.Protocol, evt.Owner, evt.Token1, evt.Token2)
-
-	var orderHashList []common.Hash
-	// 首次存储到缓存，lastCutoffPair == currentCutoffPair
-	if evt.Cutoff.Cmp(lastCutoffPair) < 0 {
-		log.Debugf("order manager,handle cutoffPair event tx:%s, protocol:%s - owner:%s lastCutoffPairtime:%s > currentCutoffPairTime:%s", evt.TxHash.Hex(), evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoffPair.String(), evt.Cutoff.String())
-	} else {
-		om.cutoffCache.UpdateCutoffPair(evt.Protocol, evt.Owner, evt.Token1, evt.Token2, evt.Cutoff)
-		if orders, _ := om.rds.GetCutoffPairOrders(evt.Owner, evt.Token1, evt.Token2, evt.Cutoff); len(orders) > 0 {
-			for _, v := range orders {
-				var state types.OrderState
-				v.ConvertUp(&state)
-				orderHashList = append(orderHashList, state.RawOrder.Hash)
-			}
-			om.rds.SetCutOffOrders(orderHashList, evt.BlockNumber)
-		}
-		log.Debugf("order manager,handle cutoffPair event tx:%s, owner:%s, token1:%s, token2:%s, cutoffTimestamp:%s", evt.TxHash.Hex(), evt.Owner.Hex(), evt.Token1.Hex(), evt.Token2.Hex(), evt.Cutoff.String())
-	}
-
-	// save transaction
-	evt.OrderHashList = orderHashList
-	newCutoffPairEventModel := &dao.CutOffPairEvent{}
-	newCutoffPairEventModel.ConvertDown(evt)
-	newCutoffPairEventModel.Fork = false
-
-	if err := om.rds.Add(newCutoffPairEventModel); err != nil {
-		return err
-	}
-
-	notify.NotifyCutoffPair(evt)
-
-	return err
+	return handler.HandleSuccess()
 }

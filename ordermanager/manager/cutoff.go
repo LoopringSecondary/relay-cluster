@@ -42,52 +42,52 @@ func (handler *CutoffHandler) HandlePending() error {
 }
 
 func (handler *CutoffHandler) HandleSuccess() error {
-	evt := handler.Event
+	event := handler.Event
 	rds := handler.Rds
 	cutoffCache := handler.CutoffCache
 
-	if evt.Status != types.TX_STATUS_SUCCESS {
+	if event.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
 
 	// check tx exist
-	_, err := rds.GetCutoffEvent(evt.TxHash)
+	_, err := rds.GetCutoffEvent(event.TxHash)
 	if err == nil {
-		log.Debugf("order manager,handle order cutoff event tx:%s error:transaction have already exist", evt.TxHash.Hex())
+		log.Debugf("order manager,handle order cutoff event tx:%s error:transaction have already exist", event.TxHash.Hex())
 		return nil
 	}
 
-	lastCutoff := cutoffCache.GetCutoff(evt.Protocol, evt.Owner)
+	lastCutoff := cutoffCache.GetCutoff(event.Protocol, event.Owner)
 
 	var orderHashList []common.Hash
 
 	// 首次存储到缓存，lastCutoff == currentCutoff
-	if evt.Cutoff.Cmp(lastCutoff) < 0 {
-		log.Debugf("order manager,handle cutoff event tx:%s, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", evt.TxHash.Hex(), evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoff.String(), evt.Cutoff.String())
+	if event.Cutoff.Cmp(lastCutoff) < 0 {
+		log.Debugf("order manager,handle cutoff event tx:%s, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", event.TxHash.Hex(), event.Protocol.Hex(), event.Owner.Hex(), lastCutoff.String(), event.Cutoff.String())
 	} else {
-		cutoffCache.UpdateCutoff(evt.Protocol, evt.Owner, evt.Cutoff)
-		if orders, _ := rds.GetCutoffOrders(evt.Owner, evt.Cutoff); len(orders) > 0 {
+		cutoffCache.UpdateCutoff(event.Protocol, event.Owner, event.Cutoff)
+		if orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff); len(orders) > 0 {
 			for _, v := range orders {
 				var state types.OrderState
 				v.ConvertUp(&state)
 				orderHashList = append(orderHashList, state.RawOrder.Hash)
 			}
-			rds.SetCutOffOrders(orderHashList, evt.BlockNumber)
+			rds.SetCutOffOrders(orderHashList, event.BlockNumber)
 		}
-		log.Debugf("order manager,handle cutoff event tx:%s, owner:%s, cutoffTimestamp:%s", evt.TxHash.Hex(), evt.Owner.Hex(), evt.Cutoff.String())
+		log.Debugf("order manager,handle cutoff event tx:%s, owner:%s, cutoffTimestamp:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Cutoff.String())
 	}
 
 	// save cutoff event
-	evt.OrderHashList = orderHashList
+	event.OrderHashList = orderHashList
 	newCutoffEventModel := &dao.CutOffEvent{}
-	newCutoffEventModel.ConvertDown(evt)
+	newCutoffEventModel.ConvertDown(event)
 	newCutoffEventModel.Fork = false
 
 	if err := rds.Add(newCutoffEventModel); err != nil {
 		return err
 	}
 
-	notify.NotifyCutoff(evt)
+	notify.NotifyCutoff(event)
 
 	return nil
 }
