@@ -178,52 +178,13 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 
 // 所有cutoff event都应该存起来,但不是所有event都会影响订单
 func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
-	evt := input.(*types.CutoffEvent)
-
-	if evt.Status != types.TX_STATUS_SUCCESS {
-		return nil
+	handler := &CutoffHandler{
+		Event:       input.(*types.CutoffEvent),
+		Rds:         om.rds,
+		CutoffCache: om.cutoffCache,
 	}
 
-	// check tx exist
-	_, err := om.rds.GetCutoffEvent(evt.TxHash)
-	if err == nil {
-		log.Debugf("order manager,handle order cutoff event tx:%s error:transaction have already exist", evt.TxHash.Hex())
-		return nil
-	}
-
-	lastCutoff := om.cutoffCache.GetCutoff(evt.Protocol, evt.Owner)
-
-	var orderHashList []common.Hash
-
-	// 首次存储到缓存，lastCutoff == currentCutoff
-	if evt.Cutoff.Cmp(lastCutoff) < 0 {
-		log.Debugf("order manager,handle cutoff event tx:%s, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", evt.TxHash.Hex(), evt.Protocol.Hex(), evt.Owner.Hex(), lastCutoff.String(), evt.Cutoff.String())
-	} else {
-		om.cutoffCache.UpdateCutoff(evt.Protocol, evt.Owner, evt.Cutoff)
-		if orders, _ := om.rds.GetCutoffOrders(evt.Owner, evt.Cutoff); len(orders) > 0 {
-			for _, v := range orders {
-				var state types.OrderState
-				v.ConvertUp(&state)
-				orderHashList = append(orderHashList, state.RawOrder.Hash)
-			}
-			om.rds.SetCutOffOrders(orderHashList, evt.BlockNumber)
-		}
-		log.Debugf("order manager,handle cutoff event tx:%s, owner:%s, cutoffTimestamp:%s", evt.TxHash.Hex(), evt.Owner.Hex(), evt.Cutoff.String())
-	}
-
-	// save cutoff event
-	evt.OrderHashList = orderHashList
-	newCutoffEventModel := &dao.CutOffEvent{}
-	newCutoffEventModel.ConvertDown(evt)
-	newCutoffEventModel.Fork = false
-
-	if err := om.rds.Add(newCutoffEventModel); err != nil {
-		return err
-	}
-
-	notify.NotifyCutoff(evt)
-
-	return nil
+	return handler.HandleSuccess()
 }
 
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
