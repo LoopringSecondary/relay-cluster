@@ -18,6 +18,8 @@
 
 package dao
 
+import "github.com/ethereum/go-ethereum/common"
+
 // order amountS 上限1e30
 
 type OrderTransaction struct {
@@ -27,4 +29,10 @@ type OrderTransaction struct {
 	TxHash    string `gorm:"column:tx_hash;type:varchar(82)"`
 	Status    uint8  `gorm:"column:status;type:tinyint(4)"`
 	Nonce     int64  `gorm:"column:nonce;type:bigint"`
+}
+
+func (s *RdsService) MaxNonce(owner common.Address) (OrderTransaction, error) {
+	var tx OrderTransaction
+	err := s.Db.Where("owner=?", owner.Hex()).Find(&tx).Order("nonce desc").Error
+	return tx, err
 }

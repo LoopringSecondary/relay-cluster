@@ -55,6 +55,7 @@ func NewDb(options *libdao.MysqlOptions) *RdsService {
 	tables = append(tables, &TransactionEntity{})
 	tables = append(tables, &TransactionView{})
 	tables = append(tables, &CheckPoint{})
+	tables = append(tables, &OrderTransaction{})
 
 	s.SetTables(tables)
 	if err := s.CreateTables(); err != nil {
