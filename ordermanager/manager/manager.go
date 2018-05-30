@@ -121,24 +121,12 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 }
 
 func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
-	event := input.(*types.SubmitRingMethodEvent)
-
-	if event.Status != types.TX_STATUS_FAILED {
-		return nil
+	handler := &SubmitRingHandler{
+		Event: input.(*types.SubmitRingMethodEvent),
+		Rds:   om.rds,
 	}
 
-	var (
-		model = &dao.RingMinedEvent{}
-		err   error
-	)
-
-	if model, err = om.rds.FindRingMined(event.TxHash.Hex()); err == nil {
-		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
-	}
-
-	log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
-	model.FromSubmitRingMethod(event)
-	return om.rds.Add(model)
+	return handler.HandleFailed()
 }
 
 // 所有来自gateway的订单都是新订单
