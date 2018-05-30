@@ -18,7 +18,7 @@
 
 package manager
 
-type EventStatusHandle interface {
+type EventStatusHandler interface {
 	HandleFailed() error
 	HandlePending() error
 	HandleSuccess() error
