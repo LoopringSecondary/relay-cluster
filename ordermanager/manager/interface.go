@@ -22,6 +22,8 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-lib/marketcap"
+	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type EventStatusHandler interface {
@@ -34,4 +36,23 @@ type BaseHandler struct {
 	Rds         *dao.RdsService
 	MarketCap   marketcap.MarketCapProvider
 	CutoffCache *omcm.CutoffCache
+	TxInfo      types.TxInfo
+}
+
+func (handler BaseHandler) BaseSwitcher() *OrderTxSwitcher {
+	return &OrderTxSwitcher{
+		Rds:       handler.Rds,
+		TxInfo:    handler.TxInfo,
+		MarketCap: handler.MarketCap,
+	}
+}
+
+func (handler BaseHandler) FullSwitcher(orderhash common.Hash, status types.OrderStatus) *OrderTxSwitcher {
+	return &OrderTxSwitcher{
+		Rds:         handler.Rds,
+		TxInfo:      handler.TxInfo,
+		MarketCap:   handler.MarketCap,
+		OrderHash:   orderhash,
+		OrderStatus: status,
+	}
 }

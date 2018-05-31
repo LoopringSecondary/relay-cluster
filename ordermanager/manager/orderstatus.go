@@ -56,7 +56,9 @@ type OrderTxSwitcher struct {
 }
 
 // todo
-func (s *OrderTxSwitcher) ProcessPendingStatus() error {
+func (s *OrderTxSwitcher) FlexibleCancellationPendingProcedure() error {
+	return nil
+
 	state, err := cache.BaseInfo(s.Rds, s.OrderHash)
 	if err != nil {
 		return err
@@ -94,6 +96,10 @@ func (s *OrderTxSwitcher) ProcessPendingStatus() error {
 	//rds.Add(&tx)
 
 	return s.Rds.UpdateOrderStatus(s.OrderHash, s.OrderStatus)
+}
+
+func (s *OrderTxSwitcher) FlexibleCancellationFailedProcedure() error {
+	return nil
 }
 
 // cancelling/cutoffing与pending冲突的问题,以用户行为cancelling/cutoffing为准

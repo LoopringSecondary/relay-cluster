@@ -33,16 +33,11 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		return nil
 	}
 
-	switcher := &OrderTxSwitcher{
-		Rds:         handler.Rds,
-		TxInfo:      handler.Event.TxInfo,
-		MarketCap:   handler.MarketCap,
-		OrderStatus: types.ORDER_PENDING,
-	}
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
 
 	for _, v := range handler.Event.OrderList {
 		switcher.OrderHash = v.Hash
-		if err := switcher.ProcessPendingStatus(); err != nil {
+		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
 			log.Errorf(err.Error())
 		}
 	}
@@ -55,22 +50,17 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 		return nil
 	}
 
-	event := handler.Event
-	rds := handler.Rds
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
 
-	switcher := &OrderTxSwitcher{
-		Rds:         rds,
-		TxInfo:      event.TxInfo,
-		MarketCap:   handler.MarketCap,
-		OrderStatus: types.ORDER_PENDING,
-	}
-
-	for _, v := range event.OrderList {
+	for _, v := range handler.Event.OrderList {
 		switcher.OrderHash = v.Hash
-		if err := switcher.ProcessPendingStatus(); err != nil {
+		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
 			log.Errorf(err.Error())
 		}
 	}
+
+	event := handler.Event
+	rds := handler.Rds
 
 	model, err := rds.FindRingMined(event.TxHash.Hex())
 	if err == nil {

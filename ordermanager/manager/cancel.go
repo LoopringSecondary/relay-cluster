@@ -32,15 +32,9 @@ type OrderCancelHandler struct {
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
-	switcher := &OrderTxSwitcher{
-		Rds:         handler.Rds,
-		TxInfo:      handler.Event.TxInfo,
-		MarketCap:   handler.MarketCap,
-		OrderHash:   handler.Event.OrderHash,
-		OrderStatus: types.ORDER_CANCELLING,
-	}
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CANCELLING)
 
-	if err := switcher.ProcessPendingStatus(); err != nil {
+	if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
 		log.Errorf(err.Error())
 	}
 
@@ -48,6 +42,12 @@ func (handler *OrderCancelHandler) HandlePending() error {
 }
 
 func (handler *OrderCancelHandler) HandleFailed() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
+
+	if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
+		log.Errorf(err.Error())
+	}
+
 	return nil
 }
 

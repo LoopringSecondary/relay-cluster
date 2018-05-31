@@ -32,16 +32,11 @@ type CutoffPairHandler struct {
 }
 
 func (handler *CutoffPairHandler) HandlePending() error {
-	switcher := &OrderTxSwitcher{
-		Rds:         handler.Rds,
-		TxInfo:      handler.Event.TxInfo,
-		MarketCap:   handler.MarketCap,
-		OrderStatus: types.ORDER_CUTOFFING,
-	}
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
 
 	for _, orderhash := range handler.Event.OrderHashList {
 		switcher.OrderHash = orderhash
-		if err := switcher.ProcessPendingStatus(); err != nil {
+		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
 			log.Errorf(err.Error())
 		}
 	}
@@ -50,6 +45,15 @@ func (handler *CutoffPairHandler) HandlePending() error {
 }
 
 func (handler *CutoffPairHandler) HandleFailed() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
+
+	for _, orderhash := range handler.Event.OrderHashList {
+		switcher.OrderHash = orderhash
+		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
 	return nil
 }
 
