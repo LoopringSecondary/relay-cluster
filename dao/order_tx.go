@@ -44,8 +44,14 @@ func (f *OrderTransaction) ConvertUp(orderhash common.Hash, orderstatus types.Or
 	return nil
 }
 
-func (s *RdsService) MaxNonce(owner common.Address) (int64, error) {
+func (s *RdsService) MaxNonce(owner common.Address, orderhash common.Hash) (int64, error) {
 	var nonce int64
-	err := s.Db.Where("owner=?", owner.Hex()).Pluck("max(nonce)", &nonce).Error
+	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Pluck("max(nonce)", &nonce).Error
 	return nonce, err
+}
+
+func (s *RdsService) GetOrderTxList(orderhash common.Hash) ([]OrderTransaction, error) {
+	var list []OrderTransaction
+	err := s.Db.Where("order_hash=?", orderhash.Hex()).Find(&list).Order("nonce desc").Error
+	return list, err
 }

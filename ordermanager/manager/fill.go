@@ -32,11 +32,11 @@ type FillHandler struct {
 	BaseHandler
 }
 
-func (handler *FillHandler) HandleFailed() error {
+func (handler *FillHandler) HandlePending() error {
 	return nil
 }
 
-func (handler *FillHandler) HandlePending() error {
+func (handler *FillHandler) HandleFailed() error {
 	return nil
 }
 

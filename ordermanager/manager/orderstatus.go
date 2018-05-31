@@ -19,8 +19,11 @@
 package manager
 
 import (
+	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
@@ -41,6 +44,37 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	} else {
 		state.Status = types.ORDER_FINISHED
 	}
+}
+
+func ProcessPendingStatus(rds *dao.RdsService, state *types.OrderState, txinfo types.TxInfo, newstatus types.OrderStatus) error {
+	list, _ := rds.GetOrderTxList(state.RawOrder.Hash)
+
+	// 1.去重
+	maxnonce, err := rds.MaxNonce(txinfo.From, state.RawOrder.Hash)
+	if err != nil {
+		var tx dao.OrderTransaction
+		tx.ConvertUp(state.RawOrder.Hash, newstatus, txinfo)
+		return rds.Add(&tx)
+	}
+
+	if maxnonce > txinfo.Nonce.Int64() {
+		return fmt.Errorf("maxnonce:%d > currentNonce:%d", maxnonce, txinfo.Nonce.Int64())
+	}
+
+	for _, v := range list {
+		state.Status = types.OrderStatus(v.Status)
+
+		// 以用户状态为准
+		if common.HexToAddress(v.Owner) == state.RawOrder.Owner {
+			break
+		}
+	}
+
+	var tx dao.OrderTransaction
+	tx.ConvertUp(state.RawOrder.Hash, newstatus, txinfo)
+	rds.Add(&tx)
+
+	return nil
 }
 
 // cancelling/cutoffing与pending冲突的问题,以用户行为cancelling/cutoffing为准

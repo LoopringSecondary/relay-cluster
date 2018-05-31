@@ -19,7 +19,6 @@
 package manager
 
 import (
-	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -28,6 +27,30 @@ import (
 type SubmitRingHandler struct {
 	Event *types.SubmitRingMethodEvent
 	BaseHandler
+}
+
+func (handler *SubmitRingHandler) HandlePending() error {
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+
+	event := handler.Event
+	rds := handler.Rds
+
+	for _, v := range event.OrderList {
+		state, err := cache.BaseInfo(rds, v.Hash)
+		if err != nil {
+			continue
+		}
+		if !IsValidPendingStatus(state.Status) {
+			continue
+		}
+
+		ProcessPendingStatus(rds, state, event.TxInfo)
+		rds.UpdateOrderStatus(v.Hash, types.ORDER_PENDING)
+	}
+
+	return nil
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
@@ -65,34 +88,6 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 	}
 }
 
-func (handler *SubmitRingHandler) HandlePending() error {
-	if handler.Event.Status != types.TX_STATUS_PENDING {
-		return nil
-	}
-
-	event := handler.Event
-	rds := handler.Rds
-
-	for _, v := range event.OrderList {
-		state, err := cache.BaseInfo(rds, v.Hash)
-		if err != nil {
-			continue
-		}
-		if !IsValidPendingStatus(state.Status) {
-			continue
-		}
-
-		// update status in dao.order
-		rds.UpdateOrderStatus(v.Hash, types.ORDER_PENDING)
-
-		var tx dao.OrderTransaction
-		tx.ConvertUp(v.Hash, types.ORDER_PENDING, event.TxInfo)
-		rds.Add(&tx)
-	}
-
-	return nil
-}
-
 func (handler *SubmitRingHandler) HandleSuccess() error {
 	return nil
 }
@@ -102,11 +97,11 @@ type RingMinedHandler struct {
 	BaseHandler
 }
 
-func (handler *RingMinedHandler) HandleFailed() error {
+func (handler *RingMinedHandler) HandlePending() error {
 	return nil
 }
 
-func (handler *RingMinedHandler) HandlePending() error {
+func (handler *RingMinedHandler) HandleFailed() error {
 	return nil
 }
 
