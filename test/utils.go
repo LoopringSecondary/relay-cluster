@@ -294,7 +294,7 @@ func PrepareTestData() {
 	} else {
 		if res.Int() <= 0 {
 			delegateCallMethod := accessor.ContractSendTransactionMethod("latest", delegateAbi, delegateAddress)
-			if hash, err := delegateCallMethod(creator.Address, "authorizeAddress", big.NewInt(106762), big.NewInt(21000000000), nil, protocol); nil != err {
+			if hash, _, err := delegateCallMethod(creator.Address, "authorizeAddress", big.NewInt(106762), big.NewInt(21000000000), nil, protocol); nil != err {
 				log.Errorf("delegate add version error:%s", err.Error())
 			} else {
 				log.Infof("delegate add version hash:%s", hash)
@@ -317,7 +317,7 @@ func PrepareTestData() {
 		} else {
 			if res.Int() <= 0 {
 				registryMethod := accessor.ContractSendTransactionMethod("latest", tokenRegisterAbi, tokenRegisterAddress)
-				if hash, err := registryMethod(creator.Address, "registerToken", big.NewInt(106762), big.NewInt(21000000000), nil, tokenAddr, symbol); nil != err {
+				if hash, _, err := registryMethod(creator.Address, "registerToken", big.NewInt(106762), big.NewInt(21000000000), nil, tokenAddr, symbol); nil != err {
 					log.Errorf("token registry error:%s", err.Error())
 				} else {
 					log.Infof("token registry hash:%s", hash)
@@ -333,7 +333,7 @@ func PrepareTestData() {
 		erc20SendMethod := accessor.ContractSendTransactionMethod("latest", loopringaccessor.Erc20Abi(), tokenAddr)
 		for _, acc := range orderAccounts {
 			approval := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1000000))
-			if hash, err := erc20SendMethod(acc.Address, "approve", big.NewInt(106762), big.NewInt(21000000000), nil, delegateAddress, approval); nil != err {
+			if hash, _, err := erc20SendMethod(acc.Address, "approve", big.NewInt(106762), big.NewInt(21000000000), nil, delegateAddress, approval); nil != err {
 				log.Errorf("token approve error:%s", err.Error())
 			} else {
 				log.Infof("token approve hash:%s", hash)
@@ -413,7 +413,7 @@ func SetTokenBalances() {
 			if balance, err := loopringaccessor.Erc20Balance(tokenAddress, acc.Address, "latest"); nil != err {
 				fmt.Errorf(err.Error())
 			} else if balance.Cmp(big.NewInt(int64(0))) <= 0 {
-				hash, err := sendTransactionMethod(sender.Address, "setBalance", big.NewInt(106762), big.NewInt(21000000000), nil, acc.Address, amount)
+				hash, _, err := sendTransactionMethod(sender.Address, "setBalance", big.NewInt(106762), big.NewInt(21000000000), nil, acc.Address, amount)
 				if nil != err {
 					fmt.Errorf(err.Error())
 				}
@@ -434,7 +434,7 @@ func SetTokenBalance(account, tokenAddress common.Address, amount *big.Int) {
 	sender := accounts.Account{Address: entity.Creator.Address}
 	sendTransactionMethod := accessor.ContractSendTransactionMethod("latest", dummyTokenAbi, tokenAddress)
 
-	hash, err := sendTransactionMethod(sender.Address, "setBalance", big.NewInt(1000000), big.NewInt(21000000000), nil, account, amount)
+	hash, _, err := sendTransactionMethod(sender.Address, "setBalance", big.NewInt(1000000), big.NewInt(21000000000), nil, account, amount)
 	if nil != err {
 		fmt.Errorf(err.Error())
 	}
