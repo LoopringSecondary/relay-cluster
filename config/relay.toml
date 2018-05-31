@@ -105,3 +105,8 @@ title = "miner"
 
 [motan_server]
     conf_file = "motan_server.yaml"
+
+[my_token]
+    app_id = "13gd_-yxB_yUiGyL"
+    app_secret = "glRRRRP8ro-OJE83CpXj12TkduJ1rN8w"
+    base_url = "https://open.api.mytoken.io/"

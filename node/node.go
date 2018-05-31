@@ -59,6 +59,7 @@ type Node struct {
 	accountManager    accountmanager.AccountManager
 	trendManager      market.TrendManager
 	tickerCollector   market.CollectorImpl
+	globalMarket      market.GlobalMarket
 	jsonRpcService    gateway.JsonrpcServiceImpl
 	websocketService  gateway.WebsocketServiceImpl
 	socketIOService   gateway.SocketIOServiceImpl
@@ -120,6 +121,7 @@ func (n *Node) Start() {
 	//gateway.NewJsonrpcService("8080").Start()
 	fmt.Println("step in relay node start")
 	n.tickerCollector.Start()
+	n.globalMarket.Start()
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
@@ -193,9 +195,13 @@ func (n *Node) registerTickerCollector() {
 	n.tickerCollector = *market.NewCollector()
 }
 
+func (n *Node) registerGlobalMarket() {
+	n.globalMarket = market.NewGlobalMarket(n.globalConfig.MyToken)
+}
+
 func (n *Node) registerWalletService() {
 	n.walletService = *gateway.NewWalletService(n.trendManager, n.orderViewer,
-		n.accountManager, n.marketCapProvider, n.tickerCollector, n.rdsService, n.globalConfig.Market.OldVersionWethAddress)
+		n.accountManager, n.marketCapProvider, n.tickerCollector, n.rdsService, n.globalConfig.Market.OldVersionWethAddress, n.globalMarket)
 }
 
 func (n *Node) registerJsonRpcService() {
