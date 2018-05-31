@@ -36,10 +36,12 @@ func Initialize() error {
 		Credentials: credentials.NewSharedCredentials("", ""),
 	})
 	if err != nil {
+		log.Errorf("Initialize cloudwatch metric producer failed : %s\n", err.Error())
 		return err
 	} else {
 		cwc = cloudwatch.New(sess)
 		inChan, outChan = utils.MakeInfinite()
+		log.Info("Ready for produce cloudwatch metric\n")
 		go func() {
 			obsoleteCount := 0
 			batchDatumBuffer := make([]*cloudwatch.MetricDatum, 0, batchDatumBufferSize)
