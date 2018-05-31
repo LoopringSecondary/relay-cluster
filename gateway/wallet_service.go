@@ -131,6 +131,10 @@ type SingleOwner struct {
 	Owner string `json:"owner"`
 }
 
+type SingleToken struct {
+	Token string `json:"token"`
+}
+
 type LatestOrderQuery struct {
 	Owner     string `json:"owner"`
 	Market    string `json:"market"`
@@ -319,12 +323,13 @@ type WalletServiceImpl struct {
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
+	globalMarket    market.GlobalMarket
 	rds             *dao.RdsService
 	oldWethAddress  string
 }
 
 func NewWalletService(trendManager market.TrendManager, orderViewer viewer.OrderViewer, accountManager accountmanager.AccountManager,
-	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsService, oldWethAddress string) *WalletServiceImpl {
+	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsService, oldWethAddress string, globalMarket market.GlobalMarket) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
 	w.orderViewer = orderViewer
@@ -333,6 +338,7 @@ func NewWalletService(trendManager market.TrendManager, orderViewer viewer.Order
 	w.tickerCollector = collector
 	w.rds = rds
 	w.oldWethAddress = oldWethAddress
+	w.globalMarket = globalMarket
 	return w
 }
 func (w *WalletServiceImpl) TestPing(input int) (resp []byte, err error) {
@@ -1279,6 +1285,18 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	//log.Infof("get reuslt amount is  %s", amount)
 
 	return
+}
+
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+	return w.globalMarket.GetGlobalTrendCache(req.Token)
+}
+
+func (w *WalletServiceImpl) GetGlobalTickerCache(req SingleToken) (ticker market.GlobalTicker, err error) {
+	return w.globalMarket.GetGlobalTickerCache(req.Token)
+}
+
+func (w *WalletServiceImpl) GetGlobalMarketTickerCache(req SingleToken) (tickers []market.GlobalMarketTicker, err error) {
+	return w.globalMarket.GetGlobalMarketTickerCache(req.Token)
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {

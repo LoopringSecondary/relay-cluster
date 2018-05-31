@@ -34,8 +34,9 @@ func TestGlobalMarket_Sign(t *testing.T) {
 
 	req := market.GlobalTrendReq{}
 	req.TrendAnchor = "USDT"
-	req.Symbol = "LRC"
+	//req.Symbol = "LRC"
 	//fmt.Println(g.Sign(req))
-	//fmt.Println(g.GetGlobalTicker("0x"))
+	//fmt.Println(g.GetGlobalTicker("LRC"))
 	fmt.Println(g.GetGlobalTrend("0x"))
+	//fmt.Println(g.GetGlobalMarketTicker("0X-WETH"))
 }

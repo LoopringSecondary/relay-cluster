@@ -39,6 +39,7 @@ import (
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/naoina/toml"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-cluster/market"
 )
 
 func LoadConfig(file string) *GlobalConfig {
@@ -81,6 +82,7 @@ type GlobalConfig struct {
 	Jsonrpc          gateway.JsonrpcOptions
 	Websocket        gateway.WebsocketOptions
 	AccountManager   accountmanager.AccountManagerOptions
+	MyToken          market.MyTokenConfig
 }
 
 func Validator(cv reflect.Value) (bool, error) {

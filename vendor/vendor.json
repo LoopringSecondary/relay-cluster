@@ -210,10 +210,10 @@
 			"revisionTime": "2018-05-29T11:12:57Z"
 		},
 		{
-			"checksumSHA1": "fw20/0H/Skz3G8MR/PY0OQ2lIVE=",
+			"checksumSHA1": "v3qRYdfb+TT7gAZ+C/hJKPSSk8Y=",
 			"path": "github.com/Loopring/relay-lib/marketutil",
-			"revision": "f848dc523ba83881bfba42441ecb10231e1c4e0d",
-			"revisionTime": "2018-05-29T11:12:57Z"
+			"revision": "5efa4b9780490c7a2b1c595ff6bfa6b696e5c3b3",
+			"revisionTime": "2018-05-30T11:25:13Z"
 		},
 		{
 			"checksumSHA1": "ToScnYa3M8T9Ip74E96TjqYSVQg=",
@@ -234,10 +234,10 @@
 			"revisionTime": "2018-05-29T11:12:57Z"
 		},
 		{
-			"checksumSHA1": "auaxpUHOl//wG0fwkivxXs3Bxko=",
+			"checksumSHA1": "ZuZjm9yfvc+7CoFX01PiyXhYkws=",
 			"path": "github.com/Loopring/relay-lib/types",
-			"revision": "f848dc523ba83881bfba42441ecb10231e1c4e0d",
-			"revisionTime": "2018-05-29T11:12:57Z"
+			"revision": "5efa4b9780490c7a2b1c595ff6bfa6b696e5c3b3",
+			"revisionTime": "2018-05-30T11:25:13Z"
 		},
 		{
 			"checksumSHA1": "uTx8V1W6ZP0sYRlErDTDm+VzqFg=",

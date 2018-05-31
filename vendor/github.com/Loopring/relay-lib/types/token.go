@@ -28,6 +28,7 @@ import (
 type Token struct {
 	Protocol common.Address `json:"protocol"`
 	Symbol   string         `json:"symbol"`
+	Name     string         `json:"name"`
 	Source   string         `json:"source"`
 	Time     int64          `json:"time"`
 	Deny     bool           `json:"deny"`
