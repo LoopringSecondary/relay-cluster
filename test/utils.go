@@ -245,6 +245,12 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	if err := order.GenerateAndSetSignature(owner); nil != err {
 		log.Fatalf(err.Error())
 	}
+	market, err := util.WrapMarketByAddress(state.RawOrder.TokenB.Hex(), state.RawOrder.TokenS.Hex())
+	if err != nil {
+		log.Fatalf("get market error:%s", err.Error())
+	}
+	order.Market = market
+	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
 	state.RawOrder = order
 	state.DealtAmountS = big.NewInt(0)
@@ -254,14 +260,8 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	state.CancelledAmountB = big.NewInt(0)
 	state.CancelledAmountS = big.NewInt(0)
 	state.UpdatedBlock = big.NewInt(0)
-	state.RawOrder.Side = util.GetSide(state.RawOrder.TokenS.Hex(), state.RawOrder.TokenB.Hex())
 	state.Status = types.ORDER_NEW
 
-	market, err := util.WrapMarketByAddress(state.RawOrder.TokenB.Hex(), state.RawOrder.TokenS.Hex())
-	if err != nil {
-		log.Fatalf("get market error:%s", err.Error())
-	}
-	model.Market = market
 	model.ConvertDown(&state)
 
 	rds.Add(&model)
