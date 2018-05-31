@@ -78,12 +78,14 @@ var (
 
 func init() {
 	Path = strings.TrimSuffix(os.Getenv("GOPATH"), "/") + "/src/github.com/Loopring/relay-cluster/config/" + DebugFile
+
 	cfg = loadConfig()
-	rds = dao.NewDb(&cfg.Mysql)
-	txmanager.NewTxView(rds)
-	cache.NewCache(cfg.Redis)
 	util.Initialize(&cfg.Market)
+	rds = dao.NewDb(&cfg.Mysql)
+	cache.NewCache(cfg.Redis)
 	entity = loadTestData()
+
+	txmanager.NewTxView(rds)
 	accessor.Initialize(cfg.Accessor)
 	loopringaccessor.Initialize(cfg.LoopringProtocol)
 	unlockAccounts()
@@ -245,11 +247,12 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	if err := order.GenerateAndSetSignature(owner); nil != err {
 		log.Fatalf(err.Error())
 	}
-	market, err := util.WrapMarketByAddress(state.RawOrder.TokenB.Hex(), state.RawOrder.TokenS.Hex())
+	market, err := util.WrapMarketByAddress(order.TokenB.Hex(), order.TokenS.Hex())
 	if err != nil {
 		log.Fatalf("get market error:%s", err.Error())
 	}
 	order.Market = market
+	order.OrderType = "market_order"
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
 	state.RawOrder = order
