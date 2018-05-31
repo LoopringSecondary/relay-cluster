@@ -19,7 +19,6 @@
 package manager
 
 import (
-	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 )
@@ -34,20 +33,18 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		return nil
 	}
 
-	event := handler.Event
-	rds := handler.Rds
+	switcher := &OrderTxSwitcher{
+		Rds:         handler.Rds,
+		TxInfo:      handler.Event.TxInfo,
+		MarketCap:   handler.MarketCap,
+		OrderStatus: types.ORDER_PENDING,
+	}
 
-	for _, v := range event.OrderList {
-		state, err := cache.BaseInfo(rds, v.Hash)
-		if err != nil {
-			continue
+	for _, v := range handler.Event.OrderList {
+		switcher.OrderHash = v.Hash
+		if err := switcher.ProcessPendingStatus(); err != nil {
+			log.Errorf(err.Error())
 		}
-		if !IsValidPendingStatus(state.Status) {
-			continue
-		}
-
-		ProcessPendingStatus(rds, state, event.TxInfo)
-		rds.UpdateOrderStatus(v.Hash, types.ORDER_PENDING)
 	}
 
 	return nil
@@ -60,21 +57,19 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 
 	event := handler.Event
 	rds := handler.Rds
-	mc := handler.MarketCap
+
+	switcher := &OrderTxSwitcher{
+		Rds:         rds,
+		TxInfo:      event.TxInfo,
+		MarketCap:   handler.MarketCap,
+		OrderStatus: types.ORDER_PENDING,
+	}
 
 	for _, v := range event.OrderList {
-		// save tx
-		state, err := cache.BaseInfo(rds, v.Hash)
-		if err != nil {
-			continue
+		switcher.OrderHash = v.Hash
+		if err := switcher.ProcessPendingStatus(); err != nil {
+			log.Errorf(err.Error())
 		}
-		if state.Status != types.ORDER_PENDING {
-			continue
-		}
-
-		// reset order status
-		SettleOrderStatus(state, mc, false)
-		rds.UpdateOrderStatus(v.Hash, state.Status)
 	}
 
 	model, err := rds.FindRingMined(event.TxHash.Hex())

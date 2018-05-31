@@ -31,11 +31,25 @@ type CutoffPairHandler struct {
 	BaseHandler
 }
 
-func (handler *CutoffPairHandler) HandleFailed() error {
+func (handler *CutoffPairHandler) HandlePending() error {
+	switcher := &OrderTxSwitcher{
+		Rds:         handler.Rds,
+		TxInfo:      handler.Event.TxInfo,
+		MarketCap:   handler.MarketCap,
+		OrderStatus: types.ORDER_CUTOFFING,
+	}
+
+	for _, orderhash := range handler.Event.OrderHashList {
+		switcher.OrderHash = orderhash
+		if err := switcher.ProcessPendingStatus(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
 	return nil
 }
 
-func (handler *CutoffPairHandler) HandlePending() error {
+func (handler *CutoffPairHandler) HandleFailed() error {
 	return nil
 }
 

@@ -20,7 +20,6 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -33,24 +32,17 @@ type OrderCancelHandler struct {
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
-	event := handler.Event
-	rds := handler.Rds
-
-	state, err := cache.BaseInfo(rds, event.OrderHash)
-	if err != nil {
-		return err
-	}
-	if !IsValidPendingStatus(state.Status) {
-		log.Debugf("invalid pending status")
-		return nil
+	switcher := &OrderTxSwitcher{
+		Rds:         handler.Rds,
+		TxInfo:      handler.Event.TxInfo,
+		MarketCap:   handler.MarketCap,
+		OrderHash:   handler.Event.OrderHash,
+		OrderStatus: types.ORDER_CANCELLING,
 	}
 
-	var tx dao.OrderTransaction
-	tx.ConvertUp(state.RawOrder.Hash, types.ORDER_PENDING, event.TxInfo)
-	rds.Add(&tx)
-
-	// update status in dao.order
-	rds.UpdateOrderStatus(event.OrderHash, types.ORDER_CANCELLING)
+	if err := switcher.ProcessPendingStatus(); err != nil {
+		log.Errorf(err.Error())
+	}
 
 	return nil
 }
