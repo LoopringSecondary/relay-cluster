@@ -42,7 +42,15 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		}
 	}
 
-	return nil
+	// save pending tx
+	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
+		log.Errorf("order manager, submitRingHandler, pending tx:%s already exist", handler.Event.TxHash.Hex())
+		return nil
+	} else {
+		log.Debugf("order manager, submitRingHandler, pending tx:%s insert", handler.Event.TxHash.Hex())
+		model.FromSubmitRingMethod(handler.Event)
+		return handler.Rds.Add(model)
+	}
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
@@ -59,20 +67,15 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 		}
 	}
 
-	return nil
-
-	//event := handler.Event
-	//rds := handler.Rds
-	//
-	//model, err := rds.FindRingMined(event.TxHash.Hex())
-	//if err == nil {
-	//	log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
-	//	return nil
-	//} else {
-	//	log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
-	//	model.FromSubmitRingMethod(event)
-	//	return rds.Add(model)
-	//}
+	// save failed tx
+	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
+		log.Errorf("order manager, submitRingHandler, failed tx:%s already exist", handler.Event.TxHash.Hex())
+		return nil
+	} else {
+		log.Debugf("order manager, submitRingHandler, failed tx:%s updated", handler.Event.TxHash.Hex())
+		model.FromSubmitRingMethod(handler.Event)
+		return handler.Rds.Save(model)
+	}
 }
 
 func (handler *SubmitRingHandler) HandleSuccess() error {
@@ -106,6 +109,6 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 	} else {
 		log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s inserted", event.TxHash.Hex(), event.Ringhash.Hex())
 		model.ConvertDown(event)
-		return rds.Add(model)
+		return rds.Save(model)
 	}
 }
