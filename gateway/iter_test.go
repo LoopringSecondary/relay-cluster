@@ -50,8 +50,8 @@ func TestRing(t *testing.T) {
 	test.CreateOrder(eth, lrc, account1.Address, amountS1, amountB1, lrcFee1)
 
 	// 卖出1000个lrc,买入0.1个eth,lrcFee为20个lrc
-	amountS2, _ := new(big.Int).SetString("60000"+suffix, 0)
-	amountB2, _ := new(big.Int).SetString("20"+suffix, 0)
+	amountS2, _ := new(big.Int).SetString("30000"+suffix, 0)
+	amountB2, _ := new(big.Int).SetString("10"+suffix, 0)
 	lrcFee2 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(3))
 	test.CreateOrder(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
 }

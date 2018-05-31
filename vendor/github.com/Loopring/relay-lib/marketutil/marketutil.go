@@ -80,6 +80,7 @@ func StartRefreshCron(option *MarketOptions) {
 type token struct {
 	Protocol string `json:"Protocol"`
 	Symbol   string `json:"Symbol"`
+	Name     string `json:"Name"`
 	Source   string `json:"Source"`
 	Deny     bool   `json:"Deny"`
 	Decimals int    `json:"Decimals"`
@@ -92,6 +93,7 @@ func (t *token) convert() types.Token {
 
 	dst.Protocol = common.HexToAddress(t.Protocol)
 	dst.Symbol = strings.ToUpper(t.Symbol)
+	dst.Name = strings.ToUpper(t.Name)
 	dst.Source = t.Source
 	dst.Deny = t.Deny
 	dst.Decimals = new(big.Int)
