@@ -59,18 +59,20 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 		}
 	}
 
-	event := handler.Event
-	rds := handler.Rds
+	return nil
 
-	model, err := rds.FindRingMined(event.TxHash.Hex())
-	if err == nil {
-		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
-		return nil
-	} else {
-		log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
-		model.FromSubmitRingMethod(event)
-		return rds.Add(model)
-	}
+	//event := handler.Event
+	//rds := handler.Rds
+	//
+	//model, err := rds.FindRingMined(event.TxHash.Hex())
+	//if err == nil {
+	//	log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
+	//	return nil
+	//} else {
+	//	log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
+	//	model.FromSubmitRingMethod(event)
+	//	return rds.Add(model)
+	//}
 }
 
 func (handler *SubmitRingHandler) HandleSuccess() error {
