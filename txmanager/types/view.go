@@ -190,23 +190,39 @@ func EthTransferView(src *types.EthTransferEvent) ([]TransactionView, error) {
 
 	tx1.Amount = src.Value
 	tx1.Symbol = SYMBOL_ETH
+	tx1.Owner = src.From
+	tx1.Type = TX_TYPE_SEND
 
-	if src.Value.Cmp(big.NewInt(0)) > 0 {
-		tx1.Owner = src.From
-		tx1.Type = TX_TYPE_SEND
-
-		tx2 = tx1
-		tx2.Owner = src.To
-		tx2.Type = TX_TYPE_RECEIVE
-	} else {
-		tx1.Type = TX_TYPE_UNSUPPORTED_CONTRACT
-		tx1.Owner = src.From
-
-		tx2 = tx1
-		tx2.Owner = src.To
-	}
+	tx2 = tx1
+	tx2.Owner = src.To
+	tx2.Type = TX_TYPE_RECEIVE
 
 	list = append(list, tx1, tx2)
+	return list, nil
+}
+
+func UnsupportedContractView(src *types.UnsupportedContractEvent) ([]TransactionView, error) {
+	var (
+		list []TransactionView
+		tx1  TransactionView
+	)
+
+	if err := tx1.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
+
+	tx1.Amount = src.Value
+	tx1.Symbol = SYMBOL_ETH
+	tx1.Type = TX_TYPE_UNSUPPORTED_CONTRACT
+	tx1.Owner = src.From
+
+	//tx2 = tx1
+	//tx2.Owner = src.To
+	//list = append(list, tx1, tx2)
+
+	// todo 暂时先不存合约地址对应的tx
+	list = append(list, tx1)
+
 	return list, nil
 }
 
