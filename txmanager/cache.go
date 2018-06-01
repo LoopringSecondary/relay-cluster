@@ -29,9 +29,9 @@ import (
 
 const (
 	FillOwnerPrefix = "txm_fill_owner_"
-	FillOwnerTtl    = 600           // todo 临时数据,只存储10分钟,系统性宕机后无法重启后丢失?
+	FillOwnerTtl    = 864000        // todo 临时数据,只存储10分钟,系统性宕机后无法重启后丢失?
 	TxEntityPrefix  = "txm_entity_" // txm_entity_blocknumber_txhash_logIndex,不用hash结构,避免不同用户数据在同一个key的情况
-	TxEntityTtl     = 86400
+	TxEntityTtl     = 864000
 )
 
 func RollbackCache(from, to int64) error {
