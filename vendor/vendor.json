@@ -252,30 +252,6 @@
 			"revisionTime": "2018-05-31T10:47:43Z"
 		},
 		{
-			"checksumSHA1": "M5RRHn/4znN9CvR2YfREOYa8SeA=",
-			"path": "github.com/Loopring/relay/cache",
-			"revision": "ace8503a96459c81e5d0634f9069c53f7790bb3d",
-			"revisionTime": "2018-05-18T23:55:34Z"
-		},
-		{
-			"checksumSHA1": "yHqRuj8uRQ3k/ImCJKoVr3FiNZk=",
-			"path": "github.com/Loopring/relay/cache/redis",
-			"revision": "ace8503a96459c81e5d0634f9069c53f7790bb3d",
-			"revisionTime": "2018-05-18T23:55:34Z"
-		},
-		{
-			"checksumSHA1": "K8+xANkYRKVSeLqafP19uUU8Izs=",
-			"path": "github.com/Loopring/relay/config",
-			"revision": "ace8503a96459c81e5d0634f9069c53f7790bb3d",
-			"revisionTime": "2018-05-18T23:55:34Z"
-		},
-		{
-			"checksumSHA1": "lBXWKJgIbKEnqkLcUqjY8yFMc8A=",
-			"path": "github.com/Loopring/relay/log",
-			"revision": "ace8503a96459c81e5d0634f9069c53f7790bb3d",
-			"revisionTime": "2018-05-18T23:55:34Z"
-		},
-		{
 			"checksumSHA1": "kHh2EuzlSG80I7Hegzb8XnM5ybU=",
 			"origin": "github.com/Loopring/relay-lib/vendor/github.com/Shopify/sarama",
 			"path": "github.com/Shopify/sarama",
