@@ -20,6 +20,7 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/accountmanager"
+	"github.com/Loopring/relay-cluster/ordermanager/manager"
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
@@ -27,7 +28,6 @@ import (
 
 type MotanService struct {
 	accountManager accountmanager.AccountManager
-	orderViewer    viewer.OrderViewer
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
@@ -57,7 +57,7 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 
 func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
 	res := &motan.MinerOrdersRes{}
-	res.List = s.orderViewer.MinerOrders(req.Delegate, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
+	res.List = manager.MinerOrders(req.Delegate, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 
 	// log.Debugf("motan service, GetMinerOrders list length:%d", len(res.List))
 
@@ -67,7 +67,6 @@ func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrd
 func StartMotanService(options motan.MotanServerOptions, accountManager accountmanager.AccountManager, orderViewer viewer.OrderViewer) {
 	service := &MotanService{}
 	service.accountManager = accountManager
-	service.orderViewer = orderViewer
 	options.ServerInstance = service
 	go motan.RunServer(options)
 }

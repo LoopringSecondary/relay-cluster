@@ -19,25 +19,20 @@
 package viewer
 
 import (
-	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	. "github.com/Loopring/relay-cluster/ordermanager/common"
-	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
-	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
 type OrderViewer interface {
-	MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState
 	GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error)
 	GetOrders(query map[string]interface{}, statusList []types.OrderStatus, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestOrders(query map[string]interface{}, length int) ([]types.OrderState, error)
 	GetOrderByHash(hash common.Hash) (*types.OrderState, error)
-	UpdateBroadcastTimeByHash(hash common.Hash, bt int) error
 	FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestFills(query map[string]interface{}, limit int) ([]dao.FillEvent, error)
 	FindFillsByRingHash(ringHash common.Hash) (result []dao.FillEvent, err error)
@@ -45,11 +40,9 @@ type OrderViewer interface {
 	IsOrderCutoff(protocol, owner, token1, token2 common.Address, validsince *big.Int) bool
 	GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) (*big.Int, error)
 	GetFrozenLRCFee(owner common.Address, statusSet []types.OrderStatus) (*big.Int, error)
-	FlexCancelOrder(event *types.FlexCancelOrderEvent) error
 }
 
 type OrderViewerImpl struct {
-	um          usermanager.UserManager
 	mc          marketcap.MarketCapProvider
 	rds         *dao.RdsService
 	cutoffCache *CutoffCache
@@ -57,55 +50,14 @@ type OrderViewerImpl struct {
 
 func NewOrderViewer(options *OrderManagerOptions,
 	rds *dao.RdsService,
-	market marketcap.MarketCapProvider,
-	userManager usermanager.UserManager) *OrderViewerImpl {
+	market marketcap.MarketCapProvider) *OrderViewerImpl {
 
 	var viewer OrderViewerImpl
-	viewer.um = userManager
 	viewer.mc = market
 	viewer.rds = rds
 	viewer.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
 
 	return &viewer
-}
-
-func (om *OrderViewerImpl) MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
-	var list []*types.OrderState
-
-	var (
-		modelList []*dao.Order
-		err       error
-	)
-
-	for _, orderDelay := range filterOrderHashLists {
-		orderHashes := []string{}
-		for _, hash := range orderDelay.OrderHash {
-			orderHashes = append(orderHashes, hash.Hex())
-		}
-		if len(orderHashes) > 0 && orderDelay.DelayedCount != 0 {
-			if err = om.rds.MarkMinerOrders(orderHashes, orderDelay.DelayedCount); err != nil {
-				log.Debugf("order manager,provide orders for miner error:%s", err.Error())
-			}
-		}
-	}
-
-	// 从数据库获取订单
-	if modelList, err = om.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, InValidMiningStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
-		log.Errorf("err:%s", err.Error())
-		return list
-	}
-
-	for _, v := range modelList {
-		state := &types.OrderState{}
-		v.ConvertUp(state)
-		if om.um.InWhiteList(state.RawOrder.Owner) {
-			list = append(list, state)
-		} else {
-			log.Debugf("order manager,owner:%s not in white list", state.RawOrder.Owner.Hex())
-		}
-	}
-
-	return list
 }
 
 func (om *OrderViewerImpl) GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error) {
@@ -188,10 +140,6 @@ func (om *OrderViewerImpl) GetOrderByHash(hash common.Hash) (orderState *types.O
 	return &result, nil
 }
 
-func (om *OrderViewerImpl) UpdateBroadcastTimeByHash(hash common.Hash, bt int) error {
-	return om.rds.UpdateBroadcastTimeByHash(hash.Hex(), bt)
-}
-
 func (om *OrderViewerImpl) FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (result dao.PageResult, err error) {
 	return om.rds.FillsPageQuery(query, pageIndex, pageSize)
 }
@@ -254,47 +202,4 @@ func (om *OrderViewerImpl) GetFrozenLRCFee(owner common.Address, statusSet []typ
 	}
 
 	return totalAmount, nil
-}
-
-func (ov *OrderViewerImpl) FlexCancelOrder(event *types.FlexCancelOrderEvent) error {
-	if types.IsZeroAddress(event.Owner) {
-		return fmt.Errorf("params owner invalid")
-	}
-
-	validStatus := ValidFlexCancelStatus
-	status := types.ORDER_FLEX_CANCEL
-
-	var nums int64 = 0
-	switch event.Type {
-	case types.FLEX_CANCEL_BY_HASH:
-		if types.IsZeroHash(event.OrderHash) {
-			return fmt.Errorf("params orderhash invalid")
-		}
-		nums = ov.rds.FlexCancelOrderByHash(event.Owner, event.OrderHash, validStatus, status)
-
-	case types.FLEX_CANCEL_BY_OWNER:
-		nums = ov.rds.FlexCancelOrderByOwner(event.Owner, validStatus, status)
-
-	case types.FLEX_CANCEL_BY_TIME:
-		if event.CutoffTime <= 0 {
-			return fmt.Errorf("params cutoffTimeStamp invalid")
-		}
-		nums = ov.rds.FlexCancelOrderByTime(event.Owner, event.CutoffTime, validStatus, status)
-
-	case types.FLEX_CANCEL_BY_MARKET:
-		market, err := util.WrapMarketByAddress(event.TokenS.Hex(), event.TokenB.Hex())
-		if err != nil {
-			return fmt.Errorf("params market invalid")
-		}
-		nums = ov.rds.FlexCancelOrderByMarket(event.Owner, event.CutoffTime, market, validStatus, status)
-
-	default:
-		return fmt.Errorf("event type invalid")
-	}
-
-	if nums == 0 {
-		return fmt.Errorf("no valid order exist")
-	}
-
-	return nil
 }

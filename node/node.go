@@ -169,11 +169,11 @@ func (n *Node) registerAccessor() {
 //}
 
 func (n *Node) registerOrderManager() {
-	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.globalConfig.Kafka.Brokers)
+	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager, n.globalConfig.Kafka.Brokers)
 }
 
 func (n *Node) registerOrderViewer() {
-	n.orderViewer = orderviewer.NewOrderViewer(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager)
+	n.orderViewer = orderviewer.NewOrderViewer(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider)
 }
 
 func (n *Node) registerTrendManager() {

@@ -210,14 +210,14 @@ func LrcAddress() common.Address {
 
 func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()
-	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, cfg.Kafka.Brokers)
+	um := GenerateUserManager()
+	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, um, cfg.Kafka.Brokers)
 	return ob
 }
 
 func GenerateOrderView() *viewer.OrderViewerImpl {
 	mc := GenerateMarketCap()
-	um := GenerateUserManager()
-	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc, um)
+	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
 	return ov
 }
 

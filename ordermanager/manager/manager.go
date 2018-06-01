@@ -21,6 +21,7 @@ package manager
 import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/common"
+	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
@@ -57,6 +58,7 @@ func NewOrderManager(
 	options *common.OrderManagerOptions,
 	rds *dao.RdsService,
 	market marketcap.MarketCapProvider,
+	um usermanager.UserManager,
 	brokers []string) *OrderManagerImpl {
 
 	om := &OrderManagerImpl{}
@@ -70,6 +72,7 @@ func NewOrderManager(
 	// register watchers for kafka
 	// om.registryFlexCancelWatcher()
 
+	InitializeWriter(om.rds, um)
 	return om
 }
 
