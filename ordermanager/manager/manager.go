@@ -68,7 +68,7 @@ func NewOrderManager(
 	om.cutoffCache = common.NewCutoffCache(options.CutoffCacheCleanTime)
 
 	// register watchers for kafka
-	om.registryFlexCancelWatcher()
+	// om.registryFlexCancelWatcher()
 
 	return om
 }

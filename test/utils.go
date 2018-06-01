@@ -24,7 +24,9 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/node"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-cluster/txmanager"
+	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/abi"
@@ -212,8 +214,19 @@ func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	return ob
 }
 
+func GenerateOrderView() *viewer.OrderViewerImpl {
+	mc := GenerateMarketCap()
+	um := GenerateUserManager()
+	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc, um)
+	return ov
+}
+
 func GenerateAccountManager() accountmanager.AccountManager {
 	return accountmanager.Initialize(&cfg.AccountManager, cfg.Kafka.Brokers)
+}
+
+func GenerateUserManager() *usermanager.UserManagerImpl {
+	return usermanager.NewUserManager(&cfg.UserManager, rds)
 }
 
 func GenerateMarketCap() *marketcap.CapProvider_CoinMarketCap {

@@ -537,7 +537,7 @@ func (s *RdsService) UpdateOrderStatus(orderhash common.Hash, status types.Order
 		Update("status", status).Error
 }
 
-func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash common.Hash, validStatus []types.OrderStatus, status types.OrderStatus) error {
+func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash common.Hash, validStatus []types.OrderStatus, status types.OrderStatus) int64 {
 	now := time.Now().Unix()
 
 	return s.Db.Model(&Order{}).
@@ -546,20 +546,20 @@ func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash commo
 		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
-		Update("status", status).Error
+		Update("status", status).RowsAffected
 }
 
-func (s *RdsService) FlexCancelOrderByOwner(owner common.Address, validStatus []types.OrderStatus, status types.OrderStatus) error {
+func (s *RdsService) FlexCancelOrderByOwner(owner common.Address, validStatus []types.OrderStatus, status types.OrderStatus) int64 {
 	now := time.Now().Unix()
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
 		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
-		Update("status", status).Error
+		Update("status", status).RowsAffected
 }
 
-func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, validStatus []types.OrderStatus, status types.OrderStatus) error {
+func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, validStatus []types.OrderStatus, status types.OrderStatus) int64 {
 	now := time.Now().Unix()
 	since := now
 	if since > cutoff {
@@ -571,10 +571,10 @@ func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, v
 		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
-		Update("status", status).Error
+		Update("status", status).RowsAffected
 }
 
-func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64, market string, validStatus []types.OrderStatus, status types.OrderStatus) error {
+func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64, market string, validStatus []types.OrderStatus, status types.OrderStatus) int64 {
 	now := time.Now().Unix()
 	since := now
 	if cutoff > 0 && since > cutoff {
@@ -587,5 +587,5 @@ func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64,
 		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
-		Update("status", status).Error
+		Update("status", status).RowsAffected
 }
