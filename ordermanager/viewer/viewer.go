@@ -264,39 +264,36 @@ func (ov *OrderViewerImpl) FlexCancelOrder(event *types.FlexCancelOrderEvent) er
 	validStatus := ValidFlexCancelStatus
 	status := types.ORDER_FLEX_CANCEL
 
+	var nums int64 = 0
 	switch event.Type {
 	case types.FLEX_CANCEL_BY_HASH:
 		if types.IsZeroHash(event.OrderHash) {
 			return fmt.Errorf("params orderhash invalid")
 		}
-		if nums := ov.rds.FlexCancelOrderByHash(event.Owner, event.OrderHash, validStatus, status); nums == 0 {
-			return fmt.Errorf("no valid order exist")
-		}
+		nums = ov.rds.FlexCancelOrderByHash(event.Owner, event.OrderHash, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_OWNER:
-		if nums := ov.rds.FlexCancelOrderByOwner(event.Owner, validStatus, status); nums == 0 {
-			return fmt.Errorf("no valid order exist")
-		}
+		nums = ov.rds.FlexCancelOrderByOwner(event.Owner, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_TIME:
 		if event.CutoffTime <= 0 {
 			return fmt.Errorf("params cutoffTimeStamp invalid")
 		}
-		if nums := ov.rds.FlexCancelOrderByTime(event.Owner, event.CutoffTime, validStatus, status); nums == 0 {
-			return fmt.Errorf("no valid order exist")
-		}
+		nums = ov.rds.FlexCancelOrderByTime(event.Owner, event.CutoffTime, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_MARKET:
 		market, err := util.WrapMarketByAddress(event.TokenS.Hex(), event.TokenB.Hex())
 		if err != nil {
 			return fmt.Errorf("params market invalid")
 		}
-		if nums := ov.rds.FlexCancelOrderByMarket(event.Owner, event.CutoffTime, market, validStatus, status); nums == 0 {
-			return fmt.Errorf("no valid order exist")
-		}
+		nums = ov.rds.FlexCancelOrderByMarket(event.Owner, event.CutoffTime, market, validStatus, status)
 
 	default:
 		return fmt.Errorf("event type invalid")
+	}
+
+	if nums == 0 {
+		return fmt.Errorf("no valid order exist")
 	}
 
 	return nil

@@ -99,14 +99,14 @@ type OrderBook struct {
 }
 
 type OrderBookElement struct {
-	Price      float64   `json:"price"`
-	Size       float64   `json:"size"`
-	Amount     float64   `json:"amount"`
-	OrderHash  string   `json:"orderHash"`
-	LrcFee     float64   `json:"lrcFee"`
-	SplitS     float64   `json:"splitS"`
-	SplitB     float64   `json:"splitB"`
-	ValidUntil int64    `json:"validUntil"`
+	Price      float64 `json:"price"`
+	Size       float64 `json:"size"`
+	Amount     float64 `json:"amount"`
+	OrderHash  string  `json:"orderHash"`
+	LrcFee     float64 `json:"lrcFee"`
+	SplitS     float64 `json:"splitS"`
+	SplitB     float64 `json:"splitB"`
+	ValidUntil int64   `json:"validUntil"`
 }
 
 type CommonTokenRequest struct {
