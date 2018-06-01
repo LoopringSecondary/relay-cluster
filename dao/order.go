@@ -536,3 +536,56 @@ func (s *RdsService) UpdateOrderStatus(orderhash common.Hash, status types.Order
 		Where("valid_until >= ? ", now).
 		Update("status", status).Error
 }
+
+func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash common.Hash, validStatus []types.OrderStatus, status types.OrderStatus) error {
+	now := time.Now().Unix()
+
+	return s.Db.Model(&Order{}).
+		Where("owner=?", owner.Hex()).
+		Where("order_hash=?", orderhash.Hex()).
+		Where("valid_since < ?", now).
+		Where("valid_until >= ? ", now).
+		Where("status in (?)", validStatus).
+		Update("status", status).Error
+}
+
+func (s *RdsService) FlexCancelOrderByOwner(owner common.Address, validStatus []types.OrderStatus, status types.OrderStatus) error {
+	now := time.Now().Unix()
+	return s.Db.Model(&Order{}).
+		Where("owner=?", owner.Hex()).
+		Where("valid_since < ?", now).
+		Where("valid_until >= ? ", now).
+		Where("status in (?)", validStatus).
+		Update("status", status).Error
+}
+
+func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, validStatus []types.OrderStatus, status types.OrderStatus) error {
+	now := time.Now().Unix()
+	since := now
+	if since > cutoff {
+		since = cutoff
+	}
+
+	return s.Db.Model(&Order{}).
+		Where("owner=?", owner.Hex()).
+		Where("valid_since < ?", since).
+		Where("valid_until >= ? ", now).
+		Where("status in (?)", validStatus).
+		Update("status", status).Error
+}
+
+func (s *RdsService) FlexCancelOrderByTradingPair(owner common.Address, cutoff int64, market string, validStatus []types.OrderStatus, status types.OrderStatus) error {
+	now := time.Now().Unix()
+	since := now
+	if since > cutoff {
+		since = cutoff
+	}
+
+	return s.Db.Model(&Order{}).
+		Where("owner=?", owner.Hex()).
+		Where("market=?", market).
+		Where("valid_since < ?", since).
+		Where("valid_until >= ? ", now).
+		Where("status in (?)", validStatus).
+		Update("status", status).Error
+}
