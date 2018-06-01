@@ -29,16 +29,17 @@ import (
 type OrderStatus uint8
 
 const (
-	ORDER_UNKNOWN    OrderStatus = 0
-	ORDER_NEW        OrderStatus = 1
-	ORDER_PARTIAL    OrderStatus = 2
-	ORDER_FINISHED   OrderStatus = 3
-	ORDER_CANCEL     OrderStatus = 4
-	ORDER_CUTOFF     OrderStatus = 5
-	ORDER_EXPIRE     OrderStatus = 6
-	ORDER_PENDING    OrderStatus = 7
-	ORDER_CANCELLING OrderStatus = 8
-	ORDER_CUTOFFING  OrderStatus = 9
+	ORDER_UNKNOWN     OrderStatus = 0
+	ORDER_NEW         OrderStatus = 1
+	ORDER_PARTIAL     OrderStatus = 2
+	ORDER_FINISHED    OrderStatus = 3
+	ORDER_CANCEL      OrderStatus = 4
+	ORDER_CUTOFF      OrderStatus = 5
+	ORDER_EXPIRE      OrderStatus = 6
+	ORDER_PENDING     OrderStatus = 7
+	ORDER_CANCELLING  OrderStatus = 8
+	ORDER_CUTOFFING   OrderStatus = 9
+	ORDER_FLEX_CANCEL OrderStatus = 10
 	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 9
 	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 10
 )
