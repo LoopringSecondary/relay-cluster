@@ -20,7 +20,6 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -28,16 +27,33 @@ import (
 )
 
 type CutoffHandler struct {
-	Event       *types.CutoffEvent
-	Rds         *dao.RdsService
-	CutoffCache *omcm.CutoffCache
-}
-
-func (handler *CutoffHandler) HandleFailed() error {
-	return nil
+	Event *types.CutoffEvent
+	BaseHandler
 }
 
 func (handler *CutoffHandler) HandlePending() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
+
+	for _, orderhash := range handler.Event.OrderHashList {
+		switcher.OrderHash = orderhash
+		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (handler *CutoffHandler) HandleFailed() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
+
+	for _, orderhash := range handler.Event.OrderHashList {
+		switcher.OrderHash = orderhash
+		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
 	return nil
 }
 

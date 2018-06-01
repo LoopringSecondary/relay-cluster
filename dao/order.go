@@ -526,3 +526,13 @@ func (s *RdsService) GetLatestOrders(query map[string]interface{}, length int) (
 	err = s.Db.Where(query).Order("create_time DESC").Limit(length).Find(&orders).Error
 	return orders, err
 }
+
+func (s *RdsService) UpdateOrderStatus(orderhash common.Hash, status types.OrderStatus) error {
+	now := time.Now().Unix()
+
+	return s.Db.Model(&Order{}).
+		Where("order_hash=?", orderhash.Hex()).
+		Where("valid_since < ?", now).
+		Where("valid_until >= ? ", now).
+		Update("status", status).Error
+}

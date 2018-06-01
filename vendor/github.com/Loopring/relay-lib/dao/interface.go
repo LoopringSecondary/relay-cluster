@@ -69,8 +69,6 @@ func (s *RdsServiceImpl) SetTables(tables []interface{}) {
 }
 
 func (s *RdsServiceImpl) CreateTables() error {
-	var tables []interface{}
-
 	for _, t := range s.tables {
 		if ok := s.Db.HasTable(t); !ok {
 			if err := s.Db.CreateTable(t).Error; err != nil {
@@ -82,5 +80,5 @@ func (s *RdsServiceImpl) CreateTables() error {
 	// auto migrate to keep schema update to date
 	// AutoMigrate will ONLY create tables, missing columns and missing indexes,
 	// and WON'T change existing column's type or delete unused columns to protect your data
-	return s.Db.AutoMigrate(tables...).Error
+	return s.Db.AutoMigrate(s.tables...).Error
 }

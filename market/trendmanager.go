@@ -1053,12 +1053,14 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			return
 		}
 
-		amountSFloat := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS); if amountSFloat < 10e-8 {
+		amountSFloat := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS)
+		if amountSFloat < 10e-8 {
 			log.Debug("amount s less than 10e-8")
 			return
 		}
 
-		amountBFloat := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB); if amountBFloat < 10e-8 {
+		amountBFloat := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB)
+		if amountBFloat < 10e-8 {
 			log.Debug("amount b less than 10e-8")
 			return
 		}

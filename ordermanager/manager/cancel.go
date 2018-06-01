@@ -22,33 +22,43 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )
 
 type OrderCancelHandler struct {
-	Event     *types.OrderCancelledEvent
-	Rds       *dao.RdsService
-	MarketCap marketcap.MarketCapProvider
-}
-
-func (handler *OrderCancelHandler) HandleFailed() error {
-	return nil
+	Event *types.OrderCancelledEvent
+	BaseHandler
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CANCELLING)
+
+	if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
+		log.Errorf(err.Error())
+	}
+
+	return nil
+}
+
+func (handler *OrderCancelHandler) HandleFailed() error {
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
+
+	if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
+		log.Errorf(err.Error())
+	}
+
 	return nil
 }
 
 func (handler *OrderCancelHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	mc := handler.MarketCap
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
 
 	// save cancel event
 	_, err := rds.GetCancelEvent(event.TxHash)

@@ -202,20 +202,21 @@ func (accessor *ethNodeAccessor) ContractCallMethod(a *abi.ABI, contractAddress 
 	}
 }
 
-func (ethAccessor *ethNodeAccessor) SignAndSendTransaction(result interface{}, sender common.Address, tx *ethTypes.Transaction) error {
+func (ethAccessor *ethNodeAccessor) SignAndSendTransaction(result interface{}, sender common.Address, beforeSignTx *ethTypes.Transaction) (*ethTypes.Transaction, error) {
 	var err error
-	if tx, err = crypto.SignTx(sender, tx, nil); nil != err {
-		return err
+	var tx *ethTypes.Transaction
+	if tx, err = crypto.SignTx(sender, beforeSignTx, nil); nil != err {
+		return tx, err
 	}
 	if txData, err := rlp.EncodeToBytes(tx); nil != err {
-		return err
+		return tx, err
 	} else {
 		log.Debugf("txhash:%s, nonce:%d, value:%s, gas:%d, gasPrice:%s", tx.Hash().Hex(), tx.Nonce(), tx.Value().String(), tx.Gas(), tx.GasPrice().String())
 		err = ethAccessor.RetryCall("latest", 2, result, "eth_sendRawTransaction", common.ToHex(txData))
 		if err != nil {
 			log.Errorf("accessor, Sign and send transaction error:%s", err.Error())
 		}
-		return err
+		return tx, err
 	}
 }
 
@@ -249,7 +250,11 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 		gas.Uint64(),
 		gasPrice,
 		callData)
-	if err := accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
+	var (
+		afterSignTx *ethTypes.Transaction
+		err         error
+	)
+	if afterSignTx, err = accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
 		//if err.Error() == "nonce too low" {
 		accessor.resetAddressNonce(sender)
 		nonce = accessor.addressCurrentNonce(sender)
@@ -259,16 +264,13 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 			gas.Uint64(),
 			gasPrice,
 			callData)
-		if err := accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
+		if afterSignTx, err = accessor.SignAndSendTransaction(&txHash, sender, transaction); nil != err {
 			log.Errorf("send raw transaction err:%s, manual check it please.", err.Error())
 			return "", nil, err
 		}
-		//} else {
-		//
-		//}
 	}
 	accessor.addressNextNonce(sender)
-	return txHash, transaction, nil
+	return txHash, afterSignTx, nil
 }
 
 //gas, gasPrice can be set to nil

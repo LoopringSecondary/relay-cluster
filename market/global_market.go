@@ -58,32 +58,32 @@ type GlobalTrend struct {
 }
 
 type GlobalTicker struct {
-	Symbol            string  `json:"symbol"`
+	Symbol            string `json:"symbol"`
 	Price             string `json:"price"`
 	PriceUsd          string `json:"price_usd"`
 	PriceCnyUtc0      string `json:"price_cny_utc0"`
 	PriceCny          string `json:"price_cny"`
-	Volume24hUsd      string  `json:"volume_24h_usd"`
-	Volume24h         string  `json:"volume_24h"`
-	Volume24hFrom     string   `json:"volume_24h_from"`
+	Volume24hUsd      string `json:"volume_24h_usd"`
+	Volume24h         string `json:"volume_24h"`
+	Volume24hFrom     string `json:"volume_24h_from"`
 	PercentChangeUtc0 string `json:"percent_change_utc0"`
-	Alias             string  `json:"alias"`
-	PriceUpdatedAt    string   `json:"price_updated_at"`
+	Alias             string `json:"alias"`
+	PriceUpdatedAt    string `json:"price_updated_at"`
 }
 
 type GlobalMarketTicker struct {
-	MarketName        string  `json:"market_name"`
-	Symbol            string  `json:"symbol"`
-	Anchor            string  `json:"anchor"`
-	Pair              string  `json:"pair"`
-	Price             string  `json:"price"`
-	PriceUsd          string  `json:"price_usd"`
-	PriceCny          string  `json:"price_cny"`
-	Volume24hUsd      string  `json:"volume_24h_usd"`
-	Volume24h         string  `json:"volume_24h"`
-	Volume24hFrom     string  `json:"volume_24h_from"`
-	PercentChangeUtc0 string  `json:"percent_change_utc0"`
-	Alias             string  `json:"alias"`
+	MarketName        string `json:"market_name"`
+	Symbol            string `json:"symbol"`
+	Anchor            string `json:"anchor"`
+	Pair              string `json:"pair"`
+	Price             string `json:"price"`
+	PriceUsd          string `json:"price_usd"`
+	PriceCny          string `json:"price_cny"`
+	Volume24hUsd      string `json:"volume_24h_usd"`
+	Volume24h         string `json:"volume_24h"`
+	Volume24hFrom     string `json:"volume_24h_from"`
+	PercentChangeUtc0 string `json:"percent_change_utc0"`
+	Alias             string `json:"alias"`
 }
 
 type MyTokenConfig struct {
@@ -101,7 +101,7 @@ type MyTokenResp struct {
 type GlobalTrendReq struct {
 	TrendAnchor string `json:"trend_anchor"`
 	NameId      string `json:"name_id"`
-	Limit      int64 `json:"limit"`
+	Limit       int64  `json:"limit"`
 	Period      string `json:"period"`
 }
 
@@ -120,11 +120,11 @@ type GlobalTickerResp struct {
 }
 
 type GlobalMarketTickerReq struct {
-	Anchor string `json:"anchor"`
-	NameId      string `json:"name_id"`
-	Symbol      string `json:"symbol"`
-	SortType      string `json:"sort_type"`
-	SortField      string `json:"sort_field"`
+	Anchor    string `json:"anchor"`
+	NameId    string `json:"name_id"`
+	Symbol    string `json:"symbol"`
+	SortType  string `json:"sort_type"`
+	SortField string `json:"sort_field"`
 }
 
 type GlobalMarketTickerResp struct {
@@ -137,7 +137,8 @@ func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
 }
 
 func (g *GlobalMarket) GetGlobalTrendCache(token string) (trend []GlobalTrend, err error) {
-	trendBytes, err := cache.Get(GlobalTrendPreKey + strings.ToUpper(token)); if err != nil {
+	trendBytes, err := cache.Get(GlobalTrendPreKey + strings.ToUpper(token))
+	if err != nil {
 		return trend, err
 	}
 	trend = make([]GlobalTrend, 0)
@@ -146,7 +147,8 @@ func (g *GlobalMarket) GetGlobalTrendCache(token string) (trend []GlobalTrend, e
 }
 
 func (g *GlobalMarket) GetGlobalTickerCache(token string) (ticker GlobalTicker, err error) {
-	tickerBytes, err := cache.Get(GlobalTickerPreKey + strings.ToUpper(token)); if err != nil {
+	tickerBytes, err := cache.Get(GlobalTickerPreKey + strings.ToUpper(token))
+	if err != nil {
 		return ticker, err
 	}
 	err = json.Unmarshal(tickerBytes, &ticker)
@@ -154,7 +156,8 @@ func (g *GlobalMarket) GetGlobalTickerCache(token string) (ticker GlobalTicker, 
 }
 
 func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers []GlobalMarketTicker, err error) {
-	tickerBytes, err := cache.Get(GlobalMarketTickerPreKey + strings.ToUpper(token)); if err != nil {
+	tickerBytes, err := cache.Get(GlobalMarketTickerPreKey + strings.ToUpper(token))
+	if err != nil {
 		return tickers, err
 	}
 	err = json.Unmarshal(tickerBytes, &tickers)
@@ -183,10 +186,11 @@ func getResp(url string) (body []byte, err error) {
 func (g *GlobalMarket) GetGlobalTrend(token string) (trend []GlobalTrend, err error) {
 
 	url := g.config.BaseUrl + "symbol/trend?"
-	nameId, err := getNameId(token); if err != nil {
+	nameId, err := getNameId(token)
+	if err != nil {
 		return trend, err
 	}
-	request := GlobalTrendReq{TrendAnchor: "usd", NameId: strings.ToLower(nameId), Limit : int64(90), Period: "1d"}
+	request := GlobalTrendReq{TrendAnchor: "usd", NameId: strings.ToLower(nameId), Limit: int64(90), Period: "1d"}
 	urlParam, err := g.Sign(request)
 	if err != nil {
 		return trend, err
@@ -210,7 +214,8 @@ func (g *GlobalMarket) GetGlobalTrend(token string) (trend []GlobalTrend, err er
 
 func (g *GlobalMarket) GetGlobalTicker(token string) (ticker GlobalTicker, err error) {
 	url := g.config.BaseUrl + "ticker/global?"
-	nameId, err := getNameId(token); if err != nil {
+	nameId, err := getNameId(token)
+	if err != nil {
 		return ticker, err
 	}
 
@@ -240,11 +245,12 @@ func (g *GlobalMarket) GetGlobalMarketTicker(symbol string) (trend []GlobalMarke
 
 	url := g.config.BaseUrl + "ticker/paironmarket?"
 
-	token, ok := util.AllTokens[strings.ToUpper(symbol)]; if !ok {
+	token, ok := util.AllTokens[strings.ToUpper(symbol)]
+	if !ok {
 		return trend, errors.New("unsupported token " + symbol)
 	}
 	nameId := token.Source
-	request := GlobalMarketTickerReq{NameId: nameId, Anchor: "eth", Symbol : strings.ToLower(token.Symbol), SortType:"desc", SortField: "volume_24h_usd"}
+	request := GlobalMarketTickerReq{NameId: nameId, Anchor: "eth", Symbol: strings.ToLower(token.Symbol), SortType: "desc", SortField: "volume_24h_usd"}
 	urlParam, err := g.Sign(request)
 	if err != nil {
 		return trend, err
@@ -400,7 +406,8 @@ func computeHmac256(message string, secret string) string {
 }
 
 func getNameId(symbol string) (nameId string, err error) {
-	token, ok := util.AllTokens[symbol]; if !ok {
+	token, ok := util.AllTokens[symbol]
+	if !ok {
 		return nameId, errors.New("unsupported token " + symbol)
 	}
 	return token.Source, nil

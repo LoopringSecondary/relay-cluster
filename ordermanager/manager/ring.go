@@ -19,38 +19,63 @@
 package manager
 
 import (
-	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 )
 
 type SubmitRingHandler struct {
 	Event *types.SubmitRingMethodEvent
-	Rds   *dao.RdsService
+	BaseHandler
+}
+
+func (handler *SubmitRingHandler) HandlePending() error {
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
+
+	for _, v := range handler.Event.OrderList {
+		switcher.OrderHash = v.Hash
+		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
+	// save pending tx
+	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
+		log.Errorf("order manager, submitRingHandler, pending tx:%s already exist", handler.Event.TxHash.Hex())
+		return nil
+	} else {
+		log.Debugf("order manager, submitRingHandler, pending tx:%s insert", handler.Event.TxHash.Hex())
+		model.FromSubmitRingMethod(handler.Event)
+		return handler.Rds.Add(model)
+	}
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
-	event := handler.Event
-	rds := handler.Rds
-
-	if event.Status != types.TX_STATUS_FAILED {
+	if handler.Event.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
 
-	model, err := rds.FindRingMined(event.TxHash.Hex())
-	if err == nil {
-		log.Debugf("order manager,handle submitRing method,tx %s has already exist", event.TxHash.Hex())
+	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
+
+	for _, v := range handler.Event.OrderList {
+		switcher.OrderHash = v.Hash
+		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
+			log.Errorf(err.Error())
+		}
+	}
+
+	// save failed tx
+	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err != nil {
+		log.Errorf("order manager, submitRingHandler, failed tx:%s not exist", handler.Event.TxHash.Hex())
 		return nil
 	} else {
-		log.Debugf("order manager,handle submitRing method,tx:%s status:%s inserted", event.TxHash.Hex(), types.StatusStr(event.Status))
-		model.FromSubmitRingMethod(event)
-		return rds.Add(model)
+		log.Debugf("order manager, submitRingHandler, failed tx:%s updated", handler.Event.TxHash.Hex())
+		model.FromSubmitRingMethod(handler.Event)
+		return handler.Rds.Save(model)
 	}
-}
-
-// todo
-func (handler *SubmitRingHandler) HandlePending() error {
-	return nil
 }
 
 func (handler *SubmitRingHandler) HandleSuccess() error {
@@ -59,31 +84,31 @@ func (handler *SubmitRingHandler) HandleSuccess() error {
 
 type RingMinedHandler struct {
 	Event *types.RingMinedEvent
-	Rds   *dao.RdsService
-}
-
-func (handler *RingMinedHandler) HandleFailed() error {
-	return nil
+	BaseHandler
 }
 
 func (handler *RingMinedHandler) HandlePending() error {
 	return nil
 }
 
-func (handler *RingMinedHandler) HandleSuccess() error {
-	event := handler.Event
-	rds := handler.Rds
+func (handler *RingMinedHandler) HandleFailed() error {
+	return nil
+}
 
-	if event.Status != types.TX_STATUS_SUCCESS {
+func (handler *RingMinedHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
 
-	if model, err := rds.FindRingMined(event.TxHash.Hex()); err == nil {
-		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s already exist", event.TxHash.Hex(), event.Ringhash.Hex())
+	event := handler.Event
+	rds := handler.Rds
+
+	if model, err := rds.FindRingMined(event.TxHash.Hex()); err != nil {
+		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s not exist", event.TxHash.Hex(), event.Ringhash.Hex())
 		return nil
 	} else {
 		log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s inserted", event.TxHash.Hex(), event.Ringhash.Hex())
 		model.ConvertDown(event)
-		return rds.Add(model)
+		return rds.Save(model)
 	}
 }

@@ -138,7 +138,7 @@ func emptySubmitRingInputs(feeReceipt common.Address) *SubmitRingMethodInputs {
 }
 
 // should add protocol, miner, feeRecipient
-func (m *SubmitRingMethodInputs) ConvertDown(protocol common.Address) (*types.SubmitRingMethodEvent, error) {
+func (m *SubmitRingMethodInputs) ConvertDown(protocol, delegate common.Address) (*types.SubmitRingMethodEvent, error) {
 	var (
 		list  []types.Order
 		event types.SubmitRingMethodEvent
@@ -158,6 +158,7 @@ func (m *SubmitRingMethodInputs) ConvertDown(protocol common.Address) (*types.Su
 		var order types.Order
 
 		order.Protocol = protocol
+		order.DelegateAddress = delegate
 		order.Owner = m.AddressList[i][0]
 		order.TokenS = m.AddressList[i][1]
 		if i == length-1 {

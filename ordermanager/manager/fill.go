@@ -22,34 +22,32 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )
 
 type FillHandler struct {
-	Event     *types.OrderFilledEvent
-	Rds       *dao.RdsService
-	MarketCap marketcap.MarketCapProvider
-}
-
-func (handler *FillHandler) HandleFailed() error {
-	return nil
+	Event *types.OrderFilledEvent
+	BaseHandler
 }
 
 func (handler *FillHandler) HandlePending() error {
 	return nil
 }
 
+func (handler *FillHandler) HandleFailed() error {
+	return nil
+}
+
 func (handler *FillHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	mc := handler.MarketCap
-
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
 
 	// save fill event
 	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
