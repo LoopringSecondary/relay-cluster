@@ -1185,11 +1185,11 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 
 		if isAsk {
 			price = *price.Inv(&price)
-			o.Price, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
+			o.Price = fmtFloat(&price)
 			o.Amount = fmtFloat(amountS)
 			o.Size = fmtFloat(amountB)
 		} else {
-			o.Price, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
+			o.Price = fmtFloat(&price)
 			o.Amount = fmtFloat(amountB)
 			o.Size = fmtFloat(amountS)
 		}
