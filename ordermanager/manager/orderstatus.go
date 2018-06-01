@@ -118,9 +118,3 @@ func IsValidPendingStatus(status types.OrderStatus) bool {
 
 	return false
 }
-
-var IngStatus = []types.OrderStatus{
-	types.ORDER_PENDING,
-	types.ORDER_CANCELLING,
-	types.ORDER_CUTOFFING,
-}

@@ -169,7 +169,7 @@ func (n *Node) registerAccessor() {
 //}
 
 func (n *Node) registerOrderManager() {
-	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider)
+	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.globalConfig.Kafka.Brokers)
 }
 
 func (n *Node) registerOrderViewer() {

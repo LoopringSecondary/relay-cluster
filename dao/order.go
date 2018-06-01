@@ -574,10 +574,10 @@ func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, v
 		Update("status", status).Error
 }
 
-func (s *RdsService) FlexCancelOrderByTradingPair(owner common.Address, cutoff int64, market string, validStatus []types.OrderStatus, status types.OrderStatus) error {
+func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64, market string, validStatus []types.OrderStatus, status types.OrderStatus) error {
 	now := time.Now().Unix()
 	since := now
-	if since > cutoff {
+	if cutoff > 0 && since > cutoff {
 		since = cutoff
 	}
 

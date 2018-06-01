@@ -70,9 +70,8 @@ func (om *OrderViewerImpl) MinerOrders(delegate, tokenS, tokenB common.Address, 
 	var list []*types.OrderState
 
 	var (
-		modelList    []*dao.Order
-		err          error
-		filterStatus = []types.OrderStatus{types.ORDER_FINISHED, types.ORDER_CUTOFF, types.ORDER_CANCEL}
+		modelList []*dao.Order
+		err       error
 	)
 
 	for _, orderDelay := range filterOrderHashLists {
@@ -88,7 +87,7 @@ func (om *OrderViewerImpl) MinerOrders(delegate, tokenS, tokenB common.Address, 
 	}
 
 	// 从数据库获取订单
-	if modelList, err = om.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, filterStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
+	if modelList, err = om.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, InValidMiningStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
 		log.Errorf("err:%s", err.Error())
 		return list
 	}

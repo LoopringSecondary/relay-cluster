@@ -208,7 +208,7 @@ func LrcAddress() common.Address {
 
 func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()
-	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc)
+	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, cfg.Kafka.Brokers)
 	return ob
 }
 
