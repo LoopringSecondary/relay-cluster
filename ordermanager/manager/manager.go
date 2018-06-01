@@ -35,21 +35,27 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options                 *common.OrderManagerOptions
-	brokers                 []string
-	rds                     *dao.RdsService
-	processor               *ForkProcessor
-	cutoffCache             *common.CutoffCache
-	mc                      marketcap.MarketCapProvider
-	newOrderWatcher         *eventemitter.Watcher
-	ringMinedWatcher        *eventemitter.Watcher
-	fillOrderWatcher        *eventemitter.Watcher
-	cancelOrderWatcher      *eventemitter.Watcher
-	cutoffOrderWatcher      *eventemitter.Watcher
-	cutoffPairWatcher       *eventemitter.Watcher
-	forkWatcher             *eventemitter.Watcher
-	warningWatcher          *eventemitter.Watcher
-	submitRingMethodWatcher *eventemitter.Watcher
+	options                    *common.OrderManagerOptions
+	brokers                    []string
+	rds                        *dao.RdsService
+	processor                  *ForkProcessor
+	cutoffCache                *common.CutoffCache
+	mc                         marketcap.MarketCapProvider
+	newOrderWatcher            *eventemitter.Watcher
+	ringMinedWatcher           *eventemitter.Watcher
+	fillOrderWatcher           *eventemitter.Watcher
+	cancelOrderWatcher         *eventemitter.Watcher
+	cutoffOrderWatcher         *eventemitter.Watcher
+	cutoffPairWatcher          *eventemitter.Watcher
+	approveWatcher             *eventemitter.Watcher
+	depositWatcher             *eventemitter.Watcher
+	withdrawalWatcher          *eventemitter.Watcher
+	transferWatcher            *eventemitter.Watcher
+	ethTransferWatcher         *eventemitter.Watcher
+	unsupportedContractWatcher *eventemitter.Watcher
+	forkWatcher                *eventemitter.Watcher
+	warningWatcher             *eventemitter.Watcher
+	submitRingMethodWatcher    *eventemitter.Watcher
 }
 
 const kafka_consume_group = "relay_cluster_order_manager"
@@ -79,21 +85,39 @@ func NewOrderManager(
 // Start start orderbook as a service
 func (om *OrderManagerImpl) Start() {
 	om.newOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleGatewayOrder}
+
 	om.ringMinedWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleRingMined}
 	om.fillOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderFilled}
 	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderCancelled}
 	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoff}
 	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoffPair}
+
+	om.approveWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleApprove}
+	om.depositWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleDeposit}
+	om.withdrawalWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWithdrawal}
+	om.transferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleTransfer}
+	om.ethTransferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleEthTransfer}
+	om.unsupportedContractWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleUnsupportedContract}
+
 	om.forkWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleFork}
 	om.warningWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWarning}
 	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleSubmitRingMethod}
 
 	eventemitter.On(eventemitter.NewOrder, om.newOrderWatcher)
+
 	eventemitter.On(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.On(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.On(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.On(eventemitter.CutoffAll, om.cutoffOrderWatcher)
 	eventemitter.On(eventemitter.CutoffPair, om.cutoffPairWatcher)
+
+	eventemitter.On(eventemitter.Approve, om.approveWatcher)
+	eventemitter.On(eventemitter.WethDeposit, om.depositWatcher)
+	eventemitter.On(eventemitter.WethWithdrawal, om.withdrawalWatcher)
+	eventemitter.On(eventemitter.Transfer, om.transferWatcher)
+	eventemitter.On(eventemitter.EthTransfer, om.ethTransferWatcher)
+	eventemitter.On(eventemitter.UnsupportedContract, om.unsupportedContractWatcher)
+
 	eventemitter.On(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.On(eventemitter.ExtractorWarning, om.warningWatcher)
 	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
@@ -101,10 +125,19 @@ func (om *OrderManagerImpl) Start() {
 
 func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.NewOrder, om.newOrderWatcher)
+
 	eventemitter.Un(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.Un(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.Un(eventemitter.CutoffAll, om.cutoffOrderWatcher)
+
+	eventemitter.On(eventemitter.Approve, om.approveWatcher)
+	eventemitter.On(eventemitter.WethDeposit, om.depositWatcher)
+	eventemitter.On(eventemitter.WethWithdrawal, om.withdrawalWatcher)
+	eventemitter.On(eventemitter.Transfer, om.transferWatcher)
+	eventemitter.On(eventemitter.EthTransfer, om.ethTransferWatcher)
+	eventemitter.On(eventemitter.UnsupportedContract, om.unsupportedContractWatcher)
+
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
 	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
@@ -198,7 +231,6 @@ func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error
 	return working(handler)
 }
 
-// 所有cutoff event都应该存起来,但不是所有event都会影响订单
 func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
 	handler := &CutoffHandler{
 		Event:       input.(*types.CutoffEvent),
@@ -217,6 +249,36 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 	return working(handler)
 }
 
+func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
+	src := input.(*types.ApprovalEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
+	src := input.(*types.WethDepositEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
+	src := input.(*types.WethWithdrawalEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
+	src := input.(*types.TransferEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
+	src := input.(*types.EthTransferEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
+	src := input.(*types.UnsupportedContractEvent)
+	return om.orderCorrelatedTxWorking(src.TxInfo)
+}
+
 func working(handler EventStatusHandler) error {
 	handler.HandlePending()
 	handler.HandleFailed()
@@ -232,4 +294,16 @@ func (om *OrderManagerImpl) basehandler() BaseHandler {
 	base.MarketCap = om.mc
 
 	return base
+}
+
+func (om *OrderManagerImpl) orderCorrelatedTxWorking(txinfo types.TxInfo) error {
+	event := &OrderCorrelatedTxEvent{}
+	event.FromTxInfo(txinfo)
+
+	handler := &OrderCorrelatedTxHandler{
+		Event:       event,
+		BaseHandler: om.basehandler(),
+	}
+
+	return working(handler)
 }
