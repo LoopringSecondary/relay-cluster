@@ -23,6 +23,7 @@ func (r RingSubmitInfoEvent) MarshalJSON() ([]byte, error) {
 		ProtocolGas      *Big
 		ProtocolUsedGas  *Big
 		ProtocolGasPrice *Big
+		ValidSinceTime   int64
 	}
 	var enc RingSubmitInfoEvent
 	enc.SubmitInfoId = r.SubmitInfoId
@@ -34,6 +35,7 @@ func (r RingSubmitInfoEvent) MarshalJSON() ([]byte, error) {
 	enc.ProtocolGas = (*Big)(r.ProtocolGas)
 	enc.ProtocolUsedGas = (*Big)(r.ProtocolUsedGas)
 	enc.ProtocolGasPrice = (*Big)(r.ProtocolGasPrice)
+	enc.ValidSinceTime = r.ValidSinceTime
 	return json.Marshal(&enc)
 }
 
@@ -49,6 +51,7 @@ func (r *RingSubmitInfoEvent) UnmarshalJSON(input []byte) error {
 		ProtocolGas      *Big
 		ProtocolUsedGas  *Big
 		ProtocolGasPrice *Big
+		ValidSinceTime   *int64
 	}
 	var dec RingSubmitInfoEvent
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -80,6 +83,9 @@ func (r *RingSubmitInfoEvent) UnmarshalJSON(input []byte) error {
 	}
 	if dec.ProtocolGasPrice != nil {
 		r.ProtocolGasPrice = (*big.Int)(dec.ProtocolGasPrice)
+	}
+	if dec.ValidSinceTime != nil {
+		r.ValidSinceTime = *dec.ValidSinceTime
 	}
 	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"net"
 	"time"
 )
 
@@ -184,22 +183,7 @@ func hostDimension() *cloudwatch.Dimension {
 	dim := &cloudwatch.Dimension{}
 	ipDimName := "host"
 	dim.Name = &ipDimName
-	dim.Value = getIp()
+	ip := utils.GetLocalIp()
+	dim.Value = &ip
 	return dim
-}
-
-func getIp() *string {
-	var res = "unknown"
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return &res
-	}
-	for _, a := range addrs {
-		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				res = ipnet.IP.To4().String()
-			}
-		}
-	}
-	return &res
 }

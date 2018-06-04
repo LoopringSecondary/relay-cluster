@@ -25,33 +25,37 @@ import (
 
 // txhash唯一索引
 type OrderTransaction struct {
-	ID        int    `gorm:"column:id;primary_key;"`
-	Owner     string `gorm:"column:owner;type:varchar(42)"`
-	OrderHash string `gorm:"column:order_hash;type:varchar(82)"`
-	TxHash    string `gorm:"column:tx_hash;type:varchar(82)"`
-	Status    uint8  `gorm:"column:status;type:tinyint(4)"`
-	Nonce     int64  `gorm:"column:nonce;type:bigint"`
+	ID          int    `gorm:"column:id;primary_key;"`
+	Owner       string `gorm:"column:owner;type:varchar(42)"`
+	OrderHash   string `gorm:"column:order_hash;type:varchar(82)"`
+	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
+	OrderStatus uint8  `gorm:"column:order_status;type:tinyint(4)"`
+	Nonce       int64  `gorm:"column:nonce;type:bigint"`
 }
 
-// convert dao/fill to types/fill
-func (f *OrderTransaction) ConvertUp(orderhash common.Hash, orderstatus types.OrderStatus, txinfo types.TxInfo) error {
-	f.OrderHash = orderhash.Hex()
-	f.Status = uint8(orderstatus)
-	f.TxHash = txinfo.TxHash.Hex()
-	f.Owner = txinfo.From.Hex()
-	f.Nonce = txinfo.Nonce.Int64()
+// convert types/orderTxRecord to dao/ordertx
+func (tx *OrderTransaction) ConvertDown(src *types.OrderTxRecord) error {
+	tx.OrderHash = src.OrderHash.Hex()
+	tx.OrderStatus = uint8(src.OrderStatus)
+	tx.TxHash = src.TxHash.Hex()
+	tx.Owner = src.Owner.Hex()
+	tx.Nonce = src.Nonce
 
 	return nil
 }
 
-func (s *RdsService) MaxNonce(owner common.Address, orderhash common.Hash) (int64, error) {
-	var nonce int64
-	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Pluck("max(nonce)", &nonce).Error
-	return nonce, err
+func (tx *OrderTransaction) ConvertUp(dst *types.OrderTxRecord) error {
+	dst.OrderHash = common.HexToHash(tx.OrderHash)
+	dst.TxHash = common.HexToHash(tx.TxHash)
+	dst.Owner = common.HexToAddress(tx.Owner)
+	dst.OrderStatus = types.OrderStatus(tx.OrderStatus)
+	dst.Nonce = tx.Nonce
+
+	return nil
 }
 
-func (s *RdsService) GetOrderTxList(orderhash common.Hash) ([]OrderTransaction, error) {
+func (s *RdsService) GetPendingOrderTx(owner common.Address, pendingstatus []types.OrderStatus) ([]OrderTransaction, error) {
 	var list []OrderTransaction
-	err := s.Db.Where("order_hash=?", orderhash.Hex()).Find(&list).Order("nonce desc").Error
+	err := s.Db.Where("owner=?", owner.Hex()).Where("order_status in (?)", pendingstatus).Find(&list).Error
 	return list, err
 }
