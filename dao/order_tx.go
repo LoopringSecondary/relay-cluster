@@ -54,7 +54,17 @@ func (tx *OrderTransaction) ConvertUp(dst *types.OrderTxRecord) error {
 	return nil
 }
 
-func (s *RdsService) GetPendingOrderTx(owner common.Address, pendingstatus []types.OrderStatus) ([]OrderTransaction, error) {
+func (s *RdsService) GetOrderTx(orderhash, txhash common.Hash) (*OrderTransaction, error) {
+	var (
+		tx  OrderTransaction
+		err error
+	)
+
+	err = s.Db.Where("order_hash=?", orderhash.Hex()).Where("tx_hash=?", txhash.Hex()).First(&tx).Error
+	return &tx, err
+}
+
+func (s *RdsService) GetPendingOrderTxs(owner common.Address, pendingstatus []types.OrderStatus) ([]OrderTransaction, error) {
 	var list []OrderTransaction
 	err := s.Db.Where("owner=?", owner.Hex()).Where("order_status in (?)", pendingstatus).Find(&list).Error
 	return list, err

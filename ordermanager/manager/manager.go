@@ -251,32 +251,32 @@ func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error
 
 func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
 	src := input.(*types.ApprovalEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
 	src := input.(*types.WethDepositEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
 	src := input.(*types.WethWithdrawalEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
 	src := input.(*types.TransferEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
 	src := input.(*types.EthTransferEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
 	src := input.(*types.UnsupportedContractEvent)
-	return om.orderCorrelatedTxWorking(src.TxInfo)
+	return om.orderTxWorking(src.TxInfo)
 }
 
 func working(handler EventStatusHandler) error {
@@ -296,12 +296,10 @@ func (om *OrderManagerImpl) basehandler() BaseHandler {
 	return base
 }
 
-func (om *OrderManagerImpl) orderCorrelatedTxWorking(txinfo types.TxInfo) error {
-	event := &OrderCorrelatedTxEvent{}
-	event.FromTxInfo(txinfo)
-
-	handler := &OrderCorrelatedTxHandler{
-		Event:       event,
+func (om *OrderManagerImpl) orderTxWorking(txinfo types.TxInfo) error {
+	handler := &OrderTxHandler{
+		OrderHash:   types.NilHash,
+		OrderStatus: types.ORDER_UNKNOWN,
 		BaseHandler: om.basehandler(),
 	}
 
