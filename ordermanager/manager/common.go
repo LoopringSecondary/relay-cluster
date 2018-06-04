@@ -118,3 +118,11 @@ func IsValidPendingStatus(status types.OrderStatus) bool {
 
 	return false
 }
+
+func EventRecordDuplicated(eventStatus types.TxStatus, modelStatus uint8, noRecord bool) bool {
+	if uint8(eventStatus) == modelStatus && !noRecord {
+		return true
+	} else {
+		return false
+	}
+}

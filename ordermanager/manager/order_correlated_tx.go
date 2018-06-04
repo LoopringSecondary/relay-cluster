@@ -41,16 +41,15 @@ type OrderCorrelatedTxHandler struct {
 }
 
 func (handler *OrderCorrelatedTxHandler) HandlePending() error {
-
 	return nil
 }
 
 func (handler *OrderCorrelatedTxHandler) HandleFailed() error {
-
 	return nil
 }
 
 func (handler *OrderCorrelatedTxHandler) HandleSuccess() error {
-
 	return nil
 }
+
+// 获取跟订单相关的pending tx,判断当前pending tx在新的nonce到来后的状态

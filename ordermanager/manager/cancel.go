@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
@@ -32,22 +33,20 @@ type OrderCancelHandler struct {
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CANCELLING)
-
-	if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
-		log.Errorf(err.Error())
+	if err := handler.saveEvent(); err != nil {
+		log.Debugf(err.Error())
+	} else {
+		log.Debugf(handler.format(), handler.value())
 	}
-
 	return nil
 }
 
 func (handler *OrderCancelHandler) HandleFailed() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
-
-	if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
-		log.Errorf(err.Error())
+	if err := handler.saveEvent(); err != nil {
+		log.Debugf(err.Error())
+	} else {
+		log.Debugf(handler.format(), handler.value())
 	}
-
 	return nil
 }
 
@@ -61,16 +60,11 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	mc := handler.MarketCap
 
 	// save cancel event
-	_, err := rds.GetCancelEvent(event.TxHash)
-	if err == nil {
-		log.Debugf("order manager,handle order cancelled event tx:%s, orderhash:%s error:order have already exist", event.TxHash.Hex(), event.OrderHash.Hex())
+	if err := handler.saveEvent(); err != nil {
+		log.Debugf(err.Error())
 		return nil
-	}
-	newCancelEventModel := &dao.CancelEvent{}
-	newCancelEventModel.ConvertDown(event)
-	newCancelEventModel.Fork = false
-	if err := rds.Add(newCancelEventModel); err != nil {
-		return err
+	} else {
+		log.Debugf(handler.format(), handler.value())
 	}
 
 	// get rds.Order and types.OrderState
@@ -86,10 +80,10 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
 	if state.RawOrder.BuyNoMoreThanAmountB {
 		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amountb:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountB.String())
+		log.Debugf(handler.format("cancelledAmountB"), handler.value(state.CancelledAmountB.String()))
 	} else {
 		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-		log.Debugf("order manager,handle order cancelled event tx:%s, order:%s cancelled amounts:%s", event.TxHash.Hex(), state.RawOrder.Hash.Hex(), state.CancelledAmountS.String())
+		log.Debugf(handler.format("cancelledAmountS"), handler.value(state.CancelledAmountS.String()))
 	}
 
 	// update order status
@@ -107,4 +101,49 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	notify.NotifyOrderUpdate(state)
 
 	return nil
+}
+
+func (handler *OrderCancelHandler) saveEvent() error {
+	rds := handler.Rds
+	event := handler.Event
+
+	var (
+		model dao.CancelEvent
+		err   error
+	)
+
+	// save cancel event
+	model, err = rds.GetCancelEvent(event.TxHash)
+	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
+		return fmt.Errorf(handler.format("err"), handler.value("tx already exist"))
+	}
+
+	model.ConvertDown(event)
+	model.Fork = false
+
+	if event.Status == types.TX_STATUS_PENDING {
+		err = rds.Add(model)
+	} else {
+		err = rds.Save(model)
+	}
+
+	if err != nil {
+		return fmt.Errorf(handler.format("err"), handler.value(err.Error()))
+	} else {
+		return nil
+	}
+}
+
+func (handler *OrderCancelHandler) format(fields ...string) string {
+	baseformat := "order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s"
+	for _, v := range fields {
+		baseformat += ", " + v + ":%s"
+	}
+	return baseformat
+}
+
+func (handler *OrderCancelHandler) value(values ...string) []string {
+	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
+	basevalues = append(basevalues, values...)
+	return basevalues
 }
