@@ -100,6 +100,11 @@ func (accountManager *AccountManager) Start() {
 	blockEndWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleBlockEnd}
 	blockNewWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleBlockNew}
 	ethTransferWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleEthTransfer}
+	cancelOrderWather := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCancelOrder}
+	cutoffAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOff}
+	cutoffPairAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOffPair}
+	unsupportedContractAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleUnsupportedContract}
+
 	eventemitter.On(eventemitter.Transfer, transferWatcher)
 	eventemitter.On(eventemitter.Approve, approveWatcher)
 	eventemitter.On(eventemitter.EthTransfer, ethTransferWatcher)
@@ -108,6 +113,11 @@ func (accountManager *AccountManager) Start() {
 	eventemitter.On(eventemitter.WethDeposit, wethDepositWatcher)
 	eventemitter.On(eventemitter.WethWithdrawal, wethWithdrawalWatcher)
 	eventemitter.On(eventemitter.ChainForkDetected, blockForkWatcher)
+
+	eventemitter.On(eventemitter.CancelOrder, cancelOrderWather)
+	eventemitter.On(eventemitter.CutoffAll, cutoffAllWatcher)
+	eventemitter.On(eventemitter.CutoffPair, cutoffPairAllWatcher)
+	eventemitter.On(eventemitter.UnsupportedContract, unsupportedContractAllWatcher)
 }
 
 func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err error) {
@@ -236,6 +246,43 @@ func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
 	block.saveBalanceKey(event.From, types.NilAddress)
 	block.saveBalanceKey(event.To, types.NilAddress)
+	return nil
+}
+
+
+func (a *AccountManager) handleCancelOrder(input eventemitter.EventData) error {
+	event := input.(*types.OrderCancelledEvent)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	return nil
+}
+
+func (a *AccountManager) handleCutOff(input eventemitter.EventData) error {
+	event := input.(*types.CutoffEvent)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	return nil
+}
+
+func (a *AccountManager) handleCutOffPair(input eventemitter.EventData) error {
+	event := input.(*types.CutoffPairEvent)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	return nil
+}
+
+func (a *AccountManager) handleUnsupportedContract(input eventemitter.EventData) error {
+	event := input.(*types.UnsupportedContractEvent)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
 	return nil
 }
 
