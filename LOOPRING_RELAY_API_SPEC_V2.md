@@ -1212,6 +1212,9 @@ wallet should notify relay there was a transaction sending to eth network, then 
 - `gas`.
 - `input` - The value input in transaction.
 - `from` - The transaction sender.
+- `v` - ECDSA signature parameter v.
+- `r` - ECDSA signature parameter r.
+- `s` - ECDSA signature parameter s.
 
 
 ```js
@@ -1224,6 +1227,9 @@ params: [{
     "gas":"0x5208",
     "input":"0x",
     "from":"0x71c079107b5af8619d54537a93dbf16e5aab4900",
+    "v":"0x1c",
+    "r":"0x8eb60e6b1ebfbb9ab7aaf1b54a78497f112cb1f6430cd414ffc2a1366639f35e",
+    "s":"0x1b65ca88a645d3540e8a89232b73e67818be5cd81c66fa0cc38802e7a8358226",
   }]
 ```
 
