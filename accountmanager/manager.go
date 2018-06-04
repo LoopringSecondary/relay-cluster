@@ -100,10 +100,10 @@ func (accountManager *AccountManager) Start() {
 	blockEndWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleBlockEnd}
 	blockNewWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleBlockNew}
 	ethTransferWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleEthTransfer}
-	cancelOrderWather := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCancelOrder}
-	cutoffAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOff}
-	cutoffPairAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOffPair}
-	unsupportedContractAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleUnsupportedContract}
+	cancelOrderWather := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleCancelOrder}
+	cutoffAllWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleCutOff}
+	cutoffPairAllWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleCutOffPair}
+	unsupportedContractAllWatcher := &eventemitter.Watcher{Concurrent: false, Handle: accountManager.handleUnsupportedContract}
 
 	eventemitter.On(eventemitter.Transfer, transferWatcher)
 	eventemitter.On(eventemitter.Approve, approveWatcher)
@@ -248,7 +248,6 @@ func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
 	block.saveBalanceKey(event.To, types.NilAddress)
 	return nil
 }
-
 
 func (a *AccountManager) handleCancelOrder(input eventemitter.EventData) error {
 	event := input.(*types.OrderCancelledEvent)
