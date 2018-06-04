@@ -22,7 +22,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -272,9 +271,7 @@ func (g *GlobalMarket) GetGlobalTicker(token string) (ticker GlobalTicker, err e
 		return ticker, err
 	}
 
-	fmt.Println(url + urlParam)
 	body, err := getResp(url + urlParam)
-	fmt.Println(body)
 	if err != nil {
 		return ticker, err
 	}
@@ -382,8 +379,6 @@ func syncData(redisKey string, syncFunc func(token string) ([]byte, []byte, erro
 
 	data := [][]byte{}
 	for k := range util.AllTokens {
-
-		fmt.Println("sync market " + k)
 
 		if k == "WETH" {
 			continue
