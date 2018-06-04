@@ -1285,15 +1285,15 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	return
 }
 
-func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
 	return w.globalMarket.GetGlobalTrendCache(req.Token)
 }
 
-func (w *WalletServiceImpl) GetGlobalTickerCache(req SingleToken) (ticker market.GlobalTicker, err error) {
+func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]market.GlobalTicker, err error) {
 	return w.globalMarket.GetGlobalTickerCache(req.Token)
 }
 
-func (w *WalletServiceImpl) GetGlobalMarketTickerCache(req SingleToken) (tickers []market.GlobalMarketTicker, err error) {
+func (w *WalletServiceImpl) GetGlobalMarketTicker(req SingleToken) (tickers map[string][]market.GlobalMarketTicker, err error) {
 	return w.globalMarket.GetGlobalMarketTickerCache(req.Token)
 }
 

@@ -22,21 +22,37 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/market"
 	"testing"
+	"github.com/Loopring/relay-cluster/test"
+	//"time"
 )
 
 func TestGlobalMarket_Sign(t *testing.T) {
 
+	fmt.Println("11111")
+	test.LoadConfig()
+	//marketutil.Initialize(&globalConfig.Market)
+
 	config := market.MyTokenConfig{}
-	config.AppId = "83ga_-yxA_yKiFyL"
-	config.AppSecret = "glQVQRP8ro-QRN59CpXj12TzwgJ1rM8w"
+	config.AppId = ""
+	config.AppSecret = ""
 	config.BaseUrl = "https://open.api.mytoken.io/"
+
 	g := market.NewGlobalMarket(config)
+	fmt.Println(g)
+	g.Start()
+
+	//fmt.Println("12344")
 
 	req := market.GlobalTrendReq{}
 	req.TrendAnchor = "USDT"
 	//req.Symbol = "LRC"
 	//fmt.Println(g.Sign(req))
 	//fmt.Println(g.GetGlobalTicker("LRC"))
-	fmt.Println(g.GetGlobalTrend("0x"))
+	//fmt.Println("111112222")
+	//time.Sleep(50 * time.Second)
+	//fmt.Println("111112222333")
+	//fmt.Println(market.GM.GetGlobalMarketTickerCache(""))
+	//fmt.Println(market.GM.GetGlobalTickerCache("LRC"))
+	//fmt.Println(market.GM.GetGlobalTrendCache("LRC"))
 	//fmt.Println(g.GetGlobalMarketTicker("0X-WETH"))
 }
