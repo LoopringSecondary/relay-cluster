@@ -169,7 +169,7 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 	//	if pubErr != nil {
 	//		log.Errorf("gateway,publish order %s failed", state.RawOrder.Hash.String())
 	//	} else {
-	//		if err = gateway.om.UpdateBroadcastTimeByHash(state.RawOrder.Hash, state.BroadcastTime+1); nil != err {
+	//		if err = manager.UpdateBroadcastTimeByHash(state.RawOrder.Hash, state.BroadcastTime+1); nil != err {
 	//			return err
 	//		}
 	//	}

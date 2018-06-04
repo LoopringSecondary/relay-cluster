@@ -48,23 +48,28 @@ func (handler *FlexCancelOrderHandler) HandleSuccess() error {
 	validStatus := common.ValidFlexCancelStatus
 	status := types.ORDER_FLEX_CANCEL
 
+	var nums int64 = 0
 	switch handler.Event.Type {
 	case types.FLEX_CANCEL_BY_HASH:
 		log.Debugf("order manager, FlexCancelOrderHandler, FLEX_CANCEL_BY_HASH orderhash:%s", handler.Event.OrderHash.Hex())
-		return handler.Rds.FlexCancelOrderByHash(handler.Event.Owner, handler.Event.OrderHash, validStatus, status)
+		nums = handler.Rds.FlexCancelOrderByHash(handler.Event.Owner, handler.Event.OrderHash, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_OWNER:
 		log.Debugf("order manager, FlexCancelOrderHandler, FLEX_CANCEL_BY_OWNER owner:%s", handler.Event.Owner.Hex())
-		return handler.Rds.FlexCancelOrderByOwner(handler.Event.Owner, validStatus, status)
+		nums = handler.Rds.FlexCancelOrderByOwner(handler.Event.Owner, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_TIME:
 		log.Debugf("order manager, FlexCancelOrderHandler, FLEX_CANCEL_BY_TIME cutofftime:%d", handler.Event.CutoffTime)
-		return handler.Rds.FlexCancelOrderByTime(handler.Event.Owner, handler.Event.CutoffTime, validStatus, status)
+		nums = handler.Rds.FlexCancelOrderByTime(handler.Event.Owner, handler.Event.CutoffTime, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_MARKET:
 		market, _ := util.WrapMarketByAddress(handler.Event.TokenS.Hex(), handler.Event.TokenB.Hex())
 		log.Debugf("order manager, FlexCancelOrderHandler, FLEX_CANCEL_BY_MARKET market:%s", market)
-		return handler.Rds.FlexCancelOrderByMarket(handler.Event.Owner, handler.Event.CutoffTime, market, validStatus, status)
+		nums = handler.Rds.FlexCancelOrderByMarket(handler.Event.Owner, handler.Event.CutoffTime, market, validStatus, status)
+	}
+
+	if nums == 0 {
+		log.Debugf("order manager, flex cancel order, no invalid orders")
 	}
 
 	return nil

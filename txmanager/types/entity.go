@@ -240,6 +240,15 @@ func (tx *TransactionEntity) FromEthTransferEvent(src *types.EthTransferEvent) e
 	return nil
 }
 
+func (tx *TransactionEntity) FromUnsupportedContractEvent(src *types.UnsupportedContractEvent) error {
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
+
+	tx.Content = ""
+	return nil
+}
+
 func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) error {
 	if err := tx.fullFilled(src.TxInfo); err != nil {
 		return err

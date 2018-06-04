@@ -21,7 +21,6 @@ package viewer
 import (
 	"github.com/Loopring/relay-cluster/dao"
 	. "github.com/Loopring/relay-cluster/ordermanager/common"
-	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
@@ -30,12 +29,10 @@ import (
 )
 
 type OrderViewer interface {
-	MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState
 	GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error)
 	GetOrders(query map[string]interface{}, statusList []types.OrderStatus, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestOrders(query map[string]interface{}, length int) ([]types.OrderState, error)
 	GetOrderByHash(hash common.Hash) (*types.OrderState, error)
-	UpdateBroadcastTimeByHash(hash common.Hash, bt int) error
 	FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestFills(query map[string]interface{}, limit int) ([]dao.FillEvent, error)
 	FindFillsByRingHash(ringHash common.Hash) (result []dao.FillEvent, err error)
@@ -46,7 +43,6 @@ type OrderViewer interface {
 }
 
 type OrderViewerImpl struct {
-	um          usermanager.UserManager
 	mc          marketcap.MarketCapProvider
 	rds         *dao.RdsService
 	cutoffCache *CutoffCache
@@ -54,55 +50,14 @@ type OrderViewerImpl struct {
 
 func NewOrderViewer(options *OrderManagerOptions,
 	rds *dao.RdsService,
-	market marketcap.MarketCapProvider,
-	userManager usermanager.UserManager) *OrderViewerImpl {
+	market marketcap.MarketCapProvider) *OrderViewerImpl {
 
 	var viewer OrderViewerImpl
-	viewer.um = userManager
 	viewer.mc = market
 	viewer.rds = rds
 	viewer.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
 
 	return &viewer
-}
-
-func (om *OrderViewerImpl) MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
-	var list []*types.OrderState
-
-	var (
-		modelList []*dao.Order
-		err       error
-	)
-
-	for _, orderDelay := range filterOrderHashLists {
-		orderHashes := []string{}
-		for _, hash := range orderDelay.OrderHash {
-			orderHashes = append(orderHashes, hash.Hex())
-		}
-		if len(orderHashes) > 0 && orderDelay.DelayedCount != 0 {
-			if err = om.rds.MarkMinerOrders(orderHashes, orderDelay.DelayedCount); err != nil {
-				log.Debugf("order manager,provide orders for miner error:%s", err.Error())
-			}
-		}
-	}
-
-	// 从数据库获取订单
-	if modelList, err = om.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, InValidMiningStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
-		log.Errorf("err:%s", err.Error())
-		return list
-	}
-
-	for _, v := range modelList {
-		state := &types.OrderState{}
-		v.ConvertUp(state)
-		if om.um.InWhiteList(state.RawOrder.Owner) {
-			list = append(list, state)
-		} else {
-			log.Debugf("order manager,owner:%s not in white list", state.RawOrder.Owner.Hex())
-		}
-	}
-
-	return list
 }
 
 func (om *OrderViewerImpl) GetOrderBook(protocol, tokenS, tokenB common.Address, length int) ([]types.OrderState, error) {
@@ -183,10 +138,6 @@ func (om *OrderViewerImpl) GetOrderByHash(hash common.Hash) (orderState *types.O
 	}
 
 	return &result, nil
-}
-
-func (om *OrderViewerImpl) UpdateBroadcastTimeByHash(hash common.Hash, bt int) error {
-	return om.rds.UpdateBroadcastTimeByHash(hash.Hex(), bt)
 }
 
 func (om *OrderViewerImpl) FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (result dao.PageResult, err error) {

@@ -99,14 +99,14 @@ type OrderBook struct {
 }
 
 type OrderBookElement struct {
-	Price      string   `json:"price"`
-	Size       *big.Rat `json:"size"`
-	Amount     *big.Rat `json:"amount"`
-	OrderHash  string   `json:"orderHash"`
-	LrcFee     *big.Rat `json:"lrcFee"`
-	SplitS     *big.Rat `json:"splitS"`
-	SplitB     *big.Rat `json:"splitB"`
-	ValidUntil int64    `json:"validUntil"`
+	Price      float64 `json:"price"`
+	Size       float64 `json:"size"`
+	Amount     float64 `json:"amount"`
+	OrderHash  string  `json:"orderHash"`
+	LrcFee     float64 `json:"lrcFee"`
+	SplitS     float64 `json:"splitS"`
+	SplitB     float64 `json:"splitB"`
+	ValidUntil int64   `json:"validUntil"`
 }
 
 type CommonTokenRequest struct {
@@ -1171,10 +1171,10 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 	for _, s := range states {
 		o := OrderBookElement{}
 		o.OrderHash = s.RawOrder.Hash.Hex()
-		o.SplitS = new(big.Rat).SetFrac(s.SplitAmountS, tokenSDecimal)
-		o.SplitB = new(big.Rat).SetFrac(s.SplitAmountB, tokenBDecimal)
+		o.SplitS = fmtFloat(new(big.Rat).SetFrac(s.SplitAmountS, tokenSDecimal))
+		o.SplitB = fmtFloat(new(big.Rat).SetFrac(s.SplitAmountB, tokenBDecimal))
 		lrcToken := util.AllTokens["LRC"]
-		o.LrcFee = new(big.Rat).SetFrac(s.RawOrder.LrcFee, lrcToken.Decimals)
+		o.LrcFee = fmtFloat(new(big.Rat).SetFrac(s.RawOrder.LrcFee, lrcToken.Decimals))
 		o.ValidUntil = s.RawOrder.ValidUntil.Int64()
 
 		price := *s.RawOrder.Price
@@ -1185,15 +1185,13 @@ func (w *WalletServiceImpl) generateOrderBook(states []types.OrderState, isAsk b
 
 		if isAsk {
 			price = *price.Inv(&price)
-			priceFloatStr := price.FloatString(10)
-			o.Price = priceFloatStr
-			o.Amount = amountS
-			o.Size = amountB
+			o.Price = fmtFloat(&price)
+			o.Amount = fmtFloat(amountS)
+			o.Size = fmtFloat(amountB)
 		} else {
-			priceFloatStr := price.FloatString(10)
-			o.Price = priceFloatStr
-			o.Amount = amountB
-			o.Size = amountS
+			o.Price = fmtFloat(&price)
+			o.Amount = fmtFloat(amountB)
+			o.Size = fmtFloat(amountS)
 		}
 
 		elements = append(elements, o)
@@ -1565,4 +1563,10 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 
 func saveMatchedRelation(takerOrderHash, makerOrderHash, ringTxHash string) (err error) {
 	return nil
+}
+
+func fmtFloat(src *big.Rat) float64 {
+	f, _ := src.Float64()
+	rst, _ := strconv.ParseFloat(fmt.Sprintf("%0.8f", f), 64)
+	return rst
 }

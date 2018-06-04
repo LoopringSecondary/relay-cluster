@@ -24,7 +24,9 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/node"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	"github.com/Loopring/relay-cluster/txmanager"
+	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/abi"
@@ -208,12 +210,23 @@ func LrcAddress() common.Address {
 
 func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()
-	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, cfg.Kafka.Brokers)
+	um := GenerateUserManager()
+	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, um, cfg.Kafka.Brokers)
 	return ob
+}
+
+func GenerateOrderView() *viewer.OrderViewerImpl {
+	mc := GenerateMarketCap()
+	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
+	return ov
 }
 
 func GenerateAccountManager() accountmanager.AccountManager {
 	return accountmanager.Initialize(&cfg.AccountManager, cfg.Kafka.Brokers)
+}
+
+func GenerateUserManager() *usermanager.UserManagerImpl {
+	return usermanager.NewUserManager(&cfg.UserManager, rds)
 }
 
 func GenerateMarketCap() *marketcap.CapProvider_CoinMarketCap {

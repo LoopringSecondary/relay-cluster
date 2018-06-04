@@ -31,17 +31,18 @@ import (
 )
 
 type TransactionManager struct {
-	db                         *dao.RdsService
-	approveEventWatcher        *eventemitter.Watcher
-	orderCancelledEventWatcher *eventemitter.Watcher
-	cutoffAllEventWatcher      *eventemitter.Watcher
-	cutoffPairEventWatcher     *eventemitter.Watcher
-	wethDepositEventWatcher    *eventemitter.Watcher
-	wethWithdrawalEventWatcher *eventemitter.Watcher
-	transferEventWatcher       *eventemitter.Watcher
-	ethTransferEventWatcher    *eventemitter.Watcher
-	orderFilledEventWatcher    *eventemitter.Watcher
-	forkDetectedEventWatcher   *eventemitter.Watcher
+	db                              *dao.RdsService
+	approveEventWatcher             *eventemitter.Watcher
+	orderCancelledEventWatcher      *eventemitter.Watcher
+	cutoffAllEventWatcher           *eventemitter.Watcher
+	cutoffPairEventWatcher          *eventemitter.Watcher
+	wethDepositEventWatcher         *eventemitter.Watcher
+	wethWithdrawalEventWatcher      *eventemitter.Watcher
+	transferEventWatcher            *eventemitter.Watcher
+	ethTransferEventWatcher         *eventemitter.Watcher
+	unsupportedContractEventWatcher *eventemitter.Watcher
+	orderFilledEventWatcher         *eventemitter.Watcher
+	forkDetectedEventWatcher        *eventemitter.Watcher
 }
 
 func NewTxManager(db *dao.RdsService) TransactionManager {
@@ -79,6 +80,9 @@ func (tm *TransactionManager) Start() {
 	tm.ethTransferEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveEthTransferEvent}
 	eventemitter.On(eventemitter.EthTransfer, tm.ethTransferEventWatcher)
 
+	tm.unsupportedContractEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveUnSupportedContractEvent}
+	eventemitter.On(eventemitter.UnsupportedContract, tm.unsupportedContractEventWatcher)
+
 	tm.orderFilledEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveOrderFilledEvent}
 	eventemitter.On(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
 
@@ -95,6 +99,7 @@ func (tm *TransactionManager) Stop() {
 	eventemitter.Un(eventemitter.WethWithdrawal, tm.wethWithdrawalEventWatcher)
 	eventemitter.Un(eventemitter.Transfer, tm.transferEventWatcher)
 	eventemitter.Un(eventemitter.EthTransfer, tm.ethTransferEventWatcher)
+	eventemitter.Un(eventemitter.UnsupportedContract, tm.unsupportedContractEventWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
 	eventemitter.Un(eventemitter.ChainForkDetected, tm.forkDetectedEventWatcher)
 }
@@ -271,6 +276,20 @@ func (tm *TransactionManager) SaveEthTransferEvent(input eventemitter.EventData)
 		return err
 	}
 	list, err := txtyp.EthTransferView(event)
+	if err != nil {
+		return err
+	}
+	return tm.saveTransaction(&entity, list)
+}
+
+func (tm *TransactionManager) SaveUnSupportedContractEvent(input eventemitter.EventData) error {
+	event := input.(*types.UnsupportedContractEvent)
+
+	var entity txtyp.TransactionEntity
+	if err := entity.FromUnsupportedContractEvent(event); err != nil {
+		return err
+	}
+	list, err := txtyp.UnsupportedContractView(event)
 	if err != nil {
 		return err
 	}
