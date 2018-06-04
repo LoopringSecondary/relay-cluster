@@ -103,6 +103,7 @@ func (accountManager *AccountManager) Start() {
 	cancelOrderWather := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCancelOrder}
 	cutoffAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOff}
 	cutoffPairAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleCutOffPair}
+	unsupportedContractAllWatcher := &eventemitter.Watcher{Concurrent:false, Handle:accountManager.handleUnsupportedContract}
 
 	eventemitter.On(eventemitter.Transfer, transferWatcher)
 	eventemitter.On(eventemitter.Approve, approveWatcher)
@@ -116,6 +117,7 @@ func (accountManager *AccountManager) Start() {
 	eventemitter.On(eventemitter.CancelOrder, cancelOrderWather)
 	eventemitter.On(eventemitter.CutoffAll, cutoffAllWatcher)
 	eventemitter.On(eventemitter.CutoffPair, cutoffPairAllWatcher)
+	eventemitter.On(eventemitter.UnsupportedContract, unsupportedContractAllWatcher)
 }
 
 func (a *AccountManager) handleTokenTransfer(input eventemitter.EventData) (err error) {
@@ -275,6 +277,14 @@ func (a *AccountManager) handleCutOffPair(input eventemitter.EventData) error {
 	return nil
 }
 
+func (a *AccountManager) handleUnsupportedContract(input eventemitter.EventData) error {
+	event := input.(*types.UnsupportedContractEvent)
+	block := &ChangedOfBlock{}
+	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
+	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
+	block.saveBalanceKey(event.From, types.NilAddress)
+	return nil
+}
 
 func (a *AccountManager) UnlockedWallet(owner string) (err error) {
 	if !common.IsHexAddress(owner) {
