@@ -606,7 +606,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	return txHashRst, nil
 }
 
-func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestOrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType: query.OrderType})
 	queryRst, err := w.orderViewer.GetLatestOrders(orderQuery, 40)
 	if err != nil {
@@ -620,12 +620,12 @@ func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []Orde
 	return res, err
 }
 
-func (w *WalletServiceImpl) GetLatestMarketOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestMarketOrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	query.OrderType = types.ORDER_TYPE_MARKET
 	return w.GetLatestOrders(query)
 }
 
-func (w *WalletServiceImpl) GetLatestP2POrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestP2POrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	query.OrderType = types.ORDER_TYPE_P2P
 	return w.GetLatestOrders(query)
 }
