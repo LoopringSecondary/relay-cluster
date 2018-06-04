@@ -25,18 +25,18 @@ import (
 
 // txhash唯一索引
 type OrderTransaction struct {
-	ID        int    `gorm:"column:id;primary_key;"`
-	Owner     string `gorm:"column:owner;type:varchar(42)"`
-	OrderHash string `gorm:"column:order_hash;type:varchar(82)"`
-	TxHash    string `gorm:"column:tx_hash;type:varchar(82)"`
-	Status    uint8  `gorm:"column:status;type:tinyint(4)"`
-	Nonce     int64  `gorm:"column:nonce;type:bigint"`
+	ID          int    `gorm:"column:id;primary_key;"`
+	Owner       string `gorm:"column:owner;type:varchar(42)"`
+	OrderHash   string `gorm:"column:order_hash;type:varchar(82)"`
+	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
+	OrderStatus uint8  `gorm:"column:order_status;type:tinyint(4)"`
+	Nonce       int64  `gorm:"column:nonce;type:bigint"`
 }
 
 // convert dao/fill to types/fill
 func (f *OrderTransaction) ConvertUp(orderhash common.Hash, orderstatus types.OrderStatus, txinfo types.TxInfo) error {
 	f.OrderHash = orderhash.Hex()
-	f.Status = uint8(orderstatus)
+	f.OrderStatus = uint8(orderstatus)
 	f.TxHash = txinfo.TxHash.Hex()
 	f.Owner = txinfo.From.Hex()
 	f.Nonce = txinfo.Nonce.Int64()

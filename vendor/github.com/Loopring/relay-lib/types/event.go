@@ -270,6 +270,7 @@ type RingSubmitInfoEvent struct {
 	ProtocolGas      *big.Int
 	ProtocolUsedGas  *big.Int
 	ProtocolGasPrice *big.Int
+	ValidSinceTime   int64
 }
 
 type ringSubmitInfoMarshaling struct {

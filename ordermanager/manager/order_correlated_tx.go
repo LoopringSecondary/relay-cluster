@@ -53,3 +53,6 @@ func (handler *OrderCorrelatedTxHandler) HandleSuccess() error {
 }
 
 // 获取跟订单相关的pending tx,判断当前pending tx在新的nonce到来后的状态
+func AssemblePendingTx() {
+
+}
