@@ -21,8 +21,8 @@ package market_test
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/market"
-	"testing"
 	"github.com/Loopring/relay-cluster/test"
+	"testing"
 	//"time"
 )
 

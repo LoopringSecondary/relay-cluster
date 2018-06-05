@@ -38,11 +38,18 @@ func (handler *OrderTxHandler) HandlePending() error {
 }
 
 func (handler *OrderTxHandler) HandleFailed() error {
+	if !handler.requirePermission() {
+		return nil
+	}
 	return nil
 }
 
 func (handler *OrderTxHandler) HandleSuccess() error {
-	if err := handler.SaveOrderRelatedTx(); err != nil {
+	if !handler.requirePermission() {
+		return nil
+	}
+
+	if err := handler.SaveOrderPendingTx(); err != nil {
 		log.Debugf(handler.format(), handler.value())
 		return nil
 	}
@@ -50,7 +57,21 @@ func (handler *OrderTxHandler) HandleSuccess() error {
 	return nil
 }
 
-func (handler *OrderTxHandler) SaveOrderRelatedTx() error {
+// 查询用户是否拥有修改订单状态的权限
+func (handler *OrderTxHandler) requirePermission() bool {
+	owner := handler.TxInfo.From
+	return cache.HasOrderPermission(handler.Rds, owner)
+}
+
+// todo:查询orderTx表里是否有pending的tx
+func (handler *OrderTxHandler) getPendingTx(orderhash common.Hash) []types.OrderTxRecord {
+	var list []types.OrderTxRecord
+	return list
+}
+
+// func (handler *OrderTxHandler)
+
+func (handler *OrderTxHandler) SaveOrderPendingTx() error {
 	var (
 		model = &dao.OrderTransaction{}
 		err   error
@@ -81,10 +102,6 @@ func (handler *OrderTxHandler) SaveOrderRelatedTx() error {
 	} else {
 		return nil
 	}
-}
-
-func (handler *OrderTxHandler) HasOrderPermission(owner common.Address) bool {
-	return cache.HasOrderPermission(handler.Rds, owner)
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {

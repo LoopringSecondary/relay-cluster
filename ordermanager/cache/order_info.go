@@ -24,7 +24,7 @@ func BaseInfo(rds *dao.RdsService, orderhash common.Hash) (*types.OrderState, er
 func HasOrderPermission(rds *dao.RdsService, owner common.Address) bool {
 	ttl := int64(86400 * 10)
 
-	key := "om_order_owner_" + owner.Hex()
+	key := "om_order_permission_" + owner.Hex()
 	if ok, _ := cache.Exists(key); ok {
 		return true
 	}

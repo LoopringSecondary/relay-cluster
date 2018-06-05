@@ -166,7 +166,7 @@ func (s *RdsService) GetRingminedMethods(lastId int, limit int) ([]RingMinedEven
 
 func (s *RdsService) IsMiner(miner common.Address) bool {
 	var data RingMinedEvent
-	err := s.Db.Where("miner=?", miner.Hex()).First(&data).Error
+	err := s.Db.Where("miner=?", miner.Hex()).Order("id DESC").First(&data).Error
 	if err != nil {
 		return false
 	}
