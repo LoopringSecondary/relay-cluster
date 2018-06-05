@@ -19,6 +19,7 @@
 package dao
 
 import (
+	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -34,7 +35,7 @@ type OrderTransaction struct {
 }
 
 // convert types/orderTxRecord to dao/ordertx
-func (tx *OrderTransaction) ConvertDown(src *types.OrderTxRecord) error {
+func (tx *OrderTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error {
 	tx.OrderHash = src.OrderHash.Hex()
 	tx.OrderStatus = uint8(src.OrderStatus)
 	tx.TxHash = src.TxHash.Hex()
@@ -44,7 +45,7 @@ func (tx *OrderTransaction) ConvertDown(src *types.OrderTxRecord) error {
 	return nil
 }
 
-func (tx *OrderTransaction) ConvertUp(dst *types.OrderTxRecord) error {
+func (tx *OrderTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
 	dst.OrderHash = common.HexToHash(tx.OrderHash)
 	dst.TxHash = common.HexToHash(tx.TxHash)
 	dst.Owner = common.HexToAddress(tx.Owner)

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/cache"
+	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,8 +65,8 @@ func (handler *OrderTxHandler) requirePermission() bool {
 }
 
 // todo:查询orderTx表里是否有pending的tx
-func (handler *OrderTxHandler) getPendingTx(orderhash common.Hash) []types.OrderTxRecord {
-	var list []types.OrderTxRecord
+func (handler *OrderTxHandler) getPendingTx(orderhash common.Hash) []omtyp.OrderRelatedPendingTx {
+	var list []omtyp.OrderRelatedPendingTx
 	return list
 }
 
@@ -83,7 +84,7 @@ func (handler *OrderTxHandler) SaveOrderPendingTx() error {
 		return fmt.Errorf(handler.format("err:order"), handler.value("already exist"))
 	}
 
-	var record types.OrderTxRecord
+	var record omtyp.OrderRelatedPendingTx
 	record.Owner = handler.TxInfo.From
 	record.TxHash = handler.TxInfo.TxHash
 	record.Nonce = handler.TxInfo.Nonce.Int64()
