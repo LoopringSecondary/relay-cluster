@@ -21,6 +21,7 @@ package manager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -80,6 +81,10 @@ func (handler *OrderTxHandler) SaveOrderRelatedTx() error {
 	} else {
 		return nil
 	}
+}
+
+func (handler *OrderTxHandler) HasOrderPermission(owner common.Address) bool {
+	return cache.HasOrderPermission(handler.Rds, owner)
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {

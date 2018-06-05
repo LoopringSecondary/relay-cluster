@@ -589,3 +589,12 @@ func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64,
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
 }
+
+func (s *RdsService) IsOrderOwner(owner common.Address) bool {
+	var data Order
+	err := s.Db.Where("owner=?", owner.Hex()).First(&data).Error
+	if err != nil {
+		return false
+	}
+	return true
+}
