@@ -606,7 +606,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	return txHashRst, nil
 }
 
-func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestOrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: query.Owner, Market: query.Market, OrderType: query.OrderType})
 	queryRst, err := w.orderViewer.GetLatestOrders(orderQuery, 40)
 	if err != nil {
@@ -620,12 +620,12 @@ func (w *WalletServiceImpl) GetLatestOrders(query *LatestOrderQuery) (res []Orde
 	return res, err
 }
 
-func (w *WalletServiceImpl) GetLatestMarketOrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestMarketOrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	query.OrderType = types.ORDER_TYPE_MARKET
 	return w.GetLatestOrders(query)
 }
 
-func (w *WalletServiceImpl) GetLatestP2POrders(query *LatestOrderQuery) (res []OrderJsonResult, err error) {
+func (w *WalletServiceImpl) GetLatestP2POrders(query LatestOrderQuery) (res []OrderJsonResult, err error) {
 	query.OrderType = types.ORDER_TYPE_P2P
 	return w.GetLatestOrders(query)
 }
@@ -1285,15 +1285,15 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	return
 }
 
-func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
 	return w.globalMarket.GetGlobalTrendCache(req.Token)
 }
 
-func (w *WalletServiceImpl) GetGlobalTickerCache(req SingleToken) (ticker market.GlobalTicker, err error) {
+func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]market.GlobalTicker, err error) {
 	return w.globalMarket.GetGlobalTickerCache(req.Token)
 }
 
-func (w *WalletServiceImpl) GetGlobalMarketTickerCache(req SingleToken) (tickers []market.GlobalMarketTicker, err error) {
+func (w *WalletServiceImpl) GetGlobalMarketTicker(req SingleToken) (tickers map[string][]market.GlobalMarketTicker, err error) {
 	return w.globalMarket.GetGlobalMarketTickerCache(req.Token)
 }
 

@@ -22,7 +22,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -40,11 +39,11 @@ import (
 	"time"
 )
 
-var globalMarket *GlobalMarket
+var GM *GlobalMarket
 
-const GlobalTickerPreKey = "GTKPK_"
-const GlobalTrendPreKey = "GTDPK_"
-const GlobalMarketTickerPreKey = "GMTKPK_"
+const GlobalTickerKey = "GTKPK"
+const GlobalTrendKey = "GTDPK"
+const GlobalMarketTickerKey = "GMTKPK"
 
 type GlobalMarket struct {
 	config MyTokenConfig
@@ -133,35 +132,84 @@ type GlobalMarketTickerResp struct {
 }
 
 func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
-	return GlobalMarket{config: config}
+	GM = &GlobalMarket{config: config, cron: cron.New()}
+	return *GM
 }
 
-func (g *GlobalMarket) GetGlobalTrendCache(token string) (trend []GlobalTrend, err error) {
-	trendBytes, err := cache.Get(GlobalTrendPreKey + strings.ToUpper(token))
+func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]GlobalTrend, err error) {
+	fields := getAllTokenField(token)
+	trendBytes, err := cache.HMGet(GlobalTrendKey, fields...)
 	if err != nil {
-		return trend, err
+		return trends, err
 	}
-	trend = make([]GlobalTrend, 0)
-	err = json.Unmarshal(trendBytes, &trend)
-	return trend, err
-}
 
-func (g *GlobalMarket) GetGlobalTickerCache(token string) (ticker GlobalTicker, err error) {
-	tickerBytes, err := cache.Get(GlobalTickerPreKey + strings.ToUpper(token))
-	if err != nil {
-		return ticker, err
+	trends = make(map[string][]GlobalTrend)
+
+	for k, v := range fields {
+		var trend []GlobalTrend
+		errUnmarshal := json.Unmarshal(trendBytes[k], &trend)
+		if errUnmarshal != nil {
+			continue
+		}
+		trends[string(v)] = trend
+
 	}
-	err = json.Unmarshal(tickerBytes, &ticker)
-	return ticker, err
+
+	return trends, err
 }
 
-func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers []GlobalMarketTicker, err error) {
-	tickerBytes, err := cache.Get(GlobalMarketTickerPreKey + strings.ToUpper(token))
-	if err != nil {
+func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]GlobalTicker, err error) {
+	fields := getAllTokenField(token)
+	tickerBytes, err := cache.HMGet(GlobalTickerKey, fields...)
+	if err != nil || len(tickerBytes) == 0 {
 		return tickers, err
 	}
-	err = json.Unmarshal(tickerBytes, &tickers)
+	tickers = make(map[string]GlobalTicker)
+
+	for k, v := range fields {
+		var ticker GlobalTicker
+		errUnmarshal := json.Unmarshal(tickerBytes[k], &ticker)
+		if errUnmarshal != nil {
+			continue
+		}
+		tickers[string(v)] = ticker
+
+	}
+
 	return tickers, err
+}
+
+func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[string][]GlobalMarketTicker, err error) {
+	fields := getAllTokenField(token)
+	tickerBytes, err := cache.HMGet(GlobalMarketTickerKey, fields...)
+	if err != nil || len(tickerBytes) == 0 {
+		return tickers, err
+	}
+	tickers = make(map[string][]GlobalMarketTicker)
+
+	for k, v := range fields {
+		var ticker []GlobalMarketTicker
+		errUnmarshal := json.Unmarshal(tickerBytes[k], &ticker)
+		if errUnmarshal != nil {
+			continue
+		}
+		tickers[string(v)] = ticker
+
+	}
+	return tickers, err
+}
+
+func getAllTokenField(token string) [][]byte {
+	fields := [][]byte{}
+	_, ok := util.AllTokens[token]
+	if ok {
+		fields = append(fields, []byte(strings.ToUpper(token)))
+	} else {
+		for k := range util.AllTokens {
+			fields = append(fields, []byte(strings.ToUpper(k)))
+		}
+	}
+	return fields
 }
 
 func getResp(url string) (body []byte, err error) {
@@ -196,14 +244,12 @@ func (g *GlobalMarket) GetGlobalTrend(token string) (trend []GlobalTrend, err er
 		return trend, err
 	}
 
-	fmt.Println(url + urlParam)
 	body, err := getResp(url + urlParam)
 	if err != nil {
 		return trend, err
 	}
 
 	var resp GlobalTrendResp
-	fmt.Println(string(body))
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return trend, err
@@ -225,13 +271,11 @@ func (g *GlobalMarket) GetGlobalTicker(token string) (ticker GlobalTicker, err e
 		return ticker, err
 	}
 
-	fmt.Println(url + urlParam)
 	body, err := getResp(url + urlParam)
 	if err != nil {
 		return ticker, err
 	}
 
-	fmt.Println(string(body))
 	var resp GlobalTickerResp
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
@@ -256,13 +300,11 @@ func (g *GlobalMarket) GetGlobalMarketTicker(symbol string) (trend []GlobalMarke
 		return trend, err
 	}
 
-	fmt.Println(url + urlParam)
 	body, err := getResp(url + urlParam)
 	if err != nil {
 		return trend, err
 	}
 
-	fmt.Println(string(body))
 	var resp GlobalMarketTickerResp
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
@@ -303,7 +345,6 @@ func (g *GlobalMarket) Sign(param interface{}) (urlParam string, err error) {
 		} else if reflect.TypeOf(v).Kind() == reflect.Float64 {
 			signatureList = append(signatureList, k+"="+strconv.FormatInt(int64(v.(float64)), 10))
 		} else {
-			fmt.Println(v)
 			return urlParam, errors.New("unsupported data type " + reflect.TypeOf(v).String())
 		}
 	}
@@ -331,71 +372,79 @@ func (g *GlobalMarket) Start() {
 	}()
 }
 
-func syncGlobalTrend() {
-	if globalMarket == nil {
+func syncData(redisKey string, syncFunc func(token string) ([]byte, []byte, error)) {
+	if GM == nil {
 		return
 	}
+
+	data := [][]byte{}
 	for k := range util.AllTokens {
-		globalMarket.syncGlobalTrend(k)
+
+		if k == "WETH" {
+			continue
+		}
+
+		kF, vF, err := syncFunc(k)
+		if err != nil {
+			continue
+		}
+		data = append(data, kF, vF)
 	}
+	cache.HMSet(redisKey, -1, data...)
+}
+
+func syncGlobalTrend() {
+	syncData(GlobalTrendKey, GM.syncGlobalTrend)
 }
 
 func syncGlobalTicker() {
-	if globalMarket == nil {
-		return
-	}
-	for k := range util.AllTokens {
-		globalMarket.syncGlobalTicker(k)
-	}
+	syncData(GlobalTickerKey, GM.syncGlobalTicker)
 }
 
 func syncGlobalMarketTicker() {
-	if globalMarket == nil {
-		return
-	}
-	for t := range util.AllTokens {
-		globalMarket.syncPairOnMarket(t)
-	}
+	syncData(GlobalMarketTickerKey, GM.syncPairOnMarket)
 }
 
-func (g *GlobalMarket) syncGlobalTrend(token string) error {
+func (g *GlobalMarket) syncGlobalTrend(token string) ([]byte, []byte, error) {
 
 	trends, err := g.GetGlobalTrend(token)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	trendsInByte, err := json.Marshal(trends)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	return cache.Set(GlobalTrendPreKey+strings.ToUpper(token), trendsInByte, -1)
+
+	return []byte(strings.ToUpper(token)), trendsInByte, nil
 }
 
-func (g *GlobalMarket) syncGlobalTicker(token string) error {
+func (g *GlobalMarket) syncGlobalTicker(token string) ([]byte, []byte, error) {
 	ticker, err := g.GetGlobalTicker(token)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	tickerInByte, err := json.Marshal(ticker)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	return cache.Set(GlobalTickerPreKey+strings.ToUpper(token), tickerInByte, -1)
+
+	return []byte(strings.ToUpper(token)), tickerInByte, nil
 }
 
-func (g *GlobalMarket) syncPairOnMarket(token string) error {
+func (g *GlobalMarket) syncPairOnMarket(token string) ([]byte, []byte, error) {
 	marketTickers, err := g.GetGlobalMarketTicker(token)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	tickersByte, err := json.Marshal(marketTickers)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	return cache.Set(GlobalMarketTickerPreKey+strings.ToUpper(token), tickersByte, -1)
+	return []byte(strings.ToUpper(token)), tickersByte, nil
 }
 
 func computeHmac256(message string, secret string) string {

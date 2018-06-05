@@ -32,6 +32,7 @@ const (
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
+	DefaultCronSpec10Hour   = "0 0 */10 * * *"
 )
 
 const (
@@ -91,6 +92,10 @@ const (
 	eventKeyOrders            = "orders"
 	eventKeyOrderTracing      = "orderTracing"
 	eventKeyEstimatedGasPrice = "estimatedGasPrice"
+
+	eventKeyGlobalTicker       = "globalTicker"
+	eventKeyGlobalTrend        = "globalTrend"
+	eventKeyGlobalMarketTicker = "globalMarketTicker"
 )
 
 type SocketIOService interface {
@@ -149,8 +154,12 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrders:            {"GetLatestOrders", &LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+
+		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
 	}
 
 	var groupId string
@@ -230,7 +239,13 @@ func (so *SocketIOServiceImpl) Start() {
 		case eventKeyMarketCap:
 			so.cron.AddFunc(spec, func() { so.broadcastMarketCap(nil) })
 		case eventKeyEstimatedGasPrice:
-			so.cron.AddFunc(spec, func() { so.broadcastMarketCap(nil) })
+			so.cron.AddFunc(spec, func() { so.broadcastGasPrice(nil) })
+		case eventKeyGlobalTicker:
+			so.cron.AddFunc(spec, func() { so.broadcastGlobalTicker(nil) })
+		case eventKeyGlobalMarketTicker:
+			so.cron.AddFunc(spec, func() { so.broadcastGasPrice(nil) })
+		case eventKeyGlobalTrend:
+			so.cron.AddFunc(spec, func() { so.broadcastGasPrice(nil) })
 		default:
 			log.Infof("add cron emit %d ", events.emitType)
 			so.cron.AddFunc(spec, func() {
@@ -251,21 +266,6 @@ func (so *SocketIOServiceImpl) Start() {
 		}
 	}
 
-	//so.cron.AddFunc("0/10 * * * * *", func() {
-	//
-	//	for _, v := range so.connIdMap {
-	//		if v.Context() == nil {
-	//			continue
-	//		} else {
-	//			businesses := v.Context().(map[string]string)
-	//			if businesses != nil {
-	//				for bk, bv := range businesses {
-	//					so.EmitNowByEventType(bk, v, bv)
-	//				}
-	//			}
-	//		}
-	//	}
-	//})
 	so.cron.Start()
 
 	server.OnError("/", func(e error) {
@@ -561,6 +561,104 @@ func (so *SocketIOServiceImpl) broadcastGasPrice(input interface{}) (err error) 
 			if ok {
 				//log.Info("emit loopring gas price info")
 				v.Emit(eventKeyEstimatedGasPrice+EventPostfixRes, string(respJson[:]))
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastGlobalTicker(input interface{}) (err error) {
+
+	resp := SocketIOJsonResp{}
+	tickers, err := so.walletService.GetGlobalTicker(SingleToken{})
+
+	if err != nil {
+		resp = SocketIOJsonResp{Error: err.Error()}
+	} else {
+		resp.Data = tickers
+	}
+
+	respJson, _ := json.Marshal(resp)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			_, ok := businesses[eventKeyGlobalTicker]
+			if ok {
+				//log.Info("emit loopring gas price info")
+				v.Emit(eventKeyGlobalTicker+EventPostfixRes, string(respJson[:]))
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastGlobalTrend(input interface{}) (err error) {
+
+	resp := SocketIOJsonResp{}
+	trendMap, err := so.walletService.GetGlobalTrend(SingleToken{})
+
+	respMap := make(map[string]string)
+	for k, v := range trendMap {
+		if err != nil {
+			resp = SocketIOJsonResp{Error: err.Error()}
+		} else {
+			resp.Data = v
+		}
+
+		respJson, _ := json.Marshal(resp)
+		respMap[k] = string(respJson[:])
+	}
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyGlobalTrend]
+			if ok {
+				query := &SingleToken{}
+				err := json.Unmarshal([]byte(ctx), query)
+				if err == nil && len(query.Token) > 0 {
+					v.Emit(eventKeyGlobalTrend+EventPostfixRes, respMap[strings.ToUpper(query.Token)])
+				}
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastGlobalMarketTicker(input interface{}) (err error) {
+
+	resp := SocketIOJsonResp{}
+	tickerMap, err := so.walletService.GetGlobalMarketTicker(SingleToken{})
+
+	respMap := make(map[string]string)
+	for k, v := range tickerMap {
+		if err != nil {
+			resp = SocketIOJsonResp{Error: err.Error()}
+		} else {
+			resp.Data = v
+		}
+
+		respJson, _ := json.Marshal(resp)
+		respMap[k] = string(respJson[:])
+	}
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyGlobalMarketTicker]
+			if ok {
+				query := &SingleToken{}
+				err := json.Unmarshal([]byte(ctx), query)
+				if err == nil && len(query.Token) > 0 {
+					v.Emit(eventKeyGlobalMarketTicker+EventPostfixRes, respMap[strings.ToUpper(query.Token)])
+				}
 			}
 		}
 		return true
