@@ -32,28 +32,10 @@ type CutoffPairHandler struct {
 }
 
 func (handler *CutoffPairHandler) HandlePending() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
-
-	for _, orderhash := range handler.Event.OrderHashList {
-		switcher.OrderHash = orderhash
-		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
-	}
-
 	return nil
 }
 
 func (handler *CutoffPairHandler) HandleFailed() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
-
-	for _, orderhash := range handler.Event.OrderHashList {
-		switcher.OrderHash = orderhash
-		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
-	}
-
 	return nil
 }
 
