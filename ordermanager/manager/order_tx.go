@@ -99,7 +99,7 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 
 	rds := handler.Rds
 
-	if model, err = rds.GetOrderTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo) {
+	if model, err = rds.GetOrderTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo.Status) {
 		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex()))
 	}
 

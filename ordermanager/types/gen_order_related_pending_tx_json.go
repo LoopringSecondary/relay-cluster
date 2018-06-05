@@ -5,8 +5,8 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/Loopring/relay-cluster/vendor/github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay-cluster/vendor/github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // MarshalJSON marshals as JSON.
