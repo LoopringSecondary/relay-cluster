@@ -289,9 +289,18 @@ func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventDa
 }
 
 func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) error {
-	handler.HandlePending()
-	handler.HandleFailed()
-	handler.HandleSuccess()
+	if err := handler.HandlePending(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
+	if err := handler.HandleFailed(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
+	if err := handler.HandleSuccess(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
 
 	return nil
 }

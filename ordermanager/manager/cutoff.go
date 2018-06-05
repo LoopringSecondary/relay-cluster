@@ -33,33 +33,38 @@ type CutoffHandler struct {
 }
 
 func (handler *CutoffHandler) HandlePending() error {
-	if _, err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
 	}
+	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+		return err
+	}
+
+	log.Debugf(handler.format(), handler.value())
 	return nil
 }
 
 func (handler *CutoffHandler) HandleFailed() error {
-	if _, err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_FAILED {
+		return nil
 	}
+	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+		log.Debugf(err.Error())
+	}
+	log.Debugf(handler.format(), handler.value())
 	return nil
 }
 
 func (handler *CutoffHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	cutoffCache := handler.CutoffCache
 
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
-
-	orderhashList, err := handler.saveEvent()
+	orderhashList, err := handler.getOrdersAndSaveEvent()
 	if err != nil {
 		return err
 	}
@@ -67,10 +72,10 @@ func (handler *CutoffHandler) HandleSuccess() error {
 	// 首次存储到缓存，lastCutoff == currentCutoff
 	lastCutoff := cutoffCache.GetCutoff(event.Protocol, event.Owner)
 	if event.Cutoff.Cmp(lastCutoff) < 0 {
-		log.Debugf(handler.format("lastCutofftime:%s > currentCutoffTime:%s"), handler.value(lastCutoff.String(), event.Cutoff.String()))
+		return fmt.Errorf(handler.format("lastCutofftime:%s > currentCutoffTime:%s"), handler.value(lastCutoff.String(), event.Cutoff.String()))
 	} else {
 		cutoffCache.UpdateCutoff(event.Protocol, event.Owner, event.Cutoff)
-		log.Debugf(handler.format("cutoffTimestamp:%s"), handler.value(event.Cutoff.String()))
+		log.Debugf(handler.format(), handler.value())
 	}
 
 	rds.SetCutOffOrders(orderhashList, event.BlockNumber)
@@ -81,7 +86,7 @@ func (handler *CutoffHandler) HandleSuccess() error {
 }
 
 // return orderhash list
-func (handler *CutoffHandler) saveEvent() ([]common.Hash, error) {
+func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
 	rds := handler.Rds
 	event := handler.Event
 
@@ -91,21 +96,21 @@ func (handler *CutoffHandler) saveEvent() ([]common.Hash, error) {
 		err   error
 	)
 
-	// save cancel event
 	model, err = rds.GetCutoffEvent(event.TxHash)
 	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
 		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value())
 	}
 
-	if orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff); len(orders) > 0 {
+	if handler.Event.Status == types.TX_STATUS_PENDING {
+		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff)
 		for _, v := range orders {
 			var state types.OrderState
 			v.ConvertUp(&state)
 			list = append(list, state.RawOrder.Hash)
 		}
+		event.OrderHashList = list
 	}
 
-	event.OrderHashList = list
 	model.ConvertDown(event)
 	model.Fork = false
 
@@ -123,7 +128,7 @@ func (handler *CutoffHandler) saveEvent() ([]common.Hash, error) {
 }
 
 func (handler *CutoffHandler) format(fields ...string) string {
-	baseformat := "order manager CutoffHandler, tx:%s, txstatus:%s"
+	baseformat := "order manager CutoffHandler, tx:%s, owner:%s, cutofftime:%s, txstatus:%s"
 	for _, v := range fields {
 		baseformat += ", " + v
 	}
@@ -131,7 +136,7 @@ func (handler *CutoffHandler) format(fields ...string) string {
 }
 
 func (handler *CutoffHandler) value(values ...string) []string {
-	basevalues := []string{handler.Event.TxHash.Hex(), types.StatusStr(handler.Event.Status)}
+	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.Owner.Hex(), handler.Event.Cutoff.String(), types.StatusStr(handler.Event.Status)}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }

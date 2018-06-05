@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
@@ -52,18 +53,17 @@ func (handler *FillHandler) HandleSuccess() error {
 	// save fill event
 	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
 	if err == nil {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%d fill already exist", event.TxHash.String(), event.FillIndex)
-		return nil
+		return fmt.Errorf(handler.format("err:fill already exist"), handler.value())
 	}
 
 	// get rds.Order and types.OrderState
 	state := &types.OrderState{UpdatedBlock: event.BlockNumber}
 	model, err := rds.GetOrderByHash(event.OrderHash)
 	if err != nil {
-		return err
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	}
 	if err := model.ConvertUp(state); err != nil {
-		return err
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	}
 
 	newFillModel := &dao.FillEvent{}
@@ -74,16 +74,12 @@ func (handler *FillHandler) HandleSuccess() error {
 	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
 
 	if err := rds.Add(newFillModel); err != nil {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s error:insert failed",
-			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
-		return err
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	}
 
 	// judge order status
 	if state.Status == types.ORDER_CUTOFF || state.Status == types.ORDER_FINISHED || state.Status == types.ORDER_UNKNOWN {
-		log.Debugf("order manager,handle order filled event tx:%s fillIndex:%s orderhash:%s status:%d invalid",
-			event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
-		return nil
+		return fmt.Errorf(handler.format("err:order status:%d invalid"), handler.value(state.Status))
 	}
 
 	// calculate dealt amount
@@ -98,17 +94,29 @@ func (handler *FillHandler) HandleSuccess() error {
 
 	// update rds.Order
 	if err := model.ConvertDown(state); err != nil {
-		log.Errorf(err.Error())
-		return err
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	}
 	if err := rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
-		return err
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	}
 
-	log.Debugf("order manager,handle order filled event tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s",
-		event.TxHash.Hex(), event.FillIndex.String(), state.RawOrder.Hash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
+	log.Debugf(handler.format("dealAmountS:%s, dealtAmountB:%s"), handler.value(state.DealtAmountS.String(), state.DealtAmountB.String()))
 
 	notify.NotifyOrderFilled(newFillModel)
 
 	return nil
+}
+
+func (handler *FillHandler) format(fields ...string) string {
+	baseformat := "order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, txstatus:%s"
+	for _, v := range fields {
+		baseformat += ", " + v
+	}
+	return baseformat
+}
+
+func (handler *FillHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.FillIndex.String(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
+	basevalues = append(basevalues, values...)
+	return basevalues
 }

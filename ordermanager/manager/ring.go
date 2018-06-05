@@ -37,8 +37,7 @@ func (handler *SubmitRingHandler) HandlePending() error {
 
 	// save pending tx
 	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
-		log.Errorf(handler.format("err:tx already exist"), handler.value())
-		return nil
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value())
 	} else {
 		log.Debugf(handler.format(), handler.value())
 		model.FromSubmitRingMethod(handler.Event)
@@ -55,8 +54,7 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 
 	// save failed tx
 	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err != nil {
-		log.Errorf(handler.format("err:tx already exist"), handler.value())
-		return nil
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value())
 	} else {
 		log.Debugf(handler.format(), handler.value())
 		model.FromSubmitRingMethod(handler.Event)

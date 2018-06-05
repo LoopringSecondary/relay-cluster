@@ -33,20 +33,26 @@ type OrderCancelHandler struct {
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
-	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
 	}
+	if err := handler.saveEvent(); err != nil {
+		return err
+	}
+
+	log.Debugf(handler.format(), handler.value())
 	return nil
 }
 
 func (handler *OrderCancelHandler) HandleFailed() error {
-	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_FAILED {
+		return nil
 	}
+	if err := handler.saveEvent(); err != nil {
+		return err
+	}
+
+	log.Debugf(handler.format(), handler.value())
 	return nil
 }
 
