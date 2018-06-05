@@ -25,7 +25,7 @@ import (
 )
 
 // txhash唯一索引
-type OrderTransaction struct {
+type OrderPendingTransaction struct {
 	ID          int    `gorm:"column:id;primary_key;"`
 	Owner       string `gorm:"column:owner;type:varchar(42)"`
 	OrderHash   string `gorm:"column:order_hash;type:varchar(82)"`
@@ -35,7 +35,7 @@ type OrderTransaction struct {
 }
 
 // convert types/orderTxRecord to dao/ordertx
-func (tx *OrderTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error {
 	tx.OrderHash = src.OrderHash.Hex()
 	tx.OrderStatus = uint8(src.OrderStatus)
 	tx.TxHash = src.TxHash.Hex()
@@ -45,7 +45,7 @@ func (tx *OrderTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error 
 	return nil
 }
 
-func (tx *OrderTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
 	dst.OrderHash = common.HexToHash(tx.OrderHash)
 	dst.TxHash = common.HexToHash(tx.TxHash)
 	dst.Owner = common.HexToAddress(tx.Owner)
@@ -55,9 +55,9 @@ func (tx *OrderTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
 	return nil
 }
 
-func (s *RdsService) GetOrderTx(orderhash, txhash common.Hash) (*OrderTransaction, error) {
+func (s *RdsService) GetOrderRelatedPendingTx(orderhash, txhash common.Hash) (*OrderPendingTransaction, error) {
 	var (
-		tx  OrderTransaction
+		tx  OrderPendingTransaction
 		err error
 	)
 
@@ -65,8 +65,8 @@ func (s *RdsService) GetOrderTx(orderhash, txhash common.Hash) (*OrderTransactio
 	return &tx, err
 }
 
-func (s *RdsService) GetPendingOrderTxs(owner common.Address, pendingstatus []types.OrderStatus) ([]OrderTransaction, error) {
-	var list []OrderTransaction
-	err := s.Db.Where("owner=?", owner.Hex()).Where("order_status in (?)", pendingstatus).Find(&list).Error
+func (s *RdsService) GetOrderRelatedPendingTxList(owner common.Address) ([]OrderPendingTransaction, error) {
+	var list []OrderPendingTransaction
+	err := s.Db.Where("owner=?", owner.Hex()).Order("nonce DESC").Find(&list).Error
 	return list, err
 }

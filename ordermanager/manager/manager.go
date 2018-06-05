@@ -297,14 +297,14 @@ func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) erro
 }
 
 func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
-	handler := &OrderTxHandler{
-		OrderHash:   types.NilHash,
-		OrderStatus: types.ORDER_UNKNOWN,
-		BaseHandler: om.basehandler(),
-	}
-
-	handler.HandleFailed()
-	handler.HandleSuccess()
+	//handler := &OrderTxHandler{
+	//	OrderHash:   types.NilHash,
+	//	OrderStatus: types.ORDER_UNKNOWN,
+	//	BaseHandler: om.basehandler(),
+	//}
+	//
+	//handler.HandleFailed()
+	//handler.HandleSuccess()
 
 	return nil
 }

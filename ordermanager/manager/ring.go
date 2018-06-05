@@ -21,6 +21,7 @@ package manager
 import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type SubmitRingHandler struct {
@@ -33,15 +34,6 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		return nil
 	}
 
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
-
-	for _, v := range handler.Event.OrderList {
-		switcher.OrderHash = v.Hash
-		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
-	}
-
 	// save pending tx
 	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
 		log.Errorf("order manager, submitRingHandler, pending tx:%s already exist", handler.Event.TxHash.Hex())
@@ -51,20 +43,13 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		model.FromSubmitRingMethod(handler.Event)
 		return handler.Rds.Add(model)
 	}
+
+	// return NewOrderTxHandlerAndSaving(handler.BaseHandler, handler.orderHashList(), types.ORDER_PENDING)
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
 	if handler.Event.Status != types.TX_STATUS_FAILED {
 		return nil
-	}
-
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_PENDING)
-
-	for _, v := range handler.Event.OrderList {
-		switcher.OrderHash = v.Hash
-		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
 	}
 
 	// save failed tx
@@ -76,6 +61,14 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 		model.FromSubmitRingMethod(handler.Event)
 		return handler.Rds.Save(model)
 	}
+}
+
+func (handler *SubmitRingHandler) orderHashList() []common.Hash {
+	var list []common.Hash
+	for _, v := range handler.Event.OrderList {
+		list = append(list, v.Hash)
+	}
+	return list
 }
 
 func (handler *SubmitRingHandler) HandleSuccess() error {
@@ -111,4 +104,7 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 		model.ConvertDown(event)
 		return rds.Save(model)
 	}
+
+	// todo
+	//return NewOrderTxHandlerAndSaving(handler.BaseHandler, handler.orderHashList(), types.ORDER_PENDING)
 }

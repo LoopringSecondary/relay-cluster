@@ -23,7 +23,6 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
-	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -34,16 +33,26 @@ type OrderTxHandler struct {
 	BaseHandler
 }
 
+func NewOrderTxHandlerAndSaving(basehandler BaseHandler, orderhashlist []common.Hash, orderStatus types.OrderStatus) error {
+	handler := &OrderTxHandler{BaseHandler: basehandler, OrderStatus: orderStatus}
+	for _, v := range orderhashlist {
+		handler.OrderHash = v
+		handler.saveOrderPendingTx()
+	}
+
+	return nil
+}
+
 func (handler *OrderTxHandler) HandlePending() error {
-	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
-		return nil
-	}
-	if !handler.requirePermission() {
-		return nil
-	}
-	if err := handler.saveOrderPendingTx(); err != nil {
-		log.Debugf(handler.format(), handler.value())
-	}
+	//if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+	//	return nil
+	//}
+	//if !handler.requirePermission() {
+	//	return nil
+	//}
+	//if err := handler.saveOrderPendingTx(); err != nil {
+	//	log.Debugf(handler.format(), handler.value())
+	//}
 	return nil
 }
 
@@ -54,10 +63,7 @@ func (handler *OrderTxHandler) HandleFailed() error {
 	if !handler.requirePermission() {
 		return nil
 	}
-	if err := handler.saveOrderPendingTx(); err != nil {
-		log.Debugf(handler.format(), handler.value())
-	}
-	return nil
+	return handler.processPendingTx()
 }
 
 func (handler *OrderTxHandler) HandleSuccess() error {
@@ -67,14 +73,7 @@ func (handler *OrderTxHandler) HandleSuccess() error {
 	if !handler.requirePermission() {
 		return nil
 	}
-	if err := handler.saveOrderPendingTx(); err != nil {
-		log.Debugf(handler.format(), handler.value())
-	}
-	return nil
-}
-
-func (handler *OrderTxHandler) HandlerCorrelatedTx() error {
-	return nil
+	return handler.processPendingTx()
 }
 
 // 查询用户是否拥有修改订单状态的权限
@@ -83,23 +82,31 @@ func (handler *OrderTxHandler) requirePermission() bool {
 	return cache.HasOrderPermission(handler.Rds, owner)
 }
 
-// todo:查询orderTx表里是否有pending的tx
-func (handler *OrderTxHandler) getPendingTx(orderhash common.Hash) []omtyp.OrderRelatedPendingTx {
-	var list []omtyp.OrderRelatedPendingTx
-	return list
-}
+func (handler *OrderTxHandler) processPendingTx() error {
+	//todo 1.删除用户无效pending tx
+	//todo 2.获取用户其他pending tx
+	models, _ := handler.Rds.GetOrderRelatedPendingTxList(handler.TxInfo.From)
+	if len(models) == 0 {
+		return nil
+	}
 
-// func (handler *OrderTxHandler)
+	for _, model := range models {
+		var tx omtyp.OrderRelatedPendingTx
+		model.ConvertUp(&tx)
+	}
+
+	return nil
+}
 
 func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	var (
-		model = &dao.OrderTransaction{}
+		model = &dao.OrderPendingTransaction{}
 		err   error
 	)
 
 	rds := handler.Rds
 
-	if model, err = rds.GetOrderTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo.Status) {
+	if model, err = rds.GetOrderRelatedPendingTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo.Status) {
 		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex()))
 	}
 
