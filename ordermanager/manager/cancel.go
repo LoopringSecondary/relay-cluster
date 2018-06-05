@@ -115,7 +115,7 @@ func (handler *OrderCancelHandler) saveEvent() error {
 	// save cancel event
 	model, err = rds.GetCancelEvent(event.TxHash)
 	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return fmt.Errorf(handler.format("err"), handler.value("tx already exist"))
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value())
 	}
 
 	model.ConvertDown(event)
@@ -128,7 +128,7 @@ func (handler *OrderCancelHandler) saveEvent() error {
 	}
 
 	if err != nil {
-		return fmt.Errorf(handler.format("err"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
 	} else {
 		return nil
 	}
@@ -137,7 +137,7 @@ func (handler *OrderCancelHandler) saveEvent() error {
 func (handler *OrderCancelHandler) format(fields ...string) string {
 	baseformat := "order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s"
 	for _, v := range fields {
-		baseformat += ", " + v + ":%s"
+		baseformat += ", " + v
 	}
 	return baseformat
 }

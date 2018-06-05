@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,10 +37,10 @@ func (handler *SubmitRingHandler) HandlePending() error {
 
 	// save pending tx
 	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
-		log.Errorf("order manager, submitRingHandler, pending tx:%s already exist", handler.Event.TxHash.Hex())
+		log.Errorf(handler.format("err:tx already exist"), handler.value())
 		return nil
 	} else {
-		log.Debugf("order manager, submitRingHandler, pending tx:%s insert", handler.Event.TxHash.Hex())
+		log.Debugf(handler.format(), handler.value())
 		model.FromSubmitRingMethod(handler.Event)
 		return handler.Rds.Add(model)
 	}
@@ -54,10 +55,10 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 
 	// save failed tx
 	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err != nil {
-		log.Errorf("order manager, submitRingHandler, failed tx:%s not exist", handler.Event.TxHash.Hex())
+		log.Errorf(handler.format("err:tx already exist"), handler.value())
 		return nil
 	} else {
-		log.Debugf("order manager, submitRingHandler, failed tx:%s updated", handler.Event.TxHash.Hex())
+		log.Debugf(handler.format(), handler.value())
 		model.FromSubmitRingMethod(handler.Event)
 		return handler.Rds.Save(model)
 	}
@@ -69,6 +70,20 @@ func (handler *SubmitRingHandler) orderHashList() []common.Hash {
 		list = append(list, v.Hash)
 	}
 	return list
+}
+
+func (handler *SubmitRingHandler) format(fields ...string) string {
+	baseformat := "order manager ringMinedHandler, tx:%s, txstatus:%s"
+	for _, v := range fields {
+		baseformat += ", " + v
+	}
+	return baseformat
+}
+
+func (handler *SubmitRingHandler) value(values ...string) []string {
+	basevalues := []string{handler.Event.TxHash.Hex(), types.StatusStr(handler.Event.Status)}
+	basevalues = append(basevalues, values...)
+	return basevalues
 }
 
 func (handler *SubmitRingHandler) HandleSuccess() error {
@@ -97,14 +112,27 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 	rds := handler.Rds
 
 	if model, err := rds.FindRingMined(event.TxHash.Hex()); err != nil {
-		log.Errorf("order manager,handle ringmined event,tx:%s ringhash:%s not exist", event.TxHash.Hex(), event.Ringhash.Hex())
-		return nil
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value())
 	} else {
-		log.Debugf("order manager,handle ringmined event,tx:%s, ringhash:%s inserted", event.TxHash.Hex(), event.Ringhash.Hex())
+		log.Debugf(handler.format(), handler.value())
 		model.ConvertDown(event)
 		return rds.Save(model)
 	}
 
 	// todo
 	//return NewOrderTxHandlerAndSaving(handler.BaseHandler, handler.orderHashList(), types.ORDER_PENDING)
+}
+
+func (handler *RingMinedHandler) format(fields ...string) string {
+	baseformat := "order manager ringMinedHandler, tx:%s, ringhash:%s, txstatus:%s"
+	for _, v := range fields {
+		baseformat += ", " + v
+	}
+	return baseformat
+}
+
+func (handler *RingMinedHandler) value(values ...string) []string {
+	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.Ringhash.Hex(), types.StatusStr(handler.Event.Status)}
+	basevalues = append(basevalues, values...)
+	return basevalues
 }
