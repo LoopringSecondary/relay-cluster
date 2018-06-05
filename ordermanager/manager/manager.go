@@ -175,118 +175,6 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 	return nil
 }
 
-// 所有来自gateway的订单都是新订单
-func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
-	handler := &GatewayOrderHandler{
-		State:     input.(*types.OrderState),
-		Rds:       om.rds,
-		MarketCap: om.mc,
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
-	handler := &SubmitRingHandler{
-		Event:       input.(*types.SubmitRingMethodEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
-	handler := &RingMinedHandler{
-		Event:       input.(*types.RingMinedEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
-	handler := &FillHandler{
-		Event:       input.(*types.OrderFilledEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
-	handler := &OrderCancelHandler{
-		Event:       input.(*types.OrderCancelledEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error {
-	handler := &FlexCancelOrderHandler{
-		Event:       input.(*types.FlexCancelOrderEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
-	handler := &CutoffHandler{
-		Event:       input.(*types.CutoffEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
-	handler := &CutoffPairHandler{
-		Event:       input.(*types.CutoffPairEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return working(handler)
-}
-
-func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
-	src := input.(*types.ApprovalEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
-	src := input.(*types.WethDepositEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
-	src := input.(*types.WethWithdrawalEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
-	src := input.(*types.TransferEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
-	src := input.(*types.EthTransferEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
-	src := input.(*types.UnsupportedContractEvent)
-	return om.orderTxWorking(src.TxInfo)
-}
-
-func working(handler EventStatusHandler) error {
-	handler.HandlePending()
-	handler.HandleFailed()
-	handler.HandleSuccess()
-
-	return nil
-}
-
 func (om *OrderManagerImpl) basehandler() BaseHandler {
 	var base BaseHandler
 	base.Rds = om.rds
@@ -296,12 +184,127 @@ func (om *OrderManagerImpl) basehandler() BaseHandler {
 	return base
 }
 
-func (om *OrderManagerImpl) orderTxWorking(txinfo types.TxInfo) error {
+// 所有来自gateway的订单都是新订单
+func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
+	handler := &GatewayOrderHandler{
+		State:     input.(*types.OrderState),
+		Rds:       om.rds,
+		MarketCap: om.mc,
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
+	handler := &SubmitRingHandler{
+		Event:       input.(*types.SubmitRingMethodEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
+	handler := &RingMinedHandler{
+		Event:       input.(*types.RingMinedEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
+	handler := &FillHandler{
+		Event:       input.(*types.OrderFilledEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
+	handler := &OrderCancelHandler{
+		Event:       input.(*types.OrderCancelledEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error {
+	handler := &FlexCancelOrderHandler{
+		Event:       input.(*types.FlexCancelOrderEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
+	handler := &CutoffHandler{
+		Event:       input.(*types.CutoffEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
+	handler := &CutoffPairHandler{
+		Event:       input.(*types.CutoffPairEvent),
+		BaseHandler: om.basehandler(),
+	}
+
+	return om.orderRelatedWorking(handler)
+}
+
+func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
+	src := input.(*types.ApprovalEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
+	src := input.(*types.WethDepositEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
+	src := input.(*types.WethWithdrawalEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
+	src := input.(*types.TransferEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
+	src := input.(*types.EthTransferEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
+	src := input.(*types.UnsupportedContractEvent)
+	return om.orderCorrelatedWorking(src.TxInfo)
+}
+
+func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) error {
+	handler.HandlePending()
+	handler.HandleFailed()
+	handler.HandleSuccess()
+
+	return nil
+}
+
+func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
 	handler := &OrderTxHandler{
 		OrderHash:   types.NilHash,
 		OrderStatus: types.ORDER_UNKNOWN,
 		BaseHandler: om.basehandler(),
 	}
 
-	return working(handler)
+	handler.HandleFailed()
+	handler.HandleSuccess()
+
+	return nil
 }

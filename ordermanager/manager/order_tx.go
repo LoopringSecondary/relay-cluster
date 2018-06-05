@@ -35,26 +35,45 @@ type OrderTxHandler struct {
 }
 
 func (handler *OrderTxHandler) HandlePending() error {
+	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+	if !handler.requirePermission() {
+		return nil
+	}
+	if err := handler.saveOrderPendingTx(); err != nil {
+		log.Debugf(handler.format(), handler.value())
+	}
 	return nil
 }
 
 func (handler *OrderTxHandler) HandleFailed() error {
+	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
+		return nil
+	}
 	if !handler.requirePermission() {
 		return nil
+	}
+	if err := handler.saveOrderPendingTx(); err != nil {
+		log.Debugf(handler.format(), handler.value())
 	}
 	return nil
 }
 
 func (handler *OrderTxHandler) HandleSuccess() error {
+	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
 	if !handler.requirePermission() {
 		return nil
 	}
-
-	if err := handler.SaveOrderPendingTx(); err != nil {
+	if err := handler.saveOrderPendingTx(); err != nil {
 		log.Debugf(handler.format(), handler.value())
-		return nil
 	}
+	return nil
+}
 
+func (handler *OrderTxHandler) HandlerCorrelatedTx() error {
 	return nil
 }
 
@@ -72,7 +91,7 @@ func (handler *OrderTxHandler) getPendingTx(orderhash common.Hash) []omtyp.Order
 
 // func (handler *OrderTxHandler)
 
-func (handler *OrderTxHandler) SaveOrderPendingTx() error {
+func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	var (
 		model = &dao.OrderTransaction{}
 		err   error
@@ -81,7 +100,7 @@ func (handler *OrderTxHandler) SaveOrderPendingTx() error {
 	rds := handler.Rds
 
 	if model, err = rds.GetOrderTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo) {
-		return fmt.Errorf(handler.format("err:order"), handler.value("already exist"))
+		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex()))
 	}
 
 	var record omtyp.OrderRelatedPendingTx
@@ -108,7 +127,7 @@ func (handler *OrderTxHandler) SaveOrderPendingTx() error {
 func (handler *OrderTxHandler) format(fields ...string) string {
 	baseformat := "order manager orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
 	for _, v := range fields {
-		baseformat += ", " + v + ":%s"
+		baseformat += ", " + v
 	}
 	return baseformat
 }
