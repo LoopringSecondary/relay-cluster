@@ -107,7 +107,7 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	rds := handler.Rds
 
 	if model, err = rds.GetOrderRelatedPendingTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo.Status) {
-		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex()))
+		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex())...)
 	}
 
 	var record omtyp.OrderRelatedPendingTx
@@ -119,28 +119,22 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	model.ConvertDown(&record)
 
 	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(model)
+		return rds.Add(model)
 	} else {
-		err = rds.Del(model)
-	}
-
-	if err != nil {
-		return fmt.Errorf(handler.format("err"), handler.value(err.Error()))
-	} else {
-		return nil
+		return rds.Del(model)
 	}
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {
-	baseformat := "order manager orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
+	baseformat := "order manager, orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
 	for _, v := range fields {
 		baseformat += ", " + v
 	}
 	return baseformat
 }
 
-func (handler *OrderTxHandler) value(values ...string) []string {
-	basevalues := []string{handler.TxInfo.TxHash.Hex(), handler.TxInfo.From.Hex(), types.StatusStr(handler.TxInfo.Status), handler.TxInfo.Nonce.String()}
+func (handler *OrderTxHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.TxInfo.TxHash.Hex(), handler.TxInfo.From.Hex(), types.StatusStr(handler.TxInfo.Status), handler.TxInfo.Nonce.String()}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }
