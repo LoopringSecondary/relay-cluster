@@ -53,17 +53,17 @@ func (handler *FillHandler) HandleSuccess() error {
 	// save fill event
 	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
 	if err == nil {
-		return fmt.Errorf(handler.format("err:fill already exist"), handler.value())
+		return fmt.Errorf(handler.format("err:fill already exist"), handler.value()...)
 	}
 
 	// get rds.Order and types.OrderState
 	state := &types.OrderState{UpdatedBlock: event.BlockNumber}
 	model, err := rds.GetOrderByHash(event.OrderHash)
 	if err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 	if err := model.ConvertUp(state); err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	newFillModel := &dao.FillEvent{}
@@ -74,12 +74,12 @@ func (handler *FillHandler) HandleSuccess() error {
 	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
 
 	if err := rds.Add(newFillModel); err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	// judge order status
 	if state.Status == types.ORDER_CUTOFF || state.Status == types.ORDER_FINISHED || state.Status == types.ORDER_UNKNOWN {
-		return fmt.Errorf(handler.format("err:order status:%d invalid"), handler.value(state.Status))
+		return fmt.Errorf(handler.format("err:order status:%d invalid"), handler.value(state.Status)...)
 	}
 
 	// calculate dealt amount
@@ -94,13 +94,13 @@ func (handler *FillHandler) HandleSuccess() error {
 
 	// update rds.Order
 	if err := model.ConvertDown(state); err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 	if err := rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
-	log.Debugf(handler.format("dealAmountS:%s, dealtAmountB:%s"), handler.value(state.DealtAmountS.String(), state.DealtAmountB.String()))
+	log.Debugf(handler.format("dealAmountS:%s, dealtAmountB:%s"), handler.value(state.DealtAmountS.String(), state.DealtAmountB.String())...)
 
 	notify.NotifyOrderFilled(newFillModel)
 

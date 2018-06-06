@@ -134,8 +134,8 @@ func (handler *CutoffPairHandler) format(fields ...string) string {
 	return baseformat
 }
 
-func (handler *CutoffPairHandler) value(values ...string) []string {
-	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.Owner.Hex(), handler.Event.Token1.Hex(), handler.Event.Token2.Hex(), handler.Event.Cutoff.String(), types.StatusStr(handler.Event.Status)}
+func (handler *CutoffPairHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.Owner.Hex(), handler.Event.Token1.Hex(), handler.Event.Token2.Hex(), handler.Event.Cutoff.String(), types.StatusStr(handler.Event.Status)}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }

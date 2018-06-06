@@ -40,7 +40,7 @@ func (handler *OrderCancelHandler) HandlePending() error {
 		return err
 	}
 
-	log.Debugf(handler.format(), handler.value())
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
@@ -52,7 +52,7 @@ func (handler *OrderCancelHandler) HandleFailed() error {
 		return err
 	}
 
-	log.Debugf(handler.format(), handler.value())
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
@@ -67,11 +67,10 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 
 	// save cancel event
 	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-		return nil
-	} else {
-		log.Debugf(handler.format(), handler.value())
+		return err
 	}
+
+	log.Debugf(handler.format(), handler.value()...)
 
 	// get rds.Order and types.OrderState
 	state := &types.OrderState{}
@@ -86,10 +85,10 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
 	if state.RawOrder.BuyNoMoreThanAmountB {
 		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-		log.Debugf(handler.format("cancelledAmountB"), handler.value(state.CancelledAmountB.String()))
+		log.Debugf(handler.format("cancelledAmountB"), handler.value(state.CancelledAmountB.String())...)
 	} else {
 		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-		log.Debugf(handler.format("cancelledAmountS"), handler.value(state.CancelledAmountS.String()))
+		log.Debugf(handler.format("cancelledAmountS"), handler.value(state.CancelledAmountS.String())...)
 	}
 
 	// update order status
@@ -148,8 +147,8 @@ func (handler *OrderCancelHandler) format(fields ...string) string {
 	return baseformat
 }
 
-func (handler *OrderCancelHandler) value(values ...string) []string {
-	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
+func (handler *OrderCancelHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }
