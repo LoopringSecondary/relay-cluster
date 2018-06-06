@@ -25,7 +25,7 @@ import (
 
 //go:generate gencodec -type OrderRelatedPendingTx -out gen_order_related_pending_tx_json.go
 type OrderRelatedPendingTx struct {
-	Owner       common.Address    `json:"owner"`
+	Owner       common.Address    `json:"owner"` // tx_from
 	TxHash      common.Hash       `json:"tx_hash"`
 	OrderHash   common.Hash       `json:"order_hash"`
 	OrderStatus types.OrderStatus `json:"order_status"`

@@ -28,18 +28,27 @@ import (
 )
 
 type OrderTxHandler struct {
-	OrderHash   common.Hash
-	OrderStatus types.OrderStatus
+	Event *omtyp.OrderRelatedPendingTx
 	BaseHandler
 }
 
+func NewOrderTxHandler(basehandler BaseHandler) *OrderTxHandler {
+	event := &omtyp.OrderRelatedPendingTx{
+		Owner:  basehandler.TxInfo.From,
+		TxHash: basehandler.TxInfo.TxHash,
+		Nonce:  basehandler.TxInfo.Nonce.Int64(),
+	}
+	handler := &OrderTxHandler{BaseHandler: basehandler, Event: event}
+	return handler
+}
+
 func NewOrderTxHandlerAndSaving(basehandler BaseHandler, orderhashlist []common.Hash, orderStatus types.OrderStatus) error {
-	handler := &OrderTxHandler{BaseHandler: basehandler, OrderStatus: orderStatus}
+	handler := NewOrderTxHandler(basehandler)
 	for _, v := range orderhashlist {
-		handler.OrderHash = v
+		handler.Event.OrderHash = v
+		handler.Event.OrderStatus = orderStatus
 		handler.saveOrderPendingTx()
 	}
-
 	return nil
 }
 
@@ -105,19 +114,14 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	)
 
 	rds := handler.Rds
+	event := handler.Event
 
-	model, err = rds.GetOrderRelatedPendingTx(handler.OrderHash, handler.TxInfo.TxHash)
+	model, err = rds.GetOrderRelatedPendingTx(event.OrderHash, handler.TxInfo.TxHash)
 	if EventRecordDuplicated(handler.TxInfo.Status, uint8(types.TX_STATUS_PENDING), err != nil) {
-		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex())...)
+		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(event.OrderHash.Hex())...)
 	}
 
-	var record omtyp.OrderRelatedPendingTx
-	record.Owner = handler.TxInfo.From
-	record.TxHash = handler.TxInfo.TxHash
-	record.Nonce = handler.TxInfo.Nonce.Int64()
-	record.OrderHash = handler.OrderHash
-	record.OrderStatus = handler.OrderStatus
-	model.ConvertDown(&record)
+	model.ConvertDown(event)
 
 	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
 		return rds.Add(model)
