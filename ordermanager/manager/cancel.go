@@ -127,15 +127,9 @@ func (handler *OrderCancelHandler) saveEvent() error {
 	model.Fork = false
 
 	if event.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(&model)
+		return rds.Add(&model)
 	} else {
-		err = rds.Save(&model)
-	}
-
-	if err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
-	} else {
-		return nil
+		return rds.Save(&model)
 	}
 }
 

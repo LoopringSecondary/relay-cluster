@@ -102,30 +102,23 @@ func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
 		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
 	}
 
-	if handler.Event.Status == types.TX_STATUS_PENDING {
-		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff)
-		for _, v := range orders {
-			var state types.OrderState
-			v.ConvertUp(&state)
-			list = append(list, state.RawOrder.Hash)
-		}
-		event.OrderHashList = list
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		var e types.CutoffEvent
+		model.ConvertUp(&e)
+		list = e.OrderHashList
+		return list, rds.Save(&model)
 	}
 
+	orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff)
+	for _, v := range orders {
+		var state types.OrderState
+		v.ConvertUp(&state)
+		list = append(list, state.RawOrder.Hash)
+	}
+	event.OrderHashList = list
 	model.ConvertDown(event)
 	model.Fork = false
-
-	if event.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(&model)
-	} else {
-		err = rds.Save(&model)
-	}
-
-	if err != nil {
-		return list, fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
-	} else {
-		return list, nil
-	}
+	return list, rds.Add(&model)
 }
 
 func (handler *CutoffHandler) format(fields ...string) string {
