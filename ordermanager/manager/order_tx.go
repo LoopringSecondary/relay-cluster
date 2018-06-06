@@ -27,13 +27,18 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// orderTx中同一个order 最多有三条记录 分别属于order owner&miner
+// 1、当订单处于pending状态时允许用户cancel/cutoff
+// 2、当订单处于cancel/cutoff时不允许miner pending
+// 第一种情况,
+
 type OrderTxHandler struct {
-	Event *omtyp.OrderRelatedPendingTx
+	Event *omtyp.OrderTx
 	BaseHandler
 }
 
 func NewOrderTxHandler(basehandler BaseHandler) *OrderTxHandler {
-	event := &omtyp.OrderRelatedPendingTx{
+	event := &omtyp.OrderTx{
 		Owner:  basehandler.TxInfo.From,
 		TxHash: basehandler.TxInfo.TxHash,
 		Nonce:  basehandler.TxInfo.Nonce.Int64(),
@@ -100,7 +105,7 @@ func (handler *OrderTxHandler) processPendingTx() error {
 	}
 
 	for _, model := range models {
-		var tx omtyp.OrderRelatedPendingTx
+		var tx omtyp.OrderTx
 		model.ConvertUp(&tx)
 	}
 
@@ -109,7 +114,7 @@ func (handler *OrderTxHandler) processPendingTx() error {
 
 func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	var (
-		model = &dao.OrderPendingTransaction{}
+		model = &dao.OrderTransaction{}
 		err   error
 	)
 

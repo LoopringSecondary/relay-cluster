@@ -25,17 +25,18 @@ import (
 )
 
 // txhash唯一索引
-type OrderPendingTransaction struct {
+type OrderTransaction struct {
 	ID          int    `gorm:"column:id;primary_key;"`
 	Owner       string `gorm:"column:owner;type:varchar(42)"`
 	OrderHash   string `gorm:"column:order_hash;type:varchar(82)"`
-	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
 	OrderStatus uint8  `gorm:"column:order_status;type:tinyint(4)"`
+	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
+	TxStatus    uint8  `gorm:"column:tx_status;type:tinyint(4)"`
 	Nonce       int64  `gorm:"column:nonce;type:bigint"`
 }
 
 // convert types/orderTxRecord to dao/ordertx
-func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderTransaction) ConvertDown(src *omtyp.OrderTx) error {
 	tx.OrderHash = src.OrderHash.Hex()
 	tx.OrderStatus = uint8(src.OrderStatus)
 	tx.TxHash = src.TxHash.Hex()
@@ -45,7 +46,7 @@ func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx)
 	return nil
 }
 
-func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderTransaction) ConvertUp(dst *omtyp.OrderTx) error {
 	dst.OrderHash = common.HexToHash(tx.OrderHash)
 	dst.TxHash = common.HexToHash(tx.TxHash)
 	dst.Owner = common.HexToAddress(tx.Owner)
@@ -55,9 +56,9 @@ func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) e
 	return nil
 }
 
-func (s *RdsService) GetOrderRelatedPendingTx(orderhash, txhash common.Hash) (*OrderPendingTransaction, error) {
+func (s *RdsService) GetOrderRelatedPendingTx(orderhash, txhash common.Hash) (*OrderTransaction, error) {
 	var (
-		tx  OrderPendingTransaction
+		tx  OrderTransaction
 		err error
 	)
 
@@ -65,8 +66,8 @@ func (s *RdsService) GetOrderRelatedPendingTx(orderhash, txhash common.Hash) (*O
 	return &tx, err
 }
 
-func (s *RdsService) GetOrderRelatedPendingTxList(owner common.Address) ([]OrderPendingTransaction, error) {
-	var list []OrderPendingTransaction
+func (s *RdsService) GetOrderRelatedPendingTxList(owner common.Address) ([]OrderTransaction, error) {
+	var list []OrderTransaction
 	err := s.Db.Where("owner=?", owner.Hex()).Order("nonce DESC").Find(&list).Error
 	return list, err
 }

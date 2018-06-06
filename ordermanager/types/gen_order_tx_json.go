@@ -10,17 +10,19 @@ import (
 )
 
 // MarshalJSON marshals as JSON.
-func (o OrderRelatedPendingTx) MarshalJSON() ([]byte, error) {
-	type OrderRelatedPendingTx struct {
+func (o OrderTx) MarshalJSON() ([]byte, error) {
+	type OrderTx struct {
 		Owner       common.Address    `json:"owner"`
 		TxHash      common.Hash       `json:"tx_hash"`
+		TxStatus    types.TxStatus    `json:"tx_status"`
 		OrderHash   common.Hash       `json:"order_hash"`
 		OrderStatus types.OrderStatus `json:"order_status"`
 		Nonce       int64             `json:"nonce"`
 	}
-	var enc OrderRelatedPendingTx
+	var enc OrderTx
 	enc.Owner = o.Owner
 	enc.TxHash = o.TxHash
+	enc.TxStatus = o.TxStatus
 	enc.OrderHash = o.OrderHash
 	enc.OrderStatus = o.OrderStatus
 	enc.Nonce = o.Nonce
@@ -28,15 +30,16 @@ func (o OrderRelatedPendingTx) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals from JSON.
-func (o *OrderRelatedPendingTx) UnmarshalJSON(input []byte) error {
-	type OrderRelatedPendingTx struct {
+func (o *OrderTx) UnmarshalJSON(input []byte) error {
+	type OrderTx struct {
 		Owner       *common.Address    `json:"owner"`
 		TxHash      *common.Hash       `json:"tx_hash"`
+		TxStatus    *types.TxStatus    `json:"tx_status"`
 		OrderHash   *common.Hash       `json:"order_hash"`
 		OrderStatus *types.OrderStatus `json:"order_status"`
 		Nonce       *int64             `json:"nonce"`
 	}
-	var dec OrderRelatedPendingTx
+	var dec OrderTx
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
@@ -45,6 +48,9 @@ func (o *OrderRelatedPendingTx) UnmarshalJSON(input []byte) error {
 	}
 	if dec.TxHash != nil {
 		o.TxHash = *dec.TxHash
+	}
+	if dec.TxStatus != nil {
+		o.TxStatus = *dec.TxStatus
 	}
 	if dec.OrderHash != nil {
 		o.OrderHash = *dec.OrderHash
