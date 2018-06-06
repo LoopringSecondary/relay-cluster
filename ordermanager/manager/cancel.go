@@ -120,20 +120,20 @@ func (handler *OrderCancelHandler) saveEvent() error {
 	// save cancel event
 	model, err = rds.GetCancelEvent(event.TxHash)
 	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return fmt.Errorf(handler.format("err:tx already exist"), handler.value())
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
 	}
 
 	model.ConvertDown(event)
 	model.Fork = false
 
 	if event.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(model)
+		err = rds.Add(&model)
 	} else {
-		err = rds.Save(model)
+		err = rds.Save(&model)
 	}
 
 	if err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error()))
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	} else {
 		return nil
 	}

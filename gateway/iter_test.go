@@ -20,10 +20,6 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/test"
-	"github.com/Loopring/relay-lib/eth/accessor"
-	ethtyp "github.com/Loopring/relay-lib/eth/types"
-	"github.com/Loopring/relay-lib/kafka"
-	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"math/big"
 	"testing"
@@ -50,7 +46,7 @@ func TestRing(t *testing.T) {
 	test.CreateOrder(eth, lrc, account1.Address, amountS1, amountB1, lrcFee1)
 
 	// 卖出1000个lrc,买入0.1个eth,lrcFee为20个lrc
-	amountS2, _ := new(big.Int).SetString("30000"+suffix, 0)
+	amountS2, _ := new(big.Int).SetString("60000"+suffix, 0)
 	amountB2, _ := new(big.Int).SetString("10"+suffix, 0)
 	lrcFee2 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(3))
 	test.CreateOrder(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
@@ -67,23 +63,6 @@ func TestUnlockWallet(t *testing.T) {
 		manager.UnlockedWallet(account)
 	}
 	time.Sleep(1 * time.Second)
-}
-
-func TestPendingTransaction(t *testing.T) {
-	var tx ethtyp.Transaction
-	if err := accessor.GetTransactionByHash(&tx, "0x4cd20fa3854420f497d3d943469becbef14f368be46d65e955aad6f34bb0d30d", "latest"); err != nil {
-		t.Fatalf(err.Error())
-	} else {
-		producer.SendMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, &tx, "extractor")
-	}
-}
-
-var producer = &kafka.MessageProducer{}
-
-func init() {
-	if err := producer.Initialize(test.Cfg().Kafka.Brokers); err != nil {
-		log.Fatal(err.Error())
-	}
 }
 
 func TestPrepare(t *testing.T) {

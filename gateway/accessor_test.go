@@ -21,6 +21,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/kafka"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/accounts"
@@ -51,11 +52,16 @@ func TestEthNodeAccessor_WethDeposit(t *testing.T) {
 	wethAddr := wethTokenAddress
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2))
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.WethAbi(), wethAddr)
-	if result, err := callMethod(account, contract.METHOD_WETH_DEPOSIT, gas, gasPrice, amount); nil != err {
+
+	hash, _, err := callMethod(account, contract.METHOD_WETH_DEPOSIT, gas, gasPrice, amount)
+	if nil != err {
 		t.Fatalf("call method weth-deposit error:%s", err.Error())
-	} else {
-		t.Logf("weth-deposit result:%s", result)
 	}
+
+	if err := sendPendingTx(hash); err != nil {
+		t.Fatalf("send tx err:%s", err.Error())
+	}
+	t.Logf("weth-deposit result:%s", hash)
 }
 
 func TestEthNodeAccessor_WethWithdrawal(t *testing.T) {
@@ -63,11 +69,17 @@ func TestEthNodeAccessor_WethWithdrawal(t *testing.T) {
 	wethAddr := wethTokenAddress
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1))
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.WethAbi(), wethAddr)
-	if result, err := callMethod(account, "withdraw", gas, gasPrice, nil, amount); nil != err {
+
+	hash, _, err := callMethod(account, "withdraw", gas, gasPrice, nil, amount)
+	if nil != err {
 		t.Fatalf("call method weth-withdraw error:%s", err.Error())
-	} else {
-		t.Logf("weth-withdraw result:%s", result)
 	}
+
+	if err := sendPendingTx(hash); err != nil {
+		t.Fatalf("send tx err:%s", err.Error())
+	}
+
+	t.Logf("weth-withdraw result:%s", hash)
 }
 
 func TestEthNodeAccessor_WethTransfer(t *testing.T) {
@@ -77,22 +89,30 @@ func TestEthNodeAccessor_WethTransfer(t *testing.T) {
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1))
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.WethAbi(), wethAddr)
-	if result, err := callMethod(from, "transfer", gas, gasPrice, nil, to, amount); nil != err {
+	hash, _, err := callMethod(from, "transfer", gas, gasPrice, nil, to, amount)
+	if nil != err {
 		t.Fatalf("call method weth-transfer error:%s", err.Error())
-	} else {
-		t.Logf("weth-transfer result:%s", result)
 	}
+	if err := sendPendingTx(hash); err != nil {
+		t.Fatalf("send tx err:%s", err.Error())
+	}
+	t.Logf("weth-transfer result:%s", hash)
 }
 
 func TestEthNodeAccessor_EthTransfer(t *testing.T) {
 	sender := account1
 	receiver := account2
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1))
-	if hash, err := accessor.SignAndSendTransaction(sender, receiver, gas, gasPrice, amount, []byte("test"), false); err != nil {
+
+	hash, _, err := accessor.SignAndSendTransaction(sender, receiver, gas, gasPrice, amount, []byte("test"), false)
+	if err != nil {
 		t.Errorf(err.Error())
-	} else {
-		t.Logf("txhash:%s", hash)
 	}
+
+	if err := sendPendingTx(hash); err != nil {
+		t.Fatalf("send tx err:%s", err.Error())
+	}
+	t.Logf("eth transfer txhash:%s", hash)
 }
 
 func TestEthNodeAccessor_EthBalance(t *testing.T) {
@@ -117,11 +137,16 @@ func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
 	erc20abi := loopringaccessor.Erc20Abi()
 	tokenAddress := lrcTokenAddress
 	callMethod := accessor.ContractSendTransactionMethod("latest", erc20abi, tokenAddress)
-	if result, err := callMethod(from, "transfer", gas, gasPrice, nil, to, amount); err != nil {
+
+	hash, _, err := callMethod(from, "transfer", gas, gasPrice, nil, to, amount)
+	if err != nil {
 		t.Fatalf(err.Error())
-	} else {
-		t.Logf("txhash:%s", common.HexToHash(result).Hex())
 	}
+
+	if err := sendPendingTx(hash); err != nil {
+		t.Fatalf("send tx err:%s", err.Error())
+	}
+	t.Logf("txhash:%s", hash)
 }
 
 func TestEthNodeAccessor_ERC20Balance(t *testing.T) {
@@ -151,10 +176,11 @@ func TestEthNodeAccessor_Approval(t *testing.T) {
 
 	for _, account := range accounts {
 		callMethod := accessor.ContractSendTransactionMethod("latest", loopringaccessor.Erc20Abi(), tokenAddress)
-		if result, err := callMethod(account, "approve", gas, gasPrice, nil, spender, amount); nil != err {
+		if hash, _, err := callMethod(account, "approve", gas, gasPrice, nil, spender, amount); nil != err {
 			t.Fatalf("call method approve error:%s", err.Error())
 		} else {
-			t.Logf("approve result:%s", result)
+			sendPendingTx(hash)
+			t.Logf("approve result:%s", hash)
 		}
 	}
 }
@@ -186,7 +212,7 @@ func TestEthNodeAccessor_CancelOrder(t *testing.T) {
 		state        types.OrderState
 		err          error
 		result       string
-		orderhash    = common.HexToHash("0xc0d710b036a622871974e8cc28dd5abe4065dfeebfc3a2724f1294c554d70e9c")
+		orderhash    = common.HexToHash("0xab377f4095335807f722bcc4edb342fdd1fdf86586f8f146015f260225a97d6e")
 		cancelAmount = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2))
 	)
 
@@ -214,11 +240,14 @@ func TestEthNodeAccessor_CancelOrder(t *testing.T) {
 	protocol := test.Protocol()
 	implAddress := loopringaccessor.ProtocolAddresses()[protocol].ContractAddress
 	callMethod := accessor.ContractSendTransactionMethod("latest", loopringaccessor.ProtocolImplAbi(), implAddress)
-	if result, err = callMethod(account.Address, "cancelOrder", gas, gasPrice, nil, addresses, values, buyNoMoreThanB, marginSplitPercentage, v, r, s); nil != err {
+	if result, _, err = callMethod(account.Address, "cancelOrder", gas, gasPrice, nil, addresses, values, buyNoMoreThanB, marginSplitPercentage, v, r, s); nil != err {
 		t.Fatalf("call method cancelOrder error:%s", err.Error())
-	} else {
-		t.Logf("cancelOrder result:%s", result)
 	}
+
+	if err := sendPendingTx(result); err != nil {
+		t.Fatalf(err.Error())
+	}
+	t.Logf("cancelOrder result:%s", result)
 }
 
 func TestEthNodeAccessor_GetCancelledOrFilled(t *testing.T) {
@@ -239,11 +268,14 @@ func TestEthNodeAccessor_CutoffAll(t *testing.T) {
 	cutoff := big.NewInt(1531808145)
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.LprAbi(), test.Protocol())
-	if result, err := callMethod(account, contract.METHOD_CUTOFF_ALL, gas, gasPrice, nil, cutoff); nil != err {
+	result, _, err := callMethod(account, contract.METHOD_CUTOFF_ALL, gas, gasPrice, nil, cutoff)
+	if nil != err {
 		t.Fatalf("call method cancelAllOrders error:%s", err.Error())
-	} else {
-		t.Logf("cutoff result:%s", result)
 	}
+	if err := sendPendingTx(result); err != nil {
+		t.Fatalf(err.Error())
+	}
+	t.Logf("cutoff result:%s", result)
 }
 
 func TestEthNodeAccessor_GetCutoffAll(t *testing.T) {
@@ -264,11 +296,14 @@ func TestEthNodeAccessor_CutoffPair(t *testing.T) {
 	token2 := wethTokenAddress
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.LprAbi(), test.Protocol())
-	if result, err := callMethod(account, contract.METHOD_CUTOFF_PAIR, gas, gasPrice, nil, token1, token2, cutoff); nil != err {
+	result, _, err := callMethod(account, contract.METHOD_CUTOFF_PAIR, gas, gasPrice, nil, token1, token2, cutoff)
+	if nil != err {
 		t.Fatalf("call method cancelAllOrdersByTradingPair error:%s", err.Error())
-	} else {
-		t.Logf("cutoff result:%s", result)
 	}
+	if err := sendPendingTx(result); err != nil {
+		t.Fatalf(err.Error())
+	}
+	t.Logf("cutoff result:%s", result)
 }
 
 func TestEthNodeAccessor_GetCutoffPair(t *testing.T) {
@@ -291,7 +326,7 @@ func TestEthNodeAccessor_TokenRegister(t *testing.T) {
 	symbol := "LRC"
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.TokenRegisterAbi(), test.TokenRegisterAddress())
-	if result, err := callMethod(account.Address, contract.METHOD_TOKEN_REGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
+	if result, _, err := callMethod(account.Address, contract.METHOD_TOKEN_REGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
 		t.Fatalf("call method registerToken error:%s", err.Error())
 	} else {
 		t.Logf("registerToken result:%s", result)
@@ -305,7 +340,7 @@ func TestEthNodeAccessor_TokenUnRegister(t *testing.T) {
 	symbol := "LRC"
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.TokenRegisterAbi(), test.TokenRegisterAddress())
-	if result, err := callMethod(account.Address, contract.METHOD_TOKEN_UNREGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
+	if result, _, err := callMethod(account.Address, contract.METHOD_TOKEN_UNREGISTRY, gas, gasPrice, nil, address, symbol); nil != err {
 		t.Fatalf("call method unregisterToken error:%s", err.Error())
 	} else {
 		t.Logf("unregisterToken result:%s", result)
@@ -342,7 +377,7 @@ func TestEthNodeAccessor_AuthorizedAddress(t *testing.T) {
 	account := accounts.Account{Address: test.Entity().Creator.Address}
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.DelegateAbi(), test.DelegateAddress())
-	if result, err := callMethod(account.Address, contract.METHOD_ADDRESS_AUTHORIZED, gas, gasPrice, nil, test.Protocol()); nil != err {
+	if result, _, err := callMethod(account.Address, contract.METHOD_ADDRESS_AUTHORIZED, gas, gasPrice, nil, test.Protocol()); nil != err {
 		t.Fatalf("call method authorizeAddress error:%s", err.Error())
 	} else {
 		t.Logf("authorizeAddress result:%s", result)
@@ -356,7 +391,7 @@ func TestEthNodeAccessor_DeAuthorizedAddress(t *testing.T) {
 	delegateAddress := loopringaccessor.ProtocolAddresses()[protocol].DelegateAddress
 	delegateAbi := loopringaccessor.DelegateAbi()
 	callMethod := accessor.ContractSendTransactionMethod("latest", delegateAbi, delegateAddress)
-	if result, err := callMethod(account.Address, contract.METHOD_ADDRESS_DEAUTHORIZED, gas, gasPrice, nil, protocol); nil != err {
+	if result, _, err := callMethod(account.Address, contract.METHOD_ADDRESS_DEAUTHORIZED, gas, gasPrice, nil, protocol); nil != err {
 		t.Fatalf("call method deauthorizeAddress error:%s", err.Error())
 	} else {
 		t.Logf("deauthorizeAddress result:%s", result)
@@ -566,4 +601,13 @@ func TestEthNodeAccessor_Call(t *testing.T) {
 func TestAccessor_MutilClient(t *testing.T) {
 	test.Delegate()
 
+}
+
+func sendPendingTx(txhash string) error {
+	var tx ethtyp.Transaction
+	if err := accessor.GetTransactionByHash(&tx, txhash, "latest"); err != nil {
+		return err
+	}
+	test.Producer().SendMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, &tx, "extractor")
+	return nil
 }

@@ -116,9 +116,9 @@ func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
 	model.Fork = false
 
 	if event.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(model)
+		err = rds.Add(&model)
 	} else {
-		err = rds.Save(model)
+		err = rds.Save(&model)
 	}
 
 	if err != nil {
