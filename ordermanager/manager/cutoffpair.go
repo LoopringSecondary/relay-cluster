@@ -40,7 +40,7 @@ func (handler *CutoffPairHandler) HandlePending() error {
 		return err
 	}
 
-	log.Debugf(handler.format(), handler.value())
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
@@ -52,7 +52,7 @@ func (handler *CutoffPairHandler) HandleFailed() error {
 		return err
 	}
 
-	log.Debugf(handler.format(), handler.value())
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
@@ -70,15 +70,15 @@ func (handler *CutoffPairHandler) HandleSuccess() error {
 		return err
 	}
 
+	log.Debugf(handler.format(), handler.value()...)
+
 	// 首次存储到缓存，lastCutoffPair == currentCutoffPair
 	lastCutoffPair := cutoffCache.GetCutoffPair(event.Protocol, event.Owner, event.Token1, event.Token2)
 	if event.Cutoff.Cmp(lastCutoffPair) < 0 {
-		return fmt.Errorf(handler.format("lastCutoffPairTime:%s > currentCutoffPairTime:%s"), handler.value(lastCutoffPair.String(), event.Cutoff.String()))
-	} else {
-		cutoffCache.UpdateCutoffPair(event.Protocol, event.Owner, event.Token1, event.Token2, event.Cutoff)
-		log.Debugf(handler.format(), handler.value())
+		return fmt.Errorf(handler.format("lastCutoffPairTime:%s > currentCutoffPairTime:%s"), handler.value(lastCutoffPair.String(), event.Cutoff.String())...)
 	}
 
+	cutoffCache.UpdateCutoffPair(event.Protocol, event.Owner, event.Token1, event.Token2, event.Cutoff)
 	rds.SetCutOffOrders(orderhashlist, event.BlockNumber)
 
 	notify.NotifyCutoffPair(event)
@@ -97,24 +97,29 @@ func (handler *CutoffPairHandler) getOrdersAndSaveEvent() ([]common.Hash, error)
 
 	model, err = rds.GetCutoffPairEvent(event.TxHash)
 	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value())
+		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
 	}
 
-	if handler.Event.Status != types.TX_STATUS_PENDING {
-		model.ConvertDown(event)
-		return dao.UnmarshalStrToHashList(model.OrderHashList), rds.Save(&model)
+	if handler.Event.Status == types.TX_STATUS_PENDING {
+		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff)
+		for _, v := range orders {
+			var state types.OrderState
+			v.ConvertUp(&state)
+			list = append(list, state.RawOrder.Hash)
+		}
+		model.Fork = false
+	} else {
+		list = dao.UnmarshalStrToHashList(model.OrderHashList)
 	}
 
-	orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff)
-	for _, v := range orders {
-		var state types.OrderState
-		v.ConvertUp(&state)
-		list = append(list, state.RawOrder.Hash)
-	}
 	event.OrderHashList = list
 	model.ConvertDown(event)
-	model.Fork = false
-	return list, rds.Add(&model)
+
+	if handler.Event.Status == types.TX_STATUS_PENDING {
+		return list, rds.Add(&model)
+	} else {
+		return list, rds.Save(&model)
+	}
 }
 
 func (handler *CutoffPairHandler) format(fields ...string) string {
