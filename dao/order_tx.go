@@ -75,13 +75,28 @@ func (s *RdsService) FindOrderTx(txhash, orderhash common.Hash) (*OrderTransacti
 	return &tx, err
 }
 
-func (s *RdsService) SetOrderTxsFailed(owner common.Address, nonce int64) error {
-	err := s.Db.Model(&OrderTransaction{}).
+func (s *RdsService) GetPendingOrderTxByOwner(owner common.Address) ([]OrderTransaction, error) {
+	var (
+		list []OrderTransaction
+		err  error
+	)
+
+	err = s.Db.Where("owner=?", owner.Hex()).
+		Where("tx_status=?", types.TX_STATUS_PENDING).
+		Where("fork=?", false).
+		Find(&list).Error
+
+	return list, err
+}
+
+func (s *RdsService) SetPendingOrderTxFailed(owner common.Address, txhash common.Hash, nonce int64) int64 {
+	num := s.Db.Model(&OrderTransaction{}).
 		Where("owner=?", owner.Hex()).
+		Where("tx_hash<>?", txhash.Hex()).
 		Where("nonce<=", nonce).
 		Where("fork=?", false).
-		Update("tx_status", false).Error
-	return err
+		Update("tx_status", types.TX_STATUS_FAILED).RowsAffected
+	return num
 }
 
 func (s *RdsService) UpdateOrderTxStatus(txhash common.Hash, blockNumber int64, status types.TxStatus) error {
@@ -97,10 +112,4 @@ func (s *RdsService) RollBackOrderTx(from, to int64) error {
 	return s.Db.Model(&OrderTransaction{}).
 		Where("block_number > ? and block_number <= ?", from, to).
 		Update("fork", true).Error
-}
-
-func (s *RdsService) GetOrderRelatedPendingTxList(owner common.Address) ([]OrderTransaction, error) {
-	var list []OrderTransaction
-	err := s.Db.Where("owner=?", owner.Hex()).Order("nonce DESC").Find(&list).Error
-	return list, err
 }

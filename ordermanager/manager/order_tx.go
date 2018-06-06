@@ -99,8 +99,20 @@ func (handler *OrderTxHandler) requirePermission() bool {
 func (handler *OrderTxHandler) processPendingTx() error {
 	//todo 1.删除用户无效pending tx
 	//todo 2.获取用户其他pending tx
-	models, _ := handler.Rds.GetOrderRelatedPendingTxList(handler.TxInfo.From)
+
+	rds := handler.Rds
+	event := handler.Event
+
+	// todo: add cache
+	// 查询用户当前处于pending状态的订单
+	models, _ := rds.GetPendingOrderTxByOwner(event.Owner)
 	if len(models) == 0 {
+		return nil
+	}
+
+	// 将
+	affectedRows := rds.SetPendingOrderTxFailed(event.Owner, event.TxHash, event.Nonce)
+	if int(affectedRows) == len(models) {
 		return nil
 	}
 
@@ -121,8 +133,8 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	rds := handler.Rds
 	event := handler.Event
 
-	model, err = rds.GetOrderRelatedPendingTx(event.OrderHash, handler.TxInfo.TxHash)
-	if EventRecordDuplicated(handler.TxInfo.Status, uint8(types.TX_STATUS_PENDING), err != nil) {
+	model, err = rds.FindOrderTx(handler.TxInfo.TxHash, event.OrderHash)
+	if EventRecordDuplicated(handler.TxInfo.Status, model.TxStatus, err != nil) {
 		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(event.OrderHash.Hex())...)
 	}
 
@@ -131,7 +143,7 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
 		return rds.Add(model)
 	} else {
-		return rds.Del(model)
+		return rds.UpdateOrderTxStatus(event.TxHash, event.BlockNumber, event.TxStatus)
 	}
 }
 
