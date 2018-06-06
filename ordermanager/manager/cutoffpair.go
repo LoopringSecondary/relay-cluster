@@ -101,6 +101,7 @@ func (handler *CutoffPairHandler) getOrdersAndSaveEvent() ([]common.Hash, error)
 	}
 
 	if handler.Event.Status != types.TX_STATUS_PENDING {
+		model.ConvertDown(event)
 		return dao.UnmarshalStrToHashList(model.OrderHashList), rds.Save(&model)
 	}
 
