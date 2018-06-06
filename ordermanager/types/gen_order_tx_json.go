@@ -15,6 +15,7 @@ func (o OrderTx) MarshalJSON() ([]byte, error) {
 		Owner       common.Address    `json:"owner"`
 		TxHash      common.Hash       `json:"tx_hash"`
 		TxStatus    types.TxStatus    `json:"tx_status"`
+		BlockNumber int64             `json:"block_number"`
 		OrderHash   common.Hash       `json:"order_hash"`
 		OrderStatus types.OrderStatus `json:"order_status"`
 		Nonce       int64             `json:"nonce"`
@@ -23,6 +24,7 @@ func (o OrderTx) MarshalJSON() ([]byte, error) {
 	enc.Owner = o.Owner
 	enc.TxHash = o.TxHash
 	enc.TxStatus = o.TxStatus
+	enc.BlockNumber = o.BlockNumber
 	enc.OrderHash = o.OrderHash
 	enc.OrderStatus = o.OrderStatus
 	enc.Nonce = o.Nonce
@@ -35,6 +37,7 @@ func (o *OrderTx) UnmarshalJSON(input []byte) error {
 		Owner       *common.Address    `json:"owner"`
 		TxHash      *common.Hash       `json:"tx_hash"`
 		TxStatus    *types.TxStatus    `json:"tx_status"`
+		BlockNumber *int64             `json:"block_number"`
 		OrderHash   *common.Hash       `json:"order_hash"`
 		OrderStatus *types.OrderStatus `json:"order_status"`
 		Nonce       *int64             `json:"nonce"`
@@ -51,6 +54,9 @@ func (o *OrderTx) UnmarshalJSON(input []byte) error {
 	}
 	if dec.TxStatus != nil {
 		o.TxStatus = *dec.TxStatus
+	}
+	if dec.BlockNumber != nil {
+		o.BlockNumber = *dec.BlockNumber
 	}
 	if dec.OrderHash != nil {
 		o.OrderHash = *dec.OrderHash
