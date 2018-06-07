@@ -42,6 +42,8 @@ const (
 	priceQuoteUSD   = "USD"
 )
 
+const Kafka_Topic_SocketIO_Order_Transfer = "Kafka_Topic_SocketIO_Order_Transfer"
+
 type Server struct {
 	socketio.Server
 }
@@ -96,6 +98,8 @@ const (
 	eventKeyGlobalTicker       = "globalTicker"
 	eventKeyGlobalTrend        = "globalTrend"
 	eventKeyGlobalMarketTicker = "globalMarketTicker"
+
+	eventKeyOrderTransfer = "authorization"
 )
 
 type SocketIOService interface {
@@ -138,6 +142,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 
 		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
 		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
+		Kafka_Topic_SocketIO_Order_Transfer : {OrderTransfer{}, so.handleOrderTransfer},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -160,6 +165,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
+		eventKeyOrderTransfer: {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 	}
 
 	var groupId string
@@ -243,9 +249,9 @@ func (so *SocketIOServiceImpl) Start() {
 		case eventKeyGlobalTicker:
 			so.cron.AddFunc(spec, func() { so.broadcastGlobalTicker(nil) })
 		case eventKeyGlobalMarketTicker:
-			so.cron.AddFunc(spec, func() { so.broadcastGasPrice(nil) })
+			so.cron.AddFunc(spec, func() { so.broadcastGlobalMarketTicker(nil) })
 		case eventKeyGlobalTrend:
-			so.cron.AddFunc(spec, func() { so.broadcastGasPrice(nil) })
+			so.cron.AddFunc(spec, func() { so.broadcastGlobalTrend(nil) })
 		default:
 			log.Infof("add cron emit %d ", events.emitType)
 			so.cron.AddFunc(spec, func() {
@@ -1057,5 +1063,38 @@ func (so *SocketIOServiceImpl) handleCutOffPair(input interface{}) (err error) {
 	}
 	so.broadcastOrderBook(DepthQuery{DelegateAddress: cutoffPair.DelegateAddress.Hex(), Market: market})
 	so.broadcastDepth(DepthQuery{DelegateAddress: cutoffPair.DelegateAddress.Hex(), Market: market})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error) {
+
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order transfer input.")
+
+	ot := input.(OrderTransfer)
+	log.Infof("received hash is %s ", ot.Hash)
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyOrderTransfer]
+			log.Infof("cxt contains event key %b", ok)
+
+			if ok {
+				query := &OrderTransferQuery{}
+				err = json.Unmarshal([]byte(ctx), query)
+				if err != nil {
+					log.Error("query unmarshal error, " + err.Error())
+				} else if strings.ToLower(ot.Hash) == strings.ToLower(query.Hash) {
+					log.Info("emit " + ctx)
+					resp := SocketIOJsonResp{}
+					resp.Data = ot
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyOrderTransfer+EventPostfixRes, string(respJson[:]))
+				}
+			}
+		}
+		return true
+	})
+
 	return nil
 }
