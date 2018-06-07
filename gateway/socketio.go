@@ -527,6 +527,7 @@ func (so *SocketIOServiceImpl) broadcastTrades(input interface{}) (err error) {
 func (so *SocketIOServiceImpl) broadcastMarketCap(input interface{}) (err error) {
 
 	cnyResp := so.getPriceQuoteResp(priceQuoteCNY)
+	usdResp := so.getPriceQuoteResp(priceQuoteUSD)
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
@@ -536,8 +537,10 @@ func (so *SocketIOServiceImpl) broadcastMarketCap(input interface{}) (err error)
 			if ok {
 				query := &PriceQuoteQuery{}
 				err := json.Unmarshal([]byte(ctx), query)
-				if err == nil {
+				if err == nil && strings.ToLower(priceQuoteCNY) == strings.ToLower(query.Currency) {
 					v.Emit(eventKeyMarketCap+EventPostfixRes, cnyResp)
+				} else if err == nil && strings.ToLower(priceQuoteUSD) == strings.ToLower(query.Currency) {
+					v.Emit(eventKeyMarketCap+EventPostfixRes, usdResp)
 				}
 			}
 		}

@@ -326,6 +326,15 @@ type LatestFill struct {
 	SplitB     string  `json:"splitB"`
 }
 
+type CancelOrderQuery struct {
+	Owner      string `json:"owner"`
+	OrderHash  string `json:"orderHash"`
+	CutoffTime int64  `json:"cutoff"`
+	TokenS     string `json:"tokenS"`
+	TokenB     string `json:"tokenB"`
+	Type       uint8  `json:"type"`
+}
+
 type P2PRingRequest struct {
 	RawTx string `json:"rawTx"`
 	//Taker          *types.OrderJsonRequest `json:"taker"`
@@ -1324,6 +1333,18 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 		}
 		return orderTransfer, err
 	}
+}
+
+func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
+	cancelOrderEvent := types.FlexCancelOrderEvent{}
+	cancelOrderEvent.OrderHash = common.StringToHash(req.OrderHash)
+	cancelOrderEvent.Owner = common.StringToAddress(req.Owner)
+	cancelOrderEvent.TokenS = common.StringToAddress(req.TokenS)
+	cancelOrderEvent.TokenB = common.StringToAddress(req.TokenB)
+	cancelOrderEvent.CutoffTime = req.CutoffTime
+	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
+	err = manager.FlexCancelOrder(&cancelOrderEvent)
+	return rst, err
 }
 
 func (w *WalletServiceImpl) SetOrderTransfer(req OrderTransfer) (hash string, err error) {
