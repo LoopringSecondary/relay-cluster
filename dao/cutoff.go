@@ -51,7 +51,7 @@ func (e *CutOffEvent) ConvertDown(src *types.CutoffEvent) error {
 	e.BlockNumber = src.BlockNumber.Int64()
 	e.CreateTime = src.BlockTime
 	e.Status = uint8(src.Status)
-	e.OrderHashList = marshalHashListToStr(src.OrderHashList)
+	e.OrderHashList = MarshalHashListToStr(src.OrderHashList)
 
 	return nil
 }
@@ -67,7 +67,7 @@ func (e *CutOffEvent) ConvertUp(dst *types.CutoffEvent) error {
 	dst.Cutoff = big.NewInt(e.Cutoff)
 	dst.BlockTime = e.CreateTime
 	dst.Status = types.TxStatus(e.Status)
-	dst.OrderHashList = unmarshalStrToHashList(e.OrderHashList)
+	dst.OrderHashList = UnmarshalStrToHashList(e.OrderHashList)
 
 	return nil
 }

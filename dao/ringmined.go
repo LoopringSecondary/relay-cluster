@@ -106,13 +106,13 @@ func (r *RingMinedEvent) FromSubmitRingMethod(event *types.SubmitRingMethodEvent
 	for _, v := range event.OrderList {
 		list = append(list, v.Hash)
 	}
-	r.OrderHashList = marshalHashListToStr(list)
+	r.OrderHashList = MarshalHashListToStr(list)
 
 	return nil
 }
 
 func (r *RingMinedEvent) GetOrderHashList() []common.Hash {
-	return unmarshalStrToHashList(r.OrderHashList)
+	return UnmarshalStrToHashList(r.OrderHashList)
 }
 
 func (s *RdsService) FindRingMined(txhash string) (*RingMinedEvent, error) {

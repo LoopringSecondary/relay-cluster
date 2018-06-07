@@ -23,7 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func marshalHashListToStr(hashlist []common.Hash) string {
+func MarshalHashListToStr(hashlist []common.Hash) string {
 	list := []string{}
 	for _, v := range hashlist {
 		list = append(list, v.Hex())
@@ -35,7 +35,7 @@ func marshalHashListToStr(hashlist []common.Hash) string {
 	}
 }
 
-func unmarshalStrToHashList(str string) []common.Hash {
+func UnmarshalStrToHashList(str string) []common.Hash {
 	var (
 		list    []common.Hash
 		strlist []string

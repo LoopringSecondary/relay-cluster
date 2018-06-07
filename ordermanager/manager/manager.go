@@ -289,22 +289,31 @@ func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventDa
 }
 
 func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) error {
-	handler.HandlePending()
-	handler.HandleFailed()
-	handler.HandleSuccess()
+	if err := handler.HandlePending(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
+	if err := handler.HandleFailed(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
+	if err := handler.HandleSuccess(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
 
 	return nil
 }
 
 func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
-	handler := &OrderTxHandler{
-		OrderHash:   types.NilHash,
-		OrderStatus: types.ORDER_UNKNOWN,
-		BaseHandler: om.basehandler(),
-	}
-
-	handler.HandleFailed()
-	handler.HandleSuccess()
+	//handler := &OrderTxHandler{
+	//	OrderHash:   types.NilHash,
+	//	OrderStatus: types.ORDER_UNKNOWN,
+	//	BaseHandler: om.basehandler(),
+	//}
+	//
+	//handler.HandleFailed()
+	//handler.HandleSuccess()
 
 	return nil
 }

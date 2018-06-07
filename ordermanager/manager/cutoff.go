@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
@@ -32,78 +33,107 @@ type CutoffHandler struct {
 }
 
 func (handler *CutoffHandler) HandlePending() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
-
-	for _, orderhash := range handler.Event.OrderHashList {
-		switcher.OrderHash = orderhash
-		if err := switcher.FlexibleCancellationPendingProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+		return err
 	}
 
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
 func (handler *CutoffHandler) HandleFailed() error {
-	switcher := handler.FullSwitcher(types.NilHash, types.ORDER_CUTOFFING)
-
-	for _, orderhash := range handler.Event.OrderHashList {
-		switcher.OrderHash = orderhash
-		if err := switcher.FlexibleCancellationFailedProcedure(); err != nil {
-			log.Errorf(err.Error())
-		}
+	if handler.Event.Status != types.TX_STATUS_FAILED {
+		return nil
+	}
+	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+		return err
 	}
 
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
 func (handler *CutoffHandler) HandleSuccess() error {
+	if handler.Event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
 	event := handler.Event
 	rds := handler.Rds
 	cutoffCache := handler.CutoffCache
 
-	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
-
-	// check tx exist
-	_, err := rds.GetCutoffEvent(event.TxHash)
-	if err == nil {
-		log.Debugf("order manager,handle order cutoff event tx:%s error:transaction have already exist", event.TxHash.Hex())
-		return nil
-	}
-
-	lastCutoff := cutoffCache.GetCutoff(event.Protocol, event.Owner)
-
-	var orderHashList []common.Hash
-
-	// 首次存储到缓存，lastCutoff == currentCutoff
-	if event.Cutoff.Cmp(lastCutoff) < 0 {
-		log.Debugf("order manager,handle cutoff event tx:%s, protocol:%s - owner:%s lastCutofftime:%s > currentCutoffTime:%s", event.TxHash.Hex(), event.Protocol.Hex(), event.Owner.Hex(), lastCutoff.String(), event.Cutoff.String())
-	} else {
-		cutoffCache.UpdateCutoff(event.Protocol, event.Owner, event.Cutoff)
-		if orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff); len(orders) > 0 {
-			for _, v := range orders {
-				var state types.OrderState
-				v.ConvertUp(&state)
-				orderHashList = append(orderHashList, state.RawOrder.Hash)
-			}
-			rds.SetCutOffOrders(orderHashList, event.BlockNumber)
-		}
-		log.Debugf("order manager,handle cutoff event tx:%s, owner:%s, cutoffTimestamp:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Cutoff.String())
-	}
-
-	// save cutoff event
-	event.OrderHashList = orderHashList
-	newCutoffEventModel := &dao.CutOffEvent{}
-	newCutoffEventModel.ConvertDown(event)
-	newCutoffEventModel.Fork = false
-
-	if err := rds.Add(newCutoffEventModel); err != nil {
+	orderhashList, err := handler.getOrdersAndSaveEvent()
+	if err != nil {
 		return err
 	}
+
+	log.Debugf(handler.format(), handler.value()...)
+
+	// 首次存储到缓存，lastCutoff == currentCutoff
+	lastCutoff := cutoffCache.GetCutoff(event.Protocol, event.Owner)
+	if event.Cutoff.Cmp(lastCutoff) < 0 {
+		return fmt.Errorf(handler.format("lastCutofftime:%s > currentCutoffTime:%s"), handler.value(lastCutoff.String(), event.Cutoff.String())...)
+	}
+
+	cutoffCache.UpdateCutoff(event.Protocol, event.Owner, event.Cutoff)
+	rds.SetCutOffOrders(orderhashList, event.BlockNumber)
 
 	notify.NotifyCutoff(event)
 
 	return nil
+}
+
+// return orderhash list
+func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
+	rds := handler.Rds
+	event := handler.Event
+
+	var (
+		model dao.CutOffEvent
+		list  []common.Hash
+		err   error
+	)
+
+	model, err = rds.GetCutoffEvent(event.TxHash)
+	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
+		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	}
+
+	if handler.Event.Status == types.TX_STATUS_PENDING {
+		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff)
+		for _, v := range orders {
+			var state types.OrderState
+			v.ConvertUp(&state)
+			list = append(list, state.RawOrder.Hash)
+		}
+		model.Fork = false
+	} else {
+		list = dao.UnmarshalStrToHashList(model.OrderHashList)
+	}
+
+	event.OrderHashList = list
+	model.ConvertDown(event)
+
+	if handler.Event.Status == types.TX_STATUS_PENDING {
+		return list, rds.Add(&model)
+	} else {
+		return list, rds.Save(&model)
+	}
+}
+
+func (handler *CutoffHandler) format(fields ...string) string {
+	baseformat := "order manager, CutoffHandler, tx:%s, owner:%s, cutofftime:%s, txstatus:%s"
+	for _, v := range fields {
+		baseformat += ", " + v
+	}
+	return baseformat
+}
+
+func (handler *CutoffHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.Owner.Hex(), handler.Event.Cutoff.String(), types.StatusStr(handler.Event.Status)}
+	basevalues = append(basevalues, values...)
+	return basevalues
 }

@@ -33,20 +33,26 @@ type OrderCancelHandler struct {
 }
 
 func (handler *OrderCancelHandler) HandlePending() error {
-	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_PENDING {
+		return nil
 	}
+	if err := handler.saveEvent(); err != nil {
+		return err
+	}
+
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
 func (handler *OrderCancelHandler) HandleFailed() error {
-	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-	} else {
-		log.Debugf(handler.format(), handler.value())
+	if handler.Event.Status != types.TX_STATUS_FAILED {
+		return nil
 	}
+	if err := handler.saveEvent(); err != nil {
+		return err
+	}
+
+	log.Debugf(handler.format(), handler.value()...)
 	return nil
 }
 
@@ -61,11 +67,10 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 
 	// save cancel event
 	if err := handler.saveEvent(); err != nil {
-		log.Debugf(err.Error())
-		return nil
-	} else {
-		log.Debugf(handler.format(), handler.value())
+		return err
 	}
+
+	log.Debugf(handler.format(), handler.value()...)
 
 	// get rds.Order and types.OrderState
 	state := &types.OrderState{}
@@ -80,10 +85,10 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
 	if state.RawOrder.BuyNoMoreThanAmountB {
 		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-		log.Debugf(handler.format("cancelledAmountB"), handler.value(state.CancelledAmountB.String()))
+		log.Debugf(handler.format("cancelledAmountB"), handler.value(state.CancelledAmountB.String())...)
 	} else {
 		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-		log.Debugf(handler.format("cancelledAmountS"), handler.value(state.CancelledAmountS.String()))
+		log.Debugf(handler.format("cancelledAmountS"), handler.value(state.CancelledAmountS.String())...)
 	}
 
 	// update order status
@@ -115,35 +120,29 @@ func (handler *OrderCancelHandler) saveEvent() error {
 	// save cancel event
 	model, err = rds.GetCancelEvent(event.TxHash)
 	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return fmt.Errorf(handler.format("err"), handler.value("tx already exist"))
+		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
 	}
 
 	model.ConvertDown(event)
 	model.Fork = false
 
 	if event.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(model)
+		return rds.Add(&model)
 	} else {
-		err = rds.Save(model)
-	}
-
-	if err != nil {
-		return fmt.Errorf(handler.format("err"), handler.value(err.Error()))
-	} else {
-		return nil
+		return rds.Save(&model)
 	}
 }
 
 func (handler *OrderCancelHandler) format(fields ...string) string {
 	baseformat := "order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s"
 	for _, v := range fields {
-		baseformat += ", " + v + ":%s"
+		baseformat += ", " + v
 	}
 	return baseformat
 }
 
-func (handler *OrderCancelHandler) value(values ...string) []string {
-	basevalues := []string{handler.Event.TxHash.Hex(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
+func (handler *OrderCancelHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.OrderHash.Hex(), types.StatusStr(handler.Event.Status)}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }

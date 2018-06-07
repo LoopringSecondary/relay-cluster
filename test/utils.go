@@ -33,6 +33,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -76,6 +77,7 @@ var (
 	protocol      common.Address
 	delegate      common.Address
 	Path          string
+	producer      = &kafka.MessageProducer{}
 )
 
 func init() {
@@ -93,6 +95,8 @@ func init() {
 	unlockAccounts()
 	protocol = common.HexToAddress(cfg.LoopringProtocol.Address[Version])
 	delegate = loopringaccessor.ProtocolAddresses()[protocol].DelegateAddress
+
+	producer.Initialize(cfg.Kafka.Brokers)
 }
 
 func loadConfig() *node.GlobalConfig {
@@ -187,16 +191,17 @@ func unlockAccounts() {
 	}
 }
 
-func Rds() *dao.RdsService       { return rds }
-func Cfg() *node.GlobalConfig    { return cfg }
-func Entity() *TestEntity        { return entity }
-func Protocol() common.Address   { return protocol }
-func Delegate() common.Address   { return delegate }
-func TokenRegisterAbi() *abi.ABI { return loopringaccessor.TokenRegistryAbi() }
-func DelegateAbi() *abi.ABI      { return loopringaccessor.DelegateAbi() }
-func Erc20Abi() *abi.ABI         { return loopringaccessor.Erc20Abi() }
-func WethAbi() *abi.ABI          { return loopringaccessor.WethAbi() }
-func LprAbi() *abi.ABI           { return loopringaccessor.ProtocolImplAbi() }
+func Rds() *dao.RdsService             { return rds }
+func Cfg() *node.GlobalConfig          { return cfg }
+func Entity() *TestEntity              { return entity }
+func Protocol() common.Address         { return protocol }
+func Delegate() common.Address         { return delegate }
+func TokenRegisterAbi() *abi.ABI       { return loopringaccessor.TokenRegistryAbi() }
+func DelegateAbi() *abi.ABI            { return loopringaccessor.DelegateAbi() }
+func Erc20Abi() *abi.ABI               { return loopringaccessor.Erc20Abi() }
+func WethAbi() *abi.ABI                { return loopringaccessor.WethAbi() }
+func LprAbi() *abi.ABI                 { return loopringaccessor.ProtocolImplAbi() }
+func Producer() *kafka.MessageProducer { return producer }
 
 func TokenRegisterAddress() common.Address {
 	return loopringaccessor.ProtocolAddresses()[protocol].TokenRegistryAddress
