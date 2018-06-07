@@ -150,6 +150,7 @@ type OrderTransfer struct {
 	Hash string `json:"hash"`
 	Origin string `json:"origin"`
 	Status string `json:"status"`
+	Timestamp int64 `json:"timestamp"`
 }
 
 type OrderTransferQuery struct {
@@ -1330,6 +1331,7 @@ func (w *WalletServiceImpl) SetOrderTransfer(req OrderTransfer) (hash string, er
 		return hash, errors.New("hash can't be nil")
 	}
 	req.Status = OT_STATUS_INIT
+	req.Timestamp = time.Now().Unix()
 	otByte, err := json.Marshal(req); if err != nil {
 		return hash, err
 	}
