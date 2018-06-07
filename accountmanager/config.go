@@ -20,8 +20,10 @@ package accountmanager
 
 type AccountManagerOptions struct {
 	CacheDuration int64
+	EthCacheDuration int64
 }
 
 type AccountViewOptions struct {
 	CacheDuration int64
+	EthCacheDuration int64
 }
