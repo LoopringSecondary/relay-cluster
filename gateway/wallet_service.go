@@ -1343,7 +1343,9 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	cancelOrderEvent.TokenB = common.StringToAddress(req.TokenB)
 	cancelOrderEvent.CutoffTime = req.CutoffTime
 	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
-	err = manager.FlexCancelOrder(&cancelOrderEvent)
+	err = manager.FlexCancelOrder(&cancelOrderEvent); if err == nil {
+		kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, )
+	}
 	return rst, err
 }
 
