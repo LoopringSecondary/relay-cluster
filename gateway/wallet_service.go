@@ -64,6 +64,7 @@ const P2P_50008 = "50008"
 const OT_STATUS_INIT = "init"
 const OT_STATUS_ACCEPT = "accept"
 const OT_STATUS_REJECT = "reject"
+const OT_REDIS_PRE_KEY = "otrpk_"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -1312,7 +1313,7 @@ func (w *WalletServiceImpl) GetGlobalMarketTicker(req SingleToken) (tickers map[
 }
 
 func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTransfer, err error) {
-	otByte, err := cache.Get(req.Hash); if err != nil {
+	otByte, err := cache.Get(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash)); if err != nil {
 		return ot, err
 	} else {
 
@@ -1328,11 +1329,12 @@ func (w *WalletServiceImpl) SetOrderTransfer(req OrderTransfer) (hash string, er
 	if len(req.Hash) == 0 {
 		return hash, errors.New("hash can't be nil")
 	}
+	req.Status = OT_STATUS_INIT
 	otByte, err := json.Marshal(req); if err != nil {
 		return hash, err
 	}
-	err = cache.Set(req.Hash, otByte, 3600 * 24)
-	return hash, err
+	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24)
+	return req.Hash, err
 }
 
 func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string, err error) {
@@ -1349,7 +1351,7 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 	otByte, err := json.Marshal(ot); if err != nil {
 		return hash, err
 	}
-	err = cache.Set(req.Hash, otByte, 3600 * 24); if err != nil {
+	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24); if err != nil {
 		return hash, err
 	} else {
 		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, OrderTransfer{Hash: ot.Hash, Status: ot.Status})
