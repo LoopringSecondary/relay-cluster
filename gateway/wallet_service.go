@@ -1356,7 +1356,7 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24); if err != nil {
 		return hash, err
 	} else {
-		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, OrderTransfer{Hash: ot.Hash, Status: ot.Status})
+		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, &OrderTransfer{Hash: ot.Hash, Status: ot.Status})
 		return req.Hash, err
 	}
 }

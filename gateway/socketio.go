@@ -1070,7 +1070,7 @@ func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error
 
 	log.Infof("[SOCKETIO-RECEIVE-EVENT] order transfer input.")
 
-	ot := input.(OrderTransfer)
+	ot := input.(*OrderTransfer)
 	ot.Origin = ""
 	log.Infof("received hash is %s ", ot.Hash)
 	so.connIdMap.Range(func(key, value interface{}) bool {
