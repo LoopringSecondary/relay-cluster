@@ -42,7 +42,7 @@ func GetBalanceWithSymbolResult(owner common.Address) (map[string]*big.Int, erro
 
 	res := make(map[string]*big.Int)
 	//err := accountBalances.getOrSave(common.HexToAddress("0x1fa02762bd046abd30f5bf3513f9347d5e6b4257"), common.HexToAddress("0x"), common.HexToAddress("0x3cbcee9ff904ee0351b0ff2c05e08e860c94a5ea"))
-	err := accountBalances.getOrSave(accManager.cacheDuration)
+	err := accountBalances.getOrSave(accManager.tokenCacheDuration, accManager.ethCacheDuration)
 
 	if nil == err {
 		for tokenAddr, balance := range accountBalances.Balances {
@@ -65,7 +65,7 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 	accountAllowances.Allowances = make(map[common.Address]map[common.Address]Allowance)
 
 	res := make(map[string]*big.Int)
-	err := accountAllowances.getOrSave(accManager.cacheDuration, []common.Address{}, []common.Address{spender})
+	err := accountAllowances.getOrSave(accManager.tokenCacheDuration, []common.Address{}, []common.Address{spender})
 
 	if nil == err {
 		for tokenAddr, allowances := range accountAllowances.Allowances {
@@ -94,7 +94,7 @@ func GetBalanceAndAllowance(owner, token, spender common.Address) (balance, allo
 	accountBalances := &AccountBalances{}
 	accountBalances.Owner = owner
 	accountBalances.Balances = make(map[common.Address]Balance)
-	if err := accountBalances.getOrSave(accManager.cacheDuration, token); nil != err {
+	if err := accountBalances.getOrSave(accManager.tokenCacheDuration, accManager.ethCacheDuration, token); nil != err {
 		log.Errorf("err:%s", err.Error())
 	}
 
@@ -103,7 +103,7 @@ func GetBalanceAndAllowance(owner, token, spender common.Address) (balance, allo
 	accountAllowances := &AccountAllowances{}
 	accountAllowances.Owner = owner
 	accountAllowances.Allowances = make(map[common.Address]map[common.Address]Allowance)
-	if err := accountAllowances.getOrSave(accManager.cacheDuration, []common.Address{token}, []common.Address{spender}); nil != err {
+	if err := accountAllowances.getOrSave(accManager.tokenCacheDuration, []common.Address{token}, []common.Address{spender}); nil != err {
 		log.Errorf("err:%s", err.Error())
 	}
 	allowance = accountAllowances.Allowances[token][spender].Allowance.BigInt()
@@ -134,9 +134,9 @@ func InitializeView(options *AccountViewOptions) AccountManager {
 
 	accountManager := AccountManager{}
 	if options.CacheDuration > 0 {
-		accountManager.cacheDuration = options.CacheDuration
+		accountManager.tokenCacheDuration = options.CacheDuration
 	} else {
-		accountManager.cacheDuration = 3600 * 24 * 100
+		accountManager.tokenCacheDuration = 3600 * 24 * 100
 	}
 	//accountManager.maxBlockLength = 3000
 	//b := &ChangedOfBlock{}

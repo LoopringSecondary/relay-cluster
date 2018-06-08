@@ -35,11 +35,12 @@ import (
 )
 
 type AccountManager struct {
-	cacheDuration int64
+	tokenCacheDuration int64
+	ethCacheDuration   int64
 	//maxBlockLength uint64
-	cachedBlockCount *big.Int
+	cachedBlockCount   *big.Int
 	//block           *ChangedOfBlock
-	producerWrapped *kafka.MessageProducer
+	producerWrapped    *kafka.MessageProducer
 }
 
 func isPackegeReady() error {
@@ -62,9 +63,14 @@ func Initialize(options *AccountManagerOptions, brokers []string) AccountManager
 
 	accountManager := AccountManager{}
 	if options.CacheDuration > 0 {
-		accountManager.cacheDuration = options.CacheDuration
+		accountManager.tokenCacheDuration = options.CacheDuration
 	} else {
-		accountManager.cacheDuration = 3600 * 24 * 100
+		accountManager.tokenCacheDuration = 3600 * 24 * 100
+	}
+	if options.EthCacheDuration > 0 {
+		accountManager.ethCacheDuration = options.EthCacheDuration
+	} else {
+		accountManager.ethCacheDuration = 1800
 	}
 	//accountManager.maxBlockLength = 3000
 	accountManager.cachedBlockCount = big.NewInt(int64(500))
@@ -167,7 +173,7 @@ func (a *AccountManager) handleApprove(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleWethDeposit(input eventemitter.EventData) (err error) {
 	event := input.(*types.WethDepositEvent)
-	log.Debugf("wethDeposit,owner:%s", event.To.Hex())
+	log.Debugf("wethDeposit, owner:%s", event.Dst.Hex())
 
 	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
 		log.Info("received wrong status event, drop it")
@@ -206,7 +212,7 @@ func (a *AccountManager) handleBlockEnd(input eventemitter.EventData) error {
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
-	changedAddrs, _ := block.syncAndSaveBalances()
+	changedAddrs, _ := block.syncAndSaveBalances(a.tokenCacheDuration, a.ethCacheDuration)
 	changedAllowanceAddrs, _ := block.syncAndSaveAllowances()
 
 	removeExpiredBlock(block.currentBlockNumber, block.cachedDuration)
@@ -294,7 +300,7 @@ func (a *AccountManager) UnlockedWallet(owner string) (err error) {
 	//accountBalances.Owner = common.HexToAddress(owner)
 	//accountBalances.Balances = make(map[common.Address]Balance)
 	//err = accountBalances.getOrSave(a.cacheDuration)
-	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), a.cacheDuration)
+	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), a.tokenCacheDuration)
 	return
 }
 
@@ -307,7 +313,7 @@ func (a *AccountManager) handleBlockFork(input eventemitter.EventData) (err erro
 	for i.Cmp(event.ForkBlock) >= 0 {
 		changedOfBlock := &ChangedOfBlock{}
 		changedOfBlock.currentBlockNumber = i
-		changedBalanceAddrs, _ := changedOfBlock.syncAndSaveBalances()
+		changedBalanceAddrs, _ := changedOfBlock.syncAndSaveBalances(a.tokenCacheDuration, a.ethCacheDuration)
 		changedAllowanceAddrs, _ := changedOfBlock.syncAndSaveAllowances()
 		for addr, _ := range changedBalanceAddrs {
 			changedAddrs[addr] = true
