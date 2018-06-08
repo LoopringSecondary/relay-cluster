@@ -1027,7 +1027,7 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 
 func (w *WalletServiceImpl) ApplyTicket(ticker dao.TicketReceiver) (result string, err error) {
 	isSignCorrect := verifyTicketSign(ticker); if isSignCorrect {
-		return "", w.rds.Add(&ticker)
+		return "", w.rds.Save(&ticker)
 	} else {
 		return "", errors.New("sign v, r, s is incorrect")
 	}
