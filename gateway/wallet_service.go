@@ -1099,6 +1099,8 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_FINISHED"
 	case types.ORDER_CANCEL:
 		return "ORDER_CANCELLED"
+	case types.ORDER_FLEX_CANCEL:
+		return "ORDER_CANCELLED"
 	case types.ORDER_CUTOFF:
 		return "ORDER_CUTOFF"
 	case types.ORDER_PENDING:
@@ -1337,10 +1339,10 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
-	cancelOrderEvent.OrderHash = common.StringToHash(req.OrderHash)
-	cancelOrderEvent.Owner = common.StringToAddress(req.Owner)
-	cancelOrderEvent.TokenS = common.StringToAddress(req.TokenS)
-	cancelOrderEvent.TokenB = common.StringToAddress(req.TokenB)
+	cancelOrderEvent.OrderHash = common.HexToHash(req.OrderHash)
+	cancelOrderEvent.Owner = common.HexToAddress(req.Owner)
+	cancelOrderEvent.TokenS = common.HexToAddress(req.TokenS)
+	cancelOrderEvent.TokenB = common.HexToAddress(req.TokenB)
 	cancelOrderEvent.CutoffTime = req.CutoffTime
 	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
 	err = manager.FlexCancelOrder(&cancelOrderEvent); if err == nil {
