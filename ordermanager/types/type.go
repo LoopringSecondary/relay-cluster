@@ -27,8 +27,6 @@ import (
 type OrderTx struct {
 	Owner       common.Address    `json:"owner"` // tx_from
 	TxHash      common.Hash       `json:"tx_hash"`
-	TxStatus    types.TxStatus    `json:"tx_status"`
-	BlockNumber int64             `json:"block_number"`
 	OrderHash   common.Hash       `json:"order_hash"`
 	OrderStatus types.OrderStatus `json:"order_status"`
 	Nonce       int64             `json:"nonce"`

@@ -122,10 +122,6 @@ func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
 	return nil
 }
 
-func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
-	handler.Event.OrderHash = orderhash
-}
-
 func (handler *OrderTxHandler) processSingleOrder() error {
 	list, err := handler.getOrderPendingTx()
 	if err != nil {
@@ -145,47 +141,100 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 	return nil
 }
 
-// todo 存储ordertx
-// 写入cache
+// todo add cache
+// 如果orderTx的nonce都大于当前nonce则不用管
+func (handler *OrderTxHandler) getOrderPendingTx() ([]omtyp.OrderTx, error) {
+	var list []omtyp.OrderTx
+
+	event := handler.Event
+	rds := handler.Rds
+
+	if err := handler.validate(); err != nil {
+		return list, err
+	}
+
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
+	}
+	models, err := rds.GetPendingOrderTx(event.Owner, event.OrderHash)
+	if err != nil {
+		return list, err
+	}
+
+	for _, model := range models {
+		var tx omtyp.OrderTx
+		model.ConvertUp(&tx)
+		list = append(list, tx)
+	}
+
+	return list, nil
+}
+
 func (handler *OrderTxHandler) addOrderPendingTx() error {
+	if err := handler.validate(); err != nil {
+		return err
+	}
+
 	var (
-		model = &dao.OrderTransaction{}
+		model = &dao.OrderPendingTransaction{}
 		err   error
 	)
 
 	rds := handler.Rds
 	event := handler.Event
 
-	model, err = rds.FindOrderTx(handler.TxInfo.TxHash, event.OrderHash)
-	if EventRecordDuplicated(handler.TxInfo.Status, model.TxStatus, err != nil) {
+	if model, err = rds.FindPendingOrderTx(event.TxHash, event.OrderHash); err == nil {
 		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(event.OrderHash.Hex())...)
 	}
 
 	model.ConvertDown(event)
+	rds.Add(model)
 
-	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
-		return nil
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		cache.SetPendingOrder(event.Owner, event.OrderHash)
 	}
 
-	cache.SetPendingOrder(handler.Event.Owner, handler.Event.OrderHash)
-	return rds.Add(model)
-}
-
-// todo
-// 如果在orderTx表里的数据全被删除 则应在cache里删除order
-func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
 	return nil
 }
 
-// todo add cache
-// 如果orderTx的nonce都大于当前nonce则不用管
-func (handler *OrderTxHandler) getOrderPendingTx() ([]omtyp.OrderTx, error) {
-	var list []omtyp.OrderTx
-	event := handler.Event
-	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
-		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
+// 删除某个订单下txhash相同,以及txhash不同但是nonce<=当前nonce对应的tx
+// 如果在orderTx表里的数据全被删除 则应在cache里删除order
+func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
+	if err := handler.validate(); err != nil {
+		return err
 	}
-	return list, nil
+
+	var validTxHashList []common.Hash
+
+	event := handler.Event
+	rds := handler.Rds
+
+	for _, v := range list {
+		if v.TxHash == event.TxHash {
+			validTxHashList = append(validTxHashList, v.TxHash)
+		} else if v.Nonce <= event.Nonce {
+			validTxHashList = append(validTxHashList, v.TxHash)
+		}
+	}
+
+	affectedRows := rds.DelPendingOrderTx(event.Owner, event.OrderHash, validTxHashList)
+	if int(affectedRows) == len(list) {
+		cache.DelPendingOrder(event.Owner, event.OrderHash)
+	}
+
+	return nil
+}
+
+func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
+	handler.Event.OrderHash = orderhash
+}
+
+func (handler *OrderTxHandler) validate() error {
+	event := handler.Event
+	if event.OrderHash == types.NilHash {
+		return fmt.Errorf(handler.format("err:orderhash should not be nil"), handler.value()...)
+	}
+	return nil
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {
