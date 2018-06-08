@@ -26,7 +26,7 @@ import (
 // 注意:这里我们不对cache设置过期时间,如果设定过期时间,会导致event通知到ordermanager后,与订单无关的用户查询mysql,消耗太大
 
 const (
-	UserPendingOrderKeyPrefix = "om_user_pending_order_"
+	UserPendingOrderKeyPrefix = "om_pending_ordertx_owner_"
 )
 
 func SetPendingOrder(owner common.Address, orderhash common.Hash) error {

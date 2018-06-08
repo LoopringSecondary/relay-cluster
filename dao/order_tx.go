@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// txhash唯一索引
 type OrderPendingTransaction struct {
 	ID          int    `gorm:"column:id;primary_key;"`
 	Owner       string `gorm:"column:owner;type:varchar(42)"`
