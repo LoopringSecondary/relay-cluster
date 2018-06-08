@@ -23,7 +23,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-const UserPendingOrderKeyPrefix = "om_user_pending_order_"
+// 注意:这里我们不对cache设置过期时间,如果设定过期时间,会导致event通知到ordermanager后,与订单无关的用户查询mysql,消耗太大
+
+const (
+	UserPendingOrderKeyPrefix = "om_user_pending_order_"
+)
 
 func SetPendingOrder(owner common.Address, orderhash common.Hash) error {
 	key := getKey(owner)
@@ -46,6 +50,23 @@ func ExistPendingOrder(owner common.Address, orderhash common.Hash) bool {
 	return ok
 }
 
+func GetPendingOrders(owner common.Address) []common.Hash {
+	var list []common.Hash
+	key := getKey(owner)
+
+	if ok, _ := cache.Exists(key); !ok {
+		return list
+	}
+
+	bslist, _ := cache.SMembers(key)
+	for _, bs := range bslist {
+		orderhash := setMember(bs)
+		list = append(list, orderhash)
+	}
+
+	return list
+}
+
 func getKey(owner common.Address) string {
 	return UserPendingOrderKeyPrefix + owner.Hex()
 }
@@ -54,9 +75,6 @@ func getMember(orderhash common.Hash) []byte {
 	return []byte(orderhash.Hex())
 }
 
-// todo
-func GetPendingOrders(owner common.Address) []common.Hash {
-	var list []common.Hash
-
-	return list
+func setMember(bs []byte) common.Hash {
+	return common.HexToHash(string(bs))
 }

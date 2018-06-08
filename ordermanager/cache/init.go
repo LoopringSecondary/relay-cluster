@@ -18,34 +18,17 @@
 
 package cache
 
-import (
-	"encoding/json"
-	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
-)
+import "github.com/Loopring/relay-cluster/dao"
 
-const (
-	OrderPrefix = "om_order_"
-	OrderTtl    = 86400
-)
+var rds *dao.RdsService
 
-func BaseInfo(orderhash common.Hash) (*types.OrderState, error) {
-	key := OrderPrefix + orderhash.Hex()
+func Initialize(db *dao.RdsService) {
+	rds = db
+}
 
-	state := &types.OrderState{}
-
-	if bs, err := cache.Get(key); err != nil {
-		model, err := rds.GetOrderByHash(orderhash)
-		if err != nil {
-			return nil, err
-		}
-		model.ConvertUp(state)
-		bs, _ := json.Marshal(state)
-		cache.Set(key, bs, OrderTtl)
-	} else {
-		json.Unmarshal(bs, state)
+func Invalid() bool {
+	if rds == nil {
+		return true
 	}
-
-	return state, nil
+	return false
 }

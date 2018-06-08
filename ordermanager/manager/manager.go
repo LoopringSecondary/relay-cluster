@@ -20,6 +20,7 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -79,6 +80,11 @@ func NewOrderManager(
 	// om.registryFlexCancelWatcher()
 
 	InitializeWriter(om.rds, um)
+
+	if cache.Invalid() {
+		cache.Initialize(om.rds)
+	}
+
 	return om
 }
 

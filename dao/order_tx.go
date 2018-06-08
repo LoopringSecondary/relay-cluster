@@ -56,27 +56,20 @@ func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderTx) error {
 }
 
 func (s *RdsService) FindPendingOrderTx(txhash, orderhash common.Hash) (*OrderPendingTransaction, error) {
-	var (
-		tx  OrderPendingTransaction
-		err error
-	)
-
-	err = s.Db.Where("tx_hash=?", txhash.Hex()).
-		Where("order_hash=?", orderhash.Hex()).
-		First(&tx).Error
+	var tx OrderPendingTransaction
+	err := s.Db.Where("tx_hash=?", txhash.Hex()).Where("order_hash=?", orderhash.Hex()).First(&tx).Error
 	return &tx, err
 }
 
+func (s *RdsService) GetPendingOrderTxs(owner common.Address) ([]OrderPendingTransaction, error) {
+	var list []OrderPendingTransaction
+	err := s.Db.Where("owner=?", owner.Hex()).Find(&list).Error
+	return list, err
+}
+
 func (s *RdsService) GetPendingOrderTx(owner common.Address, orderhash common.Hash) ([]OrderPendingTransaction, error) {
-	var (
-		list []OrderPendingTransaction
-		err  error
-	)
-
-	err = s.Db.Where("owner=?", owner.Hex()).
-		Where("order_hash=?", orderhash.Hex()).
-		Find(&list).Error
-
+	var list []OrderPendingTransaction
+	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Find(&list).Error
 	return list, err
 }
 
