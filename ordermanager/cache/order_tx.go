@@ -23,14 +23,35 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// todo
+const UserPendingOrderKeyPrefix = "om_user_pending_order_"
+
 func SetPendingOrder(owner common.Address, orderhash common.Hash) error {
+	key := getKey(owner)
+	member := getMember(orderhash)
+	cache.SAdd(key, 0, member)
 	return nil
 }
 
-// todo
 func DelPendingOrder(owner common.Address, orderhash common.Hash) error {
+	key := getKey(owner)
+	member := getMember(orderhash)
+	cache.SRem(key, member)
 	return nil
+}
+
+func ExistPendingOrder(owner common.Address, orderhash common.Hash) bool {
+	key := getKey(owner)
+	member := getMember(orderhash)
+	ok, _ := cache.SIsMember(key, member)
+	return ok
+}
+
+func getKey(owner common.Address) string {
+	return UserPendingOrderKeyPrefix + owner.Hex()
+}
+
+func getMember(orderhash common.Hash) []byte {
+	return []byte(orderhash.Hex())
 }
 
 // todo
@@ -38,8 +59,4 @@ func GetPendingOrders(owner common.Address) []common.Hash {
 	var list []common.Hash
 
 	return list
-}
-
-func ExistPendingOrder(owner common.Address, orderhash common.Hash) bool {
-	return false
 }
