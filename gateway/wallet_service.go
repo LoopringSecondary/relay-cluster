@@ -147,10 +147,10 @@ type LatestOrderQuery struct {
 }
 
 type OrderTransfer struct {
-	Hash string `json:"hash"`
-	Origin string `json:"origin"`
-	Status string `json:"status"`
-	Timestamp int64 `json:"timestamp"`
+	Hash      string `json:"hash"`
+	Origin    string `json:"origin"`
+	Status    string `json:"status"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 type OrderTransferQuery struct {
@@ -1325,12 +1325,14 @@ func (w *WalletServiceImpl) GetGlobalMarketTicker(req SingleToken) (tickers map[
 }
 
 func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTransfer, err error) {
-	otByte, err := cache.Get(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash)); if err != nil {
+	otByte, err := cache.Get(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash))
+	if err != nil {
 		return ot, err
 	} else {
 
 		var orderTransfer OrderTransfer
-		err = json.Unmarshal(otByte, &orderTransfer); if err != nil {
+		err = json.Unmarshal(otByte, &orderTransfer)
+		if err != nil {
 			return ot, err
 		}
 		return orderTransfer, err
@@ -1345,9 +1347,11 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	cancelOrderEvent.TokenB = common.HexToAddress(req.TokenB)
 	cancelOrderEvent.CutoffTime = req.CutoffTime
 	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
-	err = manager.FlexCancelOrder(&cancelOrderEvent); if err == nil {
+	err = manager.FlexCancelOrder(&cancelOrderEvent)
+	if err == nil {
 		go func() {
-			ot , err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash); if err != nil {
+			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
+			if err != nil {
 				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
 			}
 		}()
@@ -1361,10 +1365,11 @@ func (w *WalletServiceImpl) SetOrderTransfer(req OrderTransfer) (hash string, er
 	}
 	req.Status = OT_STATUS_INIT
 	req.Timestamp = time.Now().Unix()
-	otByte, err := json.Marshal(req); if err != nil {
+	otByte, err := json.Marshal(req)
+	if err != nil {
 		return hash, err
 	}
-	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24)
+	err = cache.Set(OT_REDIS_PRE_KEY+strings.ToLower(req.Hash), otByte, 3600*24)
 	return req.Hash, err
 }
 
@@ -1373,16 +1378,19 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 		return hash, errors.New("hash can't be nil")
 	}
 
-	ot, err := w.GetOrderTransfer(OrderTransferQuery{Hash:req.Hash}); if err != nil {
+	ot, err := w.GetOrderTransfer(OrderTransferQuery{Hash: req.Hash})
+	if err != nil {
 		return hash, err
 	}
 
 	ot.Status = req.Status
 
-	otByte, err := json.Marshal(ot); if err != nil {
+	otByte, err := json.Marshal(ot)
+	if err != nil {
 		return hash, err
 	}
-	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24); if err != nil {
+	err = cache.Set(OT_REDIS_PRE_KEY+strings.ToLower(req.Hash), otByte, 3600*24)
+	if err != nil {
 		return hash, err
 	} else {
 		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, &OrderTransfer{Hash: ot.Hash, Status: ot.Status})

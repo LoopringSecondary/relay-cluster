@@ -142,7 +142,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 
 		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
 		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
-		Kafka_Topic_SocketIO_Order_Transfer : {OrderTransfer{}, so.handleOrderTransfer},
+		Kafka_Topic_SocketIO_Order_Transfer:            {OrderTransfer{}, so.handleOrderTransfer},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -165,7 +165,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
-		eventKeyOrderTransfer: {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 	}
 
 	var groupId string
