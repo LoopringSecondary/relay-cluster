@@ -47,54 +47,71 @@ func NewOrderTxHandler(basehandler BaseHandler) *OrderTxHandler {
 	return handler
 }
 
-func NewOrderTxHandlerAndSaving(basehandler BaseHandler, orderhashlist []common.Hash, orderStatus types.OrderStatus) error {
-	handler := NewOrderTxHandler(basehandler)
-	for _, v := range orderhashlist {
-		handler.Event.OrderHash = v
-		handler.Event.OrderStatus = orderStatus
-		handler.saveOrderPendingTx()
+func (handler *OrderTxHandler) HandleOrderRelatedTxPending() error {
+	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+		return nil
 	}
+	if err := cache.SetPendingOrders(handler.Event.Owner, handler.Event.OrderHash); err != nil {
+		return err
+	}
+	if err := handler.saveOrderPendingTx(); err != nil {
+		return err
+	}
+
+	ordertxs := cache.GetOrderPendingTx(handler.Event.OrderHash)
+	status := handler.getOrderStatus(ordertxs)
+
+
 	return nil
 }
 
-func (handler *OrderTxHandler) HandlePending() error {
-	//if handler.TxInfo.Status != types.TX_STATUS_PENDING {
-	//	return nil
-	//}
-	//if !handler.requirePermission() {
-	//	return nil
-	//}
-	//if err := handler.saveOrderPendingTx(); err != nil {
-	//	log.Debugf(handler.format(), handler.value())
-	//}
-	return nil
-}
-
-func (handler *OrderTxHandler) HandleFailed() error {
+func (handler *OrderTxHandler) HandleOrderRelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	if !handler.requirePermission() {
-		return nil
-	}
 	return handler.processPendingTx()
 }
 
-func (handler *OrderTxHandler) HandleSuccess() error {
+func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
 	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
-	if !handler.requirePermission() {
+
+	return handler.processPendingTx()
+}
+
+func (handler *OrderTxHandler) HandleOrderCorrelatedTxPending() error {
+	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+	if err := cache.SetPendingOrders(handler.Event.Owner, handler.Event.OrderHash); err != nil {
+		return err
+	}
+	if err := handler.saveOrderPendingTx(); err != nil {
+		return err
+	}
+
+	ordertxs := cache.GetOrderPendingTx(handler.Event.OrderHash)
+	status := handler.getOrderStatus(ordertxs)
+
+	return nil
+}
+
+func (handler *OrderTxHandler) HandleOrderCorrelatedTxFailed() error {
+	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
 	return handler.processPendingTx()
 }
 
-// 查询用户是否拥有修改订单状态的权限
-func (handler *OrderTxHandler) requirePermission() bool {
-	owner := handler.TxInfo.From
-	return cache.HasOrderPermission(handler.Rds, owner)
+func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
+	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
+	return handler.processPendingTx()
 }
+
 
 func (handler *OrderTxHandler) processPendingTx() error {
 	//todo 1.删除用户无效pending tx
@@ -110,7 +127,7 @@ func (handler *OrderTxHandler) processPendingTx() error {
 		return nil
 	}
 
-	// 将
+	// 将<=当前nonce的其他txhash设置为失败
 	affectedRows := rds.SetPendingOrderTxFailed(event.Owner, event.TxHash, event.Nonce)
 	if int(affectedRows) == len(models) {
 		return nil
@@ -124,6 +141,12 @@ func (handler *OrderTxHandler) processPendingTx() error {
 	return nil
 }
 
+// todo
+func (handler *OrderTxHandler) getOrderStatus(list []omtyp.OrderTx) types.OrderStatus {
+	return types.ORDER_UNKNOWN
+}
+
+// todo 存储ordertx
 func (handler *OrderTxHandler) saveOrderPendingTx() error {
 	var (
 		model = &dao.OrderTransaction{}

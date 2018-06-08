@@ -5,6 +5,7 @@ import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
 )
 
 func BaseInfo(rds *dao.RdsService, orderhash common.Hash) (*types.OrderState, error) {
@@ -35,4 +36,22 @@ func HasOrderPermission(rds *dao.RdsService, owner common.Address) bool {
 
 	cache.Set(key, []byte(""), ttl)
 	return true
+}
+
+// todo
+func SetPendingOrders(owner common.Address, orderhash common.Hash) error {
+	return nil
+}
+
+// todo
+func GetPendingOrders(owner common.Address) []common.Hash {
+	var list []common.Hash
+
+	return list
+}
+
+// todo
+func GetOrderPendingTx(orderhash common.Hash) []omtyp.OrderTx {
+	var list []omtyp.OrderTx
+	return list
 }

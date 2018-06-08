@@ -310,8 +310,8 @@ func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
 	basehandler.TxInfo = txinfo
 	handler := NewOrderTxHandler(basehandler)
 
-	handler.HandleFailed()
-	handler.HandleSuccess()
+	handler.HandleOrderCorrelatedTxFailed()
+	handler.HandleOrderCorrelatedTxSuccess()
 
 	return nil
 }
