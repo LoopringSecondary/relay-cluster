@@ -55,6 +55,7 @@ type Allowance struct {
 	Allowance *types.Big `json:"allowance"`
 }
 
+//ethbalance need special process
 type AccountBalances struct {
 	AccountBase
 	Balances map[common.Address]Balance
@@ -595,7 +596,7 @@ func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
 			//log.Debugf("1---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
 			if exists, err := rcache.Exists(tokenBalanceCacheKey(accountAddr)); nil == err && exists {
 				//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-				if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && exists1 {
+				if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && (types.IsZeroAddress(token) || exists1) {
 					log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
 					req := &loopringaccessor.BatchBalanceReq{}
 					req.Owner = accountAddr

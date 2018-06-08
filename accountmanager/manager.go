@@ -173,7 +173,7 @@ func (a *AccountManager) handleApprove(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleWethDeposit(input eventemitter.EventData) (err error) {
 	event := input.(*types.WethDepositEvent)
-	log.Debugf("wethDeposit,owner:%s", event.To.Hex())
+	log.Debugf("wethDeposit, owner:%s", event.Dst.Hex())
 
 	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
 		log.Info("received wrong status event, drop it")
