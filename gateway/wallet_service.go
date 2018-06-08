@@ -1344,7 +1344,11 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	cancelOrderEvent.CutoffTime = req.CutoffTime
 	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
 	err = manager.FlexCancelOrder(&cancelOrderEvent); if err == nil {
-		kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, )
+		go func() {
+			ot , err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash); if err != nil {
+				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
+			}
+		}()
 	}
 	return rst, err
 }
