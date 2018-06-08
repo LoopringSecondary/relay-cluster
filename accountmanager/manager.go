@@ -38,9 +38,9 @@ type AccountManager struct {
 	tokenCacheDuration int64
 	ethCacheDuration   int64
 	//maxBlockLength uint64
-	cachedBlockCount   *big.Int
+	cachedBlockCount *big.Int
 	//block           *ChangedOfBlock
-	producerWrapped    *kafka.MessageProducer
+	producerWrapped *kafka.MessageProducer
 }
 
 func isPackegeReady() error {

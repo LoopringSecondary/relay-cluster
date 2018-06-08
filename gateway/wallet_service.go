@@ -31,6 +31,7 @@ import (
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	kafkaUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
@@ -46,7 +47,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/Loopring/relay-lib/crypto"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -1026,8 +1026,10 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 }
 
 func (w *WalletServiceImpl) ApplyTicket(ticket dao.TicketReceiver) (result string, err error) {
-	isSignCorrect := verifyTicketSign(ticket); if isSignCorrect {
-		exist, err := w.rds.QueryTicketByAddress(ticket.Address); if err != nil && exist.ID > 0 {
+	isSignCorrect := verifyTicketSign(ticket)
+	if isSignCorrect {
+		exist, err := w.rds.QueryTicketByAddress(ticket.Address)
+		if err != nil && exist.ID > 0 {
 			ticket.ID = exist.ID
 		}
 		return "", w.rds.Save(&ticket)
@@ -1689,7 +1691,7 @@ func fmtFloat(src *big.Rat) float64 {
 func verifyTicketSign(t dao.TicketReceiver) bool {
 	h := &common.Hash{}
 	address := &common.Address{}
-	hashBytes := crypto.GenerateHash([]byte(t.Phone),[]byte(t.Email))
+	hashBytes := crypto.GenerateHash([]byte(t.Phone), []byte(t.Email))
 	h.SetBytes(hashBytes)
 	sig, _ := crypto.VRSToSig(t.V, types.HexToBytes32(t.R).Bytes(), types.HexToBytes32(t.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
