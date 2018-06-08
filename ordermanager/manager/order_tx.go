@@ -51,49 +51,35 @@ func (handler *OrderTxHandler) HandleOrderRelatedTxPending() error {
 	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
 		return nil
 	}
-	if err := cache.SetPendingOrders(handler.Event.Owner, handler.Event.OrderHash); err != nil {
+	// 写入orderTx table
+	if err := handler.addOrderPendingTx(); err != nil {
 		return err
 	}
-	if err := handler.saveOrderPendingTx(); err != nil {
+	// 获取当前orderTx中跟order相关记录
+	list, err := handler.getOrderPendingTx()
+	if err != nil {
 		return err
 	}
 
-	ordertxs := cache.GetOrderPendingTx(handler.Event.OrderHash)
-	status := handler.getOrderStatus(ordertxs)
-
-
-	return nil
+	// 重新计算订单状态,并更新order表状态记录
+	return handler.setOrderStatus(list)
 }
 
 func (handler *OrderTxHandler) HandleOrderRelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	return handler.processPendingTx()
+	return handler.processSingleOrder()
 }
 
 func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
 	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
-
-	return handler.processPendingTx()
+	return handler.processSingleOrder()
 }
 
 func (handler *OrderTxHandler) HandleOrderCorrelatedTxPending() error {
-	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
-		return nil
-	}
-	if err := cache.SetPendingOrders(handler.Event.Owner, handler.Event.OrderHash); err != nil {
-		return err
-	}
-	if err := handler.saveOrderPendingTx(); err != nil {
-		return err
-	}
-
-	ordertxs := cache.GetOrderPendingTx(handler.Event.OrderHash)
-	status := handler.getOrderStatus(ordertxs)
-
 	return nil
 }
 
@@ -101,7 +87,19 @@ func (handler *OrderTxHandler) HandleOrderCorrelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	return handler.processPendingTx()
+	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
+	if len(orderHashList) == 0 {
+		return nil
+	}
+
+	for _, orderhash := range orderHashList {
+		handler.fullFilled(orderhash)
+		if err := handler.processSingleOrder(); err != nil {
+			continue
+		}
+	}
+
+	return nil
 }
 
 func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
@@ -109,45 +107,47 @@ func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
 		return nil
 	}
 
-	return handler.processPendingTx()
-}
-
-
-func (handler *OrderTxHandler) processPendingTx() error {
-	//todo 1.删除用户无效pending tx
-	//todo 2.获取用户其他pending tx
-
-	rds := handler.Rds
-	event := handler.Event
-
-	// todo: add cache
-	// 查询用户当前处于pending状态的订单
-	models, _ := rds.GetPendingOrderTxByOwner(event.Owner)
-	if len(models) == 0 {
+	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
+	if len(orderHashList) == 0 {
 		return nil
 	}
 
-	// 将<=当前nonce的其他txhash设置为失败
-	affectedRows := rds.SetPendingOrderTxFailed(event.Owner, event.TxHash, event.Nonce)
-	if int(affectedRows) == len(models) {
-		return nil
-	}
-
-	for _, model := range models {
-		var tx omtyp.OrderTx
-		model.ConvertUp(&tx)
+	for _, orderhash := range orderHashList {
+		handler.fullFilled(orderhash)
+		if err := handler.processSingleOrder(); err != nil {
+			continue
+		}
 	}
 
 	return nil
 }
 
+func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
+	handler.Event.OrderHash = orderhash
+}
+
+func (handler *OrderTxHandler) processSingleOrder() error {
+	list, err := handler.getOrderPendingTx()
+	if err != nil {
+		return err
+	}
+	if err := handler.setOrderStatus(list); err != nil {
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
+	}
+	return handler.delOrderPendingTx(list)
+}
+
 // todo
-func (handler *OrderTxHandler) getOrderStatus(list []omtyp.OrderTx) types.OrderStatus {
-	return types.ORDER_UNKNOWN
+// 从数据库中获取订单status
+// 根据当前的orderTx以及当前订单状态生成最终状态
+// 更新order表订单最终状态
+func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
+	return nil
 }
 
 // todo 存储ordertx
-func (handler *OrderTxHandler) saveOrderPendingTx() error {
+// 写入cache
+func (handler *OrderTxHandler) addOrderPendingTx() error {
 	var (
 		model = &dao.OrderTransaction{}
 		err   error
@@ -163,11 +163,29 @@ func (handler *OrderTxHandler) saveOrderPendingTx() error {
 
 	model.ConvertDown(event)
 
-	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
-		return rds.Add(model)
-	} else {
-		return rds.UpdateOrderTxStatus(event.TxHash, event.BlockNumber, event.TxStatus)
+	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+		return nil
 	}
+
+	cache.SetPendingOrder(handler.Event.Owner, handler.Event.OrderHash)
+	return rds.Add(model)
+}
+
+// todo
+// 如果在orderTx表里的数据全被删除 则应在cache里删除order
+func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
+	return nil
+}
+
+// todo add cache
+// 如果orderTx的nonce都大于当前nonce则不用管
+func (handler *OrderTxHandler) getOrderPendingTx() ([]omtyp.OrderTx, error) {
+	var list []omtyp.OrderTx
+	event := handler.Event
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
+	}
+	return list, nil
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {

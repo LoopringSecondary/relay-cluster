@@ -19,36 +19,17 @@
 package cache
 
 import (
-	"github.com/Loopring/relay-cluster/dao"
-	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// miner & order owner
-func HasOrderPermission(rds *dao.RdsService, owner common.Address) bool {
-	ttl := int64(86400 * 10)
-
-	key := "om_order_permission_" + owner.Hex()
-	if ok, _ := cache.Exists(key); ok {
-		return true
-	}
-
-	if !rds.IsOrderOwner(owner) && !rds.IsMiner(owner) {
-		return false
-	}
-
-	cache.Set(key, []byte(""), ttl)
-	return true
-}
-
 // todo
-func SetPendingOrders(owner common.Address, orderhash common.Hash) error {
+func SetPendingOrder(owner common.Address, orderhash common.Hash) error {
 	return nil
 }
 
 // todo
-func DelPendingOrders(owner common.Address, orderhash common.Hash) error {
+func DelPendingOrder(owner common.Address, orderhash common.Hash) error {
 	return nil
 }
 
@@ -59,8 +40,6 @@ func GetPendingOrders(owner common.Address) []common.Hash {
 	return list
 }
 
-// todo
-func GetOrderPendingTx(orderhash common.Hash) []omtyp.OrderTx {
-	var list []omtyp.OrderTx
-	return list
+func ExistPendingOrder(owner common.Address, orderhash common.Hash) bool {
+	return false
 }
