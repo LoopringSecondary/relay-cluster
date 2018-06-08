@@ -18,6 +18,19 @@
 
 package gateway_test
 
+import (
+	"testing"
+	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
+	"fmt"
+	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay-cluster/dao"
+	dao2 "github.com/Loopring/relay-lib/dao"
+	"go.uber.org/zap"
+	"encoding/json"
+	"github.com/Loopring/relay-lib/log"
+)
+
 //import (
 //	//"github.com/Loopring/relay-cluster/types"
 //	//"math/big"
@@ -57,6 +70,83 @@ package gateway_test
 //	C string
 //}
 //
+
+func TestGetPow(t *testing.T) {
+	fmt.Println(">>>>>>>>>sssss")
+	logConfig := `{
+	  "level": "debug",
+	  "development": false,
+	  "encoding": "json",
+	  "outputPaths": ["stdout"],
+	  "errorOutputPaths": ["stderr"],
+	  "encoderConfig": {
+	    "messageKey": "message",
+	    "levelKey": "level",
+	    "levelEncoder": "lowercase"
+	  }
+	}`
+	rawJSON := []byte(logConfig)
+
+	var (
+		cfg zap.Config
+		err error
+	)
+	if err = json.Unmarshal(rawJSON, &cfg); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(">>>>>>>>>a")
+	log.Initialize(cfg)
+
+	fmt.Println(">>>>>>>>>b")
+	cf := dao2.MysqlOptions{}
+	cf.Password = "111111"
+	cf.Hostname = "13.112.62.24"
+	cf.Port = "3306"
+	cf.User = "root"
+	cf.DbName = "loopring_relay_v1_5"
+	cf.TablePrefix = "lpr_"
+	cf.MaxOpenConnections = 0
+	cf.MaxIdleConnections = 0
+	cf.ConnMaxLifetime = 0
+	cf.Debug = true
+	fmt.Println(">>>>>>>>>c")
+	rds := dao.NewDb(&cf)
+	fmt.Println(">>>>>>>>>d")
+
+	h := &common.Hash{}
+	address := &common.Address{}
+	c := crypto.NewKSCrypto(false, nil)
+	crypto.Initialize(c)
+
+	fmt.Println("1234")
+
+	tt := dao.TicketReceiver{}
+	tt.Phone = "13312341234"
+	tt.Email = "test@126.com"
+	tt.Address = "0xcc3381d40ff83bf9768c5a4669beb39361da893a"
+	tt.V = 28
+	tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
+	tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
+	tt.Name = "张三"
+	fmt.Println(">>>>1234")
+	err = rds.Add(tt)
+	fmt.Println(err)
+
+
+	hashBytes := crypto.GenerateHash([]byte(tt.Phone),[]byte(tt.Email))
+	h.SetBytes(hashBytes)
+	fmt.Println(h.Hex())
+	sig, _ := crypto.VRSToSig(tt.V, types.HexToBytes32(tt.R).Bytes(), types.HexToBytes32(tt.S).Bytes())
+	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
+		fmt.Println("order signer address error: " + err.Error())
+	} else {
+		address.SetBytes(addressBytes)
+		fmt.Println(address.Hex())
+	}
+
+}
+
 //func (ab *AB) ABTest1(query ABReq1) (res1 ABRes1, err error) {
 //	return ABRes1{A: "AA", B: 11}, nil
 //}

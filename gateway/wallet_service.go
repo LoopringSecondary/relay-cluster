@@ -46,6 +46,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/Loopring/relay-lib/crypto"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -1024,6 +1025,17 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 	return types.BigintToHex(gasprice_evaluator.EstimateGasPrice(nil, nil)), nil
 }
 
+func (w *WalletServiceImpl) ApplyTicket(ticket dao.TicketReceiver) (result string, err error) {
+	isSignCorrect := verifyTicketSign(ticket); if isSignCorrect {
+		exist, err := w.rds.QueryTicketByAddress(ticket.Address); if err != nil && exist.ID > 0 {
+			ticket.ID = exist.ID
+		}
+		return "", w.rds.Save(&ticket)
+	} else {
+		return "", errors.New("sign v, r, s is incorrect")
+	}
+}
+
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
 
 	query = make(map[string]interface{})
@@ -1340,6 +1352,8 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 }
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
+	//TODO(finish this later)
+	return rst, err
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
 	cancelOrderEvent.OrderHash = common.HexToHash(req.OrderHash)
 	cancelOrderEvent.Owner = common.HexToAddress(req.Owner)
@@ -1670,4 +1684,19 @@ func fmtFloat(src *big.Rat) float64 {
 	f, _ := src.Float64()
 	rst, _ := strconv.ParseFloat(fmt.Sprintf("%0.8f", f), 64)
 	return rst
+}
+
+func verifyTicketSign(t dao.TicketReceiver) bool {
+	h := &common.Hash{}
+	address := &common.Address{}
+	hashBytes := crypto.GenerateHash([]byte(t.Phone),[]byte(t.Email))
+	h.SetBytes(hashBytes)
+	sig, _ := crypto.VRSToSig(t.V, types.HexToBytes32(t.R).Bytes(), types.HexToBytes32(t.S).Bytes())
+	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
+		log.Errorf("order signer address error:%s", err.Error())
+		return false
+	} else {
+		address.SetBytes(addressBytes)
+		return strings.ToLower(address.Hex()) == strings.ToLower(t.Address)
+	}
 }
