@@ -129,7 +129,9 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 
 	order := input.(*types.Order)
 	order.Hash = order.GenerateHash()
-	log.Info(">>>>>>>>input order hash is : " + order.Hash.Hex())
+
+	orderHash = order.Hash.Hex()
+	//log.Info(">>>>>>>>input order hash is : " + order.Hash.Hex())
 
 	market, err := util.WrapMarketByAddress(order.TokenB.Hex(), order.TokenS.Hex())
 	if err != nil {
