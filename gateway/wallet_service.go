@@ -1099,6 +1099,8 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_FINISHED"
 	case types.ORDER_CANCEL:
 		return "ORDER_CANCELLED"
+	case types.ORDER_FLEX_CANCEL:
+		return "ORDER_CANCELLED"
 	case types.ORDER_CUTOFF:
 		return "ORDER_CUTOFF"
 	case types.ORDER_PENDING:
