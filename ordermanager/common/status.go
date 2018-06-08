@@ -20,10 +20,20 @@ package common
 
 import "github.com/Loopring/relay-lib/types"
 
-var IngStatus = []types.OrderStatus{
+var PendingStatus = []types.OrderStatus{
 	types.ORDER_PENDING,
 	types.ORDER_CANCELLING,
 	types.ORDER_CUTOFFING,
+}
+
+func IsPendingStatus(status types.OrderStatus) bool {
+	for _, v := range PendingStatus {
+		if status == v {
+			return true
+		}
+	}
+
+	return false
 }
 
 var ValidFlexCancelStatus = []types.OrderStatus{

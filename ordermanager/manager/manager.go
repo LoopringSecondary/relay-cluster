@@ -314,7 +314,7 @@ func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) erro
 func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
 	basehandler := om.basehandler()
 	basehandler.TxInfo = txinfo
-	handler := NewOrderTxHandler(basehandler)
+	handler := BaseOrderTxHandler(basehandler)
 
 	handler.HandleOrderCorrelatedTxFailed()
 	handler.HandleOrderCorrelatedTxSuccess()

@@ -66,9 +66,9 @@ func (s *RdsService) GetPendingOrderTxs(owner common.Address) ([]OrderPendingTra
 	return list, err
 }
 
-func (s *RdsService) GetPendingOrderTx(owner common.Address, orderhash common.Hash) ([]OrderPendingTransaction, error) {
+func (s *RdsService) GetPendingOrderTxSortedByNonce(owner common.Address, orderhash common.Hash) ([]OrderPendingTransaction, error) {
 	var list []OrderPendingTransaction
-	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Find(&list).Error
+	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Order("nonce DESC").Find(&list).Error
 	return list, err
 }
 
