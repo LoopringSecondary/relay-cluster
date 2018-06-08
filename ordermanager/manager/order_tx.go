@@ -69,12 +69,18 @@ func (handler *OrderTxHandler) HandleOrderRelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
+	if err := handler.validate(); err != nil {
+		return err
+	}
 	return handler.processSingleOrder()
 }
 
 func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
 	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
 		return nil
+	}
+	if err := handler.validate(); err != nil {
+		return err
 	}
 	return handler.processSingleOrder()
 }
