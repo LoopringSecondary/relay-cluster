@@ -22,10 +22,10 @@ type TicketReceiver struct {
 	ID           int    `gorm:"column:id;primary_key;"`
 	Name      string `gorm:"column:name;type:varchar(42) json:"name"`
 	Email   string  `gorm:"column:email;type:varchar(128)" json:"email"`
-	Phone   string  `gorm:"column:phone;type:varchar(128)"`
-	Address   string  `gorm:"column:address;type:varchar(128)"`
-	V                     uint8   `gorm:"column:v;type:tinyint(4)"`
-	R                     string  `gorm:"column:r;type:varchar(66)"`
-	S                     string  `gorm:"column:s;type:varchar(66)"`
+	Phone   string  `gorm:"column:phone;type:varchar(128)" json:"phone"`
+	Address   string  `gorm:"column:address;type:varchar(128)" json:"address"`
+	V                     uint8   `gorm:"column:v;type:tinyint(4)" json:"v"'`
+	R                     string  `gorm:"column:r;type:varchar(66)" json:"r"`
+	S                     string  `gorm:"column:s;type:varchar(66)" json:"s"`
 }
 
