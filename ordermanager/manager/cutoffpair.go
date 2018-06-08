@@ -36,11 +36,19 @@ func (handler *CutoffPairHandler) HandlePending() error {
 	if handler.Event.Status != types.TX_STATUS_PENDING {
 		return nil
 	}
-	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+
+	orderhashList, err := handler.getOrdersAndSaveEvent()
+	if err != nil {
 		return err
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	for _, orderhash := range orderhashList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxPending()
+	}
+
 	return nil
 }
 
@@ -48,11 +56,19 @@ func (handler *CutoffPairHandler) HandleFailed() error {
 	if handler.Event.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+
+	orderhashList, err := handler.getOrdersAndSaveEvent()
+	if err != nil {
 		return err
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	for _, orderhash := range orderhashList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxFailed()
+	}
+
 	return nil
 }
 
@@ -82,6 +98,12 @@ func (handler *CutoffPairHandler) HandleSuccess() error {
 	rds.SetCutOffOrders(orderhashlist, event.BlockNumber)
 
 	notify.NotifyCutoffPair(event)
+
+	for _, orderhash := range orderhashlist {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxSuccess()
+	}
+
 	return nil
 }
 

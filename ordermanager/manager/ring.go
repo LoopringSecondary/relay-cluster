@@ -20,6 +20,7 @@ package manager
 
 import (
 	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,15 +37,21 @@ func (handler *SubmitRingHandler) HandlePending() error {
 	}
 
 	// save pending tx
-	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err == nil {
+	model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex())
+	if err == nil {
 		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
-	} else {
-		log.Debugf(handler.format(), handler.value()...)
-		model.FromSubmitRingMethod(handler.Event)
-		return handler.Rds.Add(model)
 	}
 
-	// return NewOrderTxHandlerAndSaving(handler.BaseHandler, handler.orderHashList(), types.ORDER_PENDING)
+	log.Debugf(handler.format(), handler.value()...)
+	model.FromSubmitRingMethod(handler.Event)
+	handler.Rds.Add(model)
+
+	for _, v := range handler.Event.OrderList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxPending()
+	}
+
+	return nil
 }
 
 func (handler *SubmitRingHandler) HandleFailed() error {
@@ -53,13 +60,21 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 	}
 
 	// save failed tx
-	if model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex()); err != nil {
+	model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex())
+	if err != nil {
 		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
-	} else {
-		log.Debugf(handler.format(), handler.value()...)
-		model.FromSubmitRingMethod(handler.Event)
-		return handler.Rds.Save(model)
 	}
+
+	log.Debugf(handler.format(), handler.value()...)
+	model.FromSubmitRingMethod(handler.Event)
+	handler.Rds.Save(model)
+
+	for _, v := range handler.Event.OrderList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxFailed()
+	}
+
+	return nil
 }
 
 func (handler *SubmitRingHandler) orderHashList() []common.Hash {
@@ -109,16 +124,22 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 	event := handler.Event
 	rds := handler.Rds
 
-	if model, err := rds.FindRingMined(event.TxHash.Hex()); err != nil {
+	model, err := rds.FindRingMined(event.TxHash.Hex())
+	if err != nil {
 		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
-	} else {
-		log.Debugf(handler.format(), handler.value()...)
-		model.ConvertDown(event)
-		return rds.Save(model)
 	}
 
-	// todo
-	//return NewOrderTxHandlerAndSaving(handler.BaseHandler, handler.orderHashList(), types.ORDER_PENDING)
+	log.Debugf(handler.format(), handler.value()...)
+	model.ConvertDown(event)
+	rds.Save(model)
+
+	orderhashlist := dao.UnmarshalStrToHashList(model.OrderHashList)
+	for _, v := range orderhashlist {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, v, types.ORDER_CANCELLING)
+		txhandler.HandleOrderRelatedTxSuccess()
+	}
+
+	return nil
 }
 
 func (handler *RingMinedHandler) format(fields ...string) string {
