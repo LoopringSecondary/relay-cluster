@@ -19,8 +19,8 @@
 package dao
 
 type TicketReceiver struct {
-	ID           int    `gorm:"column:id;primary_key;"`
-	Name      string `gorm:"column:name;type:varchar(42) json:"name"`
+	ID           int    `gorm:"column:id;primary_key;" json:"id"`
+	Name      string `gorm:"column:name;type:varchar(42)" json:"name"`
 	Email   string  `gorm:"column:email;type:varchar(128)" json:"email"`
 	Phone   string  `gorm:"column:phone;type:varchar(128)" json:"phone"`
 	Address   string  `gorm:"column:address;type:varchar(128)" json:"address"`
