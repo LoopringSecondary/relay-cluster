@@ -28,3 +28,9 @@ type TicketReceiver struct {
 	R       string `gorm:"column:r;type:varchar(66)" json:"r"`
 	S       string `gorm:"column:s;type:varchar(66)" json:"s"`
 }
+
+func (s *RdsService) QueryTicketByAddress(address string) (ticket TicketReceiver, err error) {
+	ticket = TicketReceiver{}
+	err = s.Db.Model(&TicketReceiver{}).Where("address = ? ", address).Find(&ticket).Error
+	return ticket, err
+}

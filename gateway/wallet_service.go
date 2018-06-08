@@ -1025,9 +1025,12 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 	return types.BigintToHex(gasprice_evaluator.EstimateGasPrice(nil, nil)), nil
 }
 
-func (w *WalletServiceImpl) ApplyTicket(ticker dao.TicketReceiver) (result string, err error) {
-	isSignCorrect := verifyTicketSign(ticker); if isSignCorrect {
-		return "", w.rds.Save(&ticker)
+func (w *WalletServiceImpl) ApplyTicket(ticket dao.TicketReceiver) (result string, err error) {
+	isSignCorrect := verifyTicketSign(ticket); if isSignCorrect {
+		exist, err := w.rds.QueryTicketByAddress(ticket.Address); if err != nil && exist.ID > 0 {
+			ticket.ID = exist.ID
+		}
+		return "", w.rds.Save(&ticket)
 	} else {
 		return "", errors.New("sign v, r, s is incorrect")
 	}
