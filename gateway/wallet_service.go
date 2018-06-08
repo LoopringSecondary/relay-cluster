@@ -61,6 +61,11 @@ const P2P_50006 = "50006"
 const P2P_50007 = "50007"
 const P2P_50008 = "50008"
 
+const OT_STATUS_INIT = "init"
+const OT_STATUS_ACCEPT = "accept"
+const OT_STATUS_REJECT = "reject"
+const OT_REDIS_PRE_KEY = "otrpk_"
+
 type Portfolio struct {
 	Token      string `json:"token"`
 	Amount     string `json:"amount"`
@@ -139,6 +144,17 @@ type LatestOrderQuery struct {
 	Owner     string `json:"owner"`
 	Market    string `json:"market"`
 	OrderType string `json:"orderType"`
+}
+
+type OrderTransfer struct {
+	Hash string `json:"hash"`
+	Origin string `json:"origin"`
+	Status string `json:"status"`
+	Timestamp int64 `json:"timestamp"`
+}
+
+type OrderTransferQuery struct {
+	Hash string `json:"hash"`
 }
 
 type TxNotify struct {
@@ -308,6 +324,15 @@ type LatestFill struct {
 	LrcFee     string  `json:"lrcFee"`
 	SplitS     string  `json:"splitS"`
 	SplitB     string  `json:"splitB"`
+}
+
+type CancelOrderQuery struct {
+	Owner      string `json:"owner"`
+	OrderHash  string `json:"orderHash"`
+	CutoffTime int64  `json:"cutoff"`
+	TokenS     string `json:"tokenS"`
+	TokenB     string `json:"tokenB"`
+	Type       uint8  `json:"type"`
 }
 
 type P2PRingRequest struct {
@@ -1295,6 +1320,72 @@ func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]
 
 func (w *WalletServiceImpl) GetGlobalMarketTicker(req SingleToken) (tickers map[string][]market.GlobalMarketTicker, err error) {
 	return w.globalMarket.GetGlobalMarketTickerCache(req.Token)
+}
+
+func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTransfer, err error) {
+	otByte, err := cache.Get(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash)); if err != nil {
+		return ot, err
+	} else {
+
+		var orderTransfer OrderTransfer
+		err = json.Unmarshal(otByte, &orderTransfer); if err != nil {
+			return ot, err
+		}
+		return orderTransfer, err
+	}
+}
+
+func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
+	cancelOrderEvent := types.FlexCancelOrderEvent{}
+	cancelOrderEvent.OrderHash = common.StringToHash(req.OrderHash)
+	cancelOrderEvent.Owner = common.StringToAddress(req.Owner)
+	cancelOrderEvent.TokenS = common.StringToAddress(req.TokenS)
+	cancelOrderEvent.TokenB = common.StringToAddress(req.TokenB)
+	cancelOrderEvent.CutoffTime = req.CutoffTime
+	cancelOrderEvent.Type = types.FlexCancelType(req.Type)
+	err = manager.FlexCancelOrder(&cancelOrderEvent); if err == nil {
+		go func() {
+			ot , err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash); if err != nil {
+				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
+			}
+		}()
+	}
+	return rst, err
+}
+
+func (w *WalletServiceImpl) SetOrderTransfer(req OrderTransfer) (hash string, err error) {
+	if len(req.Hash) == 0 {
+		return hash, errors.New("hash can't be nil")
+	}
+	req.Status = OT_STATUS_INIT
+	req.Timestamp = time.Now().Unix()
+	otByte, err := json.Marshal(req); if err != nil {
+		return hash, err
+	}
+	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24)
+	return req.Hash, err
+}
+
+func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string, err error) {
+	if len(req.Hash) == 0 {
+		return hash, errors.New("hash can't be nil")
+	}
+
+	ot, err := w.GetOrderTransfer(OrderTransferQuery{Hash:req.Hash}); if err != nil {
+		return hash, err
+	}
+
+	ot.Status = req.Status
+
+	otByte, err := json.Marshal(ot); if err != nil {
+		return hash, err
+	}
+	err = cache.Set(OT_REDIS_PRE_KEY + strings.ToLower(req.Hash), otByte, 3600 * 24); if err != nil {
+		return hash, err
+	} else {
+		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, &OrderTransfer{Hash: ot.Hash, Status: ot.Status})
+		return req.Hash, err
+	}
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {

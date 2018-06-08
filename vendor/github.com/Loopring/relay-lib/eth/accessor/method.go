@@ -232,7 +232,9 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 		if estimagetGas, _, err := EstimateGas(callData, to, "latest"); nil != err {
 			return txHash, nil, err
 		} else {
-			gas = estimagetGas
+			if nil == gas || gas.Cmp(big.NewInt(2000)) < 0 {
+				gas = estimagetGas
+			}
 		}
 	}
 	nonce := accessor.addressCurrentNonce(sender)
@@ -242,7 +244,7 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 	}
 	//todo:modify it
 	//if gas.Cmp(big.NewInt(int64(350000)))  {
-	gas.SetString("500000", 0)
+	//gas.SetString("400000", 0)
 	//}
 	transaction := ethTypes.NewTransaction(nonce.Uint64(),
 		common.HexToAddress(to.Hex()),
