@@ -19,16 +19,16 @@
 package gateway_test
 
 import (
-	"testing"
+	"encoding/json"
+	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/crypto"
+	dao2 "github.com/Loopring/relay-lib/dao"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"fmt"
-	"github.com/Loopring/relay-lib/crypto"
-	"github.com/Loopring/relay-cluster/dao"
-	dao2 "github.com/Loopring/relay-lib/dao"
 	"go.uber.org/zap"
-	"encoding/json"
-	"github.com/Loopring/relay-lib/log"
+	"testing"
 )
 
 //import (
@@ -133,8 +133,7 @@ func TestGetPow(t *testing.T) {
 	err = rds.Add(tt)
 	fmt.Println(err)
 
-
-	hashBytes := crypto.GenerateHash([]byte(tt.Phone),[]byte(tt.Email))
+	hashBytes := crypto.GenerateHash([]byte(tt.Phone), []byte(tt.Email))
 	h.SetBytes(hashBytes)
 	fmt.Println(h.Hex())
 	sig, _ := crypto.VRSToSig(tt.V, types.HexToBytes32(tt.R).Bytes(), types.HexToBytes32(tt.S).Bytes())

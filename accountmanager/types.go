@@ -35,7 +35,7 @@ import (
 const (
 	UnlockedPrefix    = "unlock_"
 	BalancePrefix     = "balance_"
-	BalanceEthPrefix     = "balance_eth_"
+	BalanceEthPrefix  = "balance_eth_"
 	AllowancePrefix   = "allowance_"
 	CustomTokenPrefix = "customtoken_"
 )
@@ -113,7 +113,7 @@ func (b AccountBalances) batchReqs(tokens ...common.Address) loopringaccessor.Ba
 }
 
 //
-func (accountBalances AccountBalances) save(ttl,ethTtl int64) error {
+func (accountBalances AccountBalances) save(ttl, ethTtl int64) error {
 	data := [][]byte{}
 	for token, balance := range accountBalances.Balances {
 		//log.Debugf("balance owner:%s, token:%s, amount:", accountBalances.Owner.Hex(), token.Hex(), balance.Balance.BigInt().String())
@@ -179,8 +179,8 @@ func (accountBalances AccountBalances) syncFromCacheWithTokens(tokens ...common.
 			}
 		}
 	}
-	for _,token := range tokens {
-		if _,exists := syncedToken[token]; !exists {
+	for _, token := range tokens {
+		if _, exists := syncedToken[token]; !exists {
 			uncachedTokens = append(uncachedTokens, token)
 		}
 	}
@@ -188,7 +188,7 @@ func (accountBalances AccountBalances) syncFromCacheWithTokens(tokens ...common.
 }
 
 func (accountBalances AccountBalances) syncEthFromCache() error {
-	if ethBalanceData,err := rcache.Get(ethBalanceCacheKey(accountBalances.Owner)); nil != err {
+	if ethBalanceData, err := rcache.Get(ethBalanceCacheKey(accountBalances.Owner)); nil != err {
 		return err
 	} else {
 		balance := &Balance{}
@@ -263,8 +263,8 @@ func (accountBalances AccountBalances) syncFromEthNode(tokens ...common.Address)
 	return nil
 }
 
-func (accountBalances AccountBalances) getOrSave(ttl,ethTtl int64, tokens ...common.Address) error {
-	if uncachedTokens,err := accountBalances.syncFromCache(tokens...); nil != err || len(uncachedTokens) > 0 {
+func (accountBalances AccountBalances) getOrSave(ttl, ethTtl int64, tokens ...common.Address) error {
+	if uncachedTokens, err := accountBalances.syncFromCache(tokens...); nil != err || len(uncachedTokens) > 0 {
 		if err := accountBalances.syncFromEthNode(tokens...); nil != err {
 			return err
 		} else {
@@ -329,8 +329,8 @@ func (accountAllowances *AccountAllowances) batchReqs(fields [][]byte) loopringa
 			}
 		}
 	} else {
-		for _,field := range fields {
-			token,spender := parseAllowanceCacheField(field)
+		for _, field := range fields {
+			token, spender := parseAllowanceCacheField(field)
 			req := &loopringaccessor.BatchErc20AllowanceReq{}
 			req.BlockParameter = "latest"
 			req.Spender = spender
@@ -401,7 +401,7 @@ func (accountAllowances *AccountAllowances) syncFromCacheWithFields(fields [][]b
 	} else {
 		for idx, data := range allowanceData {
 			if len(data) > 0 {
-				token,spender := parseAllowanceCacheField(fields[idx])
+				token, spender := parseAllowanceCacheField(fields[idx])
 				if err1 := accountAllowances.applyData(token, spender, data); nil != err1 {
 					err = err1
 					uncachedFields = append(uncachedFields, fields[idx])
@@ -431,7 +431,7 @@ func (accountAllowances *AccountAllowances) syncFromCacheAll() (uncachedFields [
 				if err1 := accountAllowances.applyData(token, spender, allowanceData[i+1]); nil != err1 {
 					err = err1
 				} else {
-					if _,exists := cached[token]; !exists {
+					if _, exists := cached[token]; !exists {
 						cached[token] = make(map[common.Address]bool)
 					}
 					cached[token][spender] = true
@@ -443,12 +443,12 @@ func (accountAllowances *AccountAllowances) syncFromCacheAll() (uncachedFields [
 		}
 	}
 
-	for _,token := range tokens {
-		if _,exists := cached[token]; !exists {
+	for _, token := range tokens {
+		if _, exists := cached[token]; !exists {
 			uncachedFields = append(uncachedFields, generateAllowanceCahceFieldList([]common.Address{token}, spenders)...)
 		} else {
-			for _,spender := range spenders {
-				if _,exists1 := cached[token][spender]; !exists1 {
+			for _, spender := range spenders {
+				if _, exists1 := cached[token][spender]; !exists1 {
 					uncachedFields = append(uncachedFields, generateAllowanceCahceFieldList([]common.Address{token}, []common.Address{spender})...)
 				}
 			}
@@ -489,7 +489,7 @@ func (accountAllowances *AccountAllowances) syncFromEthNode(fields [][]byte) err
 }
 
 func (accountAllowances *AccountAllowances) getOrSave(ttl int64, tokens, spenders []common.Address) error {
-	if uncachedFields,err := accountAllowances.syncFromCache(tokens, spenders); nil != err {
+	if uncachedFields, err := accountAllowances.syncFromCache(tokens, spenders); nil != err {
 		if err := accountAllowances.syncFromEthNode(uncachedFields); nil != err {
 			return err
 		} else {
@@ -558,7 +558,7 @@ func removeExpiredBlock(blockNumber, duration *big.Int) error {
 	return nil
 }
 
-func (b *ChangedOfBlock) syncAndSaveBalances(ttl,ethTtl int64) (map[common.Address]bool, error) {
+func (b *ChangedOfBlock) syncAndSaveBalances(ttl, ethTtl int64) (map[common.Address]bool, error) {
 	changedAddrs := make(map[common.Address]bool)
 	reqs := b.batchBalanceReqs()
 	if err := accessor.BatchCall("latest", []accessor.BatchReq{reqs}); nil != err {
@@ -581,7 +581,7 @@ func (b *ChangedOfBlock) syncAndSaveBalances(ttl,ethTtl int64) (map[common.Addre
 		}
 	}
 	for _, balances := range accounts {
-		balances.save(ttl,ethTtl)
+		balances.save(ttl, ethTtl)
 		changedAddrs[balances.Owner] = true
 	}
 
