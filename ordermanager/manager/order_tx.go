@@ -22,125 +22,270 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/cache"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	omtyp "github.com/Loopring/relay-cluster/ordermanager/types"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// orderTx中同一个order 最多有三条记录 分别属于order owner&miner
+// 1、当订单处于pending状态时允许用户cancel/cutoff
+// 2、当订单处于cancel/cutoff时不允许miner pending
+// 第一种情况,
+
 type OrderTxHandler struct {
-	OrderHash   common.Hash
-	OrderStatus types.OrderStatus
+	Event *omtyp.OrderTx
 	BaseHandler
 }
 
-func NewOrderTxHandlerAndSaving(basehandler BaseHandler, orderhashlist []common.Hash, orderStatus types.OrderStatus) error {
-	handler := &OrderTxHandler{BaseHandler: basehandler, OrderStatus: orderStatus}
-	for _, v := range orderhashlist {
-		handler.OrderHash = v
-		handler.saveOrderPendingTx()
+func BaseOrderTxHandler(basehandler BaseHandler) *OrderTxHandler {
+	event := &omtyp.OrderTx{
+		Owner:  basehandler.TxInfo.From,
+		TxHash: basehandler.TxInfo.TxHash,
+		Nonce:  basehandler.TxInfo.Nonce.Int64(),
+	}
+	handler := &OrderTxHandler{BaseHandler: basehandler, Event: event}
+	return handler
+}
+
+func FullOrderTxHandler(basehandler BaseHandler, orderhash common.Hash, orderstatus types.OrderStatus) *OrderTxHandler {
+	handler := BaseOrderTxHandler(basehandler)
+	handler.Event.OrderHash = orderhash
+	handler.Event.OrderStatus = orderstatus
+
+	return handler
+}
+
+func (handler *OrderTxHandler) HandleOrderRelatedTxPending() error {
+	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+		return nil
+	}
+	if err := handler.validate(); err != nil {
+		return err
+	}
+	// 写入orderTx table
+	if err := handler.addOrderPendingTx(); err != nil {
+		return err
+	}
+	// 获取当前orderTx中跟order相关记录
+	list, err := handler.getOrderPendingTxSortedByNonce()
+	if err != nil {
+		return err
 	}
 
-	return nil
+	// 重新计算订单状态,并更新order表状态记录
+	return handler.setOrderStatus(list)
 }
 
-func (handler *OrderTxHandler) HandlePending() error {
-	//if handler.TxInfo.Status != types.TX_STATUS_PENDING {
-	//	return nil
-	//}
-	//if !handler.requirePermission() {
-	//	return nil
-	//}
-	//if err := handler.saveOrderPendingTx(); err != nil {
-	//	log.Debugf(handler.format(), handler.value())
-	//}
-	return nil
-}
-
-func (handler *OrderTxHandler) HandleFailed() error {
+func (handler *OrderTxHandler) HandleOrderRelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	if !handler.requirePermission() {
-		return nil
+	if err := handler.validate(); err != nil {
+		return err
 	}
-	return handler.processPendingTx()
+	return handler.processSingleOrder()
 }
 
-func (handler *OrderTxHandler) HandleSuccess() error {
+func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
 	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
 		return nil
 	}
-	if !handler.requirePermission() {
+	if err := handler.validate(); err != nil {
+		return err
+	}
+	return handler.processSingleOrder()
+}
+
+func (handler *OrderTxHandler) HandleOrderCorrelatedTxFailed() error {
+	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	return handler.processPendingTx()
-}
-
-// 查询用户是否拥有修改订单状态的权限
-func (handler *OrderTxHandler) requirePermission() bool {
-	owner := handler.TxInfo.From
-	return cache.HasOrderPermission(handler.Rds, owner)
-}
-
-func (handler *OrderTxHandler) processPendingTx() error {
-	//todo 1.删除用户无效pending tx
-	//todo 2.获取用户其他pending tx
-	models, _ := handler.Rds.GetOrderRelatedPendingTxList(handler.TxInfo.From)
-	if len(models) == 0 {
+	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
+	if len(orderHashList) == 0 {
 		return nil
 	}
 
-	for _, model := range models {
-		var tx omtyp.OrderRelatedPendingTx
-		model.ConvertUp(&tx)
+	for _, orderhash := range orderHashList {
+		handler.fullFilled(orderhash)
+		if err := handler.processSingleOrder(); err != nil {
+			continue
+		}
 	}
 
 	return nil
 }
 
-func (handler *OrderTxHandler) saveOrderPendingTx() error {
+func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
+	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
+
+	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
+	if len(orderHashList) == 0 {
+		return nil
+	}
+
+	for _, orderhash := range orderHashList {
+		handler.fullFilled(orderhash)
+		if err := handler.processSingleOrder(); err != nil {
+			continue
+		}
+	}
+
+	return nil
+}
+
+func (handler *OrderTxHandler) processSingleOrder() error {
+	list, err := handler.getOrderPendingTxSortedByNonce()
+	if err != nil {
+		return err
+	}
+
+	retList := handler.delOrderPendingTx(list)
+	return handler.setOrderStatus(retList)
+}
+
+// todo add cache
+// 如果orderTx的nonce都大于当前nonce则不用管
+func (handler *OrderTxHandler) getOrderPendingTxSortedByNonce() ([]omtyp.OrderTx, error) {
+	var list []omtyp.OrderTx
+
+	event := handler.Event
+	rds := handler.Rds
+
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
+	}
+	models, err := rds.GetPendingOrderTxSortedByNonce(event.Owner, event.OrderHash)
+	if err != nil {
+		return list, err
+	}
+
+	for _, model := range models {
+		var tx omtyp.OrderTx
+		model.ConvertUp(&tx)
+		list = append(list, tx)
+	}
+
+	return list, nil
+}
+
+func (handler *OrderTxHandler) addOrderPendingTx() error {
 	var (
 		model = &dao.OrderPendingTransaction{}
 		err   error
 	)
 
 	rds := handler.Rds
+	event := handler.Event
 
-	if model, err = rds.GetOrderRelatedPendingTx(handler.OrderHash, handler.TxInfo.TxHash); err == nil && model.OrderStatus == uint8(handler.TxInfo.Status) {
-		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(handler.OrderHash.Hex()))
+	if model, err = rds.FindPendingOrderTx(event.TxHash, event.OrderHash); err == nil {
+		return fmt.Errorf(handler.format("err:order %s already exist"), handler.value(event.OrderHash.Hex())...)
 	}
 
-	var record omtyp.OrderRelatedPendingTx
-	record.Owner = handler.TxInfo.From
-	record.TxHash = handler.TxInfo.TxHash
-	record.Nonce = handler.TxInfo.Nonce.Int64()
-	record.OrderHash = handler.OrderHash
-	record.OrderStatus = handler.OrderStatus
-	model.ConvertDown(&record)
+	model.ConvertDown(event)
+	rds.Add(model)
 
-	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
-		err = rds.Add(model)
-	} else {
-		err = rds.Del(model)
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		cache.SetPendingOrder(event.Owner, event.OrderHash)
 	}
 
+	return nil
+}
+
+// 删除某个订单下txhash相同,以及txhash不同但是nonce<=当前nonce对应的tx
+// 如果在orderTx表里的数据全被删除 则应在cache里删除order
+func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.OrderTx {
+	var (
+		delList []common.Hash
+		retList []omtyp.OrderTx
+	)
+
+	event := handler.Event
+	rds := handler.Rds
+
+	for _, v := range list {
+		if v.TxHash == event.TxHash {
+			delList = append(delList, v.TxHash)
+		} else if v.Nonce <= event.Nonce {
+			delList = append(delList, v.TxHash)
+		} else {
+			retList = append(retList, v)
+		}
+	}
+
+	rds.DelPendingOrderTx(event.Owner, event.OrderHash, delList)
+	if len(retList) == 0 && cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+		cache.DelPendingOrder(event.Owner, event.OrderHash)
+	}
+
+	return retList
+}
+
+// 从数据库中获取订单status
+// 根据当前的orderTx以及当前订单状态生成最终状态
+// 更新order表订单最终状态
+func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
+	event := handler.Event
+	rds := handler.Rds
+
+	state, err := cache.BaseInfo(event.OrderHash)
 	if err != nil {
-		return fmt.Errorf(handler.format("err"), handler.value(err.Error()))
-	} else {
-		return nil
+		return err
 	}
+
+	// without any pending tx
+	if len(list) == 0 {
+		if !omcm.IsPendingStatus(state.Status) {
+			return nil
+		}
+		SettleOrderStatus(state, handler.MarketCap, false)
+		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
+	}
+
+	// order owner cancelling/cutoffing
+	if state.RawOrder.Owner == event.Owner {
+		if state.Status == list[0].OrderStatus {
+			return nil
+		}
+		state.Status = list[0].OrderStatus
+		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
+	}
+
+	// miner submit ring pending
+	if state.RawOrder.Owner != event.Owner {
+		if omcm.IsPendingStatus(state.Status) {
+			return nil
+		}
+		return rds.UpdateOrderStatus(event.OrderHash, list[0].OrderStatus)
+	}
+
+	return nil
+}
+
+func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
+	handler.Event.OrderHash = orderhash
+}
+
+func (handler *OrderTxHandler) validate() error {
+	event := handler.Event
+	if event.OrderHash == types.NilHash {
+		return fmt.Errorf(handler.format("err:orderhash should not be nil"), handler.value()...)
+	}
+	return nil
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {
-	baseformat := "order manager orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
+	baseformat := "order manager, orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
 	for _, v := range fields {
 		baseformat += ", " + v
 	}
 	return baseformat
 }
 
-func (handler *OrderTxHandler) value(values ...string) []string {
-	basevalues := []string{handler.TxInfo.TxHash.Hex(), handler.TxInfo.From.Hex(), types.StatusStr(handler.TxInfo.Status), handler.TxInfo.Nonce.String()}
+func (handler *OrderTxHandler) value(values ...interface{}) []interface{} {
+	basevalues := []interface{}{handler.TxInfo.TxHash.Hex(), handler.TxInfo.From.Hex(), types.StatusStr(handler.TxInfo.Status), handler.TxInfo.Nonce.String()}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }

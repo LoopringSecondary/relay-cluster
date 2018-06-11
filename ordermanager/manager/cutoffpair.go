@@ -21,6 +21,7 @@ package manager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -36,11 +37,19 @@ func (handler *CutoffPairHandler) HandlePending() error {
 	if handler.Event.Status != types.TX_STATUS_PENDING {
 		return nil
 	}
-	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+
+	orderhashList, err := handler.getOrdersAndSaveEvent()
+	if err != nil {
 		return err
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	for _, orderhash := range orderhashList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
+		txhandler.HandleOrderRelatedTxPending()
+	}
+
 	return nil
 }
 
@@ -48,11 +57,19 @@ func (handler *CutoffPairHandler) HandleFailed() error {
 	if handler.Event.Status != types.TX_STATUS_FAILED {
 		return nil
 	}
-	if _, err := handler.getOrdersAndSaveEvent(); err != nil {
+
+	orderhashList, err := handler.getOrdersAndSaveEvent()
+	if err != nil {
 		return err
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	for _, orderhash := range orderhashList {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
+		txhandler.HandleOrderRelatedTxFailed()
+	}
+
 	return nil
 }
 
@@ -82,6 +99,12 @@ func (handler *CutoffPairHandler) HandleSuccess() error {
 	rds.SetCutOffOrders(orderhashlist, event.BlockNumber)
 
 	notify.NotifyCutoffPair(event)
+
+	for _, orderhash := range orderhashlist {
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
+		txhandler.HandleOrderRelatedTxSuccess()
+	}
+
 	return nil
 }
 
@@ -101,7 +124,7 @@ func (handler *CutoffPairHandler) getOrdersAndSaveEvent() ([]common.Hash, error)
 	}
 
 	if handler.Event.Status == types.TX_STATUS_PENDING {
-		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff)
+		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff, omcm.ValidCutoffStatus)
 		for _, v := range orders {
 			var state types.OrderState
 			v.ConvertUp(&state)

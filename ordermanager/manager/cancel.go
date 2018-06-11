@@ -41,6 +41,12 @@ func (handler *OrderCancelHandler) HandlePending() error {
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	txhandler := FullOrderTxHandler(handler.BaseHandler, handler.Event.OrderHash, types.ORDER_CANCELLING)
+	if err := txhandler.HandleOrderRelatedTxPending(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -53,6 +59,12 @@ func (handler *OrderCancelHandler) HandleFailed() error {
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
+
+	txhandler := FullOrderTxHandler(handler.BaseHandler, handler.Event.OrderHash, types.ORDER_CANCELLING)
+	if err := txhandler.HandleOrderRelatedTxFailed(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -104,6 +116,12 @@ func (handler *OrderCancelHandler) HandleSuccess() error {
 	}
 
 	notify.NotifyOrderUpdate(state)
+
+	// 原则上不允许订单状态干扰到其他动作
+	txhandler := FullOrderTxHandler(handler.BaseHandler, handler.Event.OrderHash, types.ORDER_CANCELLING)
+	if err := txhandler.HandleOrderRelatedTxSuccess(); err != nil {
+		return err
+	}
 
 	return nil
 }

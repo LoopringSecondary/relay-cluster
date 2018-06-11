@@ -63,7 +63,7 @@ func MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTi
 	}
 
 	// 从数据库获取订单
-	if modelList, err = writer.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, cm.InValidMiningStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
+	if modelList, err = writer.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, cm.ValidMinerStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
 		log.Errorf("err:%s", err.Error())
 		return list
 	}

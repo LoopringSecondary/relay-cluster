@@ -108,7 +108,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerSocketIOService()
 
 	n.registerExtractor()
-	cloudwatch.Initialize()
+	n.registerCloudWatch()
 
 	return n
 }
@@ -251,4 +251,8 @@ func (n *Node) registerExtractor() {
 	if err := extractor.Initialize(n.globalConfig.Kafka, kafka.Kafka_Group_RelayCluster_EventOnChain); err != nil {
 		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
+}
+
+func (n *Node) registerCloudWatch() {
+	cloudwatch.Initialize()
 }

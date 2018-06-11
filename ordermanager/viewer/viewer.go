@@ -20,6 +20,7 @@ package viewer
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	. "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
@@ -56,6 +57,10 @@ func NewOrderViewer(options *OrderManagerOptions,
 	viewer.mc = market
 	viewer.rds = rds
 	viewer.cutoffCache = NewCutoffCache(options.CutoffCacheCleanTime)
+
+	if cache.Invalid() {
+		cache.Initialize(viewer.rds)
+	}
 
 	return &viewer
 }

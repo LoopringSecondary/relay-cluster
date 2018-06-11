@@ -20,6 +20,7 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -79,6 +80,11 @@ func NewOrderManager(
 	// om.registryFlexCancelWatcher()
 
 	InitializeWriter(om.rds, um)
+
+	if cache.Invalid() {
+		cache.Initialize(om.rds)
+	}
+
 	return om
 }
 
@@ -175,19 +181,21 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 	return nil
 }
 
-func (om *OrderManagerImpl) basehandler() BaseHandler {
+func (om *OrderManagerImpl) basehandler(txinfo types.TxInfo) BaseHandler {
 	var base BaseHandler
 	base.Rds = om.rds
 	base.CutoffCache = om.cutoffCache
 	base.MarketCap = om.mc
+	base.TxInfo = txinfo
 
 	return base
 }
 
 // 所有来自gateway的订单都是新订单
 func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
+	src := input.(*types.OrderState)
 	handler := &GatewayOrderHandler{
-		State:     input.(*types.OrderState),
+		State:     src,
 		Rds:       om.rds,
 		MarketCap: om.mc,
 	}
@@ -196,63 +204,70 @@ func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) err
 }
 
 func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
+	src := input.(*types.SubmitRingMethodEvent)
 	handler := &SubmitRingHandler{
-		Event:       input.(*types.SubmitRingMethodEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
+	src := input.(*types.RingMinedEvent)
 	handler := &RingMinedHandler{
-		Event:       input.(*types.RingMinedEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
+	src := input.(*types.OrderFilledEvent)
 	handler := &FillHandler{
-		Event:       input.(*types.OrderFilledEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
+	src := input.(*types.OrderCancelledEvent)
 	handler := &OrderCancelHandler{
-		Event:       input.(*types.OrderCancelledEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error {
+	src := input.(*types.FlexCancelOrderEvent)
 	handler := &FlexCancelOrderHandler{
-		Event:       input.(*types.FlexCancelOrderEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(types.TxInfo{}),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
+	src := input.(*types.CutoffEvent)
 	handler := &CutoffHandler{
-		Event:       input.(*types.CutoffEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
 }
 
 func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
+	src := input.(*types.CutoffPairEvent)
 	handler := &CutoffPairHandler{
-		Event:       input.(*types.CutoffPairEvent),
-		BaseHandler: om.basehandler(),
+		Event:       src,
+		BaseHandler: om.basehandler(src.TxInfo),
 	}
 
 	return om.orderRelatedWorking(handler)
@@ -306,14 +321,17 @@ func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) erro
 }
 
 func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
-	//handler := &OrderTxHandler{
-	//	OrderHash:   types.NilHash,
-	//	OrderStatus: types.ORDER_UNKNOWN,
-	//	BaseHandler: om.basehandler(),
-	//}
-	//
-	//handler.HandleFailed()
-	//handler.HandleSuccess()
+	basehandler := om.basehandler(txinfo)
+	handler := BaseOrderTxHandler(basehandler)
+
+	if err := handler.HandleOrderCorrelatedTxFailed(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
+	if err := handler.HandleOrderCorrelatedTxSuccess(); err != nil {
+		log.Debugf(err.Error())
+		return nil
+	}
 
 	return nil
 }

@@ -19,7 +19,6 @@
 package dao
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/log"
@@ -201,15 +200,11 @@ func (s *RdsService) MarkMinerOrders(filterOrderhashs []string, blockNumber int6
 	return err
 }
 
-func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
+func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, validStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
 	var (
 		list []*Order
 		err  error
 	)
-
-	if len(filterStatus) < 1 {
-		return list, errors.New("should filter cutoff and finished orders")
-	}
 
 	nowtime := time.Now().Unix()
 	sinceTime := nowtime
@@ -217,7 +212,7 @@ func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length i
 	err = s.Db.Where("delegate_address = ? and token_s = ? and token_b = ?", protocol, tokenS, tokenB).
 		Where("valid_since < ?", sinceTime).
 		Where("valid_until >= ? ", untilTime).
-		Where("status not in (?) ", filterStatus).
+		Where("status in (?) ", validStatus).
 		Where("order_type = ? ", types.ORDER_TYPE_MARKET).
 		Where("miner_block_mark between ? and ?", startBlockNumber, endBlockNumber).
 		Order("price desc").
@@ -246,26 +241,24 @@ func (s *RdsService) GetOrdersByHash(orderhashs []string) (map[string]Order, err
 	return ret, err
 }
 
-func (s *RdsService) GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffOrders(owner common.Address, cutoffTime *big.Int, validStatus []types.OrderStatus) ([]Order, error) {
 	var (
 		list []Order
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_PARTIAL, types.ORDER_NEW}
-	err = s.Db.Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), filterStatus).Find(&list).Error
+	err = s.Db.Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), validStatus).Find(&list).Error
 	return list, err
 }
 
-func (s *RdsService) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int, validStatus []types.OrderStatus) ([]Order, error) {
 	var (
 		list []Order
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_PARTIAL, types.ORDER_NEW}
 	tokens := []string{token1.Hex(), token2.Hex()}
-	err = s.Db.Model(&Order{}).Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), filterStatus).
+	err = s.Db.Model(&Order{}).Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), validStatus).
 		Where("token_s in (?)", tokens).
 		Where("token_b in (?)", tokens).
 		Find(&list).Error

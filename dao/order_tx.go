@@ -24,18 +24,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// txhash唯一索引
 type OrderPendingTransaction struct {
 	ID          int    `gorm:"column:id;primary_key;"`
 	Owner       string `gorm:"column:owner;type:varchar(42)"`
 	OrderHash   string `gorm:"column:order_hash;type:varchar(82)"`
-	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
 	OrderStatus uint8  `gorm:"column:order_status;type:tinyint(4)"`
+	TxHash      string `gorm:"column:tx_hash;type:varchar(82)"`
 	Nonce       int64  `gorm:"column:nonce;type:bigint"`
 }
 
 // convert types/orderTxRecord to dao/ordertx
-func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderTx) error {
 	tx.OrderHash = src.OrderHash.Hex()
 	tx.OrderStatus = uint8(src.OrderStatus)
 	tx.TxHash = src.TxHash.Hex()
@@ -45,7 +44,7 @@ func (tx *OrderPendingTransaction) ConvertDown(src *omtyp.OrderRelatedPendingTx)
 	return nil
 }
 
-func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) error {
+func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderTx) error {
 	dst.OrderHash = common.HexToHash(tx.OrderHash)
 	dst.TxHash = common.HexToHash(tx.TxHash)
 	dst.Owner = common.HexToAddress(tx.Owner)
@@ -55,18 +54,38 @@ func (tx *OrderPendingTransaction) ConvertUp(dst *omtyp.OrderRelatedPendingTx) e
 	return nil
 }
 
-func (s *RdsService) GetOrderRelatedPendingTx(orderhash, txhash common.Hash) (*OrderPendingTransaction, error) {
-	var (
-		tx  OrderPendingTransaction
-		err error
-	)
-
-	err = s.Db.Where("order_hash=?", orderhash.Hex()).Where("tx_hash=?", txhash.Hex()).First(&tx).Error
+func (s *RdsService) FindPendingOrderTx(txhash, orderhash common.Hash) (*OrderPendingTransaction, error) {
+	var tx OrderPendingTransaction
+	err := s.Db.Where("tx_hash=?", txhash.Hex()).Where("order_hash=?", orderhash.Hex()).First(&tx).Error
 	return &tx, err
 }
 
-func (s *RdsService) GetOrderRelatedPendingTxList(owner common.Address) ([]OrderPendingTransaction, error) {
+func (s *RdsService) GetPendingOrderTxs(owner common.Address) ([]OrderPendingTransaction, error) {
 	var list []OrderPendingTransaction
-	err := s.Db.Where("owner=?", owner.Hex()).Order("nonce DESC").Find(&list).Error
+	err := s.Db.Where("owner=?", owner.Hex()).Find(&list).Error
 	return list, err
+}
+
+func (s *RdsService) GetPendingOrderTxSortedByNonce(owner common.Address, orderhash common.Hash) ([]OrderPendingTransaction, error) {
+	var list []OrderPendingTransaction
+	err := s.Db.Where("owner=?", owner.Hex()).Where("order_hash=?", orderhash.Hex()).Order("nonce DESC").Find(&list).Error
+	return list, err
+}
+
+func (s *RdsService) DelPendingOrderTx(owner common.Address, orderhash common.Hash, txhashlist []common.Hash) int64 {
+	if len(txhashlist) == 0 {
+		return 0
+	}
+
+	var list []string
+
+	for _, v := range txhashlist {
+		list = append(list, v.Hex())
+	}
+
+	return s.Db.Delete(&OrderPendingTransaction{}).
+		Where("owner=?", owner.Hash()).
+		Where("order_hash=?", orderhash.Hex()).
+		Where("tx_hash in (?)", list).
+		RowsAffected
 }
