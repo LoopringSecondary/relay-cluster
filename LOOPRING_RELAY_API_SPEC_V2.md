@@ -874,7 +874,7 @@ Get the total frozen amount of all unfinished orders
 ##### Parameters
 
 1. `owner` - The address.
-2. `token` - The specify token which you want to get.
+2. `token` - The specific token which you want to get.
 3. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 
 ```js
@@ -937,7 +937,7 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getGetFrozenLRCFee","par
 
 #### loopring_getSupportedMarket
 
-Get relay supported all market pairs
+Get all relay-supported market pairs
 
 ##### Parameters
 no input params.
@@ -965,7 +965,7 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedMarket","par
 
 #### loopring_getSupportedTokens
 
-Get relay supported all tokens
+Get all relay-supported tokens
 
 ##### Parameters
 no input params.
@@ -1002,7 +1002,7 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedTokens","par
 
 #### loopring_getContracts
 
-Get relay supported all contracts. The result struct is map[delegateAddress] List(loopringProtocol)
+Get all relay-supported contracts. The result is map[delegateAddress] List(loopringProtocol)
 
 ##### Parameters
 no input params.
@@ -1032,11 +1032,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getContracts","params":[
 
 #### loopring_getLooprSupportedMarket
 
-Get Loopr wallet supported market pairs. Exactly same to loopring_getSupportedMarket but only method name.
+Get Loopr wallet supported market pairs. Exactly the same as loopring_getSupportedMarket but the name is different.
 
 #### loopring_getLooprSupportedTokens
 
-Get Loopr wallet supported tokens. Exactly same to loopring_getSupportedTokens but only method name.
+Get Loopr wallet supported tokens. Exactly the same as loopring_getSupportedTokens but the name is different.
 
 #### loopring_getPortfolio
 
@@ -1056,7 +1056,7 @@ params: [{
 
 `Account` - Portfolio info object.
 
-1. `tokens` - All token portfolio info array.
+1. `tokens` - All token portfolio array info.
 
 ##### Example
 ```js
@@ -1258,7 +1258,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyTransactionSubmit
 #### loopring_submitRingForP2P
 
 submit signed raw transaction of ring information, then relay can help submitting the ring while tracing the status of orders for wallet. 
-please submit taker and maker order before invoke this method.
+please submit taker and maker order before invoking this method.
 
 ##### Parameters
 
