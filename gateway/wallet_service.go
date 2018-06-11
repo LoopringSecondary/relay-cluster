@@ -66,6 +66,7 @@ const OT_STATUS_INIT = "init"
 const OT_STATUS_ACCEPT = "accept"
 const OT_STATUS_REJECT = "reject"
 const OT_REDIS_PRE_KEY = "otrpk_"
+const SL_REDIS_PRE_KEY = "slrpk_"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -328,12 +329,42 @@ type LatestFill struct {
 }
 
 type CancelOrderQuery struct {
-	Owner      string `json:"owner"`
-	OrderHash  string `json:"orderHash"`
-	CutoffTime int64  `json:"cutoff"`
-	TokenS     string `json:"tokenS"`
-	TokenB     string `json:"tokenB"`
-	Type       uint8  `json:"type"`
+	Sign       SignInfo `json:"sign"`
+	Owner      string   `json:"owner"`
+	OrderHash  string   `json:"orderHash"`
+	CutoffTime int64    `json:"cutoff"`
+	TokenS     string   `json:"tokenS"`
+	TokenB     string   `json:"tokenB"`
+	Type       uint8    `json:"type"`
+}
+
+type SignInfo struct {
+	Timestamp int64  `json:"timestamp"`
+	V         uint8  `json:"v"'`
+	R         string `json:"r"`
+	S         string `json:"s"`
+	Owner     string `json:"owner"`
+}
+
+type Ticket struct {
+	Sign   SignInfo           `json:"sign"`
+	Ticket dao.TicketReceiver `json:"ticket"`
+}
+
+type TicketQuery struct {
+	Sign  SignInfo `json:"sign"`
+	Owner string   `json:"owner"`
+}
+
+type LoginInfo struct {
+	Owner string `json:"owner"`
+	UUID  string `json:"uuid"`
+}
+
+type SignedLoginInfo struct {
+	Sign  SignInfo `json:"sign"`
+	Owner string   `json:"owner"`
+	UUID  string   `json:"uuid"`
 }
 
 type P2PRingRequest struct {
@@ -1025,16 +1056,25 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 	return types.BigintToHex(gasprice_evaluator.EstimateGasPrice(nil, nil)), nil
 }
 
-func (w *WalletServiceImpl) ApplyTicket(ticket dao.TicketReceiver) (result string, err error) {
-	isSignCorrect := verifyTicketSign(ticket)
+func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error) {
+	isSignCorrect := verifySign(ticket.Sign)
 	if isSignCorrect {
-		exist, err := w.rds.QueryTicketByAddress(ticket.Address)
+		exist, err := w.rds.QueryTicketByAddress(ticket.Ticket.Address)
 		if err != nil && exist.ID > 0 {
-			ticket.ID = exist.ID
+			ticket.Ticket.ID = exist.ID
 		}
-		return "", w.rds.Save(&ticket)
+		return "", w.rds.Save(&ticket.Ticket)
 	} else {
 		return "", errors.New("sign v, r, s is incorrect")
+	}
+}
+
+func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
+	isSignCorrect := verifySign(query.Sign)
+	if isSignCorrect {
+		return w.rds.QueryTicketByAddress(query.Owner)
+	} else {
+		return ticket, errors.New("sign v, r, s is incorrect")
 	}
 }
 
@@ -1354,8 +1394,12 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 }
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
-	//TODO(finish this later)
-	return rst, err
+
+	isCorrect := verifySign(req.Sign)
+	if !isCorrect {
+		return rst, errors.New("sign incorrect")
+	}
+
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
 	cancelOrderEvent.OrderHash = common.HexToHash(req.OrderHash)
 	cancelOrderEvent.Owner = common.HexToAddress(req.Owner)
@@ -1412,6 +1456,37 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, &OrderTransfer{Hash: ot.Hash, Status: ot.Status})
 		return req.Hash, err
 	}
+}
+
+func (w *WalletServiceImpl) InitScanLogin(req LoginInfo) (rst string, err error) {
+	otByte, err := json.Marshal(req)
+	if err != nil {
+		return req.UUID, err
+	}
+	err = cache.Set(SL_REDIS_PRE_KEY+strings.ToLower(req.Owner), otByte, 3600)
+	return req.UUID, err
+}
+
+func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, err error) {
+
+	isCorrect := verifySign(req.Sign)
+	if !isCorrect {
+		return req.UUID, errors.New("sign incorrect")
+	}
+
+	slByte, err := cache.Get(SL_REDIS_PRE_KEY + strings.ToLower(req.Owner))
+	if err != nil {
+		return rst, errors.New("QR code has expired")
+	}
+
+	var loginInfo LoginInfo
+	err = json.Unmarshal(slByte, &loginInfo)
+	if err != nil {
+		return rst, err
+	}
+
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &loginInfo)
+	return req.UUID, err
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {
@@ -1688,17 +1763,17 @@ func fmtFloat(src *big.Rat) float64 {
 	return rst
 }
 
-func verifyTicketSign(t dao.TicketReceiver) bool {
+func verifySign(sign SignInfo) bool {
 	h := &common.Hash{}
 	address := &common.Address{}
-	hashBytes := crypto.GenerateHash([]byte(t.Phone), []byte(t.Email))
+	hashBytes := crypto.GenerateHash([]byte(strconv.FormatInt(sign.Timestamp, 10)))
 	h.SetBytes(hashBytes)
-	sig, _ := crypto.VRSToSig(t.V, types.HexToBytes32(t.R).Bytes(), types.HexToBytes32(t.S).Bytes())
+	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
-		log.Errorf("order signer address error:%s", err.Error())
+		log.Errorf("signer address error:%s", err.Error())
 		return false
 	} else {
 		address.SetBytes(addressBytes)
-		return strings.ToLower(address.Hex()) == strings.ToLower(t.Address)
+		return strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner)
 	}
 }

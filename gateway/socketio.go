@@ -43,6 +43,7 @@ const (
 )
 
 const Kafka_Topic_SocketIO_Order_Transfer = "Kafka_Topic_SocketIO_Order_Transfer"
+const Kafka_Topic_SocketIO_Scan_Login = "Kafka_Topic_SocketIO_Scan_Login"
 
 type Server struct {
 	socketio.Server
@@ -100,6 +101,7 @@ const (
 	eventKeyGlobalMarketTicker = "globalMarketTicker"
 
 	eventKeyOrderTransfer = "authorization"
+	eventKeyScanLogin     = "addressUnlock"
 )
 
 type SocketIOService interface {
@@ -143,6 +145,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		kafka.Kafka_Topic_SocketIO_BalanceUpdated:      {types.BalanceUpdateEvent{}, so.handleBalanceUpdate},
 		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
 		Kafka_Topic_SocketIO_Order_Transfer:            {OrderTransfer{}, so.handleOrderTransfer},
+		Kafka_Topic_SocketIO_Scan_Login:                {LoginInfo{}, so.handleScanLogin},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -1089,6 +1092,39 @@ func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error
 				if err != nil {
 					log.Error("query unmarshal error, " + err.Error())
 				} else if strings.ToLower(ot.Hash) == strings.ToLower(query.Hash) {
+					log.Info("emit " + ctx)
+					resp := SocketIOJsonResp{}
+					resp.Data = ot
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyOrderTransfer+EventPostfixRes, string(respJson[:]))
+				}
+			}
+		}
+		return true
+	})
+
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleScanLogin(input interface{}) (err error) {
+
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] scan login input.")
+
+	ot := input.(*LoginInfo)
+	log.Infof("received UUID is %s ", ot.UUID)
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyScanLogin]
+			log.Infof("cxt contains event key %b", ok)
+
+			if ok {
+				query := &LoginInfo{}
+				err = json.Unmarshal([]byte(ctx), query)
+				if err != nil {
+					log.Error("query unmarshal error, " + err.Error())
+				} else if strings.ToLower(ot.UUID) == strings.ToLower(query.UUID) {
 					log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
 					resp.Data = ot

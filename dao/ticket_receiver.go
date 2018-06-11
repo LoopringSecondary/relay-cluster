@@ -24,9 +24,6 @@ type TicketReceiver struct {
 	Email   string `gorm:"column:email;type:varchar(128)" json:"email"`
 	Phone   string `gorm:"column:phone;type:varchar(128)" json:"phone"`
 	Address string `gorm:"column:address;type:varchar(128);unique_index" json:"address"`
-	V       uint8  `gorm:"column:v;type:tinyint(4)" json:"v"'`
-	R       string `gorm:"column:r;type:varchar(66)" json:"r"`
-	S       string `gorm:"column:s;type:varchar(66)" json:"s"`
 }
 
 func (s *RdsService) QueryTicketByAddress(address string) (ticket TicketReceiver, err error) {
