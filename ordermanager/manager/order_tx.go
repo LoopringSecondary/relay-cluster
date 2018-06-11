@@ -243,21 +243,21 @@ func (handler *OrderTxHandler) addOrderPendingTx() error {
 // 删除某个订单下txhash相同,以及txhash不同但是nonce<=当前nonce对应的tx
 // 如果在orderTx表里的数据全被删除 则应在cache里删除order
 func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
-	var validTxHashList []common.Hash
+	var delList []common.Hash
 
 	event := handler.Event
 	rds := handler.Rds
 
 	for _, v := range list {
 		if v.TxHash == event.TxHash {
-			validTxHashList = append(validTxHashList, v.TxHash)
+			delList = append(delList, v.TxHash)
 		} else if v.Nonce <= event.Nonce {
-			validTxHashList = append(validTxHashList, v.TxHash)
+			delList = append(delList, v.TxHash)
 		}
 	}
 
-	affectedRows := rds.DelPendingOrderTx(event.Owner, event.OrderHash, validTxHashList)
-	if int(affectedRows) == len(list) {
+	rds.DelPendingOrderTx(event.Owner, event.OrderHash, delList)
+	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
 		cache.DelPendingOrder(event.Owner, event.OrderHash)
 	}
 
