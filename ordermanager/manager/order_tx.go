@@ -141,51 +141,9 @@ func (handler *OrderTxHandler) processSingleOrder() error {
 	if err != nil {
 		return err
 	}
-	if err := handler.setOrderStatus(list); err != nil {
-		return err
-	}
-	return handler.delOrderPendingTx(list)
-}
 
-// 从数据库中获取订单status
-// 根据当前的orderTx以及当前订单状态生成最终状态
-// 更新order表订单最终状态
-func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
-	event := handler.Event
-	rds := handler.Rds
-
-	state, err := cache.BaseInfo(event.OrderHash)
-	if err != nil {
-		return err
-	}
-
-	// without any pending tx
-	if len(list) == 0 {
-		if !omcm.IsPendingStatus(state.Status) {
-			return nil
-		}
-		SettleOrderStatus(state, handler.MarketCap, false)
-		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
-	}
-
-	// order owner cancelling/cutoffing
-	if state.RawOrder.Owner == event.Owner {
-		if state.Status == list[0].OrderStatus {
-			return nil
-		}
-		state.Status = list[0].OrderStatus
-		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
-	}
-
-	// miner submit ring pending
-	if state.RawOrder.Owner != event.Owner {
-		if omcm.IsPendingStatus(state.Status) {
-			return nil
-		}
-		return rds.UpdateOrderStatus(event.OrderHash, list[0].OrderStatus)
-	}
-
-	return nil
+	retList := handler.delOrderPendingTx(list)
+	return handler.setOrderStatus(retList)
 }
 
 // todo add cache
@@ -238,8 +196,11 @@ func (handler *OrderTxHandler) addOrderPendingTx() error {
 
 // 删除某个订单下txhash相同,以及txhash不同但是nonce<=当前nonce对应的tx
 // 如果在orderTx表里的数据全被删除 则应在cache里删除order
-func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
-	var delList []common.Hash
+func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.OrderTx {
+	var (
+		delList []common.Hash
+		retList []omtyp.OrderTx
+	)
 
 	event := handler.Event
 	rds := handler.Rds
@@ -249,12 +210,61 @@ func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) error {
 			delList = append(delList, v.TxHash)
 		} else if v.Nonce <= event.Nonce {
 			delList = append(delList, v.TxHash)
+		} else {
+			retList = append(retList, v)
 		}
 	}
 
 	rds.DelPendingOrderTx(event.Owner, event.OrderHash, delList)
 	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
 		cache.DelPendingOrder(event.Owner, event.OrderHash)
+	}
+
+	return retList
+}
+
+// 从数据库中获取订单status
+// 根据当前的orderTx以及当前订单状态生成最终状态
+// 更新order表订单最终状态
+func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
+	event := handler.Event
+	rds := handler.Rds
+
+	state, err := cache.BaseInfo(event.OrderHash)
+	if err != nil {
+		return err
+	}
+
+	// without any pending tx
+	if len(list) == 0 {
+		if !omcm.IsPendingStatus(state.Status) {
+			println("-----------------1")
+			return nil
+		}
+		println("-----------------2")
+		SettleOrderStatus(state, handler.MarketCap, false)
+		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
+	}
+
+	// order owner cancelling/cutoffing
+	if state.RawOrder.Owner == event.Owner {
+		if state.Status == list[0].OrderStatus {
+			println("-----------------3")
+			return nil
+		}
+		println("-----------------4")
+		state.Status = list[0].OrderStatus
+		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
+	}
+
+	// miner submit ring pending
+	if state.RawOrder.Owner != event.Owner {
+		if omcm.IsPendingStatus(state.Status) {
+			println("-----------------5")
+			return nil
+		}
+		println("-----------------6")
+		return rds.UpdateOrderStatus(event.OrderHash, list[0].OrderStatus)
 	}
 
 	return nil

@@ -224,7 +224,7 @@ func (handler *FillHandler) HandleSuccess() error {
 	}
 
 	// update orderTx
-	txhandler := FullOrderTxHandler(handler.BaseHandler, state.RawOrder.Hash, types.ORDER_CANCELLING)
+	txhandler := FullOrderTxHandler(handler.BaseHandler, state.RawOrder.Hash, types.ORDER_PENDING)
 	txhandler.HandleOrderRelatedTxSuccess()
 
 	log.Debugf(handler.format("dealAmountS:%s, dealtAmountB:%s"), handler.value(state.DealtAmountS.String(), state.DealtAmountB.String())...)

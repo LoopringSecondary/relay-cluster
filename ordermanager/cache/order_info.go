@@ -27,13 +27,20 @@ import (
 
 const (
 	OrderPrefix = "om_order_"
-	OrderTtl    = 86400
+	OrderTtl    = 120 // todo modify it to 86400
 )
 
 func BaseInfo(orderhash common.Hash) (*types.OrderState, error) {
 	key := OrderPrefix + orderhash.Hex()
-
 	state := &types.OrderState{}
+
+	// todo delete it
+	model, err := rds.GetOrderByHash(orderhash)
+	if err != nil {
+		return nil, err
+	}
+	model.ConvertUp(state)
+	return state, nil
 
 	if bs, err := cache.Get(key); err != nil {
 		model, err := rds.GetOrderByHash(orderhash)
