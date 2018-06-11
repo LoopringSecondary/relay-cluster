@@ -201,15 +201,11 @@ func (s *RdsService) MarkMinerOrders(filterOrderhashs []string, blockNumber int6
 	return err
 }
 
-func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, filterStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
+func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length int, validStatus []types.OrderStatus, reservedTime, startBlockNumber, endBlockNumber int64) ([]*Order, error) {
 	var (
 		list []*Order
 		err  error
 	)
-
-	if len(filterStatus) < 1 {
-		return list, errors.New("should filter cutoff and finished orders")
-	}
 
 	nowtime := time.Now().Unix()
 	sinceTime := nowtime
@@ -217,7 +213,7 @@ func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length i
 	err = s.Db.Where("delegate_address = ? and token_s = ? and token_b = ?", protocol, tokenS, tokenB).
 		Where("valid_since < ?", sinceTime).
 		Where("valid_until >= ? ", untilTime).
-		Where("status not in (?) ", filterStatus).
+		Where("status in (?) ", validStatus).
 		Where("order_type = ? ", types.ORDER_TYPE_MARKET).
 		Where("miner_block_mark between ? and ?", startBlockNumber, endBlockNumber).
 		Order("price desc").

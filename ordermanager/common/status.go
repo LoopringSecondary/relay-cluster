@@ -42,15 +42,13 @@ var ValidFlexCancelStatus = []types.OrderStatus{
 	types.ORDER_PENDING,
 }
 
-var InValidMiningStatus = []types.OrderStatus{
-	types.ORDER_UNKNOWN,
+var ValidMinerStatus = []types.OrderStatus{
+	types.ORDER_NEW,
+	types.ORDER_PARTIAL,
 	types.ORDER_PENDING,
-	types.ORDER_FINISHED,
-	types.ORDER_CUTOFF,
-	types.ORDER_CANCEL,
-	types.ORDER_FLEX_CANCEL,
 }
 
+// 同一个订单必须允许多次cancel&cutoff,有的cancel/cutoff可能会不成功,后续的动作可以跟进
 var ValidCutoffStatus = []types.OrderStatus{
 	types.ORDER_PARTIAL,
 	types.ORDER_NEW,
