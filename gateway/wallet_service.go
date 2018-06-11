@@ -1459,15 +1459,6 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 	}
 }
 
-func (w *WalletServiceImpl) InitScanLogin(req LoginInfo) (rst string, err error) {
-	otByte, err := json.Marshal(req)
-	if err != nil {
-		return req.UUID, err
-	}
-	err = cache.Set(SL_REDIS_PRE_KEY+strings.ToLower(req.Owner), otByte, 3600)
-	return req.UUID, err
-}
-
 func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, err error) {
 
 	isCorrect, err := verifySign(req.Sign)
@@ -1475,18 +1466,7 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 		return req.UUID, err
 	}
 
-	slByte, err := cache.Get(SL_REDIS_PRE_KEY + strings.ToLower(req.Owner))
-	if err != nil {
-		return rst, errors.New("QR code has expired")
-	}
-
-	var loginInfo LoginInfo
-	err = json.Unmarshal(slByte, &loginInfo)
-	if err != nil {
-		return rst, err
-	}
-
-	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &loginInfo)
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID:req.UUID, Owner:req.Owner})
 	return req.UUID, err
 }
 

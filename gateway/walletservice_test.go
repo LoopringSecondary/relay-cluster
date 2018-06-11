@@ -32,7 +32,9 @@ import (
 	"github.com/Loopring/relay-cluster/gateway"
 	"strconv"
 	"strings"
-	"time"
+	//"time"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/accounts"
 )
 
 //import (
@@ -91,8 +93,6 @@ func TestGetPow(t *testing.T) {
 	}`
 	rawJSON := []byte(logConfig)
 
-	fmt.Println(float64(1528693620 - time.Now().Unix()))
-
 	var (
 		cfg zap.Config
 		err error
@@ -101,10 +101,8 @@ func TestGetPow(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println(">>>>>>>>>a")
 	log.Initialize(cfg)
 
-	fmt.Println(">>>>>>>>>b")
 	//cf := dao2.MysqlOptions{}
 	//cf.Password = "111111"
 	//cf.Hostname = "13.112.62.24"
@@ -120,26 +118,48 @@ func TestGetPow(t *testing.T) {
 	//rds := dao.NewDb(&cf)
 	//fmt.Println(">>>>>>>>>d")
 
+
+
 	h := &common.Hash{}
 	address := &common.Address{}
-	c := crypto.NewKSCrypto(false, nil)
+	ks := keystore.NewKeyStore("/Users/jaice/aws_ak", keystore.StandardScryptN, keystore.StandardScryptP)
+	c := crypto.NewKSCrypto(false, ks)
 	crypto.Initialize(c)
 
-	fmt.Println("1234")
+
+	addr := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+
+	creator := accounts.Account{Address: addr}
+	if err := ks.Unlock(creator, "11111111"); err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	var timstampInt int64 = 1528695770
+	timestamp := strconv.FormatInt(timstampInt, 10)
+	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+
+
+	testh, err := crypto.Sign([]byte(timestamp), owner)
+	//fmt.Println(common.BytesToHash(testh).Hex())
+	vv, rr, ss := crypto.SigToVRS(testh)
+	fmt.Println(uint8(vv))
+	fmt.Println(common.BytesToHash(rr).Hex())
+	fmt.Println(common.BytesToHash(ss).Hex())
+	fmt.Println("----------------------")
 
 	tt := dao.TicketReceiver{}
 	tt.Phone = "13312341234"
 	tt.Email = "test@126.com"
-	tt.Address = "0xcc3381d40ff83bf9768c5a4669beb39361da893a"
+	tt.Address = "0x2ef680f87989bce2a9f458e450cffd6589b549fa"
 	tt.Name = "张三"
 
 	applyt := gateway.Ticket{}
 	applyt.Ticket = tt
 
-	applyt.Sign = gateway.SignInfo{Owner: "0xcc3381d40ff83bf9768c5a4669beb39361da893a", V: 28,
-		R: "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726",
-		S: "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c",
-		Timestamp: 13333333333,
+	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 27,
+		R: "0x668a7093e83d2d87692ae226045aeb68a7ceb6193b7713ef4ba937b7f3d09ad1",
+		S: "0x5db116aba33b6a4424179ab573ad0e68ead4c8e38c55929af28353ce32042ec0",
+		Timestamp: 1528695770,
 	}
 
 
@@ -149,13 +169,14 @@ func TestGetPow(t *testing.T) {
 	//tt.V = 28
 	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
 	//tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
-	fmt.Println(">>>>1234")
-	//err = rds.Add(tt)
-	fmt.Println(err)
 
 	sign := applyt.Sign
-	hashBytes := crypto.GenerateHash([]byte(strconv.FormatInt(sign.Timestamp, 10)))
-	h.SetBytes(hashBytes)
+	h.SetBytes([]byte(timestamp))
+	fmt.Println(sign.V)
+	fmt.Println(sign.R)
+	fmt.Println(sign.S)
+	fmt.Println(timestamp)
+
 	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
 		log.Errorf("signer address error:%s", err.Error())
