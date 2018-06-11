@@ -340,7 +340,7 @@ type CancelOrderQuery struct {
 }
 
 type SignInfo struct {
-	Timestamp int64  `json:"timestamp"`
+	Timestamp string  `json:"timestamp"`
 	V         uint8  `json:"v"'`
 	R         string `json:"r"`
 	S         string `json:"s"`
@@ -1666,13 +1666,17 @@ func fmtFloat(src *big.Rat) float64 {
 func verifySign(sign SignInfo) (bool, error) {
 
 	now := time.Now().Unix()
-	if math.Abs(float64(now - sign.Timestamp)) > 60 * 10 {
+	ts, err := strconv.ParseInt(sign.Timestamp, 10, 64); if err != nil {
+		return false, err
+	}
+
+	if math.Abs(float64(now - ts)) > 60 * 10 {
 		return false, errors.New("timestamp had expired")
 	}
 
 	h := &common.Hash{}
 	address := &common.Address{}
-	hashBytes := crypto.GenerateHash([]byte(strconv.FormatInt(sign.Timestamp, 10)))
+	hashBytes := crypto.GenerateHash([]byte(sign.Timestamp))
 	h.SetBytes(hashBytes)
 	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {

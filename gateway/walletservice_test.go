@@ -32,7 +32,6 @@ import (
 	"github.com/Loopring/relay-cluster/gateway"
 	"strconv"
 	"strings"
-	//"time"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/accounts"
 )
@@ -136,10 +135,11 @@ func TestGetPow(t *testing.T) {
 
 	var timstampInt int64 = 1528695770
 	timestamp := strconv.FormatInt(timstampInt, 10)
+	tsHash := crypto.GenerateHash([]byte(timestamp))
 	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
 
 
-	testh, err := crypto.Sign([]byte(timestamp), owner)
+	testh, err := crypto.Sign(tsHash, owner)
 	//fmt.Println(common.BytesToHash(testh).Hex())
 	vv, rr, ss := crypto.SigToVRS(testh)
 	fmt.Println(uint8(vv))
@@ -156,10 +156,10 @@ func TestGetPow(t *testing.T) {
 	applyt := gateway.Ticket{}
 	applyt.Ticket = tt
 
-	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 27,
-		R: "0x668a7093e83d2d87692ae226045aeb68a7ceb6193b7713ef4ba937b7f3d09ad1",
-		S: "0x5db116aba33b6a4424179ab573ad0e68ead4c8e38c55929af28353ce32042ec0",
-		Timestamp: 1528695770,
+	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 28,
+		R: "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
+		S: "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
+		Timestamp: timestamp,
 	}
 
 
@@ -169,14 +169,15 @@ func TestGetPow(t *testing.T) {
 	//tt.V = 28
 	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
 	//tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
+	fmt.Println(">>>>1234")
+	//err = rds.Add(tt)
+	fmt.Println(err)
 
 	sign := applyt.Sign
-	h.SetBytes([]byte(timestamp))
+	h.SetBytes(tsHash)
 	fmt.Println(sign.V)
 	fmt.Println(sign.R)
 	fmt.Println(sign.S)
-	fmt.Println(timestamp)
-
 	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
 		log.Errorf("signer address error:%s", err.Error())
