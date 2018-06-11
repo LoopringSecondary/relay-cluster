@@ -23,12 +23,16 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/crypto"
-	dao2 "github.com/Loopring/relay-lib/dao"
+	//dao2 "github.com/Loopring/relay-lib/dao"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"testing"
+	"github.com/Loopring/relay-cluster/gateway"
+	"strconv"
+	"strings"
+	"time"
 )
 
 //import (
@@ -87,6 +91,8 @@ func TestGetPow(t *testing.T) {
 	}`
 	rawJSON := []byte(logConfig)
 
+	fmt.Println(float64(1528693620 - time.Now().Unix()))
+
 	var (
 		cfg zap.Config
 		err error
@@ -99,20 +105,20 @@ func TestGetPow(t *testing.T) {
 	log.Initialize(cfg)
 
 	fmt.Println(">>>>>>>>>b")
-	cf := dao2.MysqlOptions{}
-	cf.Password = "111111"
-	cf.Hostname = "13.112.62.24"
-	cf.Port = "3306"
-	cf.User = "root"
-	cf.DbName = "loopring_relay_v1_5"
-	cf.TablePrefix = "lpr_"
-	cf.MaxOpenConnections = 0
-	cf.MaxIdleConnections = 0
-	cf.ConnMaxLifetime = 0
-	cf.Debug = true
-	fmt.Println(">>>>>>>>>c")
-	rds := dao.NewDb(&cf)
-	fmt.Println(">>>>>>>>>d")
+	//cf := dao2.MysqlOptions{}
+	//cf.Password = "111111"
+	//cf.Hostname = "13.112.62.24"
+	//cf.Port = "3306"
+	//cf.User = "root"
+	//cf.DbName = "loopring_relay_v1_5"
+	//cf.TablePrefix = "lpr_"
+	//cf.MaxOpenConnections = 0
+	//cf.MaxIdleConnections = 0
+	//cf.ConnMaxLifetime = 0
+	//cf.Debug = true
+	//fmt.Println(">>>>>>>>>c")
+	//rds := dao.NewDb(&cf)
+	//fmt.Println(">>>>>>>>>d")
 
 	h := &common.Hash{}
 	address := &common.Address{}
@@ -125,23 +131,38 @@ func TestGetPow(t *testing.T) {
 	tt.Phone = "13312341234"
 	tt.Email = "test@126.com"
 	tt.Address = "0xcc3381d40ff83bf9768c5a4669beb39361da893a"
-	tt.V = 28
-	tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
-	tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
 	tt.Name = "张三"
+
+	applyt := gateway.Ticket{}
+	applyt.Ticket = tt
+
+	applyt.Sign = gateway.SignInfo{Owner: "0xcc3381d40ff83bf9768c5a4669beb39361da893a", V: 28,
+		R: "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726",
+		S: "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c",
+		Timestamp: 13333333333,
+	}
+
+
+
+
+
+	//tt.V = 28
+	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
+	//tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
 	fmt.Println(">>>>1234")
-	err = rds.Add(tt)
+	//err = rds.Add(tt)
 	fmt.Println(err)
 
-	hashBytes := crypto.GenerateHash([]byte(tt.Phone), []byte(tt.Email))
+	sign := applyt.Sign
+	hashBytes := crypto.GenerateHash([]byte(strconv.FormatInt(sign.Timestamp, 10)))
 	h.SetBytes(hashBytes)
-	fmt.Println(h.Hex())
-	sig, _ := crypto.VRSToSig(tt.V, types.HexToBytes32(tt.R).Bytes(), types.HexToBytes32(tt.S).Bytes())
+	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
-		fmt.Println("order signer address error: " + err.Error())
+		log.Errorf("signer address error:%s", err.Error())
 	} else {
 		address.SetBytes(addressBytes)
 		fmt.Println(address.Hex())
+		fmt.Println(strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner))
 	}
 
 }

@@ -47,6 +47,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -1057,7 +1058,7 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 }
 
 func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error) {
-	isSignCorrect := verifySign(ticket.Sign)
+	isSignCorrect, err := verifySign(ticket.Sign)
 	if isSignCorrect {
 		exist, err := w.rds.QueryTicketByAddress(ticket.Ticket.Address)
 		if err != nil && exist.ID > 0 {
@@ -1065,16 +1066,16 @@ func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error
 		}
 		return "", w.rds.Save(&ticket.Ticket)
 	} else {
-		return "", errors.New("sign v, r, s is incorrect")
+		return "", err
 	}
 }
 
 func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
-	isSignCorrect := verifySign(query.Sign)
+	isSignCorrect, err := verifySign(query.Sign)
 	if isSignCorrect {
 		return w.rds.QueryTicketByAddress(query.Owner)
 	} else {
-		return ticket, errors.New("sign v, r, s is incorrect")
+		return ticket, err
 	}
 }
 
@@ -1395,9 +1396,9 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
 
-	isCorrect := verifySign(req.Sign)
+	isCorrect, err := verifySign(req.Sign)
 	if !isCorrect {
-		return rst, errors.New("sign incorrect")
+		return rst, err
 	}
 
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
@@ -1469,9 +1470,9 @@ func (w *WalletServiceImpl) InitScanLogin(req LoginInfo) (rst string, err error)
 
 func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, err error) {
 
-	isCorrect := verifySign(req.Sign)
+	isCorrect, err := verifySign(req.Sign)
 	if !isCorrect {
-		return req.UUID, errors.New("sign incorrect")
+		return req.UUID, err
 	}
 
 	slByte, err := cache.Get(SL_REDIS_PRE_KEY + strings.ToLower(req.Owner))
@@ -1595,83 +1596,6 @@ func orderStateToJson(src types.OrderState) OrderJsonResult {
 	return rst
 }
 
-func txStatusToUint8(txType string) int {
-	switch txType {
-	case "pending":
-		return 1
-	case "success":
-		return 2
-	case "failed":
-		return 3
-	default:
-		return -1
-	}
-}
-
-func txTypeToUint8(status string) int {
-	switch status {
-	case "approve":
-		return 1
-	case "send":
-		return 2
-	case "receive":
-		return 3
-	case "sell":
-		return 4
-	case "buy":
-		return 5
-	case "convert":
-		return 7
-	case "cancel_order":
-		return 8
-	case "cutoff":
-		return 9
-	case "cutoff_trading_pair":
-		return 10
-	default:
-		return -1
-	}
-}
-
-//func toTxJsonResult(tx types.Transaction) txmanager.TransactionJsonResult {
-//	dst := txmanager.TransactionJsonResult{}
-//	dst.Protocol = tx.Protocol
-//	dst.Owner = tx.Owner
-//	dst.From = tx.From
-//	dst.To = tx.To
-//	dst.TxHash = tx.TxHash
-//
-//	if tx.Type == types.TX_TYPE_CUTOFF_PAIR {
-//		ctx, err := tx.GetCutoffPairContent()
-//		if err == nil && ctx != nil {
-//			mkt, err := util.WrapMarketByAddress(ctx.Token1.Hex(), ctx.Token2.Hex())
-//			if err == nil {
-//				dst.Content = txmanager.TransactionContent{Market: mkt}
-//			}
-//		}
-//	} else if tx.Type == types.TX_TYPE_CANCEL_ORDER {
-//		ctx, err := tx.GetCancelOrderHash()
-//		if err == nil && ctx != "" {
-//			dst.Content = txmanager.TransactionContent{OrderHash: ctx}
-//		}
-//	}
-//
-//	dst.BlockNumber = tx.BlockNumber.Int64()
-//	dst.LogIndex = tx.TxLogIndex
-//	if tx.Value == nil {
-//		dst.Value = "0"
-//	} else {
-//		dst.Value = tx.Value.String()
-//	}
-//	dst.Type = tx.TypeStr()
-//	dst.Status = tx.StatusStr()
-//	dst.CreateTime = tx.CreateTime
-//	dst.UpdateTime = tx.UpdateTime
-//	dst.Symbol = tx.Symbol
-//	dst.Nonce = tx.TxInfo.Nonce.String()
-//	return dst
-//}
-
 func fillDetail(ring dao.RingMinedEvent, fills []dao.FillEvent) (rst RingMinedDetail, err error) {
 	rst = RingMinedDetail{Fills: fills}
 	ringInfo := RingMinedInfo{}
@@ -1753,17 +1677,19 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 	return rst, nil
 }
 
-func saveMatchedRelation(takerOrderHash, makerOrderHash, ringTxHash string) (err error) {
-	return nil
-}
-
 func fmtFloat(src *big.Rat) float64 {
 	f, _ := src.Float64()
 	rst, _ := strconv.ParseFloat(fmt.Sprintf("%0.8f", f), 64)
 	return rst
 }
 
-func verifySign(sign SignInfo) bool {
+func verifySign(sign SignInfo) (bool, error) {
+
+	now := time.Now().Unix()
+	if math.Abs(float64(now - sign.Timestamp)) > 60 * 10 {
+		return false, errors.New("timestamp had expired")
+	}
+
 	h := &common.Hash{}
 	address := &common.Address{}
 	hashBytes := crypto.GenerateHash([]byte(strconv.FormatInt(sign.Timestamp, 10)))
@@ -1771,9 +1697,9 @@ func verifySign(sign SignInfo) bool {
 	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
 		log.Errorf("signer address error:%s", err.Error())
-		return false
+		return false, errors.New("sign is incorrect")
 	} else {
 		address.SetBytes(addressBytes)
-		return strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner)
+		return strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner), nil
 	}
 }
