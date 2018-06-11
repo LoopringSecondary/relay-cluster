@@ -216,7 +216,7 @@ func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.O
 	}
 
 	rds.DelPendingOrderTx(event.Owner, event.OrderHash, delList)
-	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+	if len(retList) == 0 && cache.ExistPendingOrder(event.Owner, event.OrderHash) {
 		cache.DelPendingOrder(event.Owner, event.OrderHash)
 	}
 
@@ -238,10 +238,8 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 	// without any pending tx
 	if len(list) == 0 {
 		if !omcm.IsPendingStatus(state.Status) {
-			println("-----------------1")
 			return nil
 		}
-		println("-----------------2")
 		SettleOrderStatus(state, handler.MarketCap, false)
 		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
 	}
@@ -249,10 +247,8 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 	// order owner cancelling/cutoffing
 	if state.RawOrder.Owner == event.Owner {
 		if state.Status == list[0].OrderStatus {
-			println("-----------------3")
 			return nil
 		}
-		println("-----------------4")
 		state.Status = list[0].OrderStatus
 		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
 	}
@@ -260,10 +256,8 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 	// miner submit ring pending
 	if state.RawOrder.Owner != event.Owner {
 		if omcm.IsPendingStatus(state.Status) {
-			println("-----------------5")
 			return nil
 		}
-		println("-----------------6")
 		return rds.UpdateOrderStatus(event.OrderHash, list[0].OrderStatus)
 	}
 

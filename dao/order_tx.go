@@ -83,7 +83,7 @@ func (s *RdsService) DelPendingOrderTx(owner common.Address, orderhash common.Ha
 		list = append(list, v.Hex())
 	}
 
-	return s.Db.Model(&OrderPendingTransaction{}).
+	return s.Db.Delete(&OrderPendingTransaction{}).
 		Where("owner=?", owner.Hash()).
 		Where("order_hash=?", orderhash.Hex()).
 		Where("tx_hash in (?)", list).
