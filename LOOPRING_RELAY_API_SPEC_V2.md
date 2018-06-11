@@ -1,13 +1,13 @@
 
 # Relay API Spec V2.0
 
-Loopring Relays are nodes that act as a bridge between Ethereum nodes and Loopring compatible wallets. A relay maintain global order-books for all trading pairs and is resposible for broadcasting orders selfishlessly to selected peer-to-peer networks. 
+Loopring Relays are nodes that act as a bridge between Ethereum nodes and Loopring compatible wallets. A relay maintains global order-books for all trading pairs and is resposible for broadcasting orders trustlessly to selected peer-to-peer networks. 
 
-Wallets can host their own relay nodes to facility trading using Loopring, but can also take advantage of public relays provided by Loopring foundation or other third-parties. Order-book visulzation services or order browsers can also set up their own relay nodes to dispaly Loopring order-books to their users -- in such a senario, wallet-facing APIs can be disabled so the relay will run in a read-only mode. 
+Wallets can host their own relay nodes to facilitate trading using Loopring, but can also take advantage of public relays provided by the Loopring foundation or other third-parties. Order-book visualization services or order browsers can also set up their own relay nodes to display Loopring order-books to their users -- in such a senario, wallet-compatible APIs can be disabled so the relay will run in a read-only mode. 
 
-This document describes relay's public APIs v2.0 (JSON_RPC and SocketIO), but doesn't articulate how order-books nor trading history are maintained.
+This document describes the relay's public APIs v2.0 (JSON_RPC and SocketIO), but doesn't articulate how order-books and trading history is maintained.
 
-Against v1.0 supporting array and json request format, v2.0 unifies the request params to only support json format, and add socketIO support.
+As v1.0 supports arrays and json request format, v2.0 unifies the request params to only support json format, and adds socketIO support.
 
 This document contains the following sections:
 - Endport
@@ -87,7 +87,7 @@ params: [{
 `Account` - Account balance info object.
 
 - `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
-2. `tokens` - All token balance and allowance info array.
+2. `tokens` - Info on all token balance and allowance arrays.
 
 ##### Example
 ```js
@@ -120,7 +120,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getBalance","params":{s
 
 #### loopring_submitOrder
 
-Submit an order. The order is submitted to relay as a JSON object, this JSON will be broadcasted into peer-to-peer network for off-chain order-book maintainance and ring-ming. Once mined, the ring will be serialized into a transaction and submitted to Ethereum blockchain.
+Submits an order. The order is submitted to the relay as a JSON object, which will be broadcasted into a peer-to-peer network for off-chain order-book maintainance and ring-ming. Once mined, the ring will be serialized into a transaction and submitted to the Ethereum blockchain.
 
 ##### Parameters
 
@@ -130,20 +130,20 @@ Submit an order. The order is submitted to relay as a JSON object, this JSON wil
   - `walletAddress` - The wallet margin address.
   - `owner` - user's wallet address
   - `AuthAddr` - The wallet auth public key.
-  - `AuthPrivateKey` - The wallet auth private key to sign ring when submitting ring.
+  - `AuthPrivateKey` - The wallet auth private key used to sign a ring when submitting.
   - `tokenS` - Token to sell.
   - `tokenB` - Token to buy.
   - `amountS` - Maximum amount of tokenS to sell.
   - `amountB` - Minimum amount of tokenB to buy if all amountS sold.
   - `validSince` - Indicating when this order is created.
-  - `validUntil` - How long, in seconds, will this order live.
-  - `lrcFee` - Max amount of LRC to pay for miner. The real amount to pay is proportional to fill amount.
-  - `buyNoMoreThanAmountB` - If true, this order does not accept buying more than `amountB`.
+  - `validUntil` - How long, in seconds, this order will be valid for.
+  - `lrcFee` - Max amount of LRC to pay the miner. The real amount to pay is proportional to fill amount.
+  - `buyNoMoreThanAmountB` - If true, this order does not allow a purchase of more than `amountB`.
   - `marginSplitPercentage` - The percentage of savings paid to miner.
   - `v` - ECDSA signature parameter v.
   - `r` - ECDSA signature parameter r.
   - `s` - ECDSA signature parameter s.
-  - `powNonce` - Order submitting must be verified by our pow check logic. If orders submitted exceeded in certain team, we will increase pow difficult.
+  - `powNonce` - Before an order is submitted, it must be verified by our pow check logic. If number of orders submitted is exceeded in a certain time frame, we will increase pow difficulty.
   - `orderType` - The order type, enum is (market_order|p2p_order), default is market_order.
 
 ```js
@@ -379,7 +379,7 @@ params: [{
 
 ##### Returns
 
-1. `depth` - The depth data, every depth element is a three length of array, which contain price, amount A and B in market A-B in order.
+1. `depth` - The depth data, every depth element is an array of length three, which contains price, amount A, and amount B in market A-B in an order.
 2. `market` - The market pair.
 3. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 
@@ -412,7 +412,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getDepth","params":{see
 
 #### loopring_getTicker
 
-Get loopring 24hr merged tickers info from loopring relay.
+Get info on Loopring's 24hr merged tickers from loopring relay.
 
 ##### Parameters
 NULL
@@ -497,7 +497,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTicker","params":[{s
 
 #### loopring_getTickers
 
-Get all market 24hr merged tickers info from loopring relay.
+Get the info on all the 24hr merged tickers in the market from loopring relay.
 
 ##### Parameters
 1. `market` - The market info like LRC-WETH.
@@ -622,7 +622,7 @@ params: [{
   - `tokenB` - The matched buy token.
   - `lrcFee` - The real amount of LRC to pay for miner.
   - `lrcReward` - The amount of LRC paid by miner to order owner in exchange for margin split.
-  - `side` - Show the fill is Buy or Sell.
+  - `side` - Show the ordered to be filled as Buy or Sell.
   - `splitS` - The tokenS paid to miner.
   - `splitB` - The tokenB paid to miner.
 2. `pageIndex`
@@ -670,7 +670,7 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getFills","params":{see 
 
 #### loopring_getTrend
 
-Get trend info per market.If you select interval 1Hr, this function will return a list(the length is 100 mostly). each item represent a data point of price change in 1Hr. The same for other intervals.
+Get trend info per market. If you select 1Hr interval, this function will return a list(the length is 100 mostly). Each item represents a data point of the price change in 1Hr. The same goes for other intervals.
 
 ##### Parameters
 
@@ -733,7 +733,7 @@ Get all mined rings.
 1. `ringIndex` - The ring index
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 2. `protocolAddress` - The loopring [LoopringProtocolImpl](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
-3. `pageIndex` - The page want to query, default is 1.
+3. `pageIndex` - The page desired from query, default is 1.
 4. `pageSize` - The size per page, default is 50.
 
 ```js
@@ -750,13 +750,13 @@ params: [{
 
 1. `data` - The ring info.(refer to [Ring&RingMined](https://github.com/Loopring/protocol/blob/3bdc40c4f319e8fe70f58f82563db49579094b5c/contracts/LoopringProtocolImpl.sol#L109)
   - `ringHash` - The ring hash.
-  - `tradeAmount` - The fills number int the ring.
-  - `miner` - The miner that submit match orders.
+  - `tradeAmount` - The number of orders to be filled in the ring.
+  - `miner` - The miner that submits filled orders.
   - `feeRecepient` - The fee recepient address.
   - `txHash` - The ring match transaction hash.
   - `blockNumber` - The number of the block which contains the transaction.
   - `totalLrcFee` - The total lrc fee.
-  - `time` - The ring matched time.
+  - `time` - The ring fill time.
 2. `total` - Total amount of orders.
 3. `pageIndex` - Index of page.
 4. `pageSize` - Amount per page.
@@ -831,7 +831,7 @@ Get the USD/CNY/BTC quoted price of tokens
 
 ##### Parameters
 
-1. `curreny` - The base currency want to query, supported types is `CNY`, `USD`.
+1. `curreny` - The base currency desired from query, supported types are `CNY`, `USD`.
 
 ```js
 params: [{ "currency" : "CNY" }]
