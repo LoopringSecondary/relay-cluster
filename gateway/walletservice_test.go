@@ -133,7 +133,7 @@ func TestGetPow(t *testing.T) {
 		fmt.Printf(err.Error())
 	}
 
-	var timstampInt int64 = 1528695770
+	var timstampInt int64 = 1528701400
 	timestamp := strconv.FormatInt(timstampInt, 10)
 	tsHash := crypto.GenerateHash([]byte(timestamp))
 	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")

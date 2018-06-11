@@ -1062,6 +1062,7 @@ func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error
 	if isSignCorrect {
 		exist, err := w.rds.QueryTicketByAddress(ticket.Ticket.Address)
 		if err != nil && exist.ID > 0 {
+			log.Debugf("update ticket id %d", exist.ID)
 			ticket.Ticket.ID = exist.ID
 		}
 		return "", w.rds.Save(&ticket.Ticket)
@@ -1071,8 +1072,7 @@ func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error
 }
 
 func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
-	isSignCorrect, err := verifySign(query.Sign)
-	if isSignCorrect {
+	isSignCorrect, err := verifySign(query.Sign); if isSignCorrect {
 		return w.rds.QueryTicketByAddress(query.Owner)
 	} else {
 		return ticket, err
@@ -1684,6 +1684,10 @@ func verifySign(sign SignInfo) (bool, error) {
 		return false, errors.New("sign is incorrect")
 	} else {
 		address.SetBytes(addressBytes)
-		return strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner), nil
+		if strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner) {
+			return true, nil
+		} else {
+			return false, errors.New("sign address not matched")
+		}
 	}
 }
