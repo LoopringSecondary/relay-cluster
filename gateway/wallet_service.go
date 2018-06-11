@@ -331,7 +331,6 @@ type LatestFill struct {
 
 type CancelOrderQuery struct {
 	Sign       SignInfo `json:"sign"`
-	Owner      string   `json:"owner"`
 	OrderHash  string   `json:"orderHash"`
 	CutoffTime int64    `json:"cutoff"`
 	TokenS     string   `json:"tokenS"`
@@ -364,7 +363,6 @@ type LoginInfo struct {
 
 type SignedLoginInfo struct {
 	Sign  SignInfo `json:"sign"`
-	Owner string   `json:"owner"`
 	UUID  string   `json:"uuid"`
 }
 
@@ -1059,12 +1057,7 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 
 func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error) {
 
-	if len(ticket.Ticket.Address) == 0 {
-		ticket.Ticket.Address = ticket.Sign.Owner
-	} else if strings.ToLower(ticket.Ticket.Address) != strings.ToLower(ticket.Sign.Owner) {
-		return result, errors.New("owner not match with sign info")
-	}
-
+	ticket.Ticket.Address = ticket.Sign.Owner
 	isSignCorrect, err := verifySign(ticket.Sign)
 	if isSignCorrect {
 		exist, err := w.rds.QueryTicketByAddress(ticket.Ticket.Address)
@@ -1080,14 +1073,8 @@ func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error
 
 func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
 
-	if len(query.Owner) == 0 {
-		query.Owner = query.Sign.Owner
-	} else if strings.ToLower(query.Owner) != strings.ToLower(query.Sign.Owner) {
-		return ticket, errors.New("owner not match with sign info")
-	}
-
 	isSignCorrect, err := verifySign(query.Sign); if isSignCorrect {
-		return w.rds.QueryTicketByAddress(query.Owner)
+		return w.rds.QueryTicketByAddress(query.Sign.Owner)
 	} else {
 		return ticket, err
 	}
@@ -1410,12 +1397,6 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
 
-	if len(req.Owner) == 0 {
-		req.Owner = req.Sign.Owner
-	} else if strings.ToLower(req.Owner) != strings.ToLower(req.Sign.Owner) {
-		return rst, errors.New("owner not match with sign info")
-	}
-
 	isCorrect, err := verifySign(req.Sign)
 	if !isCorrect {
 		return rst, err
@@ -1423,7 +1404,7 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
 	cancelOrderEvent.OrderHash = common.HexToHash(req.OrderHash)
-	cancelOrderEvent.Owner = common.HexToAddress(req.Owner)
+	cancelOrderEvent.Owner = common.HexToAddress(req.Sign.Owner)
 	cancelOrderEvent.TokenS = common.HexToAddress(req.TokenS)
 	cancelOrderEvent.TokenB = common.HexToAddress(req.TokenB)
 	cancelOrderEvent.CutoffTime = req.CutoffTime
@@ -1481,18 +1462,12 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 
 func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, err error) {
 
-	if len(req.Owner) == 0 {
-		req.Owner = req.Sign.Owner
-	} else if strings.ToLower(req.Owner) != strings.ToLower(req.Sign.Owner) {
-		return rst, errors.New("owner not match with sign info")
-	}
-
 	isCorrect, err := verifySign(req.Sign)
 	if !isCorrect {
 		return req.UUID, err
 	}
 
-	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID:req.UUID, Owner:req.Owner})
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID:req.UUID, Owner:req.Sign.Owner})
 	return req.UUID, err
 }
 
