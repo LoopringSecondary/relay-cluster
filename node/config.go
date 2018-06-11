@@ -64,7 +64,6 @@ func LoadConfig(file string) *GlobalConfig {
 
 type GlobalConfig struct {
 	Title            string `required:"true"`
-	CloudWatchOpen   bool
 	Log              zap.Config
 	Mysql            dao.MysqlOptions
 	Redis            redis.RedisOptions
