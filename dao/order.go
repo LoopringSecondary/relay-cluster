@@ -19,7 +19,6 @@
 package dao
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/log"

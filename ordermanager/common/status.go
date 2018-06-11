@@ -50,8 +50,8 @@ var ValidMinerStatus = []types.OrderStatus{
 
 // 同一个订单必须允许多次cancel&cutoff,有的cancel/cutoff可能会不成功,后续的动作可以跟进
 var ValidCutoffStatus = []types.OrderStatus{
-	types.ORDER_PARTIAL,
 	types.ORDER_NEW,
+	types.ORDER_PARTIAL,
 	types.ORDER_PENDING,
 	types.ORDER_CANCELLING,
 	types.ORDER_CUTOFFING,
