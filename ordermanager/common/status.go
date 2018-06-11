@@ -50,3 +50,11 @@ var InValidMiningStatus = []types.OrderStatus{
 	types.ORDER_CANCEL,
 	types.ORDER_FLEX_CANCEL,
 }
+
+var ValidCutoffStatus = []types.OrderStatus{
+	types.ORDER_PARTIAL,
+	types.ORDER_NEW,
+	types.ORDER_PENDING,
+	types.ORDER_CANCELLING,
+	types.ORDER_CUTOFFING,
+}

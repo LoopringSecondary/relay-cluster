@@ -246,26 +246,24 @@ func (s *RdsService) GetOrdersByHash(orderhashs []string) (map[string]Order, err
 	return ret, err
 }
 
-func (s *RdsService) GetCutoffOrders(owner common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffOrders(owner common.Address, cutoffTime *big.Int, validStatus []types.OrderStatus) ([]Order, error) {
 	var (
 		list []Order
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_PARTIAL, types.ORDER_NEW}
-	err = s.Db.Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), filterStatus).Find(&list).Error
+	err = s.Db.Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), validStatus).Find(&list).Error
 	return list, err
 }
 
-func (s *RdsService) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int) ([]Order, error) {
+func (s *RdsService) GetCutoffPairOrders(owner, token1, token2 common.Address, cutoffTime *big.Int, validStatus []types.OrderStatus) ([]Order, error) {
 	var (
 		list []Order
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_PARTIAL, types.ORDER_NEW}
 	tokens := []string{token1.Hex(), token2.Hex()}
-	err = s.Db.Model(&Order{}).Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), filterStatus).
+	err = s.Db.Model(&Order{}).Where("valid_since < ? and owner = ? and status in (?)", cutoffTime.Int64(), owner.Hex(), validStatus).
 		Where("token_s in (?)", tokens).
 		Where("token_b in (?)", tokens).
 		Find(&list).Error

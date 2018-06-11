@@ -21,6 +21,7 @@ package manager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
@@ -45,7 +46,7 @@ func (handler *CutoffPairHandler) HandlePending() error {
 	log.Debugf(handler.format(), handler.value()...)
 
 	for _, orderhash := range orderhashList {
-		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
 		txhandler.HandleOrderRelatedTxPending()
 	}
 
@@ -65,7 +66,7 @@ func (handler *CutoffPairHandler) HandleFailed() error {
 	log.Debugf(handler.format(), handler.value()...)
 
 	for _, orderhash := range orderhashList {
-		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
 		txhandler.HandleOrderRelatedTxFailed()
 	}
 
@@ -100,7 +101,7 @@ func (handler *CutoffPairHandler) HandleSuccess() error {
 	notify.NotifyCutoffPair(event)
 
 	for _, orderhash := range orderhashlist {
-		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CANCELLING)
+		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
 		txhandler.HandleOrderRelatedTxSuccess()
 	}
 
@@ -123,7 +124,7 @@ func (handler *CutoffPairHandler) getOrdersAndSaveEvent() ([]common.Hash, error)
 	}
 
 	if handler.Event.Status == types.TX_STATUS_PENDING {
-		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff)
+		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff, omcm.ValidCutoffStatus)
 		for _, v := range orders {
 			var state types.OrderState
 			v.ConvertUp(&state)
