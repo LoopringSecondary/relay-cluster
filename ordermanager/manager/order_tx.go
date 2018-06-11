@@ -97,10 +97,6 @@ func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
 	return handler.processSingleOrder()
 }
 
-func (handler *OrderTxHandler) HandleOrderCorrelatedTxPending() error {
-	return nil
-}
-
 func (handler *OrderTxHandler) HandleOrderCorrelatedTxFailed() error {
 	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
 		return nil
@@ -146,7 +142,7 @@ func (handler *OrderTxHandler) processSingleOrder() error {
 		return err
 	}
 	if err := handler.setOrderStatus(list); err != nil {
-		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
+		return err
 	}
 	return handler.delOrderPendingTx(list)
 }

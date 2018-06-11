@@ -47,7 +47,7 @@ func (handler *SubmitRingHandler) HandlePending() error {
 	handler.Rds.Add(model)
 
 	for _, v := range handler.Event.OrderList {
-		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_CANCELLING)
+		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
 		txhandler.HandleOrderRelatedTxPending()
 	}
 
@@ -70,7 +70,7 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 	handler.Rds.Save(model)
 
 	for _, v := range handler.Event.OrderList {
-		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_CANCELLING)
+		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
 		txhandler.HandleOrderRelatedTxFailed()
 	}
 
