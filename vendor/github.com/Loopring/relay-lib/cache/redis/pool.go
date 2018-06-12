@@ -174,7 +174,7 @@ func (impl *RedisCacheImpl) Dels(args []string) error {
 
 func (impl *RedisCacheImpl) Keys(keyFormat string) ([][]byte, error) {
 
-	log.Info("[REDIS-HMGET] key : " + key)
+	//log.Info("[REDIS-HMGET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
