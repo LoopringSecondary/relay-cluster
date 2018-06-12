@@ -24,8 +24,9 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/node"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
-	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/txmanager"
+	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
+	//txmanager "github.com/Loopring/relay-cluster/txmanager/manager"
+	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
@@ -89,7 +90,7 @@ func init() {
 	cache.NewCache(cfg.Redis)
 	entity = loadTestData()
 
-	txmanager.NewTxView(rds)
+	txviewer.NewTxView(rds)
 	accessor.Initialize(cfg.Accessor)
 	loopringaccessor.Initialize(cfg.LoopringProtocol)
 	unlockAccounts()
@@ -220,9 +221,9 @@ func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	return ob
 }
 
-func GenerateOrderView() *viewer.OrderViewerImpl {
+func GenerateOrderView() *orderviewer.OrderViewerImpl {
 	mc := GenerateMarketCap()
-	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
+	ov := orderviewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
 	return ov
 }
 
