@@ -19,6 +19,7 @@
 package cache
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/types"
@@ -27,11 +28,16 @@ import (
 )
 
 const (
-	MaxNoncePrefix     = "txm_nonce_max_"
-	SuccessNoncePrefix = "txm_nonce_success_"
-	NonceTtl           = 86400 // todo 临时数据,只存储10分钟,系统性宕机后无法重启后丢失?
+	MaxNoncePrefix          = "txm_nonce_max_"
+	MaxNonceTxSuccessPrefix = "txm_nonce_txsuccess_"
+	NonceTtl                = 86400 // todo 临时数据,只存储10分钟,系统性宕机后无法重启后丢失?
 )
 
+///////////////////////////////////////////////////////////
+//
+// nonce, tx status is success/pending/failed
+//
+///////////////////////////////////////////////////////////
 func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 	key := generateNonceKey(owner)
 	if bs, err := cache.Get(key); err == nil {
@@ -53,8 +59,26 @@ func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 	return nonce, nil
 }
 
-func GetSuccessNonceValue(owner common.Address) (*big.Int, error) {
-	key := generateSuccessNonceKey(owner)
+func SetMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
+	if currentNonce.Cmp(preNonce) == 1 {
+		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
+	}
+	key := generateNonceKey(owner)
+	bs := currentNonce.Bytes()
+	return cache.Set(key, bs, NonceTtl)
+}
+
+func generateNonceKey(owner common.Address) string {
+	return MaxNoncePrefix + owner.Hex()
+}
+
+///////////////////////////////////////////////////////////
+//
+// nonce, tx status is success
+//
+///////////////////////////////////////////////////////////
+func GetTxSuccessMaxNonceValue(owner common.Address) (*big.Int, error) {
+	key := generateTxSuccessMaxNonceKey(owner)
 	if bs, err := cache.Get(key); err == nil {
 		return new(big.Int).SetBytes(bs), nil
 	}
@@ -74,10 +98,15 @@ func GetSuccessNonceValue(owner common.Address) (*big.Int, error) {
 	return nonce, nil
 }
 
-func generateNonceKey(owner common.Address) string {
-	return MaxNoncePrefix + owner.Hex()
+func SetTxSuccessMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
+	if currentNonce.Cmp(preNonce) < 1 {
+		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
+	}
+	key := generateTxSuccessMaxNonceKey(owner)
+	bs := currentNonce.Bytes()
+	return cache.Set(key, bs, NonceTtl)
 }
 
-func generateSuccessNonceKey(owner common.Address) string {
-	return SuccessNoncePrefix + owner.Hex()
+func generateTxSuccessMaxNonceKey(owner common.Address) string {
+	return MaxNonceTxSuccessPrefix + owner.Hex()
 }

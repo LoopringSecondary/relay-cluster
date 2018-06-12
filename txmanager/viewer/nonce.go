@@ -47,7 +47,7 @@ func (impl *TransactionViewerImpl) ValidateNonce(ownerStr string, nonce *big.Int
 		return ErrNonceInvalid
 	}
 
-	successNonce, err := cache.GetSuccessNonceValue(owner)
+	successNonce, err := cache.GetTxSuccessMaxNonceValue(owner)
 	if err != nil {
 		return ErrNonceNotExist
 	}
