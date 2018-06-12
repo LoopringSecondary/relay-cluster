@@ -50,6 +50,10 @@ func NewTxManager(db *dao.RdsService) TransactionManager {
 	var tm TransactionManager
 	tm.db = db
 
+	if cache.Invalid() {
+		cache.Initialize(db)
+	}
+
 	return tm
 }
 

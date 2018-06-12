@@ -73,6 +73,10 @@ func NewTxView(db *dao.RdsService) {
 	tm := &TransactionViewerImpl{}
 	tm.db = db
 	impl = tm
+
+	if cache.Invalid() {
+		cache.Initialize(db)
+	}
 }
 
 var (
@@ -172,7 +176,7 @@ func (impl *TransactionViewerImpl) assemble(daoviews []dao.TransactionView) []tx
 	list := make([]txtyp.TransactionJsonResult, 0)
 
 	// get dao.TransactionEntity
-	entitymap := cache.GetEntityCache(impl.db, daoviews)
+	entitymap := cache.GetEntityCache(daoviews)
 
 	for _, v := range daoviews {
 		var (

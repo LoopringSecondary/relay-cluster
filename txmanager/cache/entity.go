@@ -26,6 +26,8 @@ import (
 	"math/big"
 )
 
+// 该缓存模块用于批量获取transactionEntity缓存
+
 const (
 	TxEntityPrefix = "txm_entity_" // txm_entity_blocknumber_txhash_logIndex,不用hash结构,避免不同用户数据在同一个key的情况
 	TxEntityTtl    = 864000
@@ -54,24 +56,14 @@ func RollbackEntityCache(from, to int64) error {
 	return nil
 }
 
-func SaveEntityCache(entity dao.TransactionEntity) error {
-	bs, err := json.Marshal(&entity)
-	if err != nil {
-		return err
-	}
-	key := generateTxEntityKey(entity.TxHash, entity.BlockNumber, entity.LogIndex)
-	return cache.Set(key, bs, TxEntityTtl)
-}
-
-// GetEntityCache return map[hash][logindex]dao.transactionEntity
-// todo get multi key from redis with lua
-func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) TransactionEntityMap {
+// 根据transactionView数据批量获取缓存
+func GetEntityCache(views []dao.TransactionView) TransactionEntityMap {
 	var (
 		uncachedTxHashList []string
 		entityMap          = make(TransactionEntityMap)
 	)
 
-	// get entity from cache
+	// get entity already exist in cache
 	for _, v := range views {
 		key := generateTxEntityKey(v.TxHash, v.BlockNumber, v.LogIndex)
 
@@ -88,7 +80,7 @@ func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) Transaction
 	}
 
 	// get entity from db
-	models, _ := db.GetTxEntity(uncachedTxHashList)
+	models, _ := rds.GetTxEntity(uncachedTxHashList)
 	if len(models) == 0 {
 		return entityMap
 	}
@@ -97,7 +89,10 @@ func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) Transaction
 	for _, model := range models {
 		for _, v := range views {
 			if _, ok := entityMap.GetEntity(v.TxHash, v.LogIndex); !ok {
-				SaveEntityCache(model)
+				if bs, err := json.Marshal(&model); err == nil {
+					key := generateTxEntityKey(model.TxHash, model.BlockNumber, model.LogIndex)
+					cache.Set(key, bs, TxEntityTtl)
+				}
 				entityMap.SaveEntity(model)
 			}
 		}
