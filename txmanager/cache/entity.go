@@ -16,25 +16,24 @@
 
 */
 
-package txmanager
+package cache
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/cache"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
+// 该缓存模块用于批量获取transactionEntity缓存
+
 const (
-	FillOwnerPrefix = "txm_fill_owner_"
-	FillOwnerTtl    = 864000        // todo 临时数据,只存储10分钟,系统性宕机后无法重启后丢失?
-	TxEntityPrefix  = "txm_entity_" // txm_entity_blocknumber_txhash_logIndex,不用hash结构,避免不同用户数据在同一个key的情况
-	TxEntityTtl     = 864000
+	TxEntityPrefix = "txm_entity_" // txm_entity_blocknumber_txhash_logIndex,不用hash结构,避免不同用户数据在同一个key的情况
+	TxEntityTtl    = 864000
 )
 
-func RollbackCache(from, to int64) error {
+func RollbackEntityCache(from, to int64) error {
 	if from+1 > to {
 		return fmt.Errorf("rollbackCache error, from + 1 > to")
 	}
@@ -57,36 +56,14 @@ func RollbackCache(from, to int64) error {
 	return nil
 }
 
-func SetFillOwnerCache(txhash common.Hash, owner common.Address) error {
-	key := generateFillOwnerKey(txhash)
-	field := []byte(owner.Hex())
-	return cache.SAdd(key, FillOwnerTtl, field)
-}
-
-func ExistFillOwnerCache(txhash common.Hash, owner common.Address) (bool, error) {
-	key := generateFillOwnerKey(txhash)
-	field := []byte(owner.Hex())
-	return cache.SIsMember(key, field)
-}
-
-func SaveEntityCache(entity dao.TransactionEntity) error {
-	bs, err := json.Marshal(&entity)
-	if err != nil {
-		return err
-	}
-	key := generateTxEntityKey(entity.TxHash, entity.BlockNumber, entity.LogIndex)
-	return cache.Set(key, bs, TxEntityTtl)
-}
-
-// GetEntityCache return map[hash][logindex]dao.transactionEntity
-// todo get multi key from redis with lua
-func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) TransactionEntityMap {
+// 根据transactionView数据批量获取缓存
+func GetEntityCache(views []dao.TransactionView) TransactionEntityMap {
 	var (
 		uncachedTxHashList []string
 		entityMap          = make(TransactionEntityMap)
 	)
 
-	// get entity from cache
+	// get entity already exist in cache
 	for _, v := range views {
 		key := generateTxEntityKey(v.TxHash, v.BlockNumber, v.LogIndex)
 
@@ -98,12 +75,12 @@ func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) Transaction
 
 		var entity dao.TransactionEntity
 		if err := json.Unmarshal(bs, &entity); err == nil {
-			entityMap.saveEntity(entity)
+			entityMap.SaveEntity(entity)
 		}
 	}
 
 	// get entity from db
-	models, _ := db.GetTxEntity(uncachedTxHashList)
+	models, _ := rds.GetTxEntity(uncachedTxHashList)
 	if len(models) == 0 {
 		return entityMap
 	}
@@ -111,9 +88,12 @@ func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) Transaction
 	// save entity in cache
 	for _, model := range models {
 		for _, v := range views {
-			if _, ok := entityMap.getEntity(v.TxHash, v.LogIndex); !ok {
-				SaveEntityCache(model)
-				entityMap.saveEntity(model)
+			if _, ok := entityMap.GetEntity(v.TxHash, v.LogIndex); !ok {
+				if bs, err := json.Marshal(&model); err == nil {
+					key := generateTxEntityKey(model.TxHash, model.BlockNumber, model.LogIndex)
+					cache.Set(key, bs, TxEntityTtl)
+				}
+				entityMap.SaveEntity(model)
 			}
 		}
 	}
@@ -123,7 +103,7 @@ func GetEntityCache(db *dao.RdsService, views []dao.TransactionView) Transaction
 
 type TransactionEntityMap map[string]map[int64]dao.TransactionEntity
 
-func (m TransactionEntityMap) saveEntity(entity dao.TransactionEntity) {
+func (m TransactionEntityMap) SaveEntity(entity dao.TransactionEntity) {
 	if _, ok := m[entity.TxHash]; !ok {
 		m[entity.TxHash] = make(map[int64]dao.TransactionEntity)
 	}
@@ -132,7 +112,7 @@ func (m TransactionEntityMap) saveEntity(entity dao.TransactionEntity) {
 	}
 }
 
-func (m TransactionEntityMap) getEntity(txhash string, logindex int64) (dao.TransactionEntity, bool) {
+func (m TransactionEntityMap) GetEntity(txhash string, logindex int64) (dao.TransactionEntity, bool) {
 	var (
 		entity dao.TransactionEntity
 		ok     bool
@@ -145,10 +125,6 @@ func (m TransactionEntityMap) getEntity(txhash string, logindex int64) (dao.Tran
 
 	entity, ok = txs[logindex]
 	return entity, ok
-}
-
-func generateFillOwnerKey(txhash common.Hash) string {
-	return FillOwnerPrefix + txhash.Hex()
 }
 
 func generateTxEntityKey(txhash string, blockNumber, logIndex int64) string {
