@@ -18,15 +18,42 @@
 
 package viewer
 
+import (
+	"github.com/Loopring/relay-cluster/txmanager/cache"
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
+)
+
 // 该模块用于管理用户nonce.这里我们不区分tx状态,持续记录用户
 // 同时,我们将该nonce作为一个中心化的数据,如果在其他钱包拥有高于本模块的处于pending的nonce,该模块是无法处理的
 
 // 返回用户处于success/pending状态下的nonce值
-func (impl *TransactionViewerImpl) GetNonce(owner string) int64 {
-	return 0
+func (impl *TransactionViewerImpl) GetNonce(ownerStr string) (*big.Int, error) {
+	ownerStr = safeOwner(ownerStr)
+	owner := common.HexToAddress(ownerStr)
+
+	if nonce, err := cache.GetMaxNonceValue(owner); err != nil {
+		return big.NewInt(0), ErrNonceNotExist
+	} else {
+		return nonce, nil
+	}
 }
 
 // 校验用户nonce是否可用,用户提交的pending tx nonce值不允许小于已经成功了的tx nonce值
-func (impl *TransactionViewerImpl) ValidateNonce(owner string, nonce int64) error {
+func (impl *TransactionViewerImpl) ValidateNonce(ownerStr string, nonce *big.Int) error {
+	ownerStr = safeOwner(ownerStr)
+	owner := common.HexToAddress(ownerStr)
+	if nonce.Cmp(big.NewInt(0)) <= 0 {
+		return ErrNonceInvalid
+	}
+
+	successNonce, err := cache.GetSuccessNonceValue(owner)
+	if err != nil {
+		return ErrNonceNotExist
+	}
+	if nonce.Cmp(successNonce) < 1 {
+		return ErrNonceInvalid
+	}
+
 	return nil
 }

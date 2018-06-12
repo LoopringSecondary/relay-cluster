@@ -21,6 +21,7 @@ package viewer
 import (
 	"errors"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	"math/big"
 )
 
 func GetPendingTransactions(owner string) ([]txtyp.TransactionJsonResult, error) {
@@ -35,10 +36,10 @@ func GetAllTransactionCount(ownerStr, symbol, status, typ string) (int, error) {
 func GetAllTransactions(owner, symbol, status, typ string, limit, offset int) ([]txtyp.TransactionJsonResult, error) {
 	return impl.GetAllTransactions(owner, symbol, status, typ, limit, offset)
 }
-func GetNonce(owner string) int64 {
+func GetNonce(owner string) (*big.Int, error) {
 	return impl.GetNonce(owner)
 }
-func ValidateNonce(owner string, nonce int64) error {
+func ValidateNonce(owner string, nonce *big.Int) error {
 	return impl.ValidateNonce(owner, nonce)
 }
 
@@ -47,13 +48,14 @@ type TransactionViewer interface {
 	GetAllTransactionCount(owner, symbol, status, typ string) (int, error)
 	GetAllTransactions(owner, symbol, status, typ string, limit, offset int) ([]txtyp.TransactionJsonResult, error)
 	GetTransactionsByHash(owner string, hashList []string) ([]txtyp.TransactionJsonResult, error)
-	GetNonce(owner string) int64
-	ValidateNonce(owner string, nonce int64) error
+	GetNonce(owner string) (*big.Int, error)
+	ValidateNonce(owner string, nonce *big.Int) error
 }
 
 var (
 	ErrOwnerAddressInvalid error = errors.New("owner address invalid")
 	ErrHashListEmpty       error = errors.New("hash list is empty")
 	ErrNonTransaction      error = errors.New("no transaction found")
+	ErrNonceNotExist       error = errors.New("nonce not exist")
 	ErrNonceInvalid        error = errors.New("user nonce invalid")
 )

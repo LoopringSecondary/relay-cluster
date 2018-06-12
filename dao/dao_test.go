@@ -55,7 +55,7 @@ func TestRdsService_GetMaxNonce(t *testing.T) {
 	if err != nil {
 		t.Logf(err.Error())
 	} else {
-		t.Logf("nonce is:%d", nonce)
+		t.Logf("nonce is:%d", nonce.Int64())
 	}
 }
 
@@ -66,6 +66,6 @@ func TestRdsService_GetMaxSuccessNonce(t *testing.T) {
 	if err != nil {
 		t.Logf(err.Error())
 	} else {
-		t.Logf("nonce is:%d", nonce)
+		t.Logf("nonce is:%d", nonce.Int64())
 	}
 }
