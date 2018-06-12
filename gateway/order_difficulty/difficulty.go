@@ -24,7 +24,8 @@ type OrderDifficultyEvaluator struct {
 	currentDifficult *OrderDifficulty
 	parentDifficult *OrderDifficulty
 	baseDifficulty *big.Int
-
+	orderTraffic int64
+	triggerThreshold float64
 }
 
 type OrderDifficulty struct {
@@ -55,7 +56,8 @@ func (evaluator *OrderDifficultyEvaluator) CalcDifficulty() *big.Int {
 		return big.NewInt(int64(0))
 	}
 
-
+	//到达触发值之后，开始计算难度值，否则可以不设，达到阈值之后，根据每秒的增量设置下一秒的难度值
+	//做法：曲线拟合估计下一秒的订单量，根据订单量的变化，估计
 	parentOrderDibbiculty := &OrderDifficulty{}
 	parentOrderDibbiculty.difficulty
 	return big.NewInt(int64(0))
