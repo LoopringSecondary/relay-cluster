@@ -1129,7 +1129,7 @@ func (so *SocketIOServiceImpl) handleScanLogin(input interface{}) (err error) {
 					resp := SocketIOJsonResp{}
 					resp.Data = ot
 					respJson, _ := json.Marshal(resp)
-					v.Emit(eventKeyOrderTransfer+EventPostfixRes, string(respJson[:]))
+					v.Emit(eventKeyScanLogin+EventPostfixRes, string(respJson[:]))
 				}
 			}
 		}
