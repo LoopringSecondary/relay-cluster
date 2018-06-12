@@ -47,7 +47,7 @@ func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 	nonce, err := rds.GetMaxNonce(owner)
 	if err != nil {
 		var result types.Big
-		if err := accessor.GetTransactionCount(&result, owner, "latest"); err != nil {
+		if err := accessor.GetTransactionCount(&result, owner, "pending"); err != nil {
 			return big.NewInt(0), err
 		}
 		nonce = result.BigInt()
