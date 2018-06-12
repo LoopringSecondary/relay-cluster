@@ -240,6 +240,14 @@ func NewCollector() *CollectorImpl {
 }
 
 func (c *CollectorImpl) Start() {
+
+	c.cron.AddFunc("@every 3s", func() {
+		log.Info(">>>>>> query redis cccccc")
+		cache.Set("abc" + strconv.FormatInt(time.Now().Unix(), 10), []byte("aaaa"), 10)
+		getr, _ := cache.Get("abc" + strconv.FormatInt(time.Now().Unix() - 3, 10))
+		log.Info(string(getr))
+	})
+
 	go func() {
 		if zklock.TryLock(tickerCollectorCronJobZkLock) == nil {
 			updateBinanceCache()

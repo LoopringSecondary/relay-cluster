@@ -71,7 +71,7 @@ func (impl *RedisCacheImpl) Initialize(cfg interface{}) {
 }
 
 func (impl *RedisCacheImpl) Get(key string) ([]byte, error) {
-	//log.Info("[REDIS-GET] key : " + key)
+	log.Info("[REDIS-GET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -93,7 +93,7 @@ func (impl *RedisCacheImpl) Get(key string) ([]byte, error) {
 
 func (impl *RedisCacheImpl) Exists(key string) (bool, error) {
 
-	//log.Info("[REDIS-Exists] key : " + key)
+	log.Info("[REDIS-Exists] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -115,7 +115,7 @@ func (impl *RedisCacheImpl) Exists(key string) (bool, error) {
 
 func (impl *RedisCacheImpl) Set(key string, value []byte, ttl int64) error {
 
-	//log.Info("[REDIS-SET] key : " + key)
+	log.Info("[REDIS-SET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -136,7 +136,7 @@ func (impl *RedisCacheImpl) Set(key string, value []byte, ttl int64) error {
 
 func (impl *RedisCacheImpl) Del(key string) error {
 
-	//log.Info("[REDIS-Del] key : " + key)
+	log.Info("[REDIS-Del] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -174,7 +174,7 @@ func (impl *RedisCacheImpl) Dels(args []string) error {
 
 func (impl *RedisCacheImpl) Keys(keyFormat string) ([][]byte, error) {
 
-	//log.Info("[REDIS-HMGET] key : " + key)
+	log.Info("[REDIS-HMGET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -202,7 +202,7 @@ func (impl *RedisCacheImpl) HMSet(key string, ttl int64, args ...[]byte) error {
 	if len(args) == 0 {
 		return fmt.Errorf("redis hmset args empty")
 	}
-	//log.Info("[REDIS-HMSET] key : " + key)
+	log.Info("[REDIS-HMSET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -232,7 +232,7 @@ func (impl *RedisCacheImpl) ZAdd(key string, ttl int64, args ...[]byte) error {
 	if len(args) == 0 {
 		return fmt.Errorf("redis zadd args empty")
 	}
-	//log.Info("[REDIS-ZAdd] key : " + key)
+	log.Info("[REDIS-ZAdd] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()
@@ -262,7 +262,7 @@ func (impl *RedisCacheImpl) HMGet(key string, fields ...[]byte) ([][]byte, error
 	if len(fields) == 0 {
 		return [][]byte{}, fmt.Errorf("redis hmget fields empty")
 	}
-	//log.Info("[REDIS-HMGET] key : " + key)
+	log.Info("[REDIS-HMGET] key : " + key)
 
 	conn := impl.pool.Get()
 	defer conn.Close()

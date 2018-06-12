@@ -34,6 +34,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 //import (
@@ -123,21 +124,22 @@ func TestGetPow(t *testing.T) {
 	c := crypto.NewKSCrypto(false, ks)
 	crypto.Initialize(c)
 
-	addr := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+	addr := common.HexToAddress("0x71c079107b5af8619d54537a93dbf16e5aab4900")
 
 	creator := accounts.Account{Address: addr}
-	if err := ks.Unlock(creator, "11111111"); err != nil {
+	if err := ks.Unlock(creator, "234wersdf"); err != nil {
 		fmt.Printf(err.Error())
 	}
 
-	var timstampInt int64 = 1528778116
+	var timstampInt = time.Now().Unix()
 	timestamp := strconv.FormatInt(timstampInt, 10)
 	tsHash := crypto.GenerateHash([]byte(timestamp))
-	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+	owner := common.HexToAddress("0x71c079107b5af8619d54537a93dbf16e5aab4900")
 
 	testh, err := crypto.Sign(tsHash, owner)
 	//fmt.Println(common.BytesToHash(testh).Hex())
 	vv, rr, ss := crypto.SigToVRS(testh)
+	fmt.Println(timstampInt)
 	fmt.Println(uint8(vv))
 	fmt.Println(common.BytesToHash(rr).Hex())
 	fmt.Println(common.BytesToHash(ss).Hex())
