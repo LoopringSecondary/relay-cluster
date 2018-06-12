@@ -16,7 +16,7 @@
 
 */
 
-package txmanager
+package viewer
 
 import (
 	"errors"

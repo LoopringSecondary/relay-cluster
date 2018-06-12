@@ -16,7 +16,7 @@
 
 */
 
-package txmanager
+package manager
 
 import (
 	"github.com/Loopring/relay-cluster/accountmanager"
