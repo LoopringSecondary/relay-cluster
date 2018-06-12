@@ -33,6 +33,7 @@ const (
 	DefaultCronSpec10Second = "0/10 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
+	DefaultCronSpec30Day   = "0 0 0 */30 * *"
 )
 
 const (
@@ -169,6 +170,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
 		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyScanLogin:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
 
 	var groupId string
@@ -207,8 +209,9 @@ func (so *SocketIOServiceImpl) Start() {
 		fmt.Println(s.RemoteAddr())
 	})
 
-	for v := range so.eventTypeRoute {
+	for v, event := range so.eventTypeRoute {
 		aliasOfV := v
+		aliasOfEvent := event
 
 		server.OnEvent("/", aliasOfV+EventPostfixReq, func(s socketio.Conn, msg string) {
 			context := make(map[string]string)
@@ -218,7 +221,10 @@ func (so *SocketIOServiceImpl) Start() {
 			context[aliasOfV] = msg
 			s.SetContext(context)
 			so.connIdMap.Store(s.ID(), s)
-			so.EmitNowByEventType(aliasOfV, s, msg)
+
+			if len(aliasOfEvent.MethodName) != 0 {
+				so.EmitNowByEventType(aliasOfV, s, msg)
+			}
 		})
 
 		server.OnEvent("/", aliasOfV+EventPostfixEnd, func(s socketio.Conn, msg string) {
@@ -257,6 +263,11 @@ func (so *SocketIOServiceImpl) Start() {
 			so.cron.AddFunc(spec, func() { so.broadcastGlobalTrend(nil) })
 		default:
 			log.Infof("add cron emit %d ", events.emitType)
+
+			if len(events.MethodName) == 0 {
+				continue
+			}
+
 			so.cron.AddFunc(spec, func() {
 				so.connIdMap.Range(func(key, value interface{}) bool {
 					v := value.(socketio.Conn)
