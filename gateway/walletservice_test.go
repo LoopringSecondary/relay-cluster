@@ -24,16 +24,16 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/crypto"
 	//dao2 "github.com/Loopring/relay-lib/dao"
+	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
-	"testing"
-	"github.com/Loopring/relay-cluster/gateway"
 	"strconv"
 	"strings"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/accounts"
+	"testing"
 )
 
 //import (
@@ -117,14 +117,11 @@ func TestGetPow(t *testing.T) {
 	//rds := dao.NewDb(&cf)
 	//fmt.Println(">>>>>>>>>d")
 
-
-
 	h := &common.Hash{}
 	address := &common.Address{}
 	ks := keystore.NewKeyStore("/Users/jaice/aws_ak", keystore.StandardScryptN, keystore.StandardScryptP)
 	c := crypto.NewKSCrypto(false, ks)
 	crypto.Initialize(c)
-
 
 	addr := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
 
@@ -137,7 +134,6 @@ func TestGetPow(t *testing.T) {
 	timestamp := strconv.FormatInt(timstampInt, 10)
 	tsHash := crypto.GenerateHash([]byte(timestamp))
 	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
-
 
 	testh, err := crypto.Sign(tsHash, owner)
 	//fmt.Println(common.BytesToHash(testh).Hex())
@@ -157,14 +153,10 @@ func TestGetPow(t *testing.T) {
 	applyt.Ticket = tt
 
 	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 28,
-		R: "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
-		S: "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
+		R:         "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
+		S:         "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
 		Timestamp: timestamp,
 	}
-
-
-
-
 
 	//tt.V = 28
 	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"

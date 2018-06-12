@@ -42,12 +42,12 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math"
 	"math/big"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"math"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -339,7 +339,7 @@ type CancelOrderQuery struct {
 }
 
 type SignInfo struct {
-	Timestamp string  `json:"timestamp"`
+	Timestamp string `json:"timestamp"`
 	V         uint8  `json:"v"'`
 	R         string `json:"r"`
 	S         string `json:"s"`
@@ -362,8 +362,8 @@ type LoginInfo struct {
 }
 
 type SignedLoginInfo struct {
-	Sign  SignInfo `json:"sign"`
-	UUID  string   `json:"uuid"`
+	Sign SignInfo `json:"sign"`
+	UUID string   `json:"uuid"`
 }
 
 type P2PRingRequest struct {
@@ -1073,7 +1073,8 @@ func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error
 
 func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
 
-	isSignCorrect, err := verifySign(query.Sign); if isSignCorrect {
+	isSignCorrect, err := verifySign(query.Sign)
+	if isSignCorrect {
 		return w.rds.QueryTicketByAddress(query.Sign.Owner)
 	} else {
 		return ticket, err
@@ -1467,7 +1468,7 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 		return req.UUID, err
 	}
 
-	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID:req.UUID, Owner:req.Sign.Owner})
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID: req.UUID, Owner: req.Sign.Owner})
 	return req.UUID, err
 }
 
@@ -1667,11 +1668,12 @@ func fmtFloat(src *big.Rat) float64 {
 func verifySign(sign SignInfo) (bool, error) {
 
 	now := time.Now().Unix()
-	ts, err := strconv.ParseInt(sign.Timestamp, 10, 64); if err != nil {
+	ts, err := strconv.ParseInt(sign.Timestamp, 10, 64)
+	if err != nil {
 		return false, err
 	}
 
-	if math.Abs(float64(now - ts)) > 60 * 10 {
+	if math.Abs(float64(now-ts)) > 60*10 {
 		return false, errors.New("timestamp had expired")
 	}
 
