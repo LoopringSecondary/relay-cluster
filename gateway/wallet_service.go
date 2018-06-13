@@ -532,7 +532,7 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("nonce can't convert to int")
 	}
 
-	err = txmanager.ValidateNonce(txNotify.From, nonce); if err != nil {
+	err = txmanager.ValidateNonce(txNotify.From, big.NewInt(nonce)); if err != nil {
 		return "", err
 	}
 
@@ -1480,8 +1480,11 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 	return req.UUID, err
 }
 
-func (w *WalletServiceImpl) GetNonce(owner string) (int64, error) {
-	return txmanager.GetNonce(owner), nil
+func (w *WalletServiceImpl) GetNonce(owner string) (n int64, err error) {
+	nonce, err := txmanager.GetNonce(owner); if err != nil {
+		return n, err
+	}
+	return nonce.Int64(), err
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {
