@@ -35,7 +35,7 @@ func (impl *TransactionViewerImpl) GetNonce(ownerStr string) (*big.Int, error) {
 	if nonce, err := cache.GetMaxNonceValue(owner); err != nil {
 		return big.NewInt(0), ErrNonceNotExist
 	} else {
-		return nonce, nil
+		return new(big.Int).Add(nonce, big.NewInt(1)), nil
 	}
 }
 
