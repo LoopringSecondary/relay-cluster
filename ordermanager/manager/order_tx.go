@@ -56,87 +56,50 @@ func FullOrderTxHandler(basehandler BaseHandler, orderhash common.Hash, ordersta
 	return handler
 }
 
-func (handler *OrderTxHandler) HandleOrderRelatedTxPending() error {
-	if handler.TxInfo.Status != types.TX_STATUS_PENDING {
+func (handler *OrderTxHandler) HandlerOrderRelatedTx() error {
+	if handler.Event.OrderHash == types.NilHash {
+		return fmt.Errorf(handler.format("err:orderhash should not be nil"), handler.value()...)
+	}
+
+	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
+		return handler.addOrder()
+	} else {
+		return handler.updateOrder()
+	}
+}
+
+func (handler *OrderTxHandler) HandlerOrderCorrelatedTx() error {
+	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS && handler.TxInfo.Status != types.TX_STATUS_FAILED {
+		return fmt.Errorf(handler.format("err:tx status:%s invalid"), handler.value(types.StatusStr(handler.TxInfo.Status))...)
+	}
+
+	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
+	if len(orderHashList) == 0 {
 		return nil
 	}
-	if err := handler.validate(); err != nil {
-		return err
+
+	for _, orderhash := range orderHashList {
+		handler.fullFilled(orderhash)
+		if err := handler.updateOrder(); err != nil {
+			continue
+		}
 	}
-	// 写入orderTx table
+
+	return nil
+}
+
+func (handler *OrderTxHandler) addOrder() error {
 	if err := handler.addOrderPendingTx(); err != nil {
 		return err
 	}
-	// 获取当前orderTx中跟order相关记录
 	list, err := handler.getOrderPendingTxSortedByNonce()
 	if err != nil {
 		return err
 	}
-
-	// 重新计算订单状态,并更新order表状态记录
 	return handler.setOrderStatus(list)
 }
 
-func (handler *OrderTxHandler) HandleOrderRelatedTxFailed() error {
-	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
-		return nil
-	}
-	if err := handler.validate(); err != nil {
-		return err
-	}
-	return handler.processSingleOrder()
-}
-
-func (handler *OrderTxHandler) HandleOrderRelatedTxSuccess() error {
-	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
-	if err := handler.validate(); err != nil {
-		return err
-	}
-	return handler.processSingleOrder()
-}
-
-func (handler *OrderTxHandler) HandleOrderCorrelatedTxFailed() error {
-	if handler.TxInfo.Status != types.TX_STATUS_FAILED {
-		return nil
-	}
-	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
-	if len(orderHashList) == 0 {
-		return nil
-	}
-
-	for _, orderhash := range orderHashList {
-		handler.fullFilled(orderhash)
-		if err := handler.processSingleOrder(); err != nil {
-			continue
-		}
-	}
-
-	return nil
-}
-
-func (handler *OrderTxHandler) HandleOrderCorrelatedTxSuccess() error {
-	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
-
-	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
-	if len(orderHashList) == 0 {
-		return nil
-	}
-
-	for _, orderhash := range orderHashList {
-		handler.fullFilled(orderhash)
-		if err := handler.processSingleOrder(); err != nil {
-			continue
-		}
-	}
-
-	return nil
-}
-
-func (handler *OrderTxHandler) processSingleOrder() error {
+func (handler *OrderTxHandler) updateOrder() error {
 	list, err := handler.getOrderPendingTxSortedByNonce()
 	if err != nil {
 		return err
@@ -266,14 +229,6 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 
 func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
 	handler.Event.OrderHash = orderhash
-}
-
-func (handler *OrderTxHandler) validate() error {
-	event := handler.Event
-	if event.OrderHash == types.NilHash {
-		return fmt.Errorf(handler.format("err:orderhash should not be nil"), handler.value()...)
-	}
-	return nil
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {

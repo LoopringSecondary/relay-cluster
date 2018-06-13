@@ -47,7 +47,7 @@ func (handler *CutoffPairHandler) HandlePending() error {
 
 	for _, orderhash := range orderhashList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
-		txhandler.HandleOrderRelatedTxPending()
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func (handler *CutoffPairHandler) HandleFailed() error {
 
 	for _, orderhash := range orderhashList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
-		txhandler.HandleOrderRelatedTxFailed()
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func (handler *CutoffPairHandler) HandleSuccess() error {
 
 	for _, orderhash := range orderhashlist {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, orderhash, types.ORDER_CUTOFFING)
-		txhandler.HandleOrderRelatedTxSuccess()
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil

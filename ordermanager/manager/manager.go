@@ -295,13 +295,8 @@ func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
 	basehandler := om.basehandler(txinfo)
 	handler := BaseOrderTxHandler(basehandler)
 
-	if err := handler.HandleOrderCorrelatedTxFailed(); err != nil {
+	if err := handler.HandlerOrderCorrelatedTx(); err != nil {
 		log.Debugf(err.Error())
-		return nil
-	}
-	if err := handler.HandleOrderCorrelatedTxSuccess(); err != nil {
-		log.Debugf(err.Error())
-		return nil
 	}
 
 	return nil

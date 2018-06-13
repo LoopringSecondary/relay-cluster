@@ -25,7 +25,6 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 )
 
@@ -53,7 +52,7 @@ func (handler *SubmitRingHandler) HandlePending() error {
 
 	for _, v := range event.OrderList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
-		txhandler.HandleOrderRelatedTxPending()
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
@@ -82,18 +81,10 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 
 	for _, v := range event.OrderList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
-		txhandler.HandleOrderRelatedTxFailed()
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
-}
-
-func (handler *SubmitRingHandler) orderHashList() []common.Hash {
-	var list []common.Hash
-	for _, v := range handler.Event.OrderList {
-		list = append(list, v.Hash)
-	}
-	return list
 }
 
 func (handler *SubmitRingHandler) format(fields ...string) string {
@@ -238,7 +229,7 @@ func (handler *FillHandler) HandleSuccess() error {
 
 	// update orderTx
 	txhandler := FullOrderTxHandler(handler.BaseHandler, state.RawOrder.Hash, types.ORDER_PENDING)
-	txhandler.HandleOrderRelatedTxSuccess()
+	txhandler.HandlerOrderRelatedTx()
 
 	log.Debugf(handler.format("dealAmountS:%s, dealtAmountB:%s"), handler.value(state.DealtAmountS.String(), state.DealtAmountB.String())...)
 
