@@ -48,6 +48,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/aws/aws-sdk-go/private/protocol/query"
 )
 
 const DefaultCapCurrency = "CNY"
@@ -1104,6 +1105,10 @@ func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketRec
 	} else {
 		return ticket, err
 	}
+}
+
+func (w *WalletServiceImpl) TicketCount() (int, error) {
+	return w.rds.TicketCount()
 }
 
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
