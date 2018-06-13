@@ -993,7 +993,8 @@ func (t *TrendManager) GetTickerByMarket(mkt string) (ticker Ticker, err error) 
 		} else if tickerCache, err := redisCache.Get(tickerKey); err == nil {
 			//log.Info("[TICKER] get cache from redis " + mkt)
 			var tickerMap map[string]Ticker
-			err = json.Unmarshal(tickerCache, &tickerMap); if err != nil {
+			err = json.Unmarshal(tickerCache, &tickerMap)
+			if err != nil {
 				return ticker, err
 			}
 			t.localCache.Set(localCacheTicker, tickerMap, 5*time.Second)
