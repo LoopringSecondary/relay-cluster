@@ -137,14 +137,14 @@ func (handler *OrderCancelHandler) saveEvent() error {
 
 	// save cancel event
 	model, err = rds.GetCancelEvent(event.TxHash)
-	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+	if err := ValidateDuplicateEvent(event.Status, model.Status, err); err != nil {
 		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	model.ConvertDown(event)
 	model.Fork = false
 
-	if event.Status == types.TX_STATUS_PENDING {
+	if err != nil {
 		return rds.Add(&model)
 	} else {
 		return rds.Save(&model)

@@ -44,12 +44,9 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-func ValidateExistEvent(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) error {
+func ValidateDuplicateEvent(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) error {
 	if eventStatus == types.TX_STATUS_PENDING && findModelErr == nil {
 		return fmt.Errorf("tx already exist")
-	}
-	if eventStatus != types.TX_STATUS_PENDING && findModelErr != nil {
-		return fmt.Errorf("tx not exist")
 	}
 	if eventStatus != types.TX_STATUS_PENDING && findModelErr == nil && uint8(eventStatus) == modelStatus {
 		return fmt.Errorf("tx already exist")

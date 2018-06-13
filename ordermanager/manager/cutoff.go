@@ -118,11 +118,12 @@ func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
 	)
 
 	model, err = rds.GetCutoffEvent(event.TxHash)
-	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+	if err := ValidateDuplicateEvent(event.Status, model.Status, err); err != nil {
 		return list, fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
-	if handler.Event.Status == types.TX_STATUS_PENDING {
+	// insert
+	if err != nil {
 		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff, omcm.ValidCutoffStatus)
 		for _, v := range orders {
 			var state types.OrderState
@@ -130,16 +131,13 @@ func (handler *CutoffHandler) getOrdersAndSaveEvent() ([]common.Hash, error) {
 			list = append(list, state.RawOrder.Hash)
 		}
 		model.Fork = false
-	} else {
-		list = dao.UnmarshalStrToHashList(model.OrderHashList)
-	}
-
-	event.OrderHashList = list
-	model.ConvertDown(event)
-
-	if handler.Event.Status == types.TX_STATUS_PENDING {
+		event.OrderHashList = list
+		model.ConvertDown(event)
 		return list, rds.Add(&model)
 	} else {
+		list = dao.UnmarshalStrToHashList(model.OrderHashList)
+		event.OrderHashList = list
+		model.ConvertDown(event)
 		return list, rds.Save(&model)
 	}
 }

@@ -43,7 +43,7 @@ func (handler *SubmitRingHandler) HandlePending() error {
 
 	// save pending tx
 	model, err := handler.Rds.FindRingMined(event.TxHash.Hex())
-	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+	if err := ValidateDuplicateEvent(event.Status, model.Status, err); err != nil {
 		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
@@ -68,13 +68,17 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 
 	// save failed tx
 	model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex())
-	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+	if err := ValidateDuplicateEvent(event.Status, model.Status, err); err != nil {
 		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
 	model.FromSubmitRingMethod(event)
-	handler.Rds.Save(model)
+	if err != nil {
+		handler.Rds.Add(model)
+	} else {
+		handler.Rds.Save(model)
+	}
 
 	for _, v := range event.OrderList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
@@ -132,13 +136,18 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 	rds := handler.Rds
 
 	model, err := rds.FindRingMined(event.TxHash.Hex())
-	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+	if err := ValidateDuplicateEvent(event.Status, model.Status, err); err != nil {
 		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
 	model.ConvertDown(event)
-	return rds.Save(model)
+
+	if err != nil {
+		return rds.Add(model)
+	} else {
+		return rds.Save(model)
+	}
 }
 
 func (handler *RingMinedHandler) format(fields ...string) string {
