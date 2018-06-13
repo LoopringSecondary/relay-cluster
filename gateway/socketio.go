@@ -814,13 +814,11 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error
 
 func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, delegateAddress string) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s, %s", owner, delegateAddress)
-
 	if len(delegateAddress) == 0 || len(owner) == 0 {
 		return nil
 	}
 
-	req := CommonTokenRequest{owner, delegateAddress}
+	req := CommonTokenRequest{delegateAddress, owner}
 	resp := SocketIOJsonResp{}
 	balance, err := so.walletService.GetBalance(req)
 
@@ -836,10 +834,17 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			_, ok := businesses[eventKeyBalance]
+			ctx, ok := businesses[eventKeyBalance]
 			if ok {
-				//log.Info("emit balance info")
-				v.Emit(eventKeyBalance+EventPostfixRes, string(respJson[:]))
+				query := &CommonTokenRequest{}
+				err = json.Unmarshal([]byte(ctx), query); if err != nil {
+					return true
+				}
+
+				if strings.ToLower(query.Owner) == strings.ToLower(req.Owner) && strings.ToLower(query.DelegateAddress) == strings.ToLower(req.DelegateAddress) {
+					//log.Info("emit balance info")
+					v.Emit(eventKeyBalance+EventPostfixRes, string(respJson[:]))
+				}
 			}
 		}
 		return true
