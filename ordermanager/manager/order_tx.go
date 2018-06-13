@@ -34,22 +34,22 @@ import (
 // 第一种情况,
 
 type OrderTxHandler struct {
-	Event *omtyp.OrderTx
-	BaseHandler
+	Event    *omtyp.OrderTx
+	TxStatus types.TxStatus
 }
 
-func BaseOrderTxHandler(basehandler BaseHandler) *OrderTxHandler {
+func BaseOrderTxHandler(txinfo types.TxInfo) *OrderTxHandler {
 	event := &omtyp.OrderTx{
-		Owner:  basehandler.TxInfo.From,
-		TxHash: basehandler.TxInfo.TxHash,
-		Nonce:  basehandler.TxInfo.Nonce.Int64(),
+		Owner:  txinfo.From,
+		TxHash: txinfo.TxHash,
+		Nonce:  txinfo.Nonce.Int64(),
 	}
-	handler := &OrderTxHandler{BaseHandler: basehandler, Event: event}
+	handler := &OrderTxHandler{TxStatus: txinfo.Status, Event: event}
 	return handler
 }
 
-func FullOrderTxHandler(basehandler BaseHandler, orderhash common.Hash, orderstatus types.OrderStatus) *OrderTxHandler {
-	handler := BaseOrderTxHandler(basehandler)
+func FullOrderTxHandler(txinfo types.TxInfo, orderhash common.Hash, orderstatus types.OrderStatus) *OrderTxHandler {
+	handler := BaseOrderTxHandler(txinfo)
 	handler.Event.OrderHash = orderhash
 	handler.Event.OrderStatus = orderstatus
 
@@ -61,7 +61,7 @@ func (handler *OrderTxHandler) HandlerOrderRelatedTx() error {
 		return fmt.Errorf(handler.format("err:orderhash should not be nil"), handler.value()...)
 	}
 
-	if handler.TxInfo.Status == types.TX_STATUS_PENDING {
+	if handler.TxStatus == types.TX_STATUS_PENDING {
 		return handler.addOrder()
 	} else {
 		return handler.updateOrder()
@@ -69,8 +69,8 @@ func (handler *OrderTxHandler) HandlerOrderRelatedTx() error {
 }
 
 func (handler *OrderTxHandler) HandlerOrderCorrelatedTx() error {
-	if handler.TxInfo.Status != types.TX_STATUS_SUCCESS && handler.TxInfo.Status != types.TX_STATUS_FAILED {
-		return fmt.Errorf(handler.format("err:tx status:%s invalid"), handler.value(types.StatusStr(handler.TxInfo.Status))...)
+	if handler.TxStatus != types.TX_STATUS_SUCCESS && handler.TxStatus != types.TX_STATUS_FAILED {
+		return fmt.Errorf(handler.format("err:tx status:%s invalid"), handler.value(types.StatusStr(handler.TxStatus))...)
 	}
 
 	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
@@ -115,7 +115,6 @@ func (handler *OrderTxHandler) getOrderPendingTxSortedByNonce() ([]omtyp.OrderTx
 	var list []omtyp.OrderTx
 
 	event := handler.Event
-	rds := handler.Rds
 
 	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
 		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
@@ -140,7 +139,6 @@ func (handler *OrderTxHandler) addOrderPendingTx() error {
 		err   error
 	)
 
-	rds := handler.Rds
 	event := handler.Event
 
 	if model, err = rds.FindPendingOrderTx(event.TxHash, event.OrderHash); err == nil {
@@ -166,7 +164,6 @@ func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.O
 	)
 
 	event := handler.Event
-	rds := handler.Rds
 
 	for _, v := range list {
 		if v.TxHash == event.TxHash {
@@ -191,7 +188,6 @@ func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.O
 // 更新order表订单最终状态
 func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 	event := handler.Event
-	rds := handler.Rds
 
 	state, err := cache.BaseInfo(event.OrderHash)
 	if err != nil {
@@ -203,7 +199,7 @@ func (handler *OrderTxHandler) setOrderStatus(list []omtyp.OrderTx) error {
 		if !omcm.IsPendingStatus(state.Status) {
 			return nil
 		}
-		SettleOrderStatus(state, handler.MarketCap, false)
+		SettleOrderStatus(state, false)
 		return rds.UpdateOrderStatus(event.OrderHash, state.Status)
 	}
 
@@ -232,7 +228,7 @@ func (handler *OrderTxHandler) fullFilled(orderhash common.Hash) {
 }
 
 func (handler *OrderTxHandler) format(fields ...string) string {
-	baseformat := "order manager, orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%s"
+	baseformat := "order manager, orderTxHandler, tx:%s, owner:%s, txstatus:%s, nonce:%d"
 	for _, v := range fields {
 		baseformat += ", " + v
 	}
@@ -240,7 +236,7 @@ func (handler *OrderTxHandler) format(fields ...string) string {
 }
 
 func (handler *OrderTxHandler) value(values ...interface{}) []interface{} {
-	basevalues := []interface{}{handler.TxInfo.TxHash.Hex(), handler.TxInfo.From.Hex(), types.StatusStr(handler.TxInfo.Status), handler.TxInfo.Nonce.String()}
+	basevalues := []interface{}{handler.Event.TxHash.Hex(), handler.Event.Owner.Hex(), types.StatusStr(handler.TxStatus), handler.Event.Nonce}
 	basevalues = append(basevalues, values...)
 	return basevalues
 }

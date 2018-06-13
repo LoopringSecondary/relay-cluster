@@ -20,12 +20,80 @@ package manager
 
 import (
 	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )
 
-func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, isCancel bool) {
+func NewOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
+	state.DealtAmountS = big.NewInt(0)
+	state.DealtAmountB = big.NewInt(0)
+	state.SplitAmountS = big.NewInt(0)
+	state.SplitAmountB = big.NewInt(0)
+	state.CancelledAmountB = big.NewInt(0)
+	state.CancelledAmountS = big.NewInt(0)
+
+	if blockNumber == nil {
+		state.UpdatedBlock = big.NewInt(0)
+	} else {
+		state.UpdatedBlock = blockNumber
+	}
+
+	// calculate order amount and settled
+	SettleOrderAmountOnChain(state)
+
+	// check order finished status
+	SettleOrderStatus(state, false)
+
+	// convert order
+	model := &dao.Order{}
+	model.ConvertDown(state)
+
+	return model, nil
+}
+
+func SettleOrderAmountOnChain(state *types.OrderState) error {
+	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
+	return nil
+
+	var (
+		cancelled, cancelOrFilled, dealt *big.Int
+		err                              error
+	)
+
+	protocol := state.RawOrder.DelegateAddress
+	orderhash := state.RawOrder.Hash
+
+	// get order cancelled amount from chain
+	if cancelled, err = loopringaccessor.GetCancelled(protocol, orderhash, "latest"); err != nil {
+		return fmt.Errorf("order manager,handle gateway order,order %s getCancelled error:%s", orderhash.Hex(), err.Error())
+	}
+
+	// get order cancelledOrFilled amount from chain
+	if cancelOrFilled, err = loopringaccessor.GetCancelledOrFilled(protocol, orderhash, "latest"); err != nil {
+		return fmt.Errorf("order manager,handle gateway order,order %s getCancelledOrFilled error:%s", orderhash.Hex(), err.Error())
+	}
+
+	if cancelOrFilled.Cmp(cancelled) < 0 {
+		return fmt.Errorf("order manager,handle gateway order,order %s cancelOrFilledAmount:%s < cancelledAmount:%s", orderhash.Hex(), cancelOrFilled.String(), cancelled.String())
+	}
+
+	dealt = big.NewInt(0).Sub(cancelOrFilled, cancelled)
+
+	if state.RawOrder.BuyNoMoreThanAmountB {
+		state.DealtAmountB = dealt
+		state.CancelledAmountB = cancelled
+	} else {
+		state.DealtAmountS = dealt
+		state.CancelledAmountS = cancelled
+	}
+
+	return nil
+}
+
+func SettleOrderStatus(state *types.OrderState, isCancel bool) {
 	zero := big.NewInt(0)
 	finishAmountS := big.NewInt(0).Add(state.CancelledAmountS, state.DealtAmountS)
 	totalAmountS := big.NewInt(0).Add(finishAmountS, state.SplitAmountS)
@@ -35,7 +103,7 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 
 	if totalAmount.Cmp(zero) <= 0 {
 		state.Status = types.ORDER_NEW
-	} else if !mc.IsOrderValueDust(state) {
+	} else if !marketCapProvider.IsOrderValueDust(state) {
 		state.Status = types.ORDER_PARTIAL
 	} else if isCancel {
 		state.Status = types.ORDER_CANCEL
@@ -44,12 +112,12 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-func ValidateDuplicateEvent(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) error {
+func IsEventExist(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) bool {
 	if eventStatus == types.TX_STATUS_PENDING && findModelErr == nil {
-		return fmt.Errorf("tx already exist")
+		return true
 	}
 	if eventStatus != types.TX_STATUS_PENDING && findModelErr == nil && uint8(eventStatus) == modelStatus {
-		return fmt.Errorf("tx already exist")
+		return true
 	}
-	return nil
+	return false
 }

@@ -19,14 +19,18 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/ordermanager/cache"
-	"github.com/Loopring/relay-cluster/ordermanager/common"
-	"github.com/Loopring/relay-cluster/usermanager"
+	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
+	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
+	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 )
 
 type OrderManager interface {
@@ -35,12 +39,9 @@ type OrderManager interface {
 }
 
 type OrderManagerImpl struct {
-	options                    *common.OrderManagerOptions
+	options                    *omcm.OrderManagerOptions
 	brokers                    []string
-	rds                        *dao.RdsService
 	processor                  *ForkProcessor
-	cutoffCache                *common.CutoffCache
-	mc                         marketcap.MarketCapProvider
 	newOrderWatcher            *eventemitter.Watcher
 	ringMinedWatcher           *eventemitter.Watcher
 	fillOrderWatcher           *eventemitter.Watcher
@@ -58,25 +59,29 @@ type OrderManagerImpl struct {
 	submitRingMethodWatcher    *eventemitter.Watcher
 }
 
+var (
+	rds               *dao.RdsService
+	marketCapProvider marketcap.MarketCapProvider
+	cutoffcache       *omcm.CutoffCache
+)
+
 func NewOrderManager(
-	options *common.OrderManagerOptions,
-	rds *dao.RdsService,
+	options *omcm.OrderManagerOptions,
+	db *dao.RdsService,
 	market marketcap.MarketCapProvider,
-	um usermanager.UserManager,
 	brokers []string) *OrderManagerImpl {
 
 	om := &OrderManagerImpl{}
 	om.options = options
 	om.brokers = brokers
-	om.rds = rds
-	om.processor = NewForkProcess(om.rds, market)
-	om.mc = market
-	om.cutoffCache = common.NewCutoffCache(options.CutoffCacheCleanTime)
+	om.processor = NewForkProcess(rds, market)
+	cutoffcache = omcm.NewCutoffCache(options.CutoffCacheCleanTime)
 
-	InitializeWriter(om.rds, um)
+	marketCapProvider = market
+	rds = db
 
 	if cache.Invalid() {
-		cache.Initialize(om.rds)
+		cache.Initialize(rds)
 	}
 
 	return om
@@ -84,27 +89,29 @@ func NewOrderManager(
 
 // Start start orderbook as a service
 func (om *OrderManagerImpl) Start() {
-	om.newOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleGatewayOrder}
+	// order related
+	om.newOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleGatewayOrder}
+	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleSubmitRingMethodEvent}
+	om.ringMinedWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleRingMinedEvent}
+	om.fillOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderFilledEvent}
+	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCancelledEvent}
+	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleCutoffEvent}
+	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleCutoffPair}
 
-	om.ringMinedWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleRingMined}
-	om.fillOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderFilled}
-	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderCancelled}
-	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoff}
-	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoffPair}
+	// nonce related
+	om.approveWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
+	om.depositWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
+	om.withdrawalWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
+	om.transferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
+	om.ethTransferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
+	om.unsupportedContractWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleNonceRelatedEvent}
 
-	om.approveWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleApprove}
-	om.depositWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleDeposit}
-	om.withdrawalWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWithdrawal}
-	om.transferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleTransfer}
-	om.ethTransferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleEthTransfer}
-	om.unsupportedContractWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleUnsupportedContract}
-
+	// procedure related
 	om.forkWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleFork}
 	om.warningWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWarning}
-	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleSubmitRingMethod}
 
 	eventemitter.On(eventemitter.NewOrder, om.newOrderWatcher)
-
+	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 	eventemitter.On(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.On(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.On(eventemitter.CancelOrder, om.cancelOrderWatcher)
@@ -120,12 +127,11 @@ func (om *OrderManagerImpl) Start() {
 
 	eventemitter.On(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.On(eventemitter.ExtractorWarning, om.warningWatcher)
-	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 }
 
 func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.NewOrder, om.newOrderWatcher)
-
+	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 	eventemitter.Un(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.Un(eventemitter.CancelOrder, om.cancelOrderWatcher)
@@ -141,7 +147,6 @@ func (om *OrderManagerImpl) Stop() {
 
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
-	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 }
 
 func (om *OrderManagerImpl) handleFork(input eventemitter.EventData) error {
@@ -162,139 +167,333 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 	return nil
 }
 
-func (om *OrderManagerImpl) basehandler(txinfo types.TxInfo) BaseHandler {
-	var base BaseHandler
-	base.Rds = om.rds
-	base.CutoffCache = om.cutoffCache
-	base.MarketCap = om.mc
-	base.TxInfo = txinfo
-
-	return base
-}
-
 // 所有来自gateway的订单都是新订单
-func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
-	src := input.(*types.OrderState)
-	handler := &GatewayOrderHandler{
-		State:     src,
-		Rds:       om.rds,
-		MarketCap: om.mc,
+func (om *OrderManagerImpl) HandleGatewayOrder(input eventemitter.EventData) error {
+	state := input.(*types.OrderState)
+
+	model, err := NewOrderEntity(state, marketCapProvider, nil)
+	if err != nil {
+		log.Errorf("order manager,handle gateway order:%s error", state.RawOrder.Hash.Hex())
+		return err
 	}
 
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
-	src := input.(*types.SubmitRingMethodEvent)
-	handler := &SubmitRingHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
+	if err = rds.Add(model); err != nil {
+		log.Errorf(err.Error())
+		return err
 	}
 
-	return om.orderRelatedWorking(handler)
+	log.Debugf("order manager,handle gateway order,order.hash:%s amountS:%s", state.RawOrder.Hash.Hex(), state.RawOrder.AmountS.String())
+
+	notify.NotifyOrderUpdate(state)
+
+	return nil
 }
 
-func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
-	src := input.(*types.RingMinedEvent)
-	handler := &RingMinedHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
-	src := input.(*types.OrderFilledEvent)
-	handler := &FillHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
-	src := input.(*types.OrderCancelledEvent)
-	handler := &OrderCancelHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
-	src := input.(*types.CutoffEvent)
-	handler := &CutoffHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
-	src := input.(*types.CutoffPairEvent)
-	handler := &CutoffPairHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
-	src := input.(*types.ApprovalEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
-	src := input.(*types.WethDepositEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
-	src := input.(*types.WethWithdrawalEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
-	src := input.(*types.TransferEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
-	src := input.(*types.EthTransferEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
-	src := input.(*types.UnsupportedContractEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) error {
-	if err := handler.HandlePending(); err != nil {
-		log.Debugf(err.Error())
+func (om *OrderManagerImpl) HandleSubmitRingMethodEvent(input eventemitter.EventData) error {
+	event := input.(*types.SubmitRingMethodEvent)
+	if event.Status != types.TX_STATUS_PENDING && event.Status != types.TX_STATUS_FAILED {
+		log.Errorf("order manager, submitRingHandler, tx:%s, txstatus:%s invalid", event.TxHash.Hex(), types.StatusStr(event.Status))
 		return nil
 	}
-	if err := handler.HandleFailed(); err != nil {
-		log.Debugf(err.Error())
+
+	// validate and save event
+	var (
+		model = &dao.RingMinedEvent{}
+		err   error
+	)
+	model, err = rds.FindRingMined(event.TxHash.Hex())
+	if IsEventExist(event.Status, model.Status, err) {
+		log.Debugf("order manager, submitRingHandler, tx:%s, txstatus:%s already exist", event.TxHash.Hex(), types.StatusStr(event.Status))
 		return nil
 	}
-	if err := handler.HandleSuccess(); err != nil {
-		log.Debugf(err.Error())
+	model.FromSubmitRingMethod(event)
+	if err != nil {
+		err = rds.Add(model)
+	} else {
+		err = rds.Save(model)
+	}
+	if err != nil {
+		log.Errorf(err.Error())
 		return nil
+	}
+
+	log.Debugf("order manager, submitRingHandler, tx:%s, txstatus:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
+
+	for _, v := range event.OrderList {
+		txhandler := FullOrderTxHandler(event.TxInfo, v.Hash, types.ORDER_PENDING)
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
 }
 
-func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
-	basehandler := om.basehandler(txinfo)
-	handler := BaseOrderTxHandler(basehandler)
+func (om *OrderManagerImpl) HandleRingMinedEvent(input eventemitter.EventData) error {
+	event := input.(*types.RingMinedEvent)
+	if event.Status != types.TX_STATUS_SUCCESS {
+		return nil
+	}
 
+	model, err := rds.FindRingMined(event.TxHash.Hex())
+	if IsEventExist(event.Status, model.Status, err); err != nil {
+		log.Debugf("order manager, ringMinedHandler, tx:%s, txstatus:%s, err:%s", event.TxHash.Hex(), types.StatusStr(event.Status), err.Error())
+		return nil
+	}
+
+	log.Debugf("order manager, ringMinedHandler, tx:%s, txstatus:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
+	model.ConvertDown(event)
+	if err != nil {
+		return rds.Add(model)
+	} else {
+		return rds.Save(model)
+	}
+}
+
+func (om *OrderManagerImpl) HandleOrderFilledEvent(input eventemitter.EventData) error {
+	event := input.(*types.OrderFilledEvent)
+
+	// save fill event
+	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
+	if err == nil {
+		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, err:fill already exist", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
+	}
+
+	// get rds.Order and types.OrderState
+	state := &types.OrderState{UpdatedBlock: event.BlockNumber}
+	model, err := rds.GetOrderByHash(event.OrderHash)
+	if err != nil {
+		return err
+	}
+	if err := model.ConvertUp(state); err != nil {
+		return err
+	}
+
+	newFillModel := &dao.FillEvent{}
+	newFillModel.ConvertDown(event)
+	newFillModel.Fork = false
+	newFillModel.OrderType = state.RawOrder.OrderType
+	newFillModel.Side = util.GetSide(util.AddressToAlias(event.TokenS.Hex()), util.AddressToAlias(event.TokenB.Hex()))
+	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
+
+	if err := rds.Add(newFillModel); err != nil {
+		return err
+	}
+
+	// judge order status
+	if state.Status == types.ORDER_CUTOFF || state.Status == types.ORDER_FINISHED || state.Status == types.ORDER_UNKNOWN {
+		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, err:order status(%d) invalid", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
+	}
+
+	// calculate dealt amount
+	state.UpdatedBlock = event.BlockNumber
+	state.DealtAmountS = new(big.Int).Add(state.DealtAmountS, event.AmountS)
+	state.DealtAmountB = new(big.Int).Add(state.DealtAmountB, event.AmountB)
+	state.SplitAmountS = new(big.Int).Add(state.SplitAmountS, event.SplitS)
+	state.SplitAmountB = new(big.Int).Add(state.SplitAmountB, event.SplitB)
+
+	// update order status
+	SettleOrderStatus(state, false)
+
+	// update rds.Order
+	if err := model.ConvertDown(state); err != nil {
+		return err
+	}
+	if err := rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
+		return err
+	}
+
+	// update orderTx
+	txhandler := FullOrderTxHandler(event.TxInfo, state.RawOrder.Hash, types.ORDER_PENDING)
+	txhandler.HandlerOrderRelatedTx()
+
+	log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
+
+	notify.NotifyOrderFilled(newFillModel)
+
+	return nil
+}
+
+func (om *OrderManagerImpl) HandleOrderCancelledEvent(input eventemitter.EventData) error {
+	event := input.(*types.OrderCancelledEvent)
+
+	eventModel, noRecordErr := rds.GetCancelEvent(event.TxHash)
+	if err := ValidateDuplicateEvent(event.Status, eventModel.Status, noRecordErr); err != nil {
+		return fmt.Errorf("order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s, err:%s", event.TxHash.Hex(), event.OrderHash.Hex(), types.StatusStr(event.Status), err.Error())
+	}
+
+	log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s", event.TxHash.Hex(), event.OrderHash.Hex(), types.StatusStr(event.Status))
+
+	eventModel.ConvertDown(event)
+	eventModel.Fork = false
+
+	if noRecordErr != nil {
+		rds.Add(&eventModel)
+	} else {
+		rds.Save(&eventModel)
+	}
+
+	if event.Status == types.TX_STATUS_SUCCESS {
+		// get rds.Order and types.OrderState
+		state := &types.OrderState{}
+		model, err := rds.GetOrderByHash(event.OrderHash)
+		if err != nil {
+			return err
+		}
+		if err := model.ConvertUp(state); err != nil {
+			return err
+		}
+
+		// calculate remainAmount and cancelled amount should be saved whether order is finished or not
+		if state.RawOrder.BuyNoMoreThanAmountB {
+			state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
+			log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountB:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountB.String())
+		} else {
+			state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
+			log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountS:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountS.String())
+		}
+
+		// update order status
+		SettleOrderStatus(state, true)
+		state.UpdatedBlock = event.BlockNumber
+
+		// update rds.Order
+		if err := model.ConvertDown(state); err != nil {
+			return err
+		}
+		if err := rds.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
+			return err
+		}
+
+		notify.NotifyOrderUpdate(state)
+	}
+
+	// 原则上不允许订单状态干扰到其他动作
+	txhandler := FullOrderTxHandler(event.TxInfo, event.OrderHash, types.ORDER_CANCELLING)
+	return txhandler.HandlerOrderRelatedTx()
+}
+
+func (om *OrderManagerImpl) HandleCutoffEvent(input eventemitter.EventData) error {
+	event := input.(*types.CutoffEvent)
+	var orderhashList []common.Hash
+
+	model, noRecordErr := rds.GetCutoffEvent(event.TxHash)
+	if err := ValidateDuplicateEvent(event.Status, model.Status, noRecordErr); err != nil {
+		return fmt.Errorf("order manager, CutoffHandler, tx:%s, err:%s", event.TxHash.Hex(), err.Error())
+	}
+
+	// insert
+	if noRecordErr != nil {
+		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff, omcm.ValidCutoffStatus)
+		for _, v := range orders {
+			var state types.OrderState
+			v.ConvertUp(&state)
+			orderhashList = append(orderhashList, state.RawOrder.Hash)
+		}
+		model.Fork = false
+		event.OrderHashList = orderhashList
+		model.ConvertDown(event)
+		rds.Add(&model)
+	} else {
+		orderhashList = dao.UnmarshalStrToHashList(model.OrderHashList)
+		event.OrderHashList = orderhashList
+		model.ConvertDown(event)
+		rds.Save(&model)
+	}
+
+	log.Debugf("order manager, CutoffHandler, tx:%s, owner:%s, cutofftime:%s, txstatus:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Cutoff.String(), types.StatusStr(event.Status))
+
+	if event.Status == types.TX_STATUS_SUCCESS {
+		// 首次存储到缓存，lastCutoff == currentCutoff
+		lastCutoff := cutoffcache.GetCutoff(event.Protocol, event.Owner)
+		if event.Cutoff.Cmp(lastCutoff) < 0 {
+			return fmt.Errorf("order manager, CutoffHandler, tx:%s, lastCutofftime:%s > currentCutoffTime:%s", event.TxHash.Hex(), lastCutoff.String(), event.Cutoff.String())
+		}
+
+		cutoffcache.UpdateCutoff(event.Protocol, event.Owner, event.Cutoff)
+		rds.SetCutOffOrders(orderhashList, event.BlockNumber)
+
+		notify.NotifyCutoff(event)
+
+		for _, orderhash := range orderhashList {
+			txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
+			txhandler.HandlerOrderRelatedTx()
+		}
+	}
+
+	return nil
+}
+
+func (om *OrderManagerImpl) HandleCutoffPair(input eventemitter.EventData) error {
+	event := input.(*types.CutoffPairEvent)
+
+	var orderhashlist []common.Hash
+
+	model, noRecordErr := rds.GetCutoffPairEvent(event.TxHash)
+	if err := ValidateDuplicateEvent(event.Status, model.Status, noRecordErr); err != nil {
+		return fmt.Errorf("order manager cutoffPairHandler, tx:%s, err:%s", event.TxHash.Hex(), err.Error())
+	}
+
+	if noRecordErr != nil {
+		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff, omcm.ValidCutoffStatus)
+		for _, v := range orders {
+			var state types.OrderState
+			v.ConvertUp(&state)
+			orderhashlist = append(orderhashlist, state.RawOrder.Hash)
+		}
+		model.Fork = false
+		event.OrderHashList = orderhashlist
+		model.ConvertDown(event)
+		rds.Add(&model)
+	} else {
+		orderhashlist = dao.UnmarshalStrToHashList(model.OrderHashList)
+		event.OrderHashList = orderhashlist
+		model.ConvertDown(event)
+		rds.Save(&model)
+	}
+
+	log.Debugf("order manager cutoffPairHandler, tx:%s, owner:%s, token1:%s, token2:%s, cutoffTimestamp:%s, txstatus:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Token1.Hex(), event.Token2.Hex(), event.Cutoff.String(), types.StatusStr(event.Status))
+
+	if event.Status == types.TX_STATUS_SUCCESS {
+		// 首次存储到缓存，lastCutoffPair == currentCutoffPair
+		lastCutoffPair := cutoffcache.GetCutoffPair(event.Protocol, event.Owner, event.Token1, event.Token2)
+		if event.Cutoff.Cmp(lastCutoffPair) < 0 {
+			return fmt.Errorf("order manager cutoffPairHandler, tx:%s, lastCutoffPairTime:%s > currentCutoffPairTime:%s", event.TxHash.Hex(), lastCutoffPair.String(), event.Cutoff.String())
+		}
+
+		cutoffcache.UpdateCutoffPair(event.Protocol, event.Owner, event.Token1, event.Token2, event.Cutoff)
+		rds.SetCutOffOrders(orderhashlist, event.BlockNumber)
+
+		notify.NotifyCutoffPair(event)
+	}
+
+	for _, orderhash := range orderhashlist {
+		txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
+		txhandler.HandlerOrderRelatedTx()
+	}
+
+	return nil
+}
+
+func (om *OrderManagerImpl) HandleNonceRelatedEvent(input eventemitter.EventData) error {
+	var txinfo types.TxInfo
+
+	switch event := input.(type) {
+	case *types.ApprovalEvent:
+		txinfo = event.TxInfo
+	case *types.WethDepositEvent:
+		txinfo = event.TxInfo
+	case *types.WethWithdrawalEvent:
+		txinfo = event.TxInfo
+	case *types.TransferEvent:
+		txinfo = event.TxInfo
+	case *types.EthTransferEvent:
+		txinfo = event.TxInfo
+	case *types.UnsupportedContractEvent:
+		txinfo = event.TxInfo
+	default:
+		return nil
+	}
+
+	handler := BaseOrderTxHandler(txinfo)
 	if err := handler.HandlerOrderCorrelatedTx(); err != nil {
 		log.Debugf(err.Error())
 	}
