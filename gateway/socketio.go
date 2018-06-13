@@ -480,7 +480,9 @@ func (so *SocketIOServiceImpl) pushDepthData(eventKey string, respMap map[string
 				err := json.Unmarshal([]byte(ctx), dQuery)
 				if err == nil && len(dQuery.DelegateAddress) > 0 && len(dQuery.Market) > 0 {
 					depthKey := strings.ToLower(dQuery.DelegateAddress) + "_" + strings.ToLower(dQuery.Market)
-					v.Emit(eventKey+EventPostfixRes, respMap[depthKey])
+					if len(respMap[depthKey]) > 0 {
+						v.Emit(eventKey+EventPostfixRes, respMap[depthKey])
+					}
 				}
 			}
 		}
