@@ -48,7 +48,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/aws/aws-sdk-go/private/protocol/query"
 )
 
 const DefaultCapCurrency = "CNY"
