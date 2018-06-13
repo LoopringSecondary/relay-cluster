@@ -170,7 +170,7 @@ type TempStore struct {
 	Value    string `json:"value"`
 }
 
-type NotifyCircularBody struct {
+type NotifyCirculrBody struct {
 	Owner  string `json:"owner"`
 	Body   string `json:"body"`
 }
@@ -1438,11 +1438,11 @@ func (w *WalletServiceImpl) SetTempStore(req TempStore) (hash string, err error)
 	return req.Key, err
 }
 
-func (w *WalletServiceImpl) NotifyCircular(req NotifyCircularBody) (hash string, err error) {
+func (w *WalletServiceImpl) NotifyCirculr(req NotifyCirculrBody) (hash string, err error) {
 	if len(req.Owner) == 0 {
 		return hash, errors.New("owner can't be nil")
 	}
-	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circular, &req)
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circulr, &req)
 	return req.Owner, err
 }
 
