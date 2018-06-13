@@ -39,17 +39,19 @@ func (handler *SubmitRingHandler) HandlePending() error {
 		return nil
 	}
 
+	event := handler.Event
+
 	// save pending tx
-	model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex())
-	if err == nil {
-		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	model, err := handler.Rds.FindRingMined(event.TxHash.Hex())
+	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
-	model.FromSubmitRingMethod(handler.Event)
+	model.FromSubmitRingMethod(event)
 	handler.Rds.Add(model)
 
-	for _, v := range handler.Event.OrderList {
+	for _, v := range event.OrderList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
 		txhandler.HandleOrderRelatedTxPending()
 	}
@@ -62,17 +64,19 @@ func (handler *SubmitRingHandler) HandleFailed() error {
 		return nil
 	}
 
+	event := handler.Event
+
 	// save failed tx
 	model, err := handler.Rds.FindRingMined(handler.Event.TxHash.Hex())
-	if err != nil {
-		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	log.Debugf(handler.format(), handler.value()...)
-	model.FromSubmitRingMethod(handler.Event)
+	model.FromSubmitRingMethod(event)
 	handler.Rds.Save(model)
 
-	for _, v := range handler.Event.OrderList {
+	for _, v := range event.OrderList {
 		txhandler := FullOrderTxHandler(handler.BaseHandler, v.Hash, types.ORDER_PENDING)
 		txhandler.HandleOrderRelatedTxFailed()
 	}
@@ -128,8 +132,8 @@ func (handler *RingMinedHandler) HandleSuccess() error {
 	rds := handler.Rds
 
 	model, err := rds.FindRingMined(event.TxHash.Hex())
-	if err != nil {
-		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	log.Debugf(handler.format(), handler.value()...)

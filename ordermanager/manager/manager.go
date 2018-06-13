@@ -136,6 +136,7 @@ func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.Un(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.Un(eventemitter.CutoffAll, om.cutoffOrderWatcher)
+	eventemitter.Un(eventemitter.CutoffPair, om.cutoffPairWatcher)
 
 	eventemitter.On(eventemitter.Approve, om.approveWatcher)
 	eventemitter.On(eventemitter.WethDeposit, om.depositWatcher)

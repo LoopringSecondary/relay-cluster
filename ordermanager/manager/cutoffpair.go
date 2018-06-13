@@ -119,8 +119,8 @@ func (handler *CutoffPairHandler) getOrdersAndSaveEvent() ([]common.Hash, error)
 	)
 
 	model, err = rds.GetCutoffPairEvent(event.TxHash)
-	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return list, fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+		return list, fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	if handler.Event.Status == types.TX_STATUS_PENDING {

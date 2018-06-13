@@ -137,8 +137,8 @@ func (handler *OrderCancelHandler) saveEvent() error {
 
 	// save cancel event
 	model, err = rds.GetCancelEvent(event.TxHash)
-	if EventRecordDuplicated(event.Status, model.Status, err != nil) {
-		return fmt.Errorf(handler.format("err:tx already exist"), handler.value()...)
+	if err := ValidateExistEvent(event.Status, model.Status, err); err != nil {
+		return fmt.Errorf(handler.format("err:%s"), handler.value(err.Error())...)
 	}
 
 	model.ConvertDown(event)
