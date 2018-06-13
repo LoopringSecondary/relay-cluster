@@ -36,10 +36,20 @@ func IsPendingStatus(status types.OrderStatus) bool {
 	return false
 }
 
+// todo pending状态的订单是否允许软取消
 var ValidFlexCancelStatus = []types.OrderStatus{
 	types.ORDER_NEW,
 	types.ORDER_PARTIAL,
 	types.ORDER_PENDING,
+}
+
+func IsValidFlexCancelStatus(status types.OrderStatus) bool {
+	for _, v := range ValidFlexCancelStatus {
+		if v == status {
+			return true
+		}
+	}
+	return false
 }
 
 var ValidMinerStatus = []types.OrderStatus{

@@ -46,3 +46,7 @@ func TestFlexCancelOrder(t *testing.T) {
 
 	producer.SendMessage(kafka.Kafka_Topic_OrderManager_FlexCancelOrder, data, key)
 }
+
+func TestOrderCorrelatedTx(t *testing.T) {
+
+}
