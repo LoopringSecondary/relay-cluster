@@ -1440,7 +1440,7 @@ func (w *WalletServiceImpl) SetTempStore(req TempStore) (hash string, err error)
 
 func (w *WalletServiceImpl) NotifyCircular(req NotifyCircularBody) (hash string, err error) {
 	if len(req.Owner) == 0 {
-		return hash, errors.New("hash can't be nil")
+		return hash, errors.New("owner can't be nil")
 	}
 	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circular, &req)
 	return req.Owner, err
