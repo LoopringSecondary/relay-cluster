@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
@@ -43,10 +44,15 @@ func SettleOrderStatus(state *types.OrderState, mc marketcap.MarketCapProvider, 
 	}
 }
 
-func EventRecordDuplicated(eventStatus types.TxStatus, modelStatus uint8, noRecord bool) bool {
-	if uint8(eventStatus) == modelStatus && !noRecord {
-		return true
-	} else {
-		return false
+func ValidateExistEvent(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) error {
+	if eventStatus == types.TX_STATUS_PENDING && findModelErr == nil {
+		return fmt.Errorf("tx already exist")
 	}
+	if eventStatus != types.TX_STATUS_PENDING && findModelErr != nil {
+		return fmt.Errorf("tx not exist")
+	}
+	if eventStatus != types.TX_STATUS_PENDING && findModelErr == nil && uint8(eventStatus) == modelStatus {
+		return fmt.Errorf("tx already exist")
+	}
+	return nil
 }
