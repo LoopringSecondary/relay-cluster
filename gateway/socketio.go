@@ -813,6 +813,13 @@ func (so *SocketIOServiceImpl) handleBalanceUpdate(input interface{}) (err error
 }
 
 func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, delegateAddress string) (err error) {
+
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] balance input. %s, %s", owner, delegateAddress)
+
+	if len(delegateAddress) == 0 || len(owner) == 0 {
+		return nil
+	}
+
 	req := CommonTokenRequest{owner, delegateAddress}
 	resp := SocketIOJsonResp{}
 	balance, err := so.walletService.GetBalance(req)
