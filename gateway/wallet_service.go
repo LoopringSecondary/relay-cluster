@@ -528,6 +528,14 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("from or to address is illegal")
 	}
 
+	nonce, err := strconv.ParseInt(txNotify.Nonce, 10, 64); if err != nil {
+		return "", errors.New("nonce can't convert to int")
+	}
+
+	err = txmanager.ValidateNonce(txNotify.From, nonce); if err != nil {
+		return "", err
+	}
+
 	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
 	tx.Input = txNotify.Input
@@ -1470,6 +1478,10 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 
 	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID: req.UUID, Owner: req.Sign.Owner})
 	return req.UUID, err
+}
+
+func (w *WalletServiceImpl) GetNonce(owner string) (int64, error) {
+	return txmanager.GetNonce(owner), nil
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {
