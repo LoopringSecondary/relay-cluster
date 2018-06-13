@@ -1482,8 +1482,8 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 	return req.UUID, err
 }
 
-func (w *WalletServiceImpl) GetNonce(owner string) (n int64, err error) {
-	nonce, err := txmanager.GetNonce(owner)
+func (w *WalletServiceImpl) GetNonce(owner SingleOwner) (n int64, err error) {
+	nonce, err := txmanager.GetNonce(owner.Owner)
 	if err != nil {
 		return n, err
 	}
