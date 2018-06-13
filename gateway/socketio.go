@@ -1190,7 +1190,7 @@ func (so *SocketIOServiceImpl) handleCirculrNotify(input interface{}) (err error
 					resp := SocketIOJsonResp{}
 					resp.Data = ot
 					respJson, _ := json.Marshal(resp)
-					v.Emit(eventKeyScanLogin+EventPostfixRes, string(respJson[:]))
+					v.Emit(eventKeyCirculrNotify+EventPostfixRes, string(respJson[:]))
 				}
 			}
 		}
