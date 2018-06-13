@@ -688,7 +688,7 @@ func (w *WalletServiceImpl) GetLatestP2POrders(query LatestOrderQuery) (res []Or
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
-	defaultDepthLength := 40
+	defaultDepthLength := 100
 	asks, bids, err := w.getInnerOrderBook(query, defaultDepthLength)
 	if err != nil {
 		return
