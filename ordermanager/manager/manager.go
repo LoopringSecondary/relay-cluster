@@ -24,7 +24,6 @@ import (
 	"github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
-	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
@@ -59,8 +58,6 @@ type OrderManagerImpl struct {
 	submitRingMethodWatcher    *eventemitter.Watcher
 }
 
-const kafka_consume_group = "relay_cluster_order_manager"
-
 func NewOrderManager(
 	options *common.OrderManagerOptions,
 	rds *dao.RdsService,
@@ -75,9 +72,6 @@ func NewOrderManager(
 	om.processor = NewForkProcess(om.rds, market)
 	om.mc = market
 	om.cutoffCache = common.NewCutoffCache(options.CutoffCacheCleanTime)
-
-	// register watchers for kafka
-	// om.registryFlexCancelWatcher()
 
 	InitializeWriter(om.rds, um)
 
@@ -148,20 +142,6 @@ func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
 	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
-}
-
-func (om *OrderManagerImpl) registryFlexCancelWatcher() error {
-	register := &kafka.ConsumerRegister{}
-	register.Initialize(om.brokers)
-
-	topic := kafka.Kafka_Topic_OrderManager_FlexCancelOrder
-	group := kafka_consume_group
-
-	err := register.RegisterTopicAndHandler(topic, group, types.FlexCancelOrderEvent{}, om.handleFlexOrderCancellation)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	return nil
 }
 
 func (om *OrderManagerImpl) handleFork(input eventemitter.EventData) error {
@@ -239,16 +219,6 @@ func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) e
 	handler := &OrderCancelHandler{
 		Event:       src,
 		BaseHandler: om.basehandler(src.TxInfo),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error {
-	src := input.(*types.FlexCancelOrderEvent)
-	handler := &FlexCancelOrderHandler{
-		Event:       src,
-		BaseHandler: om.basehandler(types.TxInfo{}),
 	}
 
 	return om.orderRelatedWorking(handler)
