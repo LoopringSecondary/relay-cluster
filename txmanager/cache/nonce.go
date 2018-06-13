@@ -60,7 +60,7 @@ func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 }
 
 func SetMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
-	if currentNonce.Cmp(preNonce) == 1 {
+	if currentNonce.Cmp(preNonce) < 1 {
 		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
 	}
 	key := generateNonceKey(owner)
