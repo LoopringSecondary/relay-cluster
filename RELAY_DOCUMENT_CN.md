@@ -58,7 +58,7 @@ Loopring Relay(中文名:中继)是路印技术生态重要组成部分，集中
 订单 | ValidSince | 订单生效开始时间，表示单位为时间戳，如果当前时间小于ValidSince，订单是未生效状态。
 订单 | ValidUntil | 订单有效截止时间，表示单位为时间戳，超过后订单自动失效。
 订单 | LrcFee | 设置该笔订单撮合需要的LrcFee
-订单 | buyNoMoreThanAmountB | 是不是允许购买超过amountB数量的tokeB，比如当前市场卖价(LRC-WETH)是0.001，用户下单价格是0.002买入100个（需要0.2个WETH），如果buyNoMoreThanAmountB=true，那最终用户会以0.001的价格（不考虑撮合收益）购买到100个LRC，消耗0.1个WETH；如果buyNoMoreThanAmountB=false，那最终用户会消耗掉所有的WETH（0.2个）以0.001的价格（不考虑撮合收益）购买到200个LRC。
+订单 | buyNoMoreThanAmountB | 表示是否允许购买超过amountB数量的tokeB，比如当前市场卖价(LRC-WETH)是0.001，用户下单价格是0.002买入100个（需要0.2个WETH），如果buyNoMoreThanAmountB=true，那最终用户会以0.001的价格（不考虑撮合收益）购买到100个LRC，消耗0.1个WETH；如果buyNoMoreThanAmountB=false，那最终用户会消耗掉所有的WETH（0.2个）以0.001的价格（不考虑撮合收益）购买到200个LRC。
 订单 | marginSplitPercentage | 撮合分润中用来支付撮合费的比例，通常默认是50%。
 订单 | v, r, s | 订单签名的结果，是首先采用Keccak256算法对订单部分字段生成OrderHash, 再针对Hash做ECDSA签名，生成的结果。
 订单 | powNonce | 订单提交工作量证明，为了防止订单子系统被spam，我们采用工作量证明的方式来限制过多的订单提交，powNonce参与工作量证明算法计算，订单通过工作量证明校验后，提交到Relay，我们会以相同的工作量证明算法来校验nonce是否通过了工作量证明。
