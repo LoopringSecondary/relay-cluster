@@ -20,8 +20,11 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/test"
+	"github.com/Loopring/relay-lib/cache"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"math/big"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
@@ -67,4 +70,24 @@ func TestUnlockWallet(t *testing.T) {
 
 func TestPrepare(t *testing.T) {
 	test.PrepareTestData()
+}
+
+func TestRedis(t *testing.T) {
+	var wg *sync.WaitGroup
+	wg = new(sync.WaitGroup)
+	for i := 0; i < 100000; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			member := []byte(strconv.Itoa(idx))
+			//cache.Set("test_1", []byte(strconv.Itoa(idx)), 1000)
+			if err := cache.SAdd("test", 100, member); err != nil {
+				t.Errorf(err.Error())
+			}
+			//t.Log(idx)
+			wg.Done()
+		}(i)
+	}
+	//wg.Wait()
+	time.Sleep(30 * time.Second)
+	t.Log("end")
 }

@@ -528,11 +528,13 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("from or to address is illegal")
 	}
 
-	nonce, err := strconv.ParseInt(txNotify.Nonce, 10, 64); if err != nil {
+	nonce, err := strconv.ParseInt(txNotify.Nonce, 10, 64)
+	if err != nil {
 		return "", errors.New("nonce can't convert to int")
 	}
 
-	err = txmanager.ValidateNonce(txNotify.From, big.NewInt(nonce)); if err != nil {
+	err = txmanager.ValidateNonce(txNotify.From, big.NewInt(nonce))
+	if err != nil {
 		return "", err
 	}
 
@@ -1481,7 +1483,8 @@ func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, er
 }
 
 func (w *WalletServiceImpl) GetNonce(owner string) (n int64, err error) {
-	nonce, err := txmanager.GetNonce(owner); if err != nil {
+	nonce, err := txmanager.GetNonce(owner)
+	if err != nil {
 		return n, err
 	}
 	return nonce.Int64(), err
