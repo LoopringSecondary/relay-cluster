@@ -28,7 +28,8 @@ import (
 	"github.com/Loopring/relay-cluster/market"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
 	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/txmanager"
+	txmanager "github.com/Loopring/relay-cluster/txmanager/manager"
+	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
 	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
@@ -189,7 +190,7 @@ func (n *Node) registerTransactionManager() {
 }
 
 func (n *Node) registerTransactionViewer() {
-	txmanager.NewTxView(n.rdsService)
+	txviewer.NewTxView(n.rdsService)
 }
 
 func (n *Node) registerTickerCollector() {

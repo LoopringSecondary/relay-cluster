@@ -16,11 +16,11 @@
 
 */
 
-package txmanager
+package viewer
 
 import (
-	"errors"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/txmanager/cache"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -28,26 +28,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-func GetPendingTransactions(owner string) ([]txtyp.TransactionJsonResult, error) {
-	return impl.GetPendingTransactions(owner)
-}
-func GetTransactionsByHash(owner string, hashList []string) ([]txtyp.TransactionJsonResult, error) {
-	return impl.GetTransactionsByHash(owner, hashList)
-}
-func GetAllTransactionCount(ownerStr, symbol, status, typ string) (int, error) {
-	return impl.GetAllTransactionCount(ownerStr, symbol, status, typ)
-}
-func GetAllTransactions(owner, symbol, status, typ string, limit, offset int) ([]txtyp.TransactionJsonResult, error) {
-	return impl.GetAllTransactions(owner, symbol, status, typ, limit, offset)
-}
-
-type TransactionViewer interface {
-	GetPendingTransactions(owner string) ([]txtyp.TransactionJsonResult, error)
-	GetAllTransactionCount(owner, symbol, status, typ string) (int, error)
-	GetAllTransactions(owner, symbol, status, typ string, limit, offset int) ([]txtyp.TransactionJsonResult, error)
-	GetTransactionsByHash(owner string, hashList []string) ([]txtyp.TransactionJsonResult, error)
-}
 
 var impl TransactionViewer
 
@@ -64,13 +44,11 @@ func NewTxView(db *dao.RdsService) {
 	tm := &TransactionViewerImpl{}
 	tm.db = db
 	impl = tm
-}
 
-var (
-	ErrOwnerAddressInvalid error = errors.New("owner address invalid")
-	ErrHashListEmpty       error = errors.New("hash list is empty")
-	ErrNonTransaction      error = errors.New("no transaction found")
-)
+	if cache.Invalid() {
+		cache.Initialize(db)
+	}
+}
 
 func (impl *TransactionViewerImpl) GetTransactionsByHash(ownerStr string, hashList []string) ([]txtyp.TransactionJsonResult, error) {
 	var list []txtyp.TransactionJsonResult
@@ -155,7 +133,7 @@ func (impl *TransactionViewerImpl) assemble(daoviews []dao.TransactionView) []tx
 	list := make([]txtyp.TransactionJsonResult, 0)
 
 	// get dao.TransactionEntity
-	entitymap := GetEntityCache(impl.db, daoviews)
+	entitymap := cache.GetEntityCache(daoviews)
 
 	for _, v := range daoviews {
 		var (
@@ -166,7 +144,7 @@ func (impl *TransactionViewerImpl) assemble(daoviews []dao.TransactionView) []tx
 		)
 
 		// get entity from map
-		if model, ok = entitymap.getEntity(v.TxHash, v.LogIndex); !ok {
+		if model, ok = entitymap.GetEntity(v.TxHash, v.LogIndex); !ok {
 			continue
 		}
 

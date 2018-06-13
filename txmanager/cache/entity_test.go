@@ -16,7 +16,7 @@
 
 */
 
-package txmanager_test
+package cache
 
 //import (
 //	"github.com/Loopring/relay-cluster/test"
@@ -29,7 +29,7 @@ package txmanager_test
 //
 //	from := 42710
 //	to := 42711
-//	if err := txmanager.RollbackCache(int64(from), int64(to)); err != nil {
+//	if err := txmanager.RollbackEntityCache(int64(from), int64(to)); err != nil {
 //		t.Fatalf(err.Error())
 //	}
 //

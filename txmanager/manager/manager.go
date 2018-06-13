@@ -16,11 +16,12 @@
 
 */
 
-package txmanager
+package manager
 
 import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/txmanager/cache"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/eth/contract"
@@ -28,6 +29,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 )
 
 type TransactionManager struct {
@@ -48,6 +50,10 @@ type TransactionManager struct {
 func NewTxManager(db *dao.RdsService) TransactionManager {
 	var tm TransactionManager
 	tm.db = db
+
+	if cache.Invalid() {
+		cache.Initialize(db)
+	}
 
 	return tm
 }
@@ -118,7 +124,7 @@ func (tm *TransactionManager) ForkProcess(input eventemitter.EventData) error {
 	if err := tm.db.RollBackTxView(from, to); err != nil {
 		log.Debugf("txmanager,process fork error:%s", err.Error())
 	}
-	if err := RollbackCache(from, to); err != nil {
+	if err := cache.RollbackEntityCache(from, to); err != nil {
 		log.Debugf("txmanager,process cache rollback error:%s", err.Error())
 	}
 	tm.Start()
@@ -255,7 +261,7 @@ func (tm *TransactionManager) SaveTransferEvent(input eventemitter.EventData) er
 	if contract.TxIsSubmitRing(event.Identify) {
 		var filterList []txtyp.TransactionView
 		for _, v := range list {
-			if ok, _ := ExistFillOwnerCache(v.TxHash, v.Owner); !ok {
+			if ok, _ := cache.ExistFillOwnerCache(v.TxHash, v.Owner); !ok {
 				filterList = append(filterList, v)
 			}
 		}
@@ -300,7 +306,7 @@ func (tm *TransactionManager) SaveOrderFilledEvent(input eventemitter.EventData)
 	event := input.(*types.OrderFilledEvent)
 
 	// 存储fill关联的用户及tx
-	SetFillOwnerCache(event.TxHash, event.Owner)
+	cache.SetFillOwnerCache(event.TxHash, event.Owner)
 
 	// 一个ringmined可以生成多个fill,他们的tx&logIndex都相等,这里将其放大存储到entity及view
 	event.TxLogIndex = event.TxLogIndex*10 + event.FillIndex.Int64()
@@ -436,6 +442,7 @@ func (tm *TransactionManager) processPendingTxWhileMined(tx *txtyp.TransactionEn
 func (tm *TransactionManager) addEntity(tx *txtyp.TransactionEntity) error {
 	var item dao.TransactionEntity
 	item.ConvertDown(tx)
+	setNonce(tx.Status, tx.From, tx.Nonce)
 	return tm.db.Add(&item)
 }
 
@@ -484,4 +491,20 @@ func (m unlockedMap) invalidView(owner common.Address) bool {
 		return true
 	}
 	return false
+}
+
+func setNonce(status types.TxStatus, owner common.Address, currentNonce *big.Int) error {
+	if status == types.TX_STATUS_SUCCESS {
+		if preNonce, err := cache.GetTxSuccessMaxNonceValue(owner); err != nil {
+			return err
+		} else {
+			cache.SetTxSuccessMaxNonceValue(owner, preNonce, currentNonce)
+		}
+	}
+
+	if preNonce, err := cache.GetMaxNonceValue(owner); err != nil {
+		return err
+	} else {
+		return cache.SetMaxNonceValue(owner, preNonce, currentNonce)
+	}
 }

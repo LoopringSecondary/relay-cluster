@@ -16,7 +16,7 @@
 
 */
 
-package txmanager_test
+package viewer
 
 //
 //import (
