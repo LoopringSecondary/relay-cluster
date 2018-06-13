@@ -33,7 +33,7 @@ const (
 	DefaultCronSpec10Second = "0/10 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
-	DefaultCronSpec30Day   = "0 0 0 */30 * *"
+	DefaultCronSpec30Day    = "0 0 0 */30 * *"
 )
 
 const (
@@ -170,7 +170,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
 		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyScanLogin:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
+		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
 
 	var groupId string
