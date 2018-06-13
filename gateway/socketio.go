@@ -45,6 +45,7 @@ const (
 
 const Kafka_Topic_SocketIO_Order_Transfer = "Kafka_Topic_SocketIO_Order_Transfer"
 const Kafka_Topic_SocketIO_Scan_Login = "Kafka_Topic_SocketIO_Scan_Login"
+const Kafka_Topic_SocketIO_Notify_Circular = "Kafka_Topic_SocketIO_Notify_Circular"
 
 type Server struct {
 	socketio.Server
@@ -103,6 +104,7 @@ const (
 
 	eventKeyOrderTransfer = "authorization"
 	eventKeyScanLogin     = "addressUnlock"
+	eventKeyCircularNotify     = "circularNotify"
 )
 
 type SocketIOService interface {
@@ -147,6 +149,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
 		Kafka_Topic_SocketIO_Order_Transfer:            {OrderTransfer{}, so.handleOrderTransfer},
 		Kafka_Topic_SocketIO_Scan_Login:                {LoginInfo{}, so.handleScanLogin},
+		Kafka_Topic_SocketIO_Notify_Circular:           {NotifyCircularBody{}, so.handleCircularNotify},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -171,6 +174,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
 		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
+		eventKeyCircularNotify:     {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
 
 	var groupId string
@@ -1151,6 +1155,37 @@ func (so *SocketIOServiceImpl) handleScanLogin(input interface{}) (err error) {
 				if err != nil {
 					log.Error("query unmarshal error, " + err.Error())
 				} else if strings.ToLower(ot.UUID) == strings.ToLower(query.UUID) {
+					log.Info("emit " + ctx)
+					resp := SocketIOJsonResp{}
+					resp.Data = ot
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyScanLogin+EventPostfixRes, string(respJson[:]))
+				}
+			}
+		}
+		return true
+	})
+
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleCircularNotify(input interface{}) (err error) {
+
+	ot := input.(*NotifyCircularBody)
+	log.Infof("received owner is %s ", ot.Owner)
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyCircularNotify]
+			log.Infof("cxt contains event key %b", ok)
+
+			if ok {
+				query := &SingleOwner{}
+				err = json.Unmarshal([]byte(ctx), query)
+				if err != nil {
+					log.Error("query unmarshal error, " + err.Error())
+				} else if strings.ToLower(ot.Owner) == strings.ToLower(query.Owner) {
 					log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
 					resp.Data = ot
