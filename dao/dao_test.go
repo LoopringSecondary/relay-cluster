@@ -21,6 +21,7 @@ package dao_test
 import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/test"
+	"github.com/ethereum/go-ethereum/common"
 	"testing"
 )
 
@@ -44,5 +45,27 @@ func TestFindError(t *testing.T) {
 		t.Log(err.Error())
 	} else {
 		t.Log(model.ID)
+	}
+}
+
+func TestRdsService_GetMaxNonce(t *testing.T) {
+	rds := test.Rds()
+	owner := common.HexToAddress("0xb1018949b241D76A1AB2094f473E9bEfeAbB5Ea")
+	nonce, err := rds.GetMaxNonce(owner)
+	if err != nil {
+		t.Logf(err.Error())
+	} else {
+		t.Logf("nonce is:%d", nonce.Int64())
+	}
+}
+
+func TestRdsService_GetMaxSuccessNonce(t *testing.T) {
+	rds := test.Rds()
+	owner := common.HexToAddress("0xb1018949b241D76A1AB2094f473E9bEfeAbB5Ead")
+	nonce, err := rds.GetMaxSuccessNonce(owner)
+	if err != nil {
+		t.Logf(err.Error())
+	} else {
+		t.Logf("nonce is:%d", nonce.Int64())
 	}
 }

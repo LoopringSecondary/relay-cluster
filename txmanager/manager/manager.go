@@ -29,6 +29,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 )
 
 type TransactionManager struct {
@@ -441,6 +442,7 @@ func (tm *TransactionManager) processPendingTxWhileMined(tx *txtyp.TransactionEn
 func (tm *TransactionManager) addEntity(tx *txtyp.TransactionEntity) error {
 	var item dao.TransactionEntity
 	item.ConvertDown(tx)
+	setNonce(tx.Status, tx.From, tx.Nonce)
 	return tm.db.Add(&item)
 }
 
@@ -489,4 +491,20 @@ func (m unlockedMap) invalidView(owner common.Address) bool {
 		return true
 	}
 	return false
+}
+
+func setNonce(status types.TxStatus, owner common.Address, currentNonce *big.Int) error {
+	if status == types.TX_STATUS_SUCCESS {
+		if preNonce, err := cache.GetTxSuccessMaxNonceValue(owner); err != nil {
+			return err
+		} else {
+			cache.SetTxSuccessMaxNonceValue(owner, preNonce, currentNonce)
+		}
+	}
+
+	if preNonce, err := cache.GetMaxNonceValue(owner); err != nil {
+		return err
+	} else {
+		return cache.SetMaxNonceValue(owner, preNonce, currentNonce)
+	}
 }
