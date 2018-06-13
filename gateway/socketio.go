@@ -837,7 +837,8 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 			ctx, ok := businesses[eventKeyBalance]
 			if ok {
 				query := &CommonTokenRequest{}
-				err = json.Unmarshal([]byte(ctx), query); if err != nil {
+				err = json.Unmarshal([]byte(ctx), query)
+				if err != nil {
 					return true
 				}
 
