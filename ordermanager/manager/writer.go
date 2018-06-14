@@ -22,25 +22,11 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	cm "github.com/Loopring/relay-cluster/ordermanager/common"
-	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 )
-
-var writer *OrderManagerWriter
-
-type OrderManagerWriter struct {
-	rds *dao.RdsService
-	um  usermanager.UserManager
-}
-
-func InitializeWriter(rds *dao.RdsService, um usermanager.UserManager) {
-	writer = &OrderManagerWriter{}
-	writer.rds = rds
-	writer.um = um
-}
 
 func MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTime, startBlockNumber, endBlockNumber int64, filterOrderHashLists ...*types.OrderDelayList) []*types.OrderState {
 	var list []*types.OrderState
@@ -56,14 +42,14 @@ func MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTi
 			orderHashes = append(orderHashes, hash.Hex())
 		}
 		if len(orderHashes) > 0 && orderDelay.DelayedCount != 0 {
-			if err = writer.rds.MarkMinerOrders(orderHashes, orderDelay.DelayedCount); err != nil {
+			if err = rds.MarkMinerOrders(orderHashes, orderDelay.DelayedCount); err != nil {
 				log.Debugf("order manager,provide orders for miner error:%s", err.Error())
 			}
 		}
 	}
 
 	// 从数据库获取订单
-	if modelList, err = writer.rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, cm.ValidMinerStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
+	if modelList, err = rds.GetOrdersForMiner(delegate.Hex(), tokenS.Hex(), tokenB.Hex(), length, cm.ValidMinerStatus, reservedTime, startBlockNumber, endBlockNumber); err != nil {
 		log.Errorf("err:%s", err.Error())
 		return list
 	}
@@ -71,18 +57,20 @@ func MinerOrders(delegate, tokenS, tokenB common.Address, length int, reservedTi
 	for _, v := range modelList {
 		state := &types.OrderState{}
 		v.ConvertUp(state)
-		if writer.um.InWhiteList(state.RawOrder.Owner) {
-			list = append(list, state)
-		} else {
-			log.Debugf("order manager,owner:%s not in white list", state.RawOrder.Owner.Hex())
-		}
+		list = append(list, state)
+
+		//if um.InWhiteList(state.RawOrder.Owner) {
+		//	list = append(list, state)
+		//} else {
+		//	log.Debugf("order manager,owner:%s not in white list", state.RawOrder.Owner.Hex())
+		//}
 	}
 
 	return list
 }
 
 func UpdateBroadcastTimeByHash(hash common.Hash, bt int) error {
-	return writer.rds.UpdateBroadcastTimeByHash(hash.Hex(), bt)
+	return rds.UpdateBroadcastTimeByHash(hash.Hex(), bt)
 }
 
 func FlexCancelOrder(event *types.FlexCancelOrderEvent) error {
@@ -99,23 +87,23 @@ func FlexCancelOrder(event *types.FlexCancelOrderEvent) error {
 		if types.IsZeroHash(event.OrderHash) {
 			return fmt.Errorf("params orderhash invalid")
 		}
-		nums = writer.rds.FlexCancelOrderByHash(event.Owner, event.OrderHash, validStatus, status)
+		nums = rds.FlexCancelOrderByHash(event.Owner, event.OrderHash, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_OWNER:
-		nums = writer.rds.FlexCancelOrderByOwner(event.Owner, validStatus, status)
+		nums = rds.FlexCancelOrderByOwner(event.Owner, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_TIME:
 		if event.CutoffTime <= 0 {
 			return fmt.Errorf("params cutoffTimeStamp invalid")
 		}
-		nums = writer.rds.FlexCancelOrderByTime(event.Owner, event.CutoffTime, validStatus, status)
+		nums = rds.FlexCancelOrderByTime(event.Owner, event.CutoffTime, validStatus, status)
 
 	case types.FLEX_CANCEL_BY_MARKET:
 		market, err := util.WrapMarketByAddress(event.TokenS.Hex(), event.TokenB.Hex())
 		if err != nil {
 			return fmt.Errorf("params market invalid")
 		}
-		nums = writer.rds.FlexCancelOrderByMarket(event.Owner, event.CutoffTime, market, validStatus, status)
+		nums = rds.FlexCancelOrderByMarket(event.Owner, event.CutoffTime, market, validStatus, status)
 
 	default:
 		return fmt.Errorf("event type invalid")
