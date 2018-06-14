@@ -171,8 +171,8 @@ type TempStore struct {
 }
 
 type NotifyCirculrBody struct {
-	Owner  string `json:"owner"`
-	Body   map[string]interface{} `json:"body"`
+	Owner string                 `json:"owner"`
+	Body  map[string]interface{} `json:"body"`
 }
 
 type TxNotify struct {
