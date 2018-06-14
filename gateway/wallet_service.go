@@ -172,7 +172,7 @@ type TempStore struct {
 
 type NotifyCirculrBody struct {
 	Owner  string `json:"owner"`
-	Body   string `json:"body"`
+	Body   map[string]interface{} `json:"body"`
 }
 
 type TxNotify struct {
@@ -1442,9 +1442,9 @@ func (w *WalletServiceImpl) SetTempStore(req TempStore) (hash string, err error)
 	return req.Key, err
 }
 
-func (w *WalletServiceImpl) NotifyCirculr(req NotifyCirculrBody) (hash string, err error) {
+func (w *WalletServiceImpl) NotifyCirculr(req NotifyCirculrBody) (owner string, err error) {
 	if len(req.Owner) == 0 {
-		return hash, errors.New("owner can't be nil")
+		return owner, errors.New("owner can't be nil")
 	}
 	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circulr, &req)
 	return req.Owner, err
