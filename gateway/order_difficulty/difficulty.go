@@ -24,11 +24,11 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/lydy/go-ethereum/common/math"
 	"math/big"
 	"qiniupkg.com/x/log.v7"
 	"strconv"
 	"time"
+	"gonum.org/v1/gonum/stat"
 )
 
 const (
@@ -38,8 +38,9 @@ const (
 )
 
 type OrderDifficultyEvaluator struct {
-	currentDifficult *OrderDifficulty
-	parentDifficult  *OrderDifficulty
+	//currentDifficult *OrderDifficulty
+	//parentDifficult  *OrderDifficulty
+	evaluator Evaluator
 	baseDifficulty   *big.Int
 	orderTraffic     int64
 	triggerThreshold float64
@@ -84,7 +85,7 @@ func (evaluator *OrderDifficultyEvaluator) Start() {
 						cnt, _ := strconv.ParseInt(string(data), 10, 0)
 						orderCntList = append(orderCntList, cnt)
 					}
-					diff := evaluator.CalcAndSaveDifficulty(orderCntList)
+					diff := evaluator.evaluator.CalcAndSaveDifficulty(orderCntList)
 					diffHash := common.BytesToHash(diff.Bytes())
 					cache.Set(OrderDifficulty, []byte(diffHash.Hex()), int64(0))
 					orderCntList = orderCntList[1:]
@@ -120,9 +121,25 @@ func (evaluator *OrderDifficultyEvaluator) HandleNewOrder() {
 	eventemitter.On(eventemitter.NewOrder, watcher)
 }
 
+type Evaluator interface {
+	CalcAndSaveDifficulty(orderCntList []int64) *big.Int
+}
+
+type LinearEvaluator struct {
+
+}
+
 //控制订单的提交速度，随着订单的流量增大而增大
-func (evaluator *OrderDifficultyEvaluator) CalcAndSaveDifficulty(orderCntList []int64) *big.Int {
-	return math.MaxBig256
+func (evaluator *LinearEvaluator) CalcAndSaveDifficulty(orderCntList []int64) *big.Int {
+	xes := []float64{}
+	yes := []float64{}
+	now := time.Now().Unix()
+	for idx,cnt := range orderCntList {
+		xes = append(xes, float64(idx))
+		yes = append(yes, float64(cnt))
+	}
+	alpha,beta := stat.LinearRegression(xes, yes, nil, false)
+	return int64(beta*float64(now) + alpha)
 }
 
 func GetDifficulty() (common.Hash, error) {
