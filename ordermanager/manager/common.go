@@ -22,12 +22,11 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 )
 
-func NewOrderEntity(state *types.OrderState, mc marketcap.MarketCapProvider, blockNumber *big.Int) (*dao.Order, error) {
+func NewOrderEntity(state *types.OrderState, blockNumber *big.Int) (*dao.Order, error) {
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)
 	state.SplitAmountS = big.NewInt(0)
