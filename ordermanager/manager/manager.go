@@ -69,7 +69,7 @@ func NewOrderManager(
 	om := &OrderManagerImpl{}
 	om.options = options
 	om.brokers = brokers
-	om.processor = NewForkProcess(rds, market)
+	om.processor = NewForkProcess()
 	cutoffcache = common.NewCutoffCache(options.CutoffCacheCleanTime)
 
 	marketCapProvider = market
