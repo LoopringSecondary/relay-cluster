@@ -43,15 +43,6 @@ var ValidFlexCancelStatus = []types.OrderStatus{
 	types.ORDER_PENDING,
 }
 
-func IsValidFlexCancelStatus(status types.OrderStatus) bool {
-	for _, v := range ValidFlexCancelStatus {
-		if v == status {
-			return true
-		}
-	}
-	return false
-}
-
 var ValidMinerStatus = []types.OrderStatus{
 	types.ORDER_NEW,
 	types.ORDER_PARTIAL,
@@ -65,4 +56,20 @@ var ValidCutoffStatus = []types.OrderStatus{
 	types.ORDER_PENDING,
 	types.ORDER_CANCELLING,
 	types.ORDER_CUTOFFING,
+}
+
+// orderfilled 当用户处于ing状态时允许重置状态,cancel是特例,从合约的角度来看没有cancel,从客户端来看需要考虑cancel,这里我们以合约为准
+var InvalidFillStatus = []types.OrderStatus{
+	types.ORDER_UNKNOWN,
+	types.ORDER_CUTOFF,
+	types.ORDER_FINISHED,
+}
+
+func IsInvalidFillStatus(status types.OrderStatus) bool {
+	for _, v := range InvalidFillStatus {
+		if v == status {
+			return true
+		}
+	}
+	return false
 }
