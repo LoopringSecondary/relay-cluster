@@ -104,7 +104,7 @@ const (
 
 	eventKeyOrderTransfer = "authorization"
 	eventKeyScanLogin     = "addressUnlock"
-	eventKeyCirculrNotify     = "circulrNotify"
+	eventKeyCirculrNotify = "circulrNotify"
 )
 
 type SocketIOService interface {
@@ -149,7 +149,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		kafka.Kafka_Topic_SocketIO_Transaction_Updated: {txtyp.TransactionView{}, so.handleTransactionUpdate},
 		Kafka_Topic_SocketIO_Order_Transfer:            {OrderTransfer{}, so.handleOrderTransfer},
 		Kafka_Topic_SocketIO_Scan_Login:                {LoginInfo{}, so.handleScanLogin},
-		Kafka_Topic_SocketIO_Notify_Circulr:           {NotifyCirculrBody{}, so.handleCirculrNotify},
+		Kafka_Topic_SocketIO_Notify_Circulr:            {NotifyCirculrBody{}, so.handleCirculrNotify},
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
@@ -174,7 +174,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
 		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
-		eventKeyCirculrNotify:     {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
+		eventKeyCirculrNotify:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
 
 	var groupId string

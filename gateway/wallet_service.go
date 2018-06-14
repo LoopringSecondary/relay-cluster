@@ -166,8 +166,8 @@ type SimpleKey struct {
 }
 
 type TempStore struct {
-	Key      string `json:"key"`
-	Value    string `json:"value"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type NotifyCirculrBody struct {
@@ -1426,7 +1426,8 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 }
 
 func (w *WalletServiceImpl) GetTempStore(req SimpleKey) (ts string, err error) {
-	otByte, err := cache.Get(TS_REDIS_PRE_KEY + strings.ToLower(req.Key)); if err != nil {
+	otByte, err := cache.Get(TS_REDIS_PRE_KEY + strings.ToLower(req.Key))
+	if err != nil {
 		return ts, err
 	} else {
 		return string(otByte[:]), err

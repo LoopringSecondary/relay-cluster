@@ -21,7 +21,6 @@ package manager
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	cm "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/log"
@@ -89,17 +88,6 @@ func UpdateBroadcastTimeByHash(hash common.Hash, bt int) error {
 func FlexCancelOrder(event *types.FlexCancelOrderEvent) error {
 	if types.IsZeroAddress(event.Owner) {
 		return fmt.Errorf("params owner invalid")
-	}
-	if types.IsZeroHash(event.OrderHash) {
-		return fmt.Errorf("params orderhash invalid")
-	}
-
-	state, err := cache.BaseInfo(event.OrderHash)
-	if err != nil {
-		return fmt.Errorf("can not find order")
-	}
-	if !cm.IsValidFlexCancelStatus(state.Status) {
-		return fmt.Errorf("order status invalid, can not be cancelled now")
 	}
 
 	validStatus := cm.ValidFlexCancelStatus
