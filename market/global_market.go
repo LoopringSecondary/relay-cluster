@@ -44,6 +44,7 @@ var GM *GlobalMarket
 const GlobalTickerKey = "GTKPK"
 const GlobalTrendKey = "GTDPK"
 const GlobalMarketTickerKey = "GMTKPK"
+const GMCLock = "globalMarketZkLock"
 
 type GlobalMarket struct {
 	config MyTokenConfig
@@ -357,7 +358,7 @@ func (g *GlobalMarket) Sign(param interface{}) (urlParam string, err error) {
 
 func (g *GlobalMarket) Start() {
 	go func() {
-		if zklock.TryLock(tickerCollectorCronJobZkLock) == nil {
+		if zklock.TryLock(GMCLock) == nil {
 			g.cron.AddFunc("@every 5s", syncGlobalTicker)
 			g.cron.AddFunc("@every 10s", syncGlobalMarketTicker)
 			g.cron.AddFunc("@every 1h", syncGlobalTrend)

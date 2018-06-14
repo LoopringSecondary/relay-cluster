@@ -68,6 +68,7 @@ const OT_STATUS_ACCEPT = "accept"
 const OT_STATUS_REJECT = "reject"
 const OT_REDIS_PRE_KEY = "otrpk_"
 const SL_REDIS_PRE_KEY = "slrpk_"
+const TS_REDIS_PRE_KEY = "tsrpk_"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -158,6 +159,20 @@ type OrderTransfer struct {
 
 type OrderTransferQuery struct {
 	Hash string `json:"hash"`
+}
+
+type SimpleKey struct {
+	Key string `json:"key"`
+}
+
+type TempStore struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type NotifyCirculrBody struct {
+	Owner  string `json:"owner"`
+	Body   map[string]interface{} `json:"body"`
 }
 
 type TxNotify struct {
@@ -528,12 +543,9 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("from or to address is illegal")
 	}
 
-	nonce, err := strconv.ParseInt(txNotify.Nonce, 10, 64)
-	if err != nil {
-		return "", errors.New("nonce can't convert to int")
-	}
+	nonce := types.HexToBigint(txNotify.Nonce)
 
-	err = txmanager.ValidateNonce(txNotify.From, big.NewInt(nonce))
+	err = txmanager.ValidateNonce(txNotify.From, nonce)
 	if err != nil {
 		return "", err
 	}
@@ -1091,6 +1103,10 @@ func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketRec
 	}
 }
 
+func (w *WalletServiceImpl) TicketCount() (int, error) {
+	return w.rds.TicketCount()
+}
+
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
 
 	query = make(map[string]interface{})
@@ -1404,6 +1420,32 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 		}
 		return orderTransfer, err
 	}
+}
+
+func (w *WalletServiceImpl) GetTempStore(req SimpleKey) (ts string, err error) {
+	otByte, err := cache.Get(TS_REDIS_PRE_KEY + strings.ToLower(req.Key))
+	if err != nil {
+		return ts, err
+	} else {
+		return string(otByte[:]), err
+	}
+}
+
+func (w *WalletServiceImpl) SetTempStore(req TempStore) (hash string, err error) {
+	if len(req.Key) == 0 {
+		return hash, errors.New("key can't be nil")
+	}
+
+	err = cache.Set(TS_REDIS_PRE_KEY+strings.ToLower(req.Key), []byte(req.Value), 3600*24)
+	return req.Key, err
+}
+
+func (w *WalletServiceImpl) NotifyCirculr(req NotifyCirculrBody) (owner string, err error) {
+	if len(req.Owner) == 0 {
+		return owner, errors.New("owner can't be nil")
+	}
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circulr, &req)
+	return req.Owner, err
 }
 
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {

@@ -31,3 +31,8 @@ func (s *RdsService) QueryTicketByAddress(address string) (ticket TicketReceiver
 	err = s.Db.Model(&TicketReceiver{}).Where("address = ? ", address).Find(&ticket).Error
 	return ticket, err
 }
+
+func (s *RdsService) TicketCount() (count int, err error) {
+	err = s.Db.Model(&TicketReceiver{}).Count(&count).Error
+	return count, err
+}
