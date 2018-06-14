@@ -213,7 +213,7 @@ func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventD
 
 	handler := BaseOrderTxHandler(txinfo)
 	if err := handler.HandlerOrderCorrelatedTx(); err != nil {
-		log.Debugf(err.Error())
+		log.Errorf(err.Error())
 	}
 
 	return nil

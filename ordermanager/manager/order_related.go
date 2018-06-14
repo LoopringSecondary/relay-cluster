@@ -5,7 +5,6 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
 	notify "github.com/Loopring/relay-cluster/util"
-	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
@@ -21,22 +20,17 @@ func HandleGatewayOrder(state *types.OrderState) error {
 	}
 
 	if err = rds.Add(model); err != nil {
-		log.Errorf(err.Error())
 		return err
 	}
 
 	log.Debugf("order manager,handle gateway order,order.hash:%s amountS:%s", state.RawOrder.Hash.Hex(), state.RawOrder.AmountS.String())
 
-	notify.NotifyOrderUpdate(state)
-
-	return nil
+	return notify.NotifyOrderUpdate(state)
 }
 
 func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
-
 	if event.Status != types.TX_STATUS_PENDING && event.Status != types.TX_STATUS_FAILED {
-		log.Errorf("order manager, submitRingHandler, tx:%s, txstatus:%s invalid", event.TxHash.Hex(), types.StatusStr(event.Status))
-		return nil
+		return fmt.Errorf("order manager, submitRingHandler, tx:%s, txstatus:%s invalid", event.TxHash.Hex(), types.StatusStr(event.Status))
 	}
 
 	// validate and save event
@@ -45,29 +39,16 @@ func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
 		err   error
 	)
 
-	//if IsEventExist(event.Status, model.Status, err) {
-	//	log.Debugf("order manager, submitRingHandler, tx:%s, txstatus:%s already exist", event.TxHash.Hex(), types.StatusStr(event.Status))
-	//	return nil
-	//}
-
-	//if eventStatus == types.TX_STATUS_PENDING && findModelErr == nil {
-	//	return true
-	//}
-	//if eventStatus != types.TX_STATUS_PENDING && findModelErr == nil && uint8(eventStatus) == modelStatus {
-	//	return true
-	//}
-
+	// save ringmined event
 	if model, err = rds.FindRingMined(event.TxHash.Hex()); err != nil {
 		model.FromSubmitRingMethod(event)
 		err = rds.Add(model)
+	} else if IsEventDuplicate(event.Status, model.Status) {
+		err = fmt.Errorf("order manager, submitRingHandler, tx:%s, txstatus:%s event duplicate", event.TxHash.Hex(), types.StatusStr(event.Status))
 	} else {
-		if event.Status == types.TX_STATUS_PENDING {
-			return fmt.Errorf("")
-		}
 		model.FromSubmitRingMethod(event)
 		err = rds.Save(model)
 	}
-
 	if err != nil {
 		return err
 	}
@@ -84,29 +65,29 @@ func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
 
 func HandleRingMinedEvent(event *types.RingMinedEvent) error {
 	if event.Status != types.TX_STATUS_SUCCESS {
-		return nil
-	}
-
-	model, err := rds.FindRingMined(event.TxHash.Hex())
-	if IsEventExist(event.Status, model.Status, err); err != nil {
-		log.Debugf("order manager, ringMinedHandler, tx:%s, txstatus:%s, err:%s", event.TxHash.Hex(), types.StatusStr(event.Status), err.Error())
-		return nil
+		return fmt.Errorf("order manager, ringMinedHandler, tx:%s, txstatus:%s invalid", event.TxHash.Hex(), types.StatusStr(event.Status))
 	}
 
 	log.Debugf("order manager, ringMinedHandler, tx:%s, txstatus:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
-	model.ConvertDown(event)
-	if err != nil {
+
+	var (
+		model = &dao.RingMinedEvent{}
+		err   error
+	)
+	if model, err = rds.FindRingMined(event.TxHash.Hex()); err != nil {
+		model.ConvertDown(event)
 		return rds.Add(model)
+	} else if IsEventDuplicate(event.Status, model.Status) {
+		return fmt.Errorf("order manager, ringMinedHandler, tx:%s, txstatus:%s event duplicate", event.TxHash.Hex(), types.StatusStr(event.Status))
 	} else {
+		model.ConvertDown(event)
 		return rds.Save(model)
 	}
 }
 
 func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
-	// save fill event
-	_, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64())
-	if err == nil {
-		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, err:fill already exist", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
+	if _, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64()); err == nil {
+		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s event duplicate", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
 	}
 
 	// get rds.Order and types.OrderState
@@ -165,72 +146,80 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 }
 
 func HandleOrderCancelledEvent(event *types.OrderCancelledEvent) error {
-	eventModel, noRecordErr := rds.GetCancelEvent(event.TxHash)
-	if err := ValidateDuplicateEvent(event.Status, eventModel.Status, noRecordErr); err != nil {
-		return fmt.Errorf("order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s, err:%s", event.TxHash.Hex(), event.OrderHash.Hex(), types.StatusStr(event.Status), err.Error())
+	// save event
+	var (
+		eventModel dao.CancelEvent
+		err        error
+	)
+	if eventModel, err = rds.GetCancelEvent(event.TxHash); err != nil {
+		eventModel.ConvertDown(event)
+		eventModel.Fork = false
+		err = rds.Add(&eventModel)
+	} else if !IsEventDuplicate(event.Status, eventModel.Status) {
+		eventModel.ConvertDown(event)
+		eventModel.Fork = false
+		err = rds.Save(&eventModel)
+	} else {
+		err = fmt.Errorf("order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s event duplicate", event.TxHash.Hex(), event.OrderHash.Hex(), types.StatusStr(event.Status))
+	}
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, txstatus:%s", event.TxHash.Hex(), event.OrderHash.Hex(), types.StatusStr(event.Status))
 
-	eventModel.ConvertDown(event)
-	eventModel.Fork = false
-
-	if noRecordErr != nil {
-		rds.Add(&eventModel)
-	} else {
-		rds.Save(&eventModel)
-	}
-
-	if event.Status == types.TX_STATUS_SUCCESS {
-		// get rds.Order and types.OrderState
-		state := &types.OrderState{}
-		model, err := rds.GetOrderByHash(event.OrderHash)
-		if err != nil {
-			return err
-		}
-		if err := model.ConvertUp(state); err != nil {
-			return err
-		}
-
-		// calculate remainAmount and cancelled amount should be saved whether order is finished or not
-		if state.RawOrder.BuyNoMoreThanAmountB {
-			state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
-			log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountB:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountB.String())
-		} else {
-			state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
-			log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountS:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountS.String())
-		}
-
-		// update order status
-		SettleOrderStatus(state, true)
-		state.UpdatedBlock = event.BlockNumber
-
-		// update rds.Order
-		if err := model.ConvertDown(state); err != nil {
-			return err
-		}
-		if err := rds.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
-			return err
-		}
-
-		notify.NotifyOrderUpdate(state)
-	}
-
-	// 原则上不允许订单状态干扰到其他动作
 	txhandler := FullOrderTxHandler(event.TxInfo, event.OrderHash, types.ORDER_CANCELLING)
-	return txhandler.HandlerOrderRelatedTx()
+	if event.Status != types.TX_STATUS_SUCCESS {
+		return txhandler.HandlerOrderRelatedTx()
+	}
+
+	// get rds.Order and types.OrderState
+	state := &types.OrderState{}
+	model, err := rds.GetOrderByHash(event.OrderHash)
+	if err != nil {
+		return err
+	}
+	if err := model.ConvertUp(state); err != nil {
+		return err
+	}
+
+	// calculate remainAmount and cancelled amount should be saved whether order is finished or not
+	if state.RawOrder.BuyNoMoreThanAmountB {
+		state.CancelledAmountB = new(big.Int).Add(state.CancelledAmountB, event.AmountCancelled)
+		log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountB:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountB.String())
+	} else {
+		state.CancelledAmountS = new(big.Int).Add(state.CancelledAmountS, event.AmountCancelled)
+		log.Debugf("order manager orderCancelHandler, tx:%s, orderhash:%s, cancelledAmountS:%s", event.TxHash.Hex(), event.OrderHash.Hex(), state.CancelledAmountS.String())
+	}
+
+	// update order status
+	SettleOrderStatus(state, true)
+	state.UpdatedBlock = event.BlockNumber
+
+	// update rds.Order
+	if err := model.ConvertDown(state); err != nil {
+		return err
+	}
+	if err := rds.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
+		return err
+	}
+
+	// process pending order status
+	if err := txhandler.HandlerOrderRelatedTx(); err != nil {
+		return err
+	}
+
+	return notify.NotifyOrderUpdate(state)
 }
 
 func HandleCutoffEvent(event *types.CutoffEvent) error {
-	var orderhashList []common.Hash
+	var (
+		orderhashList []common.Hash
+		model         dao.CutOffEvent
+		err           error
+	)
 
-	model, noRecordErr := rds.GetCutoffEvent(event.TxHash)
-	if err := ValidateDuplicateEvent(event.Status, model.Status, noRecordErr); err != nil {
-		return fmt.Errorf("order manager, CutoffHandler, tx:%s, err:%s", event.TxHash.Hex(), err.Error())
-	}
-
-	// insert
-	if noRecordErr != nil {
+	if model, err = rds.GetCutoffEvent(event.TxHash); err != nil {
 		orders, _ := rds.GetCutoffOrders(event.Owner, event.Cutoff, omcm.ValidCutoffStatus)
 		for _, v := range orders {
 			var state types.OrderState
@@ -240,20 +229,23 @@ func HandleCutoffEvent(event *types.CutoffEvent) error {
 		model.Fork = false
 		event.OrderHashList = orderhashList
 		model.ConvertDown(event)
-		rds.Add(&model)
-	} else {
+		err = rds.Add(&model)
+	} else if !IsEventDuplicate(event.Status, model.Status) {
 		orderhashList = dao.UnmarshalStrToHashList(model.OrderHashList)
 		event.OrderHashList = orderhashList
 		model.ConvertDown(event)
-		rds.Save(&model)
+		err = rds.Save(&model)
+	} else {
+		err = fmt.Errorf("order manager, CutoffHandler, tx:%s, err:%s", event.TxHash.Hex(), err.Error())
+	}
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("order manager, CutoffHandler, tx:%s, owner:%s, cutofftime:%s, txstatus:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Cutoff.String(), types.StatusStr(event.Status))
 
 	if event.Status == types.TX_STATUS_SUCCESS {
-		// 首次存储到缓存，lastCutoff == currentCutoff
-		lastCutoff := cutoffcache.GetCutoff(event.Protocol, event.Owner)
-		if event.Cutoff.Cmp(lastCutoff) < 0 {
+		if lastCutoff := cutoffcache.GetCutoff(event.Protocol, event.Owner); event.Cutoff.Cmp(lastCutoff) < 0 {
 			return fmt.Errorf("order manager, CutoffHandler, tx:%s, lastCutofftime:%s > currentCutoffTime:%s", event.TxHash.Hex(), lastCutoff.String(), event.Cutoff.String())
 		}
 
@@ -261,25 +253,24 @@ func HandleCutoffEvent(event *types.CutoffEvent) error {
 		rds.SetCutOffOrders(orderhashList, event.BlockNumber)
 
 		notify.NotifyCutoff(event)
+	}
 
-		for _, orderhash := range orderhashList {
-			txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
-			txhandler.HandlerOrderRelatedTx()
-		}
+	for _, orderhash := range orderhashList {
+		txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
+		txhandler.HandlerOrderRelatedTx()
 	}
 
 	return nil
 }
 
 func HandleCutoffPair(event *types.CutoffPairEvent) error {
-	var orderhashlist []common.Hash
+	var (
+		orderhashlist []common.Hash
+		model         dao.CutOffPairEvent
+		err           error
+	)
 
-	model, noRecordErr := rds.GetCutoffPairEvent(event.TxHash)
-	if err := ValidateDuplicateEvent(event.Status, model.Status, noRecordErr); err != nil {
-		return fmt.Errorf("order manager cutoffPairHandler, tx:%s, err:%s", event.TxHash.Hex(), err.Error())
-	}
-
-	if noRecordErr != nil {
+	if model, err = rds.GetCutoffPairEvent(event.TxHash); err != nil {
 		orders, _ := rds.GetCutoffPairOrders(event.Owner, event.Token1, event.Token2, event.Cutoff, omcm.ValidCutoffStatus)
 		for _, v := range orders {
 			var state types.OrderState
@@ -289,12 +280,17 @@ func HandleCutoffPair(event *types.CutoffPairEvent) error {
 		model.Fork = false
 		event.OrderHashList = orderhashlist
 		model.ConvertDown(event)
-		rds.Add(&model)
-	} else {
+		err = rds.Add(&model)
+	} else if !IsEventDuplicate(event.Status, model.Status) {
 		orderhashlist = dao.UnmarshalStrToHashList(model.OrderHashList)
 		event.OrderHashList = orderhashlist
 		model.ConvertDown(event)
-		rds.Save(&model)
+		err = rds.Save(&model)
+	} else {
+		err = fmt.Errorf("order manager cutoffPairHandler, tx:%s, status:%s event duplicate", event.TxHash.Hex(), types.StatusStr(event.Status))
+	}
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("order manager cutoffPairHandler, tx:%s, owner:%s, token1:%s, token2:%s, cutoffTimestamp:%s, txstatus:%s", event.TxHash.Hex(), event.Owner.Hex(), event.Token1.Hex(), event.Token2.Hex(), event.Cutoff.String(), types.StatusStr(event.Status))

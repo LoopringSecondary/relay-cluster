@@ -111,11 +111,12 @@ func SettleOrderStatus(state *types.OrderState, isCancel bool) {
 	}
 }
 
-func IsEventExist(eventStatus types.TxStatus, modelStatus uint8, findModelErr error) bool {
-	if eventStatus == types.TX_STATUS_PENDING && findModelErr == nil {
+// 记录已经存在的情况下 判断是否重复
+func IsEventDuplicate(eventStatus types.TxStatus, modelStatus uint8) bool {
+	if eventStatus == types.TX_STATUS_PENDING {
 		return true
 	}
-	if eventStatus != types.TX_STATUS_PENDING && findModelErr == nil && uint8(eventStatus) == modelStatus {
+	if eventStatus != types.TX_STATUS_PENDING && modelStatus != uint8(types.TX_STATUS_PENDING) {
 		return true
 	}
 	return false
