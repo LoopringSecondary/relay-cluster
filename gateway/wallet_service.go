@@ -1158,6 +1158,10 @@ func convertStatus(s string) []types.OrderStatus {
 		return []types.OrderStatus{types.ORDER_CUTOFF}
 	case "ORDER_EXPIRE":
 		return []types.OrderStatus{types.ORDER_EXPIRE}
+	case "ORDER_PENDING":
+		return []types.OrderStatus{types.ORDER_PENDING}
+	case "ORDER_CANCELLING":
+		return []types.OrderStatus{types.ORDER_CANCELLING, types.ORDER_CUTOFFING}
 	}
 	return []types.OrderStatus{}
 }
@@ -1188,6 +1192,8 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_CUTOFF"
 	case types.ORDER_PENDING:
 		return "ORDER_PENDING"
+	case types.ORDER_CANCELLING, types.ORDER_CUTOFFING:
+		return "ORDER_CANCELLING"
 	case types.ORDER_EXPIRE:
 		return "ORDER_EXPIRE"
 	}
