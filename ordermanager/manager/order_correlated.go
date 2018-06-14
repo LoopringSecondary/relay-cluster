@@ -70,7 +70,7 @@ func (handler *OrderTxHandler) HandlerOrderRelatedTx() error {
 
 func (handler *OrderTxHandler) HandlerOrderCorrelatedTx() error {
 	if handler.TxStatus != types.TX_STATUS_SUCCESS && handler.TxStatus != types.TX_STATUS_FAILED {
-		return fmt.Errorf(handler.format("err:tx status:%s invalid"), handler.value(types.StatusStr(handler.TxStatus))...)
+		return nil
 	}
 
 	orderHashList := cache.GetPendingOrders(handler.Event.Owner)
@@ -109,16 +109,11 @@ func (handler *OrderTxHandler) updateOrder() error {
 	return handler.setOrderStatus(retList)
 }
 
-// todo add cache
 // 如果orderTx的nonce都大于当前nonce则不用管
 func (handler *OrderTxHandler) getOrderPendingTxSortedByNonce() ([]omtyp.OrderTx, error) {
 	var list []omtyp.OrderTx
 
 	event := handler.Event
-
-	if !cache.ExistPendingOrder(event.Owner, event.OrderHash) {
-		return list, fmt.Errorf(handler.format("can not find owner:%s's pending order:%s in cache"), handler.value(event.Owner.Hex(), event.OrderHash.Hex())...)
-	}
 	models, err := rds.GetPendingOrderTxSortedByNonce(event.Owner, event.OrderHash)
 	if err != nil {
 		return list, err
@@ -176,7 +171,7 @@ func (handler *OrderTxHandler) delOrderPendingTx(list []omtyp.OrderTx) []omtyp.O
 	}
 
 	rds.DelPendingOrderTx(event.Owner, event.OrderHash, delList)
-	if len(retList) == 0 && cache.ExistPendingOrder(event.Owner, event.OrderHash) {
+	if len(retList) == 0 {
 		cache.DelPendingOrder(event.Owner, event.OrderHash)
 	}
 

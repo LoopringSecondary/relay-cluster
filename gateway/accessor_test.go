@@ -290,7 +290,7 @@ func TestEthNodeAccessor_GetCutoffAll(t *testing.T) {
 }
 
 func TestEthNodeAccessor_CutoffPair(t *testing.T) {
-	account := common.HexToAddress("0x1B978a1D302335a6F2Ebe4B8823B5E17c3C84135")
+	account := common.HexToAddress("0xb1018949b241D76A1AB2094f473E9bEfeAbB5Ead")
 	cutoff := big.NewInt(1531107175)
 	token1 := lrcTokenAddress
 	token2 := wethTokenAddress
