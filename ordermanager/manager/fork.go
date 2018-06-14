@@ -20,24 +20,16 @@ package manager
 
 import (
 	"fmt"
-	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
 	"sort"
 )
 
-type ForkProcessor struct {
-	db *dao.RdsService
-	mc marketcap.MarketCapProvider
-}
+type ForkProcessor struct{}
 
-func NewForkProcess(rds *dao.RdsService, mc marketcap.MarketCapProvider) *ForkProcessor {
+func NewForkProcess() *ForkProcessor {
 	processor := &ForkProcessor{}
-	processor.db = rds
-	processor.mc = mc
-
 	return processor
 }
 
@@ -85,7 +77,7 @@ func (p *ForkProcessor) Fork(event *types.ForkedEvent) error {
 // calculate order's related values and status, update order
 func (p *ForkProcessor) RollBackSingleFill(evt *types.OrderFilledEvent) error {
 	state := &types.OrderState{}
-	model, err := p.db.GetOrderByHash(evt.OrderHash)
+	model, err := rds.GetOrderByHash(evt.OrderHash)
 	if err != nil {
 		log.Debugf("fork fill event,order:%s not exist in dao/fill", evt.OrderHash.Hex())
 		return nil
@@ -106,7 +98,7 @@ func (p *ForkProcessor) RollBackSingleFill(evt *types.OrderFilledEvent) error {
 
 	// update rds.Order
 	model.ConvertDown(state)
-	if err := p.db.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
+	if err := rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
 		return err
 	}
 
@@ -116,7 +108,7 @@ func (p *ForkProcessor) RollBackSingleFill(evt *types.OrderFilledEvent) error {
 func (p *ForkProcessor) RollBackSingleCancel(evt *types.OrderCancelledEvent) error {
 	// get rds.Order and types.OrderState
 	state := &types.OrderState{}
-	model, err := p.db.GetOrderByHash(evt.OrderHash)
+	model, err := rds.GetOrderByHash(evt.OrderHash)
 	if err != nil {
 		log.Debugf("fork order cancelled event,order:%s not exist in dao/order", evt.OrderHash.Hex())
 		return nil
@@ -138,7 +130,7 @@ func (p *ForkProcessor) RollBackSingleCancel(evt *types.OrderCancelledEvent) err
 
 	// update rds.Order
 	model.ConvertDown(state)
-	if err := p.db.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
+	if err := rds.UpdateOrderWhileCancel(state.RawOrder.Hash, state.Status, state.CancelledAmountS, state.CancelledAmountB, state.UpdatedBlock); err != nil {
 		return fmt.Errorf("fork cancel event,error:%s", err.Error())
 	}
 
@@ -153,7 +145,7 @@ func (p *ForkProcessor) RollBackSingleCutoff(evt *types.CutoffEvent) error {
 
 	for _, orderhash := range evt.OrderHashList {
 		state := &types.OrderState{}
-		model, err := p.db.GetOrderByHash(orderhash)
+		model, err := rds.GetOrderByHash(orderhash)
 		if err != nil {
 			log.Debugf("fork cutoff event,order:%s not exist in dao/order", orderhash.Hex())
 			continue
@@ -163,7 +155,7 @@ func (p *ForkProcessor) RollBackSingleCutoff(evt *types.CutoffEvent) error {
 		// update order status
 		SettleOrderStatus(state, false)
 
-		if err := p.db.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
+		if err := rds.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
 			return fmt.Errorf("fork cutoff event,error:%s", err.Error())
 		}
 
@@ -181,7 +173,7 @@ func (p *ForkProcessor) RollBackSingleCutoffPair(evt *types.CutoffPairEvent) err
 
 	for _, orderhash := range evt.OrderHashList {
 		state := &types.OrderState{}
-		model, err := p.db.GetOrderByHash(orderhash)
+		model, err := rds.GetOrderByHash(orderhash)
 		if err != nil {
 			log.Debugf("fork cutoffPair event,order:%s not exist in dao/order", orderhash.Hex())
 			continue
@@ -192,7 +184,7 @@ func (p *ForkProcessor) RollBackSingleCutoffPair(evt *types.CutoffPairEvent) err
 		// 在ordermanager 已完成的订单不会再更新,因此,cutoff事件发生之前,从钱包的角度来看只会有fillEvent,默认cancel取消所有的量
 		SettleOrderStatus(state, false)
 
-		if err := p.db.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
+		if err := rds.UpdateOrderWhileRollbackCutoff(orderhash, state.Status, evt.BlockNumber); err != nil {
 			return fmt.Errorf("fork cutoffPair event,error:%s", err.Error())
 		}
 
@@ -203,19 +195,19 @@ func (p *ForkProcessor) RollBackSingleCutoffPair(evt *types.CutoffPairEvent) err
 }
 
 func (p *ForkProcessor) MarkForkEvents(from, to int64) error {
-	if err := p.db.RollBackRingMined(from, to); err != nil {
+	if err := rds.RollBackRingMined(from, to); err != nil {
 		return fmt.Errorf("fork rollback ringmined events error:%s", err.Error())
 	}
-	if err := p.db.RollBackFill(from, to); err != nil {
+	if err := rds.RollBackFill(from, to); err != nil {
 		return fmt.Errorf("fork rollback fill events error:%s", err.Error())
 	}
-	if err := p.db.RollBackCancel(from, to); err != nil {
+	if err := rds.RollBackCancel(from, to); err != nil {
 		return fmt.Errorf("fork rollback cancel events error:%s", err.Error())
 	}
-	if err := p.db.RollBackCutoff(from, to); err != nil {
+	if err := rds.RollBackCutoff(from, to); err != nil {
 		return fmt.Errorf("fork rollback cutoff events error:%s", err.Error())
 	}
-	if err := p.db.RollBackCutoffPair(from, to); err != nil {
+	if err := rds.RollBackCutoffPair(from, to); err != nil {
 		return fmt.Errorf("fork rollback cutoffPair events error:%s", err.Error())
 	}
 
@@ -232,7 +224,7 @@ const (
 func (p *ForkProcessor) GetForkEvents(from, to int64) (InnerForkEventList, error) {
 	var list InnerForkEventList
 
-	if fillList, _ := p.db.GetFillForkEvents(from, to); len(fillList) > 0 {
+	if fillList, _ := rds.GetFillForkEvents(from, to); len(fillList) > 0 {
 		for _, v := range fillList {
 			var (
 				fill     types.OrderFilledEvent
@@ -247,7 +239,7 @@ func (p *ForkProcessor) GetForkEvents(from, to int64) (InnerForkEventList, error
 		}
 	}
 
-	if cancelList, _ := p.db.GetCancelForkEvents(from, to); len(cancelList) > 0 {
+	if cancelList, _ := rds.GetCancelForkEvents(from, to); len(cancelList) > 0 {
 		for _, v := range cancelList {
 			var (
 				cancel   types.OrderCancelledEvent
@@ -262,7 +254,7 @@ func (p *ForkProcessor) GetForkEvents(from, to int64) (InnerForkEventList, error
 		}
 	}
 
-	if cutoffList, _ := p.db.GetCutoffForkEvents(from, to); len(cutoffList) > 0 {
+	if cutoffList, _ := rds.GetCutoffForkEvents(from, to); len(cutoffList) > 0 {
 		for _, v := range cutoffList {
 			var (
 				cutoff   types.CutoffEvent
@@ -277,7 +269,7 @@ func (p *ForkProcessor) GetForkEvents(from, to int64) (InnerForkEventList, error
 		}
 	}
 
-	if cutoffPairList, _ := p.db.GetCutoffPairForkEvents(from, to); len(cutoffPairList) > 0 {
+	if cutoffPairList, _ := rds.GetCutoffPairForkEvents(from, to); len(cutoffPairList) > 0 {
 		for _, v := range cutoffPairList {
 			var (
 				cutoffPair types.CutoffPairEvent
