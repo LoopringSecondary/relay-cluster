@@ -77,8 +77,8 @@ func generateNonceKey(owner common.Address) string {
 // nonce, tx status is success
 //
 ///////////////////////////////////////////////////////////
-func GetTxSuccessMaxNonceValue(owner common.Address) (*big.Int, error) {
-	key := generateTxSuccessMaxNonceKey(owner)
+func GetTxMinedMaxNonceValue(owner common.Address) (*big.Int, error) {
+	key := generateTxMinedMaxNonceKey(owner)
 	if bs, err := cache.Get(key); err == nil {
 		return new(big.Int).SetBytes(bs), nil
 	}
@@ -98,15 +98,15 @@ func GetTxSuccessMaxNonceValue(owner common.Address) (*big.Int, error) {
 	return nonce, nil
 }
 
-func SetTxSuccessMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
+func SetTxMinedMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
 	if currentNonce.Cmp(preNonce) < 1 {
 		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
 	}
-	key := generateTxSuccessMaxNonceKey(owner)
+	key := generateTxMinedMaxNonceKey(owner)
 	bs := currentNonce.Bytes()
 	return cache.Set(key, bs, NonceTtl)
 }
 
-func generateTxSuccessMaxNonceKey(owner common.Address) string {
+func generateTxMinedMaxNonceKey(owner common.Address) string {
 	return MaxNonceTxSuccessPrefix + owner.Hex()
 }

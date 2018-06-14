@@ -496,10 +496,10 @@ func (m unlockedMap) invalidView(owner common.Address) bool {
 func setNonce(status types.TxStatus, owner common.Address, currentNonce *big.Int) error {
 	// mined
 	if status != types.TX_STATUS_PENDING {
-		if preNonce, err := cache.GetTxSuccessMaxNonceValue(owner); err != nil {
+		if preNonce, err := cache.GetTxMinedMaxNonceValue(owner); err != nil {
 			return err
 		} else {
-			cache.SetTxSuccessMaxNonceValue(owner, preNonce, currentNonce)
+			cache.SetTxMinedMaxNonceValue(owner, preNonce, currentNonce)
 		}
 	}
 
