@@ -18,51 +18,117 @@
 
 package order_difficulty
 
-import "math/big"
+import (
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/lydy/go-ethereum/common/math"
+	"math/big"
+	"qiniupkg.com/x/log.v7"
+	"strconv"
+	"time"
+)
+
+const (
+	OrderCountPerSecond = "o_cnt_per_s_"
+	OrderDifficulty     = "order_diff"
+	ZklockDifficulty    = "zklock_diff"
+)
 
 type OrderDifficultyEvaluator struct {
 	currentDifficult *OrderDifficulty
-	parentDifficult *OrderDifficulty
-	baseDifficulty *big.Int
-	orderTraffic int64
+	parentDifficult  *OrderDifficulty
+	baseDifficulty   *big.Int
+	orderTraffic     int64
 	triggerThreshold float64
+	stopFuns         []func()
+	calCount         int64 //must be odd
 }
 
 type OrderDifficulty struct {
 	difficulty *big.Int
-	ordersNum int64
-	timeStamp int64
+	ordersNum  int64
+	timeStamp  int64
+}
+
+func (evaluator *OrderDifficultyEvaluator) getCacheKey(createTime int64) (key string, expireAt int64) {
+	mod := createTime % evaluator.calCount
+	orderSection := createTime - mod
+	orderSectionStr := strconv.FormatInt(orderSection, 10)
+	return OrderCountPerSecond + orderSectionStr, createTime + evaluator.calCount
+}
+
+func (evaluator *OrderDifficultyEvaluator) Start() {
+	evaluator.HandleNewOrder()
+	go func() {
+		if err := zklock.TryLock(ZklockDifficulty); nil != err {
+			log.Errorf("erro:%s", err.Error())
+		} else {
+			now := time.Now().Unix()
+			orderCntList := []int64{}
+			for i := evaluator.calCount; i > 0; i-- {
+				t := now - i
+				cacheKey, _ := evaluator.getCacheKey(t)
+				if data, err := cache.Get(cacheKey); nil == err {
+					cnt, _ := strconv.ParseInt(string(data), 10, 0)
+					orderCntList = append(orderCntList, cnt)
+				}
+			}
+			for {
+				select {
+				case <-time.After(2 * time.Second):
+					cacheKey, _ := evaluator.getCacheKey(time.Now().Unix() - 1)
+					if data, err := cache.Get(cacheKey); nil == err {
+						cnt, _ := strconv.ParseInt(string(data), 10, 0)
+						orderCntList = append(orderCntList, cnt)
+					}
+					diff := evaluator.CalcAndSaveDifficulty(orderCntList)
+					diffHash := common.BytesToHash(diff.Bytes())
+					cache.Set(OrderDifficulty, []byte(diffHash.Hex()), int64(0))
+					orderCntList = orderCntList[1:]
+				}
+			}
+		}
+	}()
+}
+
+func (evaluator *OrderDifficultyEvaluator) Stop() {
+	for _, f := range evaluator.stopFuns {
+		f()
+	}
 }
 
 //add ordersNum
-func HandleNewOrder() {
-
-}
-
-var evaluator *OrderDifficultyEvaluator
-
-//控制订单的提交速度，随着订单的流量增大而增大
-func (evaluator *OrderDifficultyEvaluator) CalcDifficulty() *big.Int {
-	//以太坊
-	/**
-	1、时间
-	2、上一难度
-	3、当前时间
-	4、当前高度
-	5、diff = 上一难度+难度调整
-	6、难度调整=上一难度/2048*Max(1-(时间)/10, -99)
-	 */
-	if evaluator.currentDifficult.ordersNum <= big.NewInt(int64(100)) {
-		return big.NewInt(int64(0))
+func (evaluator *OrderDifficultyEvaluator) HandleNewOrder() {
+	watcher := &eventemitter.Watcher{
+		Concurrent: false, Handle: func(input eventemitter.EventData) error {
+			state := input.(*types.OrderState)
+			cacheKey, expireAt := evaluator.getCacheKey(state.RawOrder.CreateTime)
+			_, err := cache.Incr(cacheKey)
+			if nil == err {
+				err = cache.ExpireAt(cacheKey, expireAt)
+			}
+			return err
+		},
 	}
 
-	//到达触发值之后，开始计算难度值，否则可以不设，达到阈值之后，根据每秒的增量设置下一秒的难度值
-	//做法：曲线拟合估计下一秒的订单量，根据订单量的变化，估计
-	parentOrderDibbiculty := &OrderDifficulty{}
-	parentOrderDibbiculty.difficulty
-	return big.NewInt(int64(0))
+	evaluator.stopFuns = append(evaluator.stopFuns, func() {
+		eventemitter.Un(eventemitter.NewOrder, watcher)
+	})
+	eventemitter.On(eventemitter.NewOrder, watcher)
 }
 
+//控制订单的提交速度，随着订单的流量增大而增大
+func (evaluator *OrderDifficultyEvaluator) CalcAndSaveDifficulty(orderCntList []int64) *big.Int {
+	return math.MaxBig256
+}
 
-
-
+func GetDifficulty() (common.Hash, error) {
+	if data, err := cache.Get(OrderDifficulty); nil == err {
+		return common.HexToHash(string(data)), nil
+	} else {
+		return common.Hash{}, err
+	}
+}
