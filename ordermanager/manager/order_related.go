@@ -160,6 +160,12 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 
 	notify.NotifyOrderFilled(newFillModel)
 
+	var ringminedEvent types.RingMinedEvent
+	ringminedEvent.TxInfo = event.TxInfo
+	ringminedEvent.Ringhash = event.Ringhash
+	ringminedEvent.RingIndex = event.RingIndex
+	notify.NotifyRingMined(&ringminedEvent)
+
 	return nil
 }
 
