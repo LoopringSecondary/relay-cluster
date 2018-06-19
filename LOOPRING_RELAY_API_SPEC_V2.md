@@ -52,7 +52,6 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [loopring_notifyTransactionSubmitted](#loopring_notifytransactionsubmitted)
 * [loopring_submitRingForP2P](#loopring_submitringforp2p)
 * [loopring_getUnmergedOrderBook](#loopring_getunmergedorderbook)
-* [loopring_getContracts](#loopring_getcontracts)
 * [loopring_flexCancelOrder](#loopring_flexcancelorder)
 * [loopring_getNonce](#loopring_getnonce)
 * [loopring_getTempStore](#loopring_gettempstore)
@@ -1399,37 +1398,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getUnmergedOrderBook","
 			"splitB": 0,
 			"validUntil": 1529466785
 		}]
-	}
-}
-```
-
-***
-
-***
-
-#### loopring_getContracts
-
-get contract infomation from relay.Included loopringProtocol and delegateAddress, and there relation. struct is map(delegateAddress1 -> [loopringProtocol1, loopringProtocol2], delegateAddress2 -> ...).
-
-##### Parameters
-
-no input params
-
-##### Returns
-
-`map of contracts` - The map struct of contracts 
-
-##### Example
-```js
-// Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getContracts","params":[{}],"id":64}'
-
-// Result
-{
-	"jsonrpc": "2.0",
-	"id": 0,
-	"result": {
-		"0x17233e07c67d086464fD408148c3ABB56245FA64": ["0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78"]
 	}
 }
 ```
