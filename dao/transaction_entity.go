@@ -154,6 +154,15 @@ func (s *RdsService) FindTxEntity(txhash string, logIndex int64) (TransactionEnt
 	return tx, err
 }
 
+func (s *RdsService) DelDuplicateTxEntity(txhash string, logindex, nonce int64) error {
+	err := s.Db.Where("tx_hash=?", txhash).
+		Where("tx_log_index=?", logindex).
+		Where("nonce=?", nonce).
+		Where("fork=?", false).
+		Delete(&TransactionEntity{}).Error
+	return err
+}
+
 func (s *RdsService) GetMaxNonce(owner common.Address) (*big.Int, error) {
 	var model TransactionEntity
 	err := s.Db.Where("tx_from=?", owner.Hex()).
