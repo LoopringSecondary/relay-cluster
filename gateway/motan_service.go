@@ -33,7 +33,7 @@ type MotanService struct {
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
-	start := time.Now().Unix()
+	start := msecNow()
 
 	res := &motan.AccountBalanceAndAllowanceRes{}
 	if balance, allowance, err := accountmanager.GetBalanceAndAllowance(req.Owner, req.Token, req.Spender); nil != err {
@@ -55,20 +55,20 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 		res.Err = err
 	}
 
-	stop := time.Now().Unix()
-	log.Debugf("GetBalanceAndAllowance,owner:%s, token:%s, spender:%s, execute time:%d(second)", req.Owner.Hex(), req.Token.Hex(), req.Spender.Hex(), stop-start)
+	stop := msecNow()
+	log.Debugf("GetBalanceAndAllowance,owner:%s, token:%s, spender:%s, execute time:%d(msec)", req.Owner.Hex(), req.Token.Hex(), req.Spender.Hex(), stop-start)
 
 	return res
 }
 
 func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
-	start := time.Now().Unix()
+	start := msecNow()
 
 	res := &motan.MinerOrdersRes{}
 	res.List = manager.MinerOrders(req.Delegate, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 
-	stop := time.Now().Unix()
-	log.Debugf("motan service, GetMinerOrders list length:%d, execute time:%d(second)", len(res.List), stop-start)
+	stop := msecNow()
+	log.Debugf("motan service, GetMinerOrders list length:%d, execute time:%d(msec)", len(res.List), stop-start)
 
 	return res
 }
@@ -78,4 +78,8 @@ func StartMotanService(options motan.MotanServerOptions, accountManager accountm
 	service.accountManager = accountManager
 	options.ServerInstance = service
 	go motan.RunServer(options)
+}
+
+func msecNow() int64 {
+	return time.Now().UnixNano() / 1e6
 }
