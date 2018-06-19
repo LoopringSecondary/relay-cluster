@@ -27,7 +27,6 @@ import (
 	"time"
 )
 
-
 /*
  need following config files for aws service connect
 	~/.aws/config/credentials

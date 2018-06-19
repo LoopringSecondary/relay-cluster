@@ -82,3 +82,17 @@ func ReleaseLock(lockName string) error {
 func IsLockInitialed() bool {
 	return nil != zl
 }
+
+func CreatePath(path string) (string, error) {
+	isExist, _, err := ZkClient.Exists(path)
+	if err != nil {
+		return "", fmt.Errorf("check zk path %s exists failed : %s", path, err.Error())
+	}
+	if !isExist {
+		_, err := ZkClient.Create(path, nil, 0, zk.WorldACL(zk.PermAll))
+		if err != nil && err != zk.ErrNodeExists {
+			return "", fmt.Errorf("failed create balancer sub path %s ,with error : %s ", path, err.Error())
+		}
+	}
+	return path, nil
+}

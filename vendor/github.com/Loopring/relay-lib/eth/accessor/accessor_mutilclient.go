@@ -218,9 +218,9 @@ func (mc *MutilClient) Call(routeParam string, result interface{}, method string
 	} else if "eth_sendRawTransaction" == method {
 		var (
 			sendSuccess bool
-			err error
+			err         error
 		)
-		for _,client := range mc.clients {
+		for _, client := range mc.clients {
 			if err1 := client.client.Call(result, method, args...); nil == err1 {
 				sendSuccess = true
 			} else {

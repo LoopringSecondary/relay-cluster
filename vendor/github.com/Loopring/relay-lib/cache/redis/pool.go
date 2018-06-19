@@ -509,6 +509,26 @@ func (impl *RedisCacheImpl) SAdd(key string, ttl int64, members ...[]byte) error
 	}
 	return err
 }
+func (impl *RedisCacheImpl) Incr(key string) (int64, error) {
+	conn := impl.pool.Get()
+	defer conn.Close()
+
+	reply, err := conn.Do("incr", key)
+
+	if nil != err {
+		return int64(0), err
+	} else {
+		res := reply.(int64)
+		return res, err
+	}
+}
+
+func (impl *RedisCacheImpl) ExpireAt(key string, expireAt int64) error {
+	conn := impl.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("EXPIREAT", key, expireAt)
+	return err
+}
 
 func (impl *RedisCacheImpl) SMembers(key string) ([][]byte, error) {
 
