@@ -25,6 +25,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
+	"time"
 )
 
 type MotanService struct {
@@ -32,6 +33,8 @@ type MotanService struct {
 }
 
 func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowanceReq) *motan.AccountBalanceAndAllowanceRes {
+	start := time.Now().Unix()
+
 	res := &motan.AccountBalanceAndAllowanceRes{}
 	if balance, allowance, err := accountmanager.GetBalanceAndAllowance(req.Owner, req.Token, req.Spender); nil != err {
 		res.Allowance = big.NewInt(int64(0))
@@ -51,16 +54,21 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 		res.Allowance = new(big.Int).Set(allowance)
 		res.Err = err
 	}
-	//log.Debugf("---finished, GetBalanceAndAllowance,owner:%s, token:%s, spender:%s", req.Owner.Hex(), req.Token.Hex(), req.Spender.Hex())
+
+	stop := time.Now().Unix()
+	log.Debugf("GetBalanceAndAllowance,owner:%s, token:%s, spender:%s, execute time:%d(second)", req.Owner.Hex(), req.Token.Hex(), req.Spender.Hex(), stop-start)
 
 	return res
 }
 
 func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
+	start := time.Now().Unix()
+
 	res := &motan.MinerOrdersRes{}
 	res.List = manager.MinerOrders(req.Delegate, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 
-	log.Debugf("motan service, GetMinerOrders list length:%d", len(res.List))
+	stop := time.Now().Unix()
+	log.Debugf("motan service, GetMinerOrders list length:%d, execute time:%d(second)", len(res.List), stop-start)
 
 	return res
 }
