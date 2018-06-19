@@ -59,6 +59,10 @@ type Cache interface {
 
 	ZAdd(key string, ttl int64, args ...[]byte) error
 
+	Incr(key string) (int64, error)
+
+	ExpireAt(key string, expireAt int64) error
+
 	ZRange(key string, start, stop int64, withScores bool) ([][]byte, error)
 	ZRemRangeByScore(key string, start, stop int64) (int64, error)
 }
@@ -127,6 +131,14 @@ func ZRange(key string, start, stop int64, withScores bool) ([][]byte, error) {
 }
 func ZRemRangeByScore(key string, start, stop int64) (int64, error) {
 	return cache.ZRemRangeByScore(key, start, stop)
+}
+
+func Incr(key string) (int64, error) {
+	return cache.Incr(key)
+}
+
+func ExpireAt(key string, expireAt int64) error {
+	return cache.ExpireAt(key, expireAt)
 }
 
 func IsInit() bool {

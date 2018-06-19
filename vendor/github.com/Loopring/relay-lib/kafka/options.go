@@ -20,12 +20,14 @@ package kafka
 
 const (
 	Kafka_Topic_Extractor_PendingTransaction  = "Kafka_Topic_Extractor_PendingTransaction"
+	Kafka_Topic_Extractor_AddToken            = "Kafka_Topic_Extractor_AddToken"
 	Kafka_Topic_Extractor_EventOnChain        = "Kafka_Topic_Extractor_EventOnChain"
 	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
 	Kafka_Topic_RelayCluster_BlockEnd         = "Kafka_Topic_RelayCluster_BlockEnd"
 	Kafka_Topic_Miner_SubmitInfo_Prefix       = "Kafka_Topic_Miner_SubmitInfo_Prefix"
 
 	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
+	Kafka_Group_Extractor_AddToken           = "Kafka_Group_Extractor_AddToken"
 	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
 	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
 
@@ -42,5 +44,6 @@ const (
 	Kafka_Topic_SocketIO_BalanceUpdated      = "Kafka_Topic_SocketIO_BalanceUpdated"
 	Kafka_Topic_SocketIO_Transaction_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
 
-	Kafka_Topic_OrderManager_FlexCancelOrder = "Kafka_Topic_OrderManager_FlexCancelOrder"
+	Kafka_Topic_OrderManager_FlexCancelOrder  = "Kafka_Topic_OrderManager_FlexCancelOrder"
+	Kafka_Topic_orderManager_RingminedUpdated = "Kafka_Topic_orderManager_RingminedUpdated"
 )
