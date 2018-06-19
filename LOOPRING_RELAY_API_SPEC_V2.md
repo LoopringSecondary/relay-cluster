@@ -51,6 +51,15 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [loopring_unlockWallet](#loopring_unlockwallet)
 * [loopring_notifyTransactionSubmitted](#loopring_notifytransactionsubmitted)
 * [loopring_submitRingForP2P](#loopring_submitringforp2p)
+* [loopring_getUnmergedOrderBook](#loopring_getunmergedorderbook)
+* [loopring_getContracts](#loopring_getcontracts)
+* [loopring_flexCancelOrder](#loopring_flexcancelorder)
+* [loopring_getNonce](#loopring_getnonce)
+* [loopring_getTempStore](#loopring_gettempstore)
+* [loopring_setTempStore](#loopring_settempstore)
+* [loopring_notifyCirculr](#loopring_notifycirculr)
+* [loopring_getEstimateGasPrice](#loopring_getestimategasprice)
+
 
 ## SocketIO Events
 
@@ -63,6 +72,12 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [depth](#depth)
 * [trends](#trends)
 * [pendingTx](#pendingtx)
+* [orderBook](#orderbook)
+* [trades](#trades)
+* [orders](#orders)
+* [estimatedGasPrice](#estimatedgasprice)
+* [addressUnlock](#addressUnlock)
+* [circulrNotify](#circulrNotify)
 
 ## JSON RPC API Reference
 
@@ -1293,6 +1308,350 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_submitRingForP2P","para
 
 ***
 
+#### loopring_getUnmergedOrderBook
+
+get orderbook from relay. the difference of orderbook and depth is that orderbook doesn't merge amount of order, one orderbook record represents a order.
+
+##### Parameters
+
+1. `market` - The market pair.
+2 `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+
+```js
+params: [{
+  "market" : "LRC-WETH",
+  "delegateAddress": "0x5567ee920f7E62274284985D793344351A00142B",
+}]
+```
+
+##### Returns
+
+1. `market` - The market pair.
+2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+3. `buy`  - buy list of orderbook element.
+4. `sell` - sell list of orderbook element.
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getUnmergedOrderBook","params":{see above},"id":64}'
+
+// Result
+{
+	"jsonrpc": "2.0",
+	"id": 0,
+	"result": {
+		"delegateAddress": "0x17233e07c67d086464fD408148c3ABB56245FA64",
+		"market": "LRC-WETH",
+		"buy": [{
+			"price": 0.00249499,
+			"size": 0.0002,
+			"amount": 0.08016064,
+			"orderHash": "0xf4e92d5bd00db16fca1cda106285367e53d4e9d7f9b558aae53c04e6af6ddc4b",
+			"lrcFee": 0.62,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529413285
+		}, {
+			"price": 0.0002,
+			"size": 0.02841565,
+			"amount": 142.07824071,
+			"orderHash": "0xda13253eaab212edaf96e3cee28b41e672862b169291abb0e494ad7af0828855",
+			"lrcFee": 10.52,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529467620
+		}, {
+			"price": 0.000089,
+			"size": 0.02841565,
+			"amount": 319.27694541,
+			"orderHash": "0x24fef40a98793940be8db793ae2508a74fb015c32b2d74a063f66c0800db1d77",
+			"lrcFee": 17.1,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529577356
+		}, {
+			"price": 0.00002,
+			"size": 0.02841565,
+			"amount": 1420.78240706,
+			"orderHash": "0x49db31491b40840216e523499031365ccf3988c3759b99c1ed0bfa3ef3e4b69a",
+			"lrcFee": 2.42,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529467558
+		}],
+		"sell": [{
+			"price": 0.00249,
+			"size": 22.03558119,
+			"amount": 8849.631,
+			"orderHash": "0x246e86a6d6130c931a420da60f3d7e74bbc8d77d176322531e3f3c02448be59f",
+			"lrcFee": 60.01,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529968620
+		}, {
+			"price": 0.00249499,
+			"size": 0.02930466,
+			"amount": 11.7454,
+			"orderHash": "0xabc93b8c2d8119876513b382adf6159bf9450330002d63ad126435f25094e485",
+			"lrcFee": 0.002,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529466785
+		}]
+	}
+}
+```
+
+***
+
+***
+
+#### loopring_getContracts
+
+get contract infomation from relay.Included loopringProtocol and delegateAddress, and there relation. struct is map(delegateAddress1 -> [loopringProtocol1, loopringProtocol2], delegateAddress2 -> ...).
+
+##### Parameters
+
+no input params
+
+##### Returns
+
+`map of contracts` - The map struct of contracts 
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getContracts","params":[{}],"id":64}'
+
+// Result
+{
+	"jsonrpc": "2.0",
+	"id": 0,
+	"result": {
+		"0x17233e07c67d086464fD408148c3ABB56245FA64": ["0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78"]
+	}
+}
+```
+
+***
+
+#### loopring_flexCancelOrder
+
+flex cancel order, cancel order only in relay, will not use gas.
+
+##### Parameters
+
+- `sign` - The Sign Info with timestamp, Please see detail at params detail.
+- `orderHash` - The order hash.
+- `cutoffTime` - The cutoff time, if cancel by cutoff time.
+- `tokenS` - The cutoff time, if cancel by cutoff time.
+- `tokenB` - The cutoff time, if cancel by cutoff time.
+- `type` - The cancel type, enum type is (1 : cancel by order hash | 2: cancel by owner | 3 : cancel by cutoff time | 4 : cancel by market).
+
+```js
+params: [{
+  "orderHash" : "0x52c90064a0503ce566a50876fc41e0d549bffd2ba757f859b1749a75be798819", // if type = 1 , order hash must be applied.
+  "cutoffTime" : 1332342342, // if type = 3, cutoff must be applied
+  "tokenS" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // tokenS's token address, if type = 4, must be applied.
+  "tokenB" : "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0", // tokenB's token address, if type = 4, must be applied.
+  "type" : 2,
+  "sign" : {
+    // v, r, s = sign(keccak256(timestamp)) , please see web3j, same to loopring order sign, https://github.com/Loopring/loopring.js/wiki/%E8%B7%AF%E5%8D%B0%E5%8D%8F%E8%AE%AEv1.0.0%E8%AE%A2%E5%8D%95%E7%BB%93%E6%9E%84%E5%92%8C%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D
+      "owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900", // owner address
+      "v" : 27,
+      "r" : "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
+      "s" : "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
+      "timestamp" : 1444423423, // must be less than 10 minutes distance from the request sending time.
+  }
+}]
+```
+
+##### Returns
+
+no result. if cancel failed, please see error message result.
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_flexCancelOrder","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": ""
+}
+```
+
+***
+
+#### loopring_getNonce
+
+get newest nonce of user's address, plused on the pending transaction counts submitted to relay.
+
+##### Parameters
+
+- `owner` - The owner address.
+
+```js
+params: [{
+  "owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900",
+}]
+```
+
+##### Returns
+
+`nonce` - The newest nonce value.
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getNonce","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": 23,
+}
+```
+
+***
+
+#### loopring_getTempStore
+
+a simple temporary string to string k/v store expire in 24hr, normally used when scaning QR intermediate data.
+
+##### Parameters
+
+- `key` - The temporacy data key.
+
+```js
+params: [{
+  "key" : "testKey",
+}]
+```
+
+##### Returns
+
+`string` - The string value.
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTempStore","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": "test string value"
+}
+```
+
+***
+
+#### loopring_setTempStore
+
+a simple temporary string to string k/v store expire in 24hr, normally used when scaning QR intermediate data.
+
+##### Parameters
+
+- `key` - The temporacy data key.
+- `value` - The temporacy data value.
+
+```js
+params: [{
+  "key" : "testKey",
+  "value" : "testValue",
+}]
+```
+
+##### Returns
+
+no result
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_setTempStore","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": ""
+}
+```
+
+***
+
+#### loopring_notifyCirculr
+
+notify the web wallet when wallet app scaning the QR code, do some action.
+
+##### Parameters
+
+- `owner` - The owner address to notify.
+- `body` - The notify message body.
+
+```js
+params: [{
+  "owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900",
+  "body" : {"type" : "orderStatusUpdate", "status" : "submitted"}},
+}]
+```
+
+##### Returns
+
+no result
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyCirculr","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": ""
+}
+```
+
+***
+
+#### loopring_getEstimateGasPrice
+
+get estimated gas price from Relay.
+
+##### Parameters
+no input param.
+
+```js
+params: [{}]
+```
+
+##### Returns
+
+`hex string` - The hex string of gas price
+
+##### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getEstimateGasPrice","params":{see above},"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0",
+  "result": "0x27372e63b",
+}
+```
+
+***
+
 ## SocketIO Methods Reference
 
 #### portfolio
@@ -1890,3 +2249,437 @@ params: {
 ]
 
 ```
+
+***
+
+#### orderbook
+
+The orderbook sync socketio event key. Please see detail at loopring_getUnmergedOrderBook.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key
+
+##### Parameters
+
+1. `market` - The market pair.
+2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+
+```js
+params: {"owner" : "0x5567ee920f7E62274284985D793344351A00142B", "delegateAddress" : "0x17233e07c67d086464fD408148c3ABB56245FA64"}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("orderbook_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("orderbook_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+1. `market` - The market pair.
+2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+3. `buy`  - buy list of orderbook element.
+4. `sell` - sell list of orderbook element.
+
+##### Example
+```js
+// Request
+params: {
+  "owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1",
+  "delegateAddress" : "0x17233e07c67d086464fD408148c3ABB56245FA64",
+}
+
+// Result
+{
+		"delegateAddress": "0x17233e07c67d086464fD408148c3ABB56245FA64",
+		"market": "LRC-WETH",
+		"buy": [{
+			"price": 0.00249499,
+			"size": 0.0002,
+			"amount": 0.08016064,
+			"orderHash": "0xf4e92d5bd00db16fca1cda106285367e53d4e9d7f9b558aae53c04e6af6ddc4b",
+			"lrcFee": 0.62,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529413285
+		}, {
+			"price": 0.0002,
+			"size": 0.02841565,
+			"amount": 142.07824071,
+			"orderHash": "0xda13253eaab212edaf96e3cee28b41e672862b169291abb0e494ad7af0828855",
+			"lrcFee": 10.52,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529467620
+		}, {
+			"price": 0.000089,
+			"size": 0.02841565,
+			"amount": 319.27694541,
+			"orderHash": "0x24fef40a98793940be8db793ae2508a74fb015c32b2d74a063f66c0800db1d77",
+			"lrcFee": 17.1,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529577356
+		}, {
+			"price": 0.00002,
+			"size": 0.02841565,
+			"amount": 1420.78240706,
+			"orderHash": "0x49db31491b40840216e523499031365ccf3988c3759b99c1ed0bfa3ef3e4b69a",
+			"lrcFee": 2.42,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529467558
+		}],
+		"sell": [{
+			"price": 0.00249,
+			"size": 22.03558119,
+			"amount": 8849.631,
+			"orderHash": "0x246e86a6d6130c931a420da60f3d7e74bbc8d77d176322531e3f3c02448be59f",
+			"lrcFee": 60.01,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529968620
+		}, {
+			"price": 0.00249499,
+			"size": 0.02930466,
+			"amount": 11.7454,
+			"orderHash": "0xabc93b8c2d8119876513b382adf6159bf9450330002d63ad126435f25094e485",
+			"lrcFee": 0.002,
+			"splitS": 0,
+			"splitB": 0,
+			"validUntil": 1529466785
+		}]
+	}
+
+```
+
+***
+
+#### trades
+
+sync latest 40 trades per market.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key.
+
+##### Parameters
+
+1. `market` - The market of the order.(format is LRC-WETH)
+2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+3. `side` - The market side, buy or sell.
+
+```js
+params: {"market" : "LRC-WETH"}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("trades_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("trades_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`PAGE RESULT of OBJECT`
+`ARRAY OF DATA` - The trade list.
+  - `createTime` - The timestamp of trade create time.
+  - `price` - The fill price.
+  - `amount` - The fill amount.
+  - `side`
+  - `ringHash`
+  - `lrcFee` - The lrcFee.
+  - `splitS`
+  - `splitB`
+
+##### Example
+```js
+// Request
+params: {
+  "market" : "LRC-WETH",
+  "delegateAddress" : "0x17233e07c67d086464fD408148c3ABB56245FA64",
+}
+
+// Result
+[{
+	"createTime": 1529379947,
+	"price": 0.00249499,
+	"amount": 1.369,
+	"side": "sell",
+	"ringHash": "0x14d8aa2eb24f917e1a23ca80956c68518f718b21c8d1275bdd57ba94ffaa5dd0",
+	"lrcFee": "9281854027793469",
+	"splitS": "0",
+	"splitB": "0"
+}, {
+	"createTime": 1528885109,
+	"price": 0.00082139,
+	"amount": 3,
+	"side": "sell",
+	"ringHash": "0xd2830682254ec4bf71fae232da7fcd7e4c722031264fdbd7c1d67f98020b5b58",
+	"lrcFee": "11884928508368094",
+	"splitS": "0",
+	"splitB": "11884928508368094"
+}]
+
+```
+
+***
+
+#### orders
+
+sync latest 40 orders per market.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key.
+
+##### Parameters
+
+1. `market` - The market of the order.(format is LRC-WETH)
+2. `owner` - The owner address.
+3. `orderType` - The type of order, market_order | p2p_order.
+
+```js
+params: {
+    "market" : "LRC-WETH",
+    "owner" : "0xA64B16a18885F00FA1AD6D3d3100C3E6F1CEf724",
+    "orderType" : "market_order",
+}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("orders_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("orders_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`PAGE RESULT of OBJECT`
+`ARRAY OF DATA` - The order list.
+  - same as loopring_getOrders result
+
+##### Example
+```js
+// Request
+params: {
+  "market" : "LRC-WETH",
+  "owner" : "0x17233e07c67d086464fD408148c3ABB56245FA64",
+}
+
+// Result
+[{
+	"originalOrder": {
+		"protocol": "0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78",
+		"delegateAddress": "0x17233e07c67d086464fD408148c3ABB56245FA64",
+		"address": "0xA8E6dd605136cEEfC9daCEBE56E24d6aBb5B01d7",
+		"hash": "0xcf4bd90ef91404aa020302f869cbbacc366ed868ba35c898bb1d77e526b49d72",
+		"tokenS": "WETH",
+		"tokenB": "LRC",
+		"amountS": "0x43a1349385ba400",
+		"amountB": "0x1741922b0f82940000",
+		"validSince": "0x5b28f15f",
+		"validUntil": "0x5b28f4e3",
+		"lrcFee": "0x10a741a462780000",
+		"buyNoMoreThanAmountB": true,
+		"marginSplitPercentage": "0x32",
+		"v": "0x1b",
+		"r": "0x2d1507ed216c305d82e83c64aa0be7d8b8e69fcae2c2c7e6ce63c454378edeca",
+		"s": "0x5a69b69055604d13a08c9cc8b67d9a44b66ea8906486003849ec8369fdedafdb",
+		"walletAddress": "0xA8E6dd605136cEEfC9daCEBE56E24d6aBb5B01d7",
+		"authAddr": "0x787B3C4c4B19209A20bD11ebcf279B64708F32ae",
+		"authPrivateKey": "0xf5c1b07141a5198446bd73c1305ae6c07499866e52614ca1e31a04bdfac7a7ce",
+		"market": "LRC-WETH",
+		"side": "buy",
+		"createTime": 1529409888,
+		"orderType": "market_order"
+	},
+	"dealtAmountS": "0x0",
+	"dealtAmountB": "0x0",
+	"cancelledAmountS": "0x0",
+	"cancelledAmountB": "0x0",
+	"status": "ORDER_OPENED"
+}, {
+	"originalOrder": {
+		"protocol": "0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78",
+		"delegateAddress": "0x17233e07c67d086464fD408148c3ABB56245FA64",
+		"address": "0x2E9f19B096069c2d93Dbc6FF3911f4e5ca0f6dD9",
+		"hash": "0xd7bd822326c14b73f80bc5e365b290fccd1cfd4f186fa2caf82563b9046e5300",
+		"tokenS": "LRC",
+		"tokenB": "WETH",
+		"amountS": "0x1741922b0f82940000",
+		"amountB": "0x48df284c99c9000",
+		"validSince": "0x5b28f15d",
+		"validUntil": "0x5b28f4e1",
+		"lrcFee": "0x10a741a462780000",
+		"buyNoMoreThanAmountB": true,
+		"marginSplitPercentage": "0x32",
+		"v": "0x1b",
+		"r": "0xef84e320d802fc5d626b61f8ca13fc6dca1ee46b0ed128aa22d813d438015dd5",
+		"s": "0x44a7ef448941aafde2e064f4382cce8fc41826f78d2c9908f13f1902a2bc503f",
+		"walletAddress": "0x2E9f19B096069c2d93Dbc6FF3911f4e5ca0f6dD9",
+		"authAddr": "0x52b9BB323132241aC4973a6D918a01E90Ab690b5",
+		"authPrivateKey": "0x3d8ccf6eea7717f12215d2f60fe585dc3587a88ea12bcdf375659ac882f6d1e8",
+		"market": "LRC-WETH",
+		"side": "sell",
+		"createTime": 1529409887,
+		"orderType": "market_order"
+	},
+	"dealtAmountS": "0x0",
+	"dealtAmountB": "0x0",
+	"cancelledAmountS": "0x0",
+	"cancelledAmountB": "0x0",
+	"status": "ORDER_OPENED"
+}]
+
+```
+
+***
+
+#### estimatedGasPrice
+
+sync estimated GasPrice from Relay.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key.
+
+##### Parameters
+no input params 
+
+```js
+params: {}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("estimatedGasPrice_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("estimatedGasPrice_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`hex string` - The hex string of gas price.
+
+##### Example
+```js
+// Request
+params: {}
+
+// Result
+"0x27372e63b"
+
+```
+
+***
+
+#### addressUnlock
+
+listen the scan QR to login message notify.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key.
+
+##### Parameters
+1. `uuid` - The uuid to notify.
+
+```js
+params: {"uuid" : "dkx921"}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("addressUnlock_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("addressUnlock_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`string` - notify message body.
+
+##### Example
+```js
+// Request
+params: {}
+
+// Result
+{
+    "uuid" : "dkx921",
+    "selfDefinedParam" : "selfDefinedValues",
+}
+
+```
+
+***
+
+#### circulrNotify
+
+listen the scan QR message notify.
+
+##### subscribe events
+emit with `_req` postfix and listen on `_res` postfix with the event key.
+
+##### Parameters
+1. `owner` - The owner to notify.
+
+```js
+params: {"owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900"}
+
+```
+
+##### Returns
+
+```js
+socketio.emit("circulrNotify_req", '{see below}', function(data) {
+  // your business code
+});
+socketio.on("circulrNotify_res", function(data) {
+  // your business code
+});
+```
+
+##### Returns
+
+`string` - app and web negotiated notify message body.
+
+##### Example
+```js
+// Request
+params: {}
+
+// Result
+{
+    "owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900",
+    "body" : {"key1" : "value1"...},
+}
+
+```
+
+***
