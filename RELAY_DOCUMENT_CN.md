@@ -232,7 +232,9 @@ Loopring基金会实现了两个版本的中继：standalone和cluster， 这里
 中继使用golang语言开发，开发中继时使用的是版本1.9.2, 编译中继建议使用大版本1.9, go开发和编译环境的搭建，请自行google，
 源代码地址：https://github.com/Loopring/relay, 请使用master分支
 代码编译和运行， 请参考README
+
 ---
+
 ### 配置文件
 中继包含两个配置文件：relay.toml和tokens.json, 前者是中继全局配置，后者是用来指定中继支持的Token列表和市场。
 中继配置项比较多， 这里针对relay.toml中比较重要的不太容易理解配置项做一下说明：
