@@ -375,9 +375,14 @@ func (tm *TransactionManager) saveMinedTx(tx *txtyp.TransactionEntity, list []tx
 	tm.processPendingTxWhileMined(tx)
 
 	// save entity
-	if _, err := tm.db.FindTxEntity(tx.Hash.Hex(), tx.LogIndex); err == nil {
-		log.Debugf("transaction manager,tx mined entity:%s logIndex:%d already exist", tx.Hash.Hex(), tx.LogIndex)
-		return nil
+	if model, err := tm.db.FindTxEntity(tx.Hash.Hex(), tx.LogIndex); err == nil {
+		// 判断是否为同一个txhash
+		if model.Nonce == tx.Nonce.Int64() {
+			log.Debugf("transaction manager,tx mined entity:%s logIndex:%d already exist", tx.Hash.Hex(), tx.LogIndex)
+			return nil
+		} else {
+			tm.db.DelDuplicateTxEntity(model.TxHash, model.LogIndex, model.Nonce)
+		}
 	}
 	if err := tm.addEntity(tx); err != nil {
 		log.Errorf("transaction manager,tx mined entity:%s error:%s", tx.Hash.Hex(), err.Error())
