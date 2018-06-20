@@ -122,8 +122,7 @@ func (n *Node) Start() {
 	//gateway.NewJsonrpcService("8080").Start()
 	fmt.Println("step in relay node start")
 	n.tickerCollector.Start()
-	// todo: need fix bug
-	//n.globalMarket.Start()
+	n.globalMarket.Start()
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
