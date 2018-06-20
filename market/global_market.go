@@ -359,6 +359,7 @@ func (g *GlobalMarket) Sign(param interface{}) (urlParam string, err error) {
 func (g *GlobalMarket) Start() {
 	go func() {
 		if zklock.TryLock(GMCLock) == nil {
+			syncGlobalTrend()
 			g.cron.AddFunc("@every 5s", syncGlobalTicker)
 			g.cron.AddFunc("@every 10s", syncGlobalMarketTicker)
 			g.cron.AddFunc("@every 1h", syncGlobalTrend)

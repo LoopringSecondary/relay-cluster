@@ -103,6 +103,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	n.registerTrendManager()
 	n.registerTickerCollector()
+	n.registerGlobalMarket()
 	n.registerWalletService()
 	n.registerJsonRpcService()
 	n.registerWebsocketService()
