@@ -496,7 +496,7 @@ func (so *SocketIOServiceImpl) pushDepthData(eventKey string, respMap map[string
 
 func (so *SocketIOServiceImpl) broadcastTrades(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] loopring depth input.")
 	markets := make(map[string]bool)
 
 	if input != nil {
@@ -861,7 +861,7 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 
 func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] transactions input.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] transactions input.")
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
@@ -903,7 +903,7 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 
 func (so *SocketIOServiceImpl) handleLatestTransactions(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] latest transactions input")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] latest transactions input")
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
@@ -952,7 +952,7 @@ func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err e
 
 func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] pending transaction input (for pending).")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] pending transaction input (for pending).")
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
@@ -993,7 +993,7 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 
 func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update input.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update input.")
 
 	req := input.(*types.OrderState)
 	owner := req.RawOrder.Owner.Hex()
@@ -1030,7 +1030,7 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 
 func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order hash tracing input")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order hash tracing input")
 
 	req := input.(*types.OrderState)
 	orderHash := req.RawOrder.Hash.Hex()
@@ -1064,7 +1064,7 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 }
 
 func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) {
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	order := input.(*types.OrderState)
 	so.handleOrdersUpdate(order)
 	so.handleOrderTracing(order)
@@ -1080,7 +1080,7 @@ func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) 
 }
 
 func (so *SocketIOServiceImpl) handleCutOff(input interface{}) (err error) {
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	//req := input.(*socketioutil.KafkaMsg)
 	//owner := req.Data.(string)
 	//so.e
@@ -1090,7 +1090,7 @@ func (so *SocketIOServiceImpl) handleCutOff(input interface{}) (err error) {
 }
 
 func (so *SocketIOServiceImpl) handleCutOffPair(input interface{}) (err error) {
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	cutoffPair := input.(*types.CutoffPairEvent)
 	//so.handleOrdersUpdate(req.Data.(*types.CutoffPairEvent))
 	market, err := util.WrapMarketByAddress(cutoffPair.Token1.Hex(), cutoffPair.Token2.Hex())
@@ -1104,7 +1104,7 @@ func (so *SocketIOServiceImpl) handleCutOffPair(input interface{}) (err error) {
 
 func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] order transfer input.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order transfer input.")
 
 	ot := input.(*OrderTransfer)
 	ot.Origin = ""
@@ -1138,7 +1138,7 @@ func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error
 
 func (so *SocketIOServiceImpl) handleScanLogin(input interface{}) (err error) {
 
-	log.Infof("[SOCKETIO-RECEIVE-EVENT] scan login input.")
+	//log.Infof("[SOCKETIO-RECEIVE-EVENT] scan login input.")
 
 	ot := input.(*LoginInfo)
 	log.Infof("received UUID is %s ", ot.UUID)
