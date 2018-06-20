@@ -28,13 +28,13 @@ Loopring Relay(中文名:中继)是路印技术生态重要组成部分，集中
   * [代码编译](#代码编译)
   * [配置文件](#配置文件)
   * [docker镜像](#docker)
-- [Relay Cluster]()
-  * [与standalone版本区别]()
-  * [系统架构]()
-  * [谁更适合部署cluster版本]()
-  * [获取技术支持]()
-- [获取帮助]()
-- [相关资源]()
+- [分布式中继](#分布式中继)
+  * [github代码结构](#github)
+  * [微服务介绍](#微服务介绍)
+  * [谁更适合部署分布式版本](#谁更适合部署分布式版本)
+  * [docker镜像](#分布式版本镜像)
+  * [配置文件](#分布式中继配置)
+- [获取帮助](#获取帮助)
 
 ---
 
@@ -77,7 +77,7 @@ Loopring Relay(中文名:中继)是路印技术生态重要组成部分，集中
 通用 | Token | 即以太坊上代币，目前只支持完全符合ERC20标准的Token
 通用 | Transaction | 通常是指用户转账/授权/合约调用等以太坊交易操作，在Relay，我们对transaction进行了包装，包含用户订单撮合类型，同时包含所有以太坊交易操作类型，方便用户区分。
 通用 | Gas | 提交以太坊交易，需要指定GasPrice和GasLimit用来支付交易产生的费用，Loopring支持获取当前网络最佳GasPrice
-通用 | Nonce | 以用户钱包地址为单位，从1开始递增的整数，当前值等于用户提交成功的transaction总数，用户提交transaction需要提供nonce做校验，同一个nonce只能有一个transaction提交成功，由于Relay接入了Loopring众多的钱包版本（web/ios/android）, 同时有多个合作伙伴接入，所以提供了集中维护Nonce的功能，最大程度的提高transaction成功率。
+通用 | Nonce | 以用户钱包地址为单位，从0开始递增的整数，当前值等于用户提交成功的transaction总数，用户提交transaction需要提供nonce做校验，同一个nonce只能有一个transaction提交成功，由于Relay接入了Loopring众多的钱包版本（web/ios/android）, 同时有多个合作伙伴接入，所以提供了集中维护Nonce的功能，最大程度的提高transaction成功率。
 通用 | Miner | Loopring撮合服务，在订单池中发现环路，并提交到智能合约撮合。
 通用 | Decimal | ERC20 Token 单位精度，一般情况下订单里Token数量除以Decimal, 是实际数量，通常Decimal=1e18。
 通用 | Symbol | ERC20 Token简称，例如Loopring ERC20 Token, 是LRC。
@@ -257,3 +257,62 @@ miner          - 以miner模式启动时，配置挖矿参数
 ### docker
 docker镜像地址：https://hub.docker.com/r/loopring/relay， 目前版本比较旧，我们会尽快更新镜像。
 
+---
+
+## 分布式中继
+分布式中继，是中继的分布式版本，单节点中继虽然能完整的支持钱包和DEX服务，但是在架构上存在单点故障，升级和扩展困难，在遇到性能瓶颈无法降级等常见系统问题。为了让中继成为了企业级应用，提供高可用高性能的钱包和DEX服务，我们重构了中继，将原来的系统做服务化拆分，形成目前包含中继、撮合，解析器三个微服务的分布式版本。
+
+---
+
+### github
+分布式中继包含以下几个github库：relay-cluster/miner/extractor/relay-lib, 简单介绍下各个库的作用：
+* relay-cluster : 中继cluster版本，提供wallet和DEX后台服务
+* miner : 撮合服务
+* extractor : 以太坊解析服务
+* relay-lib : 基础库，供以上上个微服务系统使用
+
+---
+
+### 微服务介绍
+
+#### relay-cluster
+relay-cluster和之前单节点版本relay功能基本相同，为钱包和DEX应用提供后台服务，将原来在单节点版本relay中的撮合服务和以太坊解析服务剥离出去，就是目前relay-cluster提供的功能。
+
+#### miner
+撮合服务，接收订单，发现环路，提交环路到以太坊网络，通过rpc服务于relay-cluster通信
+
+#### extractor
+以太坊解析服务，以太坊上发生的每一笔transaction，每一个event等，都是通过extractor解析，然后包装成事件，通过消息队列(目前是kafka)，提供给relay-cluster和miner使用
+
+---
+
+### 谁更适合部署分布式版本
+分布式中继是一个完整的企业级分布式应用，虽然目前系统体量比较小，只包含3个微服务，但是同其他分布式应用一样，我们做了以下这些工作：
+
+* 基于aws ALB提供完整的负载均衡策略
+* 我们部署了高可用的kafka&zookeeper集群 
+* 采用了aws redis主备模式缓存集群和mysql存储集群
+* 有多达200+完善的cloudwatch监控配置项
+* 支持aws codedeploy的一键部署脚本
+* 针对每个可能出点单点故障或者系统其他问题的地方，做了相应的灾备和容错处理
+
+所以合作伙伴要想部署一个高可用的中继，需要做大量的系统工作，需要非常专业的工程师来长期维护。我们的建议是具有一定研发实力的合作伙伴来部署分布式中继，当然，我们也会尽可能提供部署帮助。
+
+---
+
+### 分布式版本镜像
+为了方便合作伙伴部署分布式中继，我们会分别提供以下几个镜像(制作中)：
+
+* relay-cluster镜像
+* miner镜像
+* extractor镜像
+* zookeeper&kafka
+* mysql & redis 请自行下载官方镜像
+
+### 分布式中继配置
+各个微服务和中间件的配置文件，都需要独立于镜像配置，我们会更新配置文件说明，增加自解释，这部分工作会和docker化一起完成，然后提供给合作伙伴使用，尽请期待。
+
+---
+
+## 获取帮助
+请访问官方网站获取联系方式，获得帮助: https://loopring.org
