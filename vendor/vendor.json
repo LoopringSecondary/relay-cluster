@@ -150,10 +150,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "QjOq2U4Ef5RS9j7idZ6x3djPOpo=",
+			"checksumSHA1": "+7rBvjEtXNP15gaM4gQCsMMXaDI=",
 			"path": "github.com/Loopring/relay-lib/eth/accessor",
-			"revision": "ffcf450419d109be08aa21c6e0d0d77451b33d76",
-			"revisionTime": "2018-06-20T03:25:21Z"
+			"revision": "9850e1d717eebc293fe2edf85bdc3b6108a8877d",
+			"revisionTime": "2018-06-20T04:19:14Z"
 		},
 		{
 			"checksumSHA1": "yjwCLAiJtOOVPwzfVUVXYM+XG10=",

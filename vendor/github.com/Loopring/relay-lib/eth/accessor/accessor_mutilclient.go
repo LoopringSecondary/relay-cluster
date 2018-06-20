@@ -110,11 +110,15 @@ func (mc *MutilClient) bestClient(routeParam string) *RpcClient {
 		blockNumber = *types.NewBigPtr(blockNumberForRouteBig)
 	}
 
-	urls, _ := mc.useageClient(blockNumber.BigInt().String())
+	usageUrls, _ := mc.useageClient(blockNumber.BigInt().String())
 
-	for _, url := range urls {
+	urls := []string{}
+	for _, url := range usageUrls {
 		if _, exists := mc.clients[url]; !exists {
 			mc.newRpcClient(url)
+		}
+		if _,exists := mc.downedClients[url]; !exists {
+			urls = append(urls, url)
 		}
 	}
 
