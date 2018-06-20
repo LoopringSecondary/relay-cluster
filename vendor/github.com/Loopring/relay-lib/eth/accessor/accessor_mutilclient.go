@@ -74,8 +74,14 @@ func (mc *MutilClient) newRpcClient(url string) {
 		log.Errorf("rpc.Dail err : %s, url:%s", err.Error(), url)
 		mc.downedClients[url] = rpcClient
 	} else {
-		rpcClient.client = client
-		mc.clients[url] = rpcClient
+		var blockNumber types.Big
+		if err := client.Call(&blockNumber, "eth_blockNumber"); nil != err {
+			log.Errorf("rpc.Dail err : %s, url:%s", err.Error(), url)
+			mc.downedClients[url] = rpcClient
+		} else {
+			rpcClient.client = client
+			mc.clients[url] = rpcClient
+		}
 	}
 }
 
