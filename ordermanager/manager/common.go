@@ -54,9 +54,6 @@ func NewOrderEntity(state *types.OrderState, blockNumber *big.Int) (*dao.Order, 
 }
 
 func SettleOrderAmountOnChain(state *types.OrderState) error {
-	// TODO(fuk): 系统暂时只会从gateway接收新订单,而不会有部分成交的订单
-	return nil
-
 	var (
 		cancelled, cancelOrFilled, dealt *big.Int
 		err                              error
