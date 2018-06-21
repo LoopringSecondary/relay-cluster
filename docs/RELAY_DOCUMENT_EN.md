@@ -47,7 +47,16 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 |------|------|------|
 | x | y | z|
 
+| t1 | t2 | t3 | 
+|------|------|------|
+|xxx| yyy | zzz |
+
+
 ---
+
+| t1 | t2 | t3 |
+|------|------|------|
+|xxx| yyy | aaa |
 
 ## How the Relay Works
 
