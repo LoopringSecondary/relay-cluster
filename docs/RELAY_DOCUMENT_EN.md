@@ -43,47 +43,47 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 
 
 ## Glossary
-Type | Name | Explanation
------- | ------ | ------
-Order | Order | Order data that conforms to the Loopring protocol format
-Order | OrderHash | The signature of the order, that is, the summary generated after the execution of the hash algorithm by the order part field
-Order | Owner | The order owner, originating from the user wallet address
-Order | OrderType | There are two order types supported by the Relay: 1. market_order (Market Order) is an order shared by the entire exchange order pool, and can be finalized by anybody. 2. P2p_order (point-to-point order) does not contain wallet private key authentication orders, but they can only be authorized to share the private keys that users can match up.
-Order | WalletAddress | The wallet sub-address that completes the order, which is usually the address of the exchange’s Research and Development team. It is used to distribute the shares of profits after the order is completed. The current model is to allocate 20% of the profits back to the wallet of the original purchaser, and 80% to the miner’s wallet.
-Order | AuthAddr & AuthPrivateKey | At the time of submitting the order, it is a random successful public and private key pair. AuthAddr is used to sign the order, and AuthPrivateKey is used to participate in submitting the signature of the ring when the match is made. The purpose is to prevent the order or loop from being tampered with. In the case of a point-to-point order, AuthPrivateKey is shared with a specific user through a two-dimensional code. This protects the order from being taken by more than one user.
-Order | TokenS | Token for sale, please refer to the list of supported tokens
-Order | TokenB | Token to buy, please refer to the list of supported tokens
-Order | AmountS | The number of tokens to sell
-Order | AmountB | The number of tokens to buy
-Order | ValidSince | The effective time of the order, indicated by the timestamp on the order. If the current time is less than ValidSince, the order is not in effect.
-Order | ValidUntil | The expiration time of the order indicated by the timestamp on the order. If the time is greater than ValidUntil, the order will become invalid
-Order | LrcFee | Set LRC Fee for this order
-Order | buyNoMoreThanAmountB | Determines whether to allow the purchase of amountB of tokenB based on an excess amount. Say the current market price (LRC-WETH) is .0001, and the user sets an order to buy 100 at .0002 (requiring 0.2 WETH), if buyNoMoreThanAmountB = true, then the end user will buy 100 LRC at a price of .0001 (regardless of their intended gain)
-Order | marginSplitPercentage | The percentage used to pay for the completion and mining of the order, usually defaulting to 50%
-Order | v, r, s | To get the result of order signing, first you must generate OrderHash using the Keccak256 algorithm for part of the order, then do an ECDSA signature for a Hash and generate the result.
-Order | powNonce | We use proof of work when submitting an order, which limits excessive order submissions to prevent the order subsystem from being spammed. powNonce uses the workload proof algorithm calculation to verify if the nonce passes the proof of work, then the order is verified and submitted to the Relay.
-Order | Coupling | This checks that two or more orders satisfy the condition of forming a Loopring loop, if the ring turnover is a match of Loopring’s, then a ring transaction can be formed.
-Order | Ring | Differing from the traditional exchange order, Loopring’s approach forms a ring-shaped order that can allow a transfer between multiple coins and parties.The ring is formed when an order is started.
-Order | Partial cancellation | In the Loopr2 version of the wallet, the user cancels the order and it is submitted to the smart contract. This costs fuel and can not be immediately cancelled. Because of this, we have added a partial cancellation function to the relay. When partial cancellation requirements have been met, (for example, the order has not settled yet or is not in the process of being settled) the order can be cancelled off-chain through the relay immediately and without any fuel costs.
-Account | Allowance | This is token authorization, which usually refers to an authorized user of Loopring Protocol, that wants to use Loopring to match user orders. This user can only use the smart contract for the authorized operation, and the Loopring smart contract can then settle the user’s order.
-Account | Balance | The balance of the user's assets contains the ETH balance and all ERC20 Token balances.
-Account | WETH | WETH is an ERC20 Token anchored by Ethereum on ETH that  can always exchange equal amounts of ETH without any extra charge (except for the transaction cost). Loopring only supports the exchange of assets between ERC20 tokens, but does not support the exchange of ETH and ERC20, so before a user exchanges, their coins must be changed from ETH to WETH, which simultaneously authorizes the Loopring smart contract to use WETH.
-Market | Fill | The information and data for the transaction, sent out after the event of the smart contract settling the transaction.
-Market | Depth | The depth of the market
-Market | Ticker | 24-hour statistics on the changing of the market
-Market | Trend | Market trend information, which is currently set at a one hour period
-Market | RingMined | The result of the order being filled and settled
-Market | Cutoff | The user sets a time that they want the order to be completed by, and if it is not completed in time, the order becomes invalid
-Market | PriceQuote | Market value reference for each currency, currently supporting BTC, CNY, USD
-Contract | LoopringProtocolImpl | The address required to enter the Loopring smart contract,  if it is needed, the address will change
-Contract | DelegateAddress | The delegated contract address, with the order pool being divided up based on the delegate contract. Orders of different delegate addresses cannot be put together.
-General | Token | Ethereum Token, currently the only supported Tokens are ones that fully comply with the ERC20 standard
-General | Transaction | This is referring to the Ethereum trading operations such as user transfer/authorization/contract invocation. In the relay, we package order transactions together by the type of user, utilising Ethereum user identification methods.
-General | Gas | When submitting an Ethereum transaction, you need to specify the GasPrice and GasLimit to pay for the transaction costs. Loopring supports obtaining the best possible network price.
-General | Nonce | This is an incrementing integer starting from 1 that is equal to the current value of the total number of transactions submitted by the user. The nonce is needed for verification when a user is submitting a transaction, and each nonce can only have one transaction submitted for it. Since the Relay has access to a large number of Loopring wallets across multiple versions (web/ios/android), with multiple parties using them at the same time, using the centralized maintenance of nonce functionality will maximize transaction success. 
-General | Miner | Loopring’s ring miners identify order rings and submit them to the smart contract
-General | Decimal | Assuring ERC20 Token Unit accuracy. Generally, the number of Tokens in an order divided by the Decimal is the actual number, usually the Decimal=1e18.
-General | Symbol | Shorter version of the ERC20 Token name. For example, Loopring ERC20 Token is LRC.
+| Type | Name | Explanation | 
+|--------------|------------|-------------|
+| Order | Order | Order data that conforms to the Loopring protocol format |
+| Order | OrderHash | The signature of the order, that is, the summary generated after the execution of the hash algorithm by the order part field |
+| Order | Owner | The order owner, originating from the user wallet address |
+| Order | OrderType | There are two order types supported by the Relay: 1. market_order (Market Order) is an order shared by the entire exchange order pool, and can be finalized by anybody. 2. P2p_order (point-to-point order) does not contain wallet private key authentication orders, but they can only be authorized to share the private keys that users can match up. |
+| Order | WalletAddress | The wallet sub-address that completes the order, which is usually the address of the exchange’s Research and Development team. It is used to distribute the shares of profits after the order is completed. The current model is to allocate 20% of the profits back to the wallet of the original purchaser, and 80% to the miner’s wallet. |
+| Order | AuthAddr & AuthPrivateKey | At the time of submitting the order, it is a random successful public and private key pair. AuthAddr is used to sign the order, and AuthPrivateKey is used to participate in submitting the signature of the ring when the match is made. The purpose is to prevent the order or loop from being tampered with. In the case of a point-to-point order, AuthPrivateKey is shared with a specific user through a two-dimensional code. This protects the order from being taken by more than one user. |
+| Order | TokenS | Token for sale, please refer to the list of supported tokens |
+| Order | TokenB | Token to buy, please refer to the list of supported tokens |
+| Order | AmountS | The number of tokens to sell |
+| Order | AmountB | The number of tokens to buy |
+| Order | ValidSince | The effective time of the order, indicated by the timestamp on the order. If the current time is less than ValidSince, the order is not in effect. |
+| Order | ValidUntil | The expiration time of the order indicated by the timestamp on the order. If the time is greater than ValidUntil, the order will become invalid |
+| Order | LrcFee | Set LRC Fee for this order |
+| Order | buyNoMoreThanAmountB | Determines whether to allow the purchase of amountB of tokenB based on an excess amount. Say the current market price (LRC-WETH) is .0001, and the user sets an order to buy 100 at .0002 (requiring 0.2 WETH), if buyNoMoreThanAmountB = true, then the end user will buy 100 LRC at a price of .0001 (regardless of their intended gain) |
+| Order | marginSplitPercentage | The percentage used to pay for the completion and mining of the order, usually defaulting to 50% |
+| Order | v, r, s | To get the result of order signing, first you must generate OrderHash using the Keccak256 algorithm for part of the order, then do an ECDSA signature for a Hash and generate the result. |
+| Order | powNonce | We use proof of work when submitting an order, which limits excessive order submissions to prevent the order subsystem from being spammed. powNonce uses the workload proof algorithm calculation to verify if the nonce passes the proof of work, then the order is verified and submitted to the Relay. |
+| Order | Coupling | This checks that two or more orders satisfy the condition of forming a Loopring loop, if the ring turnover is a match of Loopring’s, then a ring transaction can be formed. |
+| Order | Ring | Differing from the traditional exchange order, Loopring’s approach forms a ring-shaped order that can allow a transfer between multiple coins and parties.The ring is formed when an order is started. |
+| Order | Partial cancellation | In the Loopr2 version of the wallet, the user cancels the order and it is submitted to the smart contract. This costs fuel and can not be immediately cancelled. Because of this, we have added a partial cancellation function to the relay. When partial cancellation requirements have been met, (for example, the order has not settled yet or is not in the process of being settled) the order can be cancelled off-chain through the relay immediately and without any fuel costs. |
+| Account | Allowance | This is token authorization, which usually refers to an authorized user of Loopring Protocol, that wants to use Loopring to match user orders. This user can only use the smart contract for the authorized operation, and the Loopring smart contract can then settle the user’s order. |
+| Account | Balance | The balance of the user's assets contains the ETH balance and all ERC20 Token balances. |
+| Account | WETH | WETH is an ERC20 Token anchored by Ethereum on ETH that  can always exchange equal amounts of ETH without any extra charge (except for the transaction cost). Loopring only supports the exchange of assets between ERC20 tokens, but does not support the exchange of ETH and ERC20, so before a user exchanges, their coins must be changed from ETH to WETH, which simultaneously authorizes the Loopring smart contract to use WETH. |
+| Market | Fill | The information and data for the transaction, sent out after the event of the smart contract settling the transaction. |
+| Market | Depth | The depth of the market |
+| Market | Ticker | 24-hour statistics on the changing of the market |
+| Market | Trend | Market trend information, which is currently set at a one hour period |
+| Market | RingMined | The result of the order being filled and settled |
+| Market | Cutoff | The user sets a time that they want the order to be completed by, and if it is not completed in time, the order becomes invalid |
+| Market | PriceQuote | Market value reference for each currency, currently supporting BTC, CNY, USD|
+| Contract | LoopringProtocolImpl | The address required to enter the Loopring smart contract,  if it is needed, the address will change |
+| Contract | DelegateAddress | The delegated contract address, with the order pool being divided up based on the delegate contract. Orders of different delegate addresses cannot be put together. |
+| General | Token | Ethereum Token, currently the only supported Tokens are ones that fully comply with the ERC20 standard |
+| General | Transaction | This is referring to the Ethereum trading operations such as user transfer/authorization/contract invocation. In the relay, we package order transactions together by the type of user, utilising Ethereum user identification methods. |
+| General | Gas | When submitting an Ethereum transaction, you need to specify the GasPrice and GasLimit to pay for the transaction costs. Loopring supports obtaining the best possible network price. |
+| General | Nonce | This is an incrementing integer starting from 1 that is equal to the current value of the total number of transactions submitted by the user. The nonce is needed for verification when a user is submitting a transaction, and each nonce can only have one transaction submitted for it. Since the Relay has access to a large number of Loopring wallets across multiple versions (web/ios/android), with multiple parties using them at the same time, using the centralized maintenance of nonce functionality will maximize transaction success.  |
+| General | Miner | Loopring’s ring miners identify order rings and submit them to the smart contract |
+| General | Decimal | Assuring ERC20 Token Unit accuracy. Generally, the number of Tokens in an order divided by the Decimal is the actual number, usually the Decimal=1e18. |
+| General | Symbol | Shorter version of the ERC20 Token name. For example, Loopring ERC20 Token is LRC. |
 	
 ---
 
