@@ -1,4 +1,4 @@
-# Loopring Relay (English Version)
+# Loopring Relay Cluster
 
 
 Loopring Relay is an important part of Loopring’s technology and ecosystem. It centralizes the management of offline order pools, broadcasts and matches Loopring’s orders at the same time, and provides complete back-end services for exchanges and wallets. Based on the centralized system, we use the order broadcasting system to share orders to multiple relays to implement a network-wide order pool. This document describes the three parts of Loopring’s relay, being; how the relay functions, how third-party partners can access the relay, and how the relay deploys orders to the miners.
@@ -44,7 +44,7 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 
 ## Glossary
 | Type | Name | Explanation | 
-|--------------|------------|-------------|
+|------|------|------|
 | Order | Order | Order data that conforms to the Loopring protocol format |
 | Order | OrderHash | The signature of the order, that is, the summary generated after the execution of the hash algorithm by the order part field |
 | Order | Owner | The order owner, originating from the user wallet address |
