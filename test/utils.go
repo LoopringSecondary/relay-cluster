@@ -238,11 +238,9 @@ func GenerateMarketCap() *marketcap.CapProvider_CoinMarketCap {
 	return marketcap.NewMarketCapProvider(&cfg.MarketCap)
 }
 
-func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) *types.Order {
+func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) types.Order {
 	var (
 		order types.Order
-		state types.OrderState
-		model dao.Order
 	)
 	order.Protocol = protocol
 	order.DelegateAddress = delegate
@@ -273,6 +271,16 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	order.OrderType = "market_order"
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
+	return order
+}
+
+func CreateOrderState(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) *types.Order {
+	var (
+		state types.OrderState
+		model dao.Order
+	)
+
+	order := CreateOrder(tokenS, tokenB, owner, amountS, amountB, lrcFee)
 	state.RawOrder = order
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)
