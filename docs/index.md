@@ -9,6 +9,7 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 ## Related Documents
 
 - [API Spec V2](relay_api_spec_v2)
+- [Work with Docker](relay_docker)
 
 ## Documents in Other Languages
 - [中文文档（Chinese）](chinese)
