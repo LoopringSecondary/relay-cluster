@@ -30,7 +30,7 @@ import (
 func TestOrderViewerImpl_MotanRpcServer(t *testing.T) {
 	serverInstance := &viewer.OrderViewerImpl{}
 	options := motan.MotanServerOptions{}
-	options.ConfFile = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/config/ordermanager.yaml"
+	options.ConfFile = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/config/test-ordermanager.yaml"
 	options.ServerInstance = serverInstance
 	motan.RunServer(options)
 }
