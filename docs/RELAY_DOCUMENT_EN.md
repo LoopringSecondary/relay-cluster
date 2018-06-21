@@ -45,8 +45,7 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 ## Glossary
 | Type | Name | Explanation | 
 |------|------|------|
-| Order | Order | Order data that conforms to the Loopring protocol format |
-| Order | OrderHash | The signature of the order, that is, the summary generated after the execution of the hash algorithm by the order part field |
+| x | y | z|
 
 ---
 
