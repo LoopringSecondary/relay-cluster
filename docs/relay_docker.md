@@ -1,4 +1,4 @@
-## ****Relay****
+# Relay with Docker
 
 Official relay implementation of the Ethereum protocol.
 
