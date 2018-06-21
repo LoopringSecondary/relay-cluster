@@ -47,10 +47,10 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 |------|------|------|
 | x | y | z|
 
-| t1 | t2 | t3 | 
+| Type | Name | Explanation | 
 |------|------|------|
 |xxx| yyy | zzz |
-
+| Order | Order | Order data that conforms to the Loopring protocol format |
 
 ---
 
