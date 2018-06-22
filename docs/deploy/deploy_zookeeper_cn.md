@@ -1,4 +1,4 @@
-### zookeeper使用场景
+zookeeper使用场景
 * kafka集群配置中心
 * motan-rpc配置中心
 * relay-cluster分布式锁
@@ -10,9 +10,8 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 ## 配置环境
 3个节点为例
 * 申请3个ubuntu实例
-* 使用三台服务器的内网ip地址设置zoo1~zoo3三个host，便于后面的配置
+* 使用三台服务器的内网ip地址设置zoo1~zoo3三个host，便于后面的配置 `sudo vim /etc/hosts`
 
-`sudo vim /etc/hosts`
 设置为
 ```
 x.x.x.x zoo1
@@ -50,6 +49,7 @@ server.3=zoo3:2888:3888
 `echo "n" > /opt/loopring/data/zookeeper/myid`
 
 ## 启停
+
 ### 启动
 ```
 cd /opt/loopring/zookeeper-3.4.10/bin/
@@ -60,6 +60,7 @@ cd /opt/loopring/zookeeper-3.4.10/bin/
 tail -f zookeeper.out
 telnet localhost 2181
 ```
+
 ### 终止
 ```
 cd /opt/loopring/zookeeper-3.4.10/bin/

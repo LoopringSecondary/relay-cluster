@@ -1,6 +1,8 @@
 mysql是relay-cluster后端服务的主要存储
+
 ## 创建MySQL实例
 可以选择aws的RDS或者自建mysql，推荐使用前者，因为RDS会包含更丰富的监控及管理功能，扩展也更加方便，对于测试场景，可以选择自建一个mysql单实例
+
 ### 创建RDS实例
 从服务列表查找`RDS`找到入口，然后选择【立即开始使用】
 
@@ -20,7 +22,7 @@ mysql是relay-cluster后端服务的主要存储
 步骤4
 * 网络与安全
 
-【Virtual Private Cloud】选择默认，【子网组】选择default，【公开可用性】根据实际情况选择，【可用区】选择和后续会访问该MySQL库的服务所在的分区，VPC安全组，选择`mysql-securityGroup`，如果还没有创建请参考[配置aws安全组](https://github.com/Loopring/relay-cluster/wiki/%E9%85%8D%E7%BD%AEaws%E5%AE%89%E5%85%A8%E7%BB%84)关于`mysql-securityGroup`创建完成后，在回来选择
+【Virtual Private Cloud】选择默认，【子网组】选择default，【公开可用性】根据实际情况选择，【可用区】选择和后续会访问该MySQL库的服务所在的分区，VPC安全组，选择`mysql-securityGroup`，如果还没有创建请参考[配置aws安全组](security_group_cn.md)关于`mysql-securityGroup`创建完成后，在回来选择
 
 * 数据库选项
 
@@ -42,8 +44,9 @@ mysql是relay-cluster后端服务的主要存储
 * 维护
 
 禁用【自动次要版本升级】，和备份类似选择合适的维护窗口，选择启动数据库实例
+
 ### 创建单机MySQL实例
-参考[启动aws EC2实例](https://github.com/Loopring/relay-cluster/wiki/%E5%90%AF%E5%8A%A8aws-EC2%E5%AE%9E%E4%BE%8B)，启动实例，并且关联`mysql-securityGroup`安全组
+参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`mysql-securityGroup`安全组
 
 执行以下脚本以部署Mysql实例
 ```
@@ -56,7 +59,9 @@ sudo apt install mysql-server
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
 ```
+
 ## 连接数据库
+
 > relay和miner都会用到mysql数据库，建议创建不同的数据库实例，避免互相影响
 
 记录前面创建db时指定的用户名口令，在相关配置文件中配置即可，同时也可以通过千面的命令行工具访问数据库实例

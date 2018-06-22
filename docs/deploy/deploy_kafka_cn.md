@@ -1,6 +1,6 @@
 > kafka依赖zookeeper，所以需要先部署zookeeper
-### kafka使用场景
-extractor和relay-cluster之间的消息通信
+
+kafka是extractor和relay-cluster之间的消息通信服务
 
 ## 部署
 建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
@@ -41,13 +41,18 @@ log.retention.hours=168
 zookeeper.connect=zoo1:2181,zoo2:2181,zoo3:2181
 default.replication.factor=3
 ```
+
 ## 启停
+
 ### 启动
 `nohup bin/kafka-server-start.sh config/server.properties &`
+
 ### 终止
 `bin/kafka-server-stop.sh`
+
 ## 日志
 `/opt/loopring/kafka_2.12-0.11.0.2/logs`
+
 ## 安全组
 创建名称为`kafka-SecurityGroup`的安全组，配置如下
 

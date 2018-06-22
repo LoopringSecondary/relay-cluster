@@ -1,4 +1,5 @@
 kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的节点和topic状态，以及一些性能指标
+
 ## 部署
 ```
 sudo mkdir /opt/loopring
@@ -29,14 +30,19 @@ basicAuthentication.username="admin"
 basicAuthentication.password="admin"
 ```
 ## 启停
+
 ### 启动
 `nohup ./bin/kafka-manager &`
+
 ### 终止
 `pkill -f play.core.server.ProdServerStart`
+
 ## 日志
 /opt/loopring/kafka-manager-1.3.3.17/nohup.out
+
 ## 访问
 浏览器访问 `http://外网ip:9000`
+
 ## 安全组
 创建名称为`kafka-manager-SecurityGroup`的安全组，配置如下
 

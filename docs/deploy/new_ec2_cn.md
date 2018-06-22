@@ -1,5 +1,7 @@
 > 如果还没有注册aws账户，请先注册账户
+
 ### 启动新实例
+
 登录 aws控制台 [http://aws.amazon.com](http://aws.amazon.com)，选择【实例-实例-启动实例】
 
 在【步骤 1: 选择一个 Amazon 系统映像(AMI)】页面，选择ubuntu实例类型，因为后续所有部署都是基于ubuntu实例进行操作的。建议使用通用实例`Ubuntu Server 16.04 LTS (HVM), SSD Volume Type`，然后点击【选择】
@@ -7,7 +9,7 @@
 在【步骤 2: 选择一个实例类型】页面选择合适的类型，如果做实验，可以选择免费的实例。
 
 在【步骤 3: 配置实例详细信息】页面，【网络】选择默认VPC即可。如果有多个实例，建议分批创建，然后每批选择不同的【子网】，可以避免单aws机房故障导致服务不可用。对于IAM角色，可以不设置，后续根据需要进行配置。其他选择默认即可
-> 如果需要支持通过CodeDeploy在该实例部署服务，这里需要额外配置IAM角色和初始化脚本，参考[支持codedeploy](https://github.com/Loopring/relay-cluster/wiki/%E5%90%AF%E5%8A%A8aws-EC2%E5%AE%9E%E4%BE%8B#%E6%94%AF%E6%8C%81codedeploy)
+> 如果需要支持通过CodeDeploy在该实例部署服务，这里需要额外配置IAM角色和初始化脚本，参考[支持codedeploy](#支持CodeDeploy)
 
 在【步骤 4: 添加存储】页面，磁盘大小建议选择大于20G，【卷类型】为【默认通用SSD】
 

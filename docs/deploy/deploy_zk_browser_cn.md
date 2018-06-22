@@ -1,6 +1,7 @@
 node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查看和修改基于zk的配置
 
 ## 配置环境
+
 ### 部署依赖
 ```
 sudo add-apt-repository ppa:fkrull/deadsnakes
@@ -30,6 +31,7 @@ npm install -d
 ```
 
 ## 启停
+
 ### 启动
 编辑启动脚本，设置连接的zk节点
 
@@ -55,6 +57,7 @@ pkill -f "node ./app.js"
 
 
 ## web界面
+
 ### 打开端口
 【EC2/网络与安全/安全组】新建名称为zookeeperBrowser-SecurityGroup 的安全组，入栈添加规则
 

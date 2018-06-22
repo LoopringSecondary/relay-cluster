@@ -1,7 +1,10 @@
 CodeDeloy是aws提供的代码部署工具，通过在项目中添加配置文件和脚本可以添加对codeDeploy部署的支持。CodeDeloy通过下载github的项目源码到目标服务器，然后解析项目配置文件，并在部署的不同阶段执行相应的脚本来实现代码编译和服务的启动、验证等操作
+
 # 配置依赖
+
 ## 创建IAM对象
 需要通过创建相关IAM对象并绑定EC2实例来赋予CodeDeploy部署的权限，IAM控制台入口 [https://console.aws.amazon.com/iam/](https://console.aws.amazon.com/iam/)
+
 ### 新建IAM用户并绑定策略
 【IAM-用户】选择【添加用户】，可参考[aws doc](https://docs.aws.amazon.com/zh_cn/codedeploy/latest/userguide/getting-started-provision-user.html)
 
@@ -47,6 +50,7 @@ CodeDeloy是aws提供的代码部署工具，通过在项目中添加配置文�
 步骤3，点击【创建用户】，完成CodeDeployer用户的创建
 
 步骤4，确认并关闭
+
 ### 创建角色
 【IAM-角色】选择【创建角色】，可参考[aws doc](https://docs.aws.amazon.com/zh_cn/codedeploy/latest/userguide/getting-started-create-service-role.html)
 
@@ -88,8 +92,10 @@ CodeDeloy是aws提供的代码部署工具，通过在项目中添加配置文�
 
 ## 配置EC2实例
 > 推荐在启动EC2实例的时候进行相关配置，参考[支持CodeDeploy](https://github.com/Loopring/relay-cluster/wiki/%E5%90%AF%E5%8A%A8aws-EC2%E5%AE%9E%E4%BE%8B#%E6%94%AF%E6%8C%81codedeploy)，如果已经进行相关配置，则不需要进行下面两个部分的操作
+
 ### 配置角色
 修改现有实例的IAM角色，【EC2-实例-实例】，选择一个需要通过CodeDeploy进行部署的EC2实例，【操作-实例设置-附加/替换IAM角色】，【IAM角色】选择前面创建的`CodeDeployEc2InstanceProfile`，选择【应用】
+
 ### 部署并启动codedeploy-agent
 ssh登录EC2实例，执行下面脚本
 ```
@@ -108,16 +114,20 @@ sudo ./install auto
 sudo service codedeploy-agent stop
 sudo service codedeploy-agent start
 ```
+
 ### 设置标签
 设置了相同标签的实例可以进行筛选，这在CodeDeploy的部署中是必须的。
 
 具体操作为，【EC2-实例-实例】，选择单个实例，在下方详情页的【标签】tab中，可以根据需要标签的编辑
 
 比如这里为部署的relay-cluster实例都添加标签【relay-cluster/test】
+
 # 配置和部署应用
+
 ## 配置CodeDeploy应用
+
 ### 创建应用程序
-点击链接[CodeDeploy](https://ap-northeast-1.console.aws.amazon.com/codedeploy)打开CodeDeploy控制台，选择【立即开始使用】
+打开CodeDeploy控制台，选择【立即开始使用】
 
 下面以relay-cluster为例进行演示，选择【自定义部署-跳过演练】
 
@@ -141,6 +151,7 @@ sudo service codedeploy-agent start
 选择之前创建的CodeDeployServiceRole
 
 其他默认后，点击【创建应用程序】
+
 ## 部署应用
 选择控制台左上角下拉菜单的【部署】，选择【创建部署】
 
@@ -173,6 +184,7 @@ sudo service codedeploy-agent start
 * 失败日志
 
 对于失败的情况，可以点击【查看事件】的日志列进行查看
+
 ### 解决部署问题
 * 常见问题
 
