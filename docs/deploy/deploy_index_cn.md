@@ -21,13 +21,15 @@
 * ethnode
 
 relay-cluster会通过和eth节点的交互来实现eth网络的接入
+
 * [mysql](deploy_mysql_cn.md)
 
 是relay-cluster的主要后台存储，存储包含订单，交易
 
-* redis
+* [redis](deploy_redis_cn.md)
 
 主要用来提高系统的存取速度，或者存放非关键的数据
+
 * [zookeeper](deploy_zookeeper_cn.md)
 
 用来做系统的配置管理以及kafka的元数据存储
