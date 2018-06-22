@@ -11,7 +11,7 @@ docker pull loopring/relay-cluster
 ```bash
 mkdir your_log_path your_config_path
 ```
-* 配置relay.toml文件，[参考](https://loopring.github.io/relay-cluster/chinese.html#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
+* 配置relay.toml文件，[参考](https://loopring.github.io/relay-cluster/deploy/deploy_relay_cluster_cn.html#%E5%88%9B%E5%BB%BA%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
 * telnet测试mysql,redis,zk,kafka,ethereum,motan rpc相关端口能否连接
 
 * 运行
