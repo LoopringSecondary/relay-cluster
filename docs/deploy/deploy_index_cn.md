@@ -18,9 +18,9 @@
 通过安全组限制非预期的端口访问，提高服务的安全性。该文档集中定义了后端所有依赖的安全组配置，可以按照顺序进行配置。
 
 ### 存储及通信
-* ethnode
+* [geth](deploy_geth_cn.md)
 
-relay-cluster会通过和eth节点的交互来实现eth网络的接入
+relay-cluster会通过和geth节点的交互来实现eth网络的接入
 
 * [mysql](deploy_mysql_cn.md)
 
@@ -65,6 +65,10 @@ miner用来撮合交易
 * [node-zookeeper-browser](deploy_zk_browser_cn.md)
 
 提供了一个web界面用来辅助查看和编辑kafka，方便对系统进行配制管理
+
+* [motan-manager](deploy_motan_manager_cn.md)
+
+提供了一个web界面用来辅助查看motan-rpc的启动状态，并能执行简单的配置操作
 
 ### 监控和告警
 * cloudwatch
