@@ -1,6 +1,6 @@
-> 如果还没有注册aws账户，请先注册账户
-
 ### 启动新实例
+
+> 如果还没有注册aws账户，请先注册账户
 
 登录 aws控制台 [http://aws.amazon.com](http://aws.amazon.com)，选择【实例-实例-启动实例】
 
