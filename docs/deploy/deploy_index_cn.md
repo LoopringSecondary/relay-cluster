@@ -73,9 +73,10 @@ miner用来撮合交易
 提供了一个web界面用来辅助查看motan-rpc的启动状态，并能执行简单的配置操作
 
 ### 监控和告警
-* cloudwatch
+* [cloudwatch](cloud_watch_cn.md)
 
 cloudwatch可以实现指标的上报，并配置相关规则进行告警
-* sns
+
+* [sns](sns_cn.md)
 
 sns是aws的通知服务，可以通过接入SNS的API来进行直接的系统通知，通知方式包含短信，邮件。方便在系统的关键业务逻辑中插入该通知服务，方便运维人员及时发现故障点。
