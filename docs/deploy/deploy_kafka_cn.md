@@ -5,10 +5,10 @@ kafka是extractor和relay-cluster之间的消息通信服务
 ## 部署
 建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
 
-### 申请节点并关联安全组
+### 申请EC2实例并关联安全组
 申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
 
-关联`kafka-SecurityGroup`安全组，如果为申请该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明申请后在关联
+关联`kafka-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
 
 ### 部署kafka
 ```

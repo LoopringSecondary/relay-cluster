@@ -1,6 +1,12 @@
 node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查看和修改基于zk的配置
 
-## 配置环境
+## 申请EC2实例并关联安全组
+申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+
+关联`zookeeperBrowser-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`安全组的说明，创建后再关联
+
+## 部署
+3个节点为例
 
 ### 部署依赖
 ```
@@ -56,20 +62,7 @@ pkill -f "node ./app.js"
 `/opt/loopring/node-zk-browser/logs`
 
 
-## web界面
-
-### 打开端口
-【EC2/网络与安全/安全组】新建名称为zookeeperBrowser-SecurityGroup 的安全组，入栈添加规则
-
-```
-协议 TCP
-端口范围 3000
-来源 ssh登录的client ip地址添加后缀[/32]
-```
-【EC2/实例/实例】选择部署browser的节点，【操作/联网/更改安全组】，附加新建的安全组 zookeeperBrowser-SecurityGroup
-
-
-### 访问
+## 访问管理页面
 【EC2/实例/实例】找到【IPv4 公有 IP】，浏览器访问x.x.x.x:3000
 
 如果需要编辑，则点击【SignIn】登录，用户名口令查看配置文件 `/opt/loopring/node-zk-browser/user.json`

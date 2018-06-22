@@ -4,11 +4,19 @@ zookeeper使用场景
 * relay-cluster分布式锁
 * miner负载均衡
 
-# 部署
 zookeeper需要进行集群部署来保证可用性，建议部署3个以上的奇数节点。
 
-## 配置环境
+## 部署
 3个节点为例
+
+### 申请EC2实例并关联安全组
+申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+
+关联`zookeeper-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
+
+
+### 部署
+建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
 
 * 申请3个ubuntu实例
 * 使用三台服务器的内网ip地址设置`szoo1~zoo3`s三个host，便于后面的配置
