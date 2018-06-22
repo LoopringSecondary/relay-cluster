@@ -7,28 +7,28 @@
 ### 通用
 部署任何服务前要先选择合适配置的EC2实例启动，后续服务会部署在该实例上。实例启动后还需要关联自定义安全组以允许实例之间进行特定端口的通信。后面具体服务部署说明会给出建议的EC2和安全组配置
 
-* [EC2实例](https://github.com/Loopring/relay-cluster/docs/deploy/new_ec2_cn.md)
+* [EC2实例](new_ec2_cn.md)
 
-* [aws安全组](https://github.com/Loopring/relay-cluster/docs/deploy/security_group_cn.md)
+* [aws安全组](security_group_cn.md)
 ### 存储及通信
 * ethnode
 
 relay-cluster会通过和eth节点的交互来实现eth网络的接入
-* [mysql](https://github.com/Loopring/relay-cluster/docs/deploy/deploy_mysql_cn.md)
+* [mysql](deploy_mysql_cn.md)
 
 是relay-cluster的主要后台存储，存储包含订单，交易
 
 * redis
 
 主要用来提高系统的存取速度，或者存放非关键的数据
-* [zookeeper](https://github.com/Loopring/relay-cluster/docs/deploy/deploy_zookeeper_cn.md)
+* [zookeeper](deploy_zookeeper_cn.md)
 
 用来做系统的配置管理以及kafka的元数据存储
-* [kafka](https://github.com/Loopring/relay-cluster/docs/deploy/%E9%83%A8%E7%BD%B2kafka%E9%9B%86%E7%BE%A4)
+* [kafka](deploy_kafka_cn)
 
 kafka实现服务间的异步通信，方便系统解耦和扩展
 ### 服务
-* [接入CodeDeploy](https://github.com/Loopring/relay-cluster/docs/deploy/%E6%8E%A5%E5%85%A5CodeDeloy)
+* [接入CodeDeploy](codedeploy_cn.md)
 
 目前relay相关组件是通过aws CodeDeploy+github进行部署，方便快速迭代
 
