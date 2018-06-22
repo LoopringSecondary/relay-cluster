@@ -4,18 +4,16 @@
 Loopring Relay is an important part of Loopring’s technology and ecosystem. It centralizes the management of offline order pools, broadcasts and matches Loopring’s orders at the same time, and provides complete back-end services for exchanges and wallets. Based on the centralized system, we use the order broadcasting system to share orders to multiple relays to implement a network-wide order pool. This document describes the three parts of Loopring’s relay, being; how the relay functions, how third-party partners can access the relay, and how the relay deploys orders to the miners.
 
 
-***
+## Documents in Other Languages
+- [Chinese (中文文档)](chinese.md)
+
+
 
 ## Related Documents
 
 - [API Spec V2](relay_api_spec_v2.md)
 - [Work with Docker](relay_docker_en.md)
 - [Deployment](deploy/deploy_index.md)
-
-## Documents in Other Languages
-- [中文文档（Chinese）](chinese.md)
-
-***
 
 
 ## Table of Contents
