@@ -20,6 +20,7 @@ x.x.x.x zoo3
 ```
 
 * 初始化zk环境
+
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
@@ -35,15 +36,18 @@ cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
 mkdir -p /opt/loopring/data/zookeeper
 ```
+
 * 修改和添加以下配置项
 
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
+
 ```
 dataDir=/opt/loopring/data/zookeeper
 server.1=zoo1:2888:3888
 server.2=zoo2:2888:3888
 server.3=zoo3:2888:3888
 ```
+
 初始化myid，这里"n"在三台服务器的取值一次为1，2，3，和上面zoo.conf一致
 
 `echo "n" > /opt/loopring/data/zookeeper/myid`

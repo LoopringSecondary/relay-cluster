@@ -60,11 +60,13 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | HTTP | TCP | 80    | ::/0    |
 | 自定义 TCP 规则 | TCP | 443  | 0.0.0.0/0|
 | 自定义 TCP 规则 | TCP | 443    | ::/0    |
+
 * miner-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
+
 * relayCluster-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
@@ -73,11 +75,13 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 8087    |alb-securityGroup|
 | 自定义 TCP 规则 | TCP | 8083    |alb-securityGroup|
 | 自定义 TCP 规则 | TCP | 8100    |miner-SecurityGroup|
+
 * extractor-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
+
 * mysql-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
@@ -86,6 +90,7 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 3306    |relayCluster-securityGroup|
 | 自定义 TCP 规则 | TCP | 3306    |miner-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 3306    |extractor-SecurityGroup|
+
 * redis-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
@@ -94,6 +99,7 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 3306    |relayCluster-securityGroup|
 | 自定义 TCP 规则 | TCP | 3306    |miner-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 3306    |extractor-SecurityGroup|
+
 * ethnode-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
@@ -103,12 +109,14 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 3306    |relayCluster-securityGroup|
 | 自定义 TCP 规则 | TCP | 3306    |miner-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 8545    |extractor-SecurityGroup|
+
 * kafkaManager-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
 | 自定义 TCP 规则 | TCP | 9000    |yourSpecialIp|
+
 * kafka-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
@@ -119,18 +127,21 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 9999    |extractor-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 9092    |kafka-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 9999    |kafkaManager-SecurityGroup|
+
 * motanManager-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
 | 自定义 TCP 规则 | TCP | 8080    |yourSpecialIp|
+
 * zookeeperBrowser-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 3000    | 	0.0.0.0/0    |
 | 自定义 TCP 规则 | TCP | 3000    |yourSpecialIp|
+
 * zookeeper-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
