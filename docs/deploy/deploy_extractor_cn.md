@@ -51,9 +51,7 @@
 [sns]
     sns_topic_arn = "arn:aws:sns:ap-northeast-1:xxxx:RelayNotification"
 #kafka内网ip地址
-[kafka_producer]
-    brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
-[kafka_consumer]
+[kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
 ```
 * tokens.json
