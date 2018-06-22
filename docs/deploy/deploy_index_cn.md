@@ -18,7 +18,7 @@
 通过安全组限制非预期的端口访问，提高服务的安全性。该文档集中定义了后端所有依赖的安全组配置，可以按照顺序进行配置。
 
 ### 存储及通信
-* [geth](deploy_geth_cn.md)
+* [ethnode](deploy_geth_cn.md)
 
 relay-cluster会通过和geth节点的交互来实现eth网络的接入
 
@@ -55,7 +55,9 @@ kafka实现服务间的异步通信，方便系统解耦和扩展
 miner用来撮合交易
 
 ### web接入
-目前通过aws ALB作为relay-cluster的前置服务接入外部web请求
+目前通过aws ALB作为relay-cluster和ethnode的统一请求转发入口
+
+* [alb](deploy_alb_cn.md)
 
 ### 辅助管理系统
 * [kafka-manager](deploy_kafka_manager_cn.md)
