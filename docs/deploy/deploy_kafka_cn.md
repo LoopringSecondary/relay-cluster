@@ -4,6 +4,13 @@ kafka是extractor和relay-cluster之间的消息通信服务
 
 ## 部署
 建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
+
+### 申请节点并关联安全组
+申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+
+关联`kafka-SecurityGroup`安全组，如果为申请该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明申请后在关联
+
+### 部署kafka
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
@@ -52,13 +59,3 @@ default.replication.factor=3
 
 ## 日志
 `/opt/loopring/kafka_2.12-0.11.0.2/logs`
-
-## 安全组
-创建名称为`kafka-SecurityGroup`的安全组，配置如下
-
-|类型         | 协议 | 端口范围| 来源     |
-|-------------|-----|--------|---------|
-| SSH         | TCP | 22     | 0.0.0.0/0|
-|自定义 TCP 规则| TCP | 9092   |relayCluster-SecurityGroup|
-|自定义 TCP 规则| TCP | 9092   |kafka-SecurityGroup    |
-|自定义 TCP 规则| TCP | 9092   |miner-SecurityGroup    |
