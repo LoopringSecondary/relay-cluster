@@ -3,7 +3,7 @@ Loopring Relay(中文名:中继)是路印技术生态重要组成部分，集中
 
 ## 相关文档
 * [部署文档](deploy/deploy_index_cn.md)
-* [docker文档](relay_docker.md)
+* [docker文档](relay_docker_cn.md)
 
 ***
 

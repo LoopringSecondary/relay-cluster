@@ -43,12 +43,10 @@ Loopring Relay is an important part of Loopring’s technology and ecosystem. It
 - [How to deploy your own Relay](#how-to-deploy-your-own-relay)
    * [Code Compilation](#code-compilation)
    * [Profile](#profile)
-   * [Docker Mirror](#docker-mirror)
 - [Distributed Relay](#distributed-relay)
    * [Github code structure](#github)
    * [Microservice introduction](#microservice-introduction)
    * [Who is better for deploying a distributed version](#who-is-better-for-deploying-a-distributed-version)
-   * [Distribute Version Docker Mirror](#distributed-version-mirroring)
    * [Distribute Version Profile](#distributed-relay-configuration)
 - [Get help](#get-help)
 
@@ -284,12 +282,6 @@ We will further update the relay.toml configuration file, add comments, and do s
 
 ---
 
-### Docker Mirror
-
-docker miner address: https://hub.docker.com/r/loopring/relay, the current version is older, we will update the image as soon as possible.
-
----
-
 ### Distributed Relay
 The distributed relay is a distributed version of the relay. Although the single node relay can fully support the wallet and the DEX service, there is a single point of failure in the architecture, the upgrade and expansion are difficult, and the performance bottleneck cannot be downgraded when system problems are encountered. In order to make relaying an enterprise-class application, and to provide high-performance wallets and DEX services, we have reconfigured the relays to split the original system into three services of relays, bindings, and parsers. This is a distributed version of microservices.
 
@@ -337,6 +329,8 @@ In order to facilitate the deployment of distributed relays by partners, we will
 * Extractor mirror
 * zookeeper&kafka
 * mysql & redis, please download the official mirror yourself
+
+Please see the setion `Work With Docker`
 
 ---
 
