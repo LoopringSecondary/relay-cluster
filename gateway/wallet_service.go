@@ -961,6 +961,70 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	return types.BigintToHex(allLrcFee), err
 }
 
+func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (resultMap map[string]string, err error) {
+
+	if len(query.Owner) == 0 || len(query.DelegateAddress) == 0 {
+		return resultMap, errors.New("owner and delegateAddress must be applied")
+	}
+
+
+	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress); if err != nil {
+		return resultMap, err
+	}
+
+	if len(allOrders) == 0 {
+		return resultMap, nil
+	}
+
+	tmpResult := make(map[string]*big.Int)
+
+	for _, v := range allOrders {
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		amountS, _ := v.RemainedAmount()
+		amount, ok := tmpResult[token]; if ok {
+			amount = amount.Add(amount, amountS.Num())
+		} else {
+			tmpResult[token] = amountS.Num()
+		}
+	}
+
+	resultMap = make(map[string]string)
+
+	for k, v := range tmpResult {
+		resultMap[k] = types.BigintToHex(v)
+	}
+
+	return resultMap, err
+}
+
+func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error){
+
+	allOrders := make([]interface{}, 0)
+
+	orderQuery := OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:1, PageSize:200, Status:"ORDER_OPENED"}
+	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+		return orders, err
+	}
+
+	allOrders = append(allOrders, pageRst.Data[:]...)
+
+	if pageRst.Total > 200 {
+		for i := 2; i < (pageRst.Total / 200) + 1; i++ {
+			orderQuery = OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:i, PageSize:200, Status:"ORDER_OPENED"}
+			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+				return orders, err
+			}
+			allOrders = append(allOrders, pageRst.Data[:]...)
+		}
+	}
+
+	for _, v := range allOrders {
+		orders = append(orders, v.(types.OrderState))
+	}
+
+	return orders, nil
+}
+
 func (w *WalletServiceImpl) GetLooprSupportedMarket() (markets []string, err error) {
 	return w.GetSupportedMarket()
 }
