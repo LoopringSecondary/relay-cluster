@@ -1,4 +1,6 @@
-### Start a new example
+# Start EC2 Instance
+
+## Start a new instance
 
 > If you have not registered for an aws account, please register your account first
 
@@ -21,12 +23,15 @@ Log in to the aws console [http://aws.amazon.com] (http://aws.amazon.com) and se
 
 Click [View Example] to enter EC2 instance list page, you can see the startup status of the instance
 
-### Login instance
+## Login instance
 Modify xx.pem permissions`chmod 400 xx.pem`
 
 For instances where the instance-instance-instance state is running, execute `ssh -i xx.pem ubuntu@ipv4_add` to log in to the instance. Here ipv4_add is the IPv4 public IP of the instance.
 
-### Support CodeDeploy
+## Support CodeDeploy
+
+> `CodeDeployEc2InstanceProfile`, please refer[CodeDeploy](codedeploy.md)
+
 IAM select `CodeDeployEc2InstanceProfile`, enter the text for advanced details
 ```
 #!/bin/bash

@@ -1,4 +1,6 @@
-### 启动新实例
+# 启动aws EC2实例
+
+## 启动新实例
 
 > 如果还没有注册aws账户，请先注册账户
 
@@ -21,12 +23,15 @@
 
 点击【查看实例】进入EC2实例列表页面，能看到实例的启动状态
 
-### 登录实例
+## 登录实例
 修改xx.pem 的权限 `chmod 400 xx.pem`
 
 对于【实例-实例-实例状态】为running的实例，执行`ssh -i xx.pem ubuntu@ipv4_add` 来登录实例，这里ipv4_add是该实例的【IPv4 公有 IP】
 
-### 支持CodeDeploy
+## 支持CodeDeploy
+
+> 角色`CodeDeployEc2InstanceProfile`的创建，请参考[接入CodeDeploy](codedeploy_cn.md)
+
 IAM角色选择`CodeDeployEc2InstanceProfile`，高级详细信息输入一下文本
 ```
 #!/bin/bash

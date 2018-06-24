@@ -1,3 +1,4 @@
+# 部署kafka-manager
 kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的节点和topic状态，以及一些性能指标
 
 ## 申请EC2实例并关联安全组

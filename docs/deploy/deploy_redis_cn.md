@@ -1,3 +1,5 @@
+# 部署redis集群
+
 redis是relay-cluster后端服务的缓存，并提供非关键业务数据的存储
 
 ## 选择redis实例类型

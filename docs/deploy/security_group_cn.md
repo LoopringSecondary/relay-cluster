@@ -1,3 +1,5 @@
+# 配置安全组
+
 > 因为默认安全组会拒绝除了22端口之外的流量进入，为了能够正常对外提供服务，我们需要配置安全组
 
 aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，提高服务器的网络安全性，详情可以参考[aws安全组](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)

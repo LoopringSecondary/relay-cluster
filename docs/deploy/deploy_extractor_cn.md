@@ -1,16 +1,18 @@
-# 初始化环境
+# 部署extractor
 
-## 启动EC2实例
+## 初始化环境
+
+### 启动EC2实例
 
 启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
-## 配置安全组
+### 配置安全组
 为每个实例配置名为`extractor-SecurityGroup`的安全组，如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
-## 部署配置文件
+### 部署配置文件
 目前extractor的基本配置是通过静态配置文件来实现的，所以需要将配置文件在本地配置好并上传所有待部署服务器，不过这个工作只在第一次部署的时候必要，后续都会利用这个静态配置文件启动服务【待优化】
 
-### 创建配置文件
+#### 创建配置文件
 * extractor.toml
 
 在`Loopring/extractor/config/extractor.toml`的基础上进行如下必要的修改
@@ -58,7 +60,7 @@
 
 在[tokens.json](tokens_main.md)的基础上根据实际需要进行必要的裁剪
 
-### 配置EC2实例
+#### 配置EC2实例
 在EC2实例执行脚本
 ```
 sudo mkdir /opt/loopring/extractor
@@ -72,22 +74,22 @@ scp -i xx.pem extractor.toml ubuntu@x.x.x.x:/opt/loopring/extractor/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ```
 
-# 部署
+## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-# 服务日志
+## 服务日志
 
-## relay业务代码日志
+### relay业务代码日志
 `/var/log/extractor/zap.log`
 
-## stdout
+### stdout
 `/var/log/svc/extractor/current`
 
-# 启停
+## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
 
-## 启动
+### 启动
 `sudo svc -u /etc/service/extractor`
 
-## 停止
+### 停止
 `sudo svc -d /etc/service/extractor`

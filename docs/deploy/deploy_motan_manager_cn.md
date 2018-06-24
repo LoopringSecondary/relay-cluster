@@ -1,3 +1,5 @@
+# 部署motan-manager
+
 motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看注册到motan-rpc所在zookeeper的rpc服务，并可以进行简单的管理操作
 
 ## 申请EC2实例并关联安全组
@@ -54,7 +56,7 @@ registry.url=127.0.0.1:2181
 `pkill -f motan-manager`
 
 ## 日志
-/opt/loopring/motan/motan-manager/nohup.out
+`/opt/loopring/motan/motan-manager/nohup.out`
 
 ## 访问
 浏览器访问 `http://外网ip:8080`

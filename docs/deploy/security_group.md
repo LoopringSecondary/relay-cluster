@@ -1,3 +1,5 @@
+# Configure security group
+
 ## AWS Security
 
 > Because the default security group will reject traffic except port 22, we must configure the security group in order to provide services externally.

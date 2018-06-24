@@ -1,9 +1,11 @@
-# 初始化环境
+# 部署miner
 
-## 启动EC2实例
+## 初始化环境
+
+### 启动EC2实例
 启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
-## 配置安全组
+### 配置安全组
 关联`miner-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`miner-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署配置文件
@@ -101,7 +103,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 
 将接受矿工费用的eth地址对应keystore文件复制到目录 `/opt/loopring/miner/config/keystore`
 
-## 部署deamontools配置
+### 部署deamontools配置
 
 和其他两个服务不同，因为miner启动脚本包含本地参数，因此不能放在自动启动脚本中进行每次覆盖部署，在第一次部署前需要手动配置启动脚本【待优化】
 
@@ -126,10 +128,10 @@ sudo cp -rf /tmp/svc/* /etc/service/miner
 sudo chmod -R 755 /etc/service/miner
 rm -rf /tmp/svc
 ```
-# 部署
+## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-# 服务日志
+## 服务日志
 
 ## relay业务代码日志
 `/var/log/miner/zap.log`
@@ -140,11 +142,11 @@ rm -rf /tmp/svc
 ## stdout
 `/var/log/svc/miner/current`
 
-# 启停
+## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
 
-## 启动
+### 启动
 `sudo svc -u /etc/service/miner`
 
-## 停止
+### 停止
 `sudo svc -d /etc/service/miner`
