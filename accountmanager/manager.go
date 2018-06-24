@@ -320,7 +320,7 @@ func (a *AccountManager) UnlockedWallet(owner string) (err error) {
 	//accountBalances.Owner = common.HexToAddress(owner)
 	//accountBalances.Balances = make(map[common.Address]Balance)
 	//err = accountBalances.getOrSave(a.cacheDuration)
-	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), a.tokenCacheDuration)
+	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), -1)
 	return
 }
 
