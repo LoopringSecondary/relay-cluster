@@ -53,7 +53,7 @@ registry.url=127.0.0.1:2181
 `nohup java -jar target/motan-manager.jar &`
 
 ### 终止
-`pkill -f motan-manager`
+`pkill -f "motan-manager"`
 
 ## 日志
 `/opt/loopring/motan/motan-manager/nohup.out`

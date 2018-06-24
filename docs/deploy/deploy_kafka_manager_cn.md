@@ -41,7 +41,7 @@ basicAuthentication.password="admin"
 `nohup ./bin/kafka-manager &`
 
 ### 终止
-`pkill -f play.core.server.ProdServerStart`
+`pkill -f "play.core.server.ProdServerStart"`
 
 ## 日志
 /opt/loopring/kafka-manager-1.3.3.17/nohup.out
