@@ -139,8 +139,13 @@ func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
 
 func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]GlobalTrend, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		trends = make(map[string][]GlobalTrend)
+		trends[strings.ToUpper(token)] = make([]GlobalTrend, 0)
+		return
+	}
 	trendBytes, err := cache.HMGet(GlobalTrendKey, fields...)
-	if err != nil {
+	if err != nil || len(trendBytes) == 0 {
 		return trends, err
 	}
 
@@ -161,6 +166,9 @@ func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]Gl
 
 func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]GlobalTicker, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		return
+	}
 	tickerBytes, err := cache.HMGet(GlobalTickerKey, fields...)
 	if err != nil || len(tickerBytes) == 0 {
 		return tickers, err
@@ -182,6 +190,11 @@ func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]Gl
 
 func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[string][]GlobalMarketTicker, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		tickers = make(map[string][]GlobalMarketTicker)
+		tickers[strings.ToUpper(token)] = make([]GlobalMarketTicker, 0)
+		return
+	}
 	tickerBytes, err := cache.HMGet(GlobalMarketTickerKey, fields...)
 	if err != nil || len(tickerBytes) == 0 {
 		return tickers, err
@@ -201,11 +214,20 @@ func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[str
 }
 
 func getAllTokenField(token string) [][]byte {
+
+	token = strings.ToUpper(token)
+
 	fields := [][]byte{}
+
+	if strings.ToUpper(token) == "ETH" {
+		token = "WETH"
+	}
+
 	_, ok := util.AllTokens[token]
+
 	if ok {
 		fields = append(fields, []byte(strings.ToUpper(token)))
-	} else {
+	} else if token == "" {
 		for k := range util.AllTokens {
 			fields = append(fields, []byte(strings.ToUpper(k)))
 		}
@@ -295,7 +317,12 @@ func (g *GlobalMarket) GetGlobalMarketTicker(symbol string) (trend []GlobalMarke
 		return trend, errors.New("unsupported token " + symbol)
 	}
 	nameId := token.Source
-	request := GlobalMarketTickerReq{NameId: nameId, Anchor: "eth", Symbol: strings.ToLower(token.Symbol), SortType: "desc", SortField: "volume_24h_usd"}
+	var request GlobalMarketTickerReq
+	if strings.ToUpper(symbol) == "ETH" || strings.ToUpper(symbol) == "WETH" {
+		request = GlobalMarketTickerReq{NameId: "ethereum", Anchor: "usd", Symbol: "eth", SortType: "desc", SortField: "volume_24h_usd"}
+	} else {
+		request = GlobalMarketTickerReq{NameId: nameId, Anchor: "eth", Symbol: strings.ToLower(token.Symbol), SortType: "desc", SortField: "volume_24h_usd"}
+	}
 	urlParam, err := g.Sign(request)
 	if err != nil {
 		return trend, err
@@ -381,11 +408,6 @@ func syncData(redisKey string, syncFunc func(token string) ([]byte, []byte, erro
 
 	data := [][]byte{}
 	for k := range util.AllTokens {
-
-		if k == "WETH" {
-			continue
-		}
-
 		kF, vF, err := syncFunc(k)
 		if err != nil {
 			continue
@@ -461,5 +483,6 @@ func getNameId(symbol string) (nameId string, err error) {
 	if !ok {
 		return nameId, errors.New("unsupported token " + symbol)
 	}
+
 	return token.Source, nil
 }
