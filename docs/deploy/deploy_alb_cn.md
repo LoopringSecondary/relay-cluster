@@ -1,6 +1,6 @@
 # 部署Aws LoadBalancer
 
-ALB 是aws提供的负载局衡器，ALB具有比较高的可用性。
+ALB（Application Load Balancer）是aws提供的负载局衡器，ALB具有比较高的可用性。
 
 通过把一组服务器映射到目标组，然后关联ALB，我们可以配置请求url和后端服务的映射关系，从而转发请求到正确的后端接口
 

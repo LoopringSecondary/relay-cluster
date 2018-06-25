@@ -49,7 +49,7 @@ service codedeploy-agent start
 ## 部署aws sdk鉴权文件
 通过aws sdk可以实现对aws相关服务的接入，目前用到的两个服务是cloudwatch和SNS(Simple Notification Service)两个功能。
 
-aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上服务，在配置将开关关闭即可，跳过以下配置
+aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上aws 服务，在配置中将开关关闭并跳过下面配置即可。
 
 ### 创建鉴权信息
 参考[aws doc](https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-chap-getting-started.html)
