@@ -49,13 +49,18 @@
 #zk内网ip地址
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
-#如果开通了发送SNS消息的功能，需要做配置，请参考监控与告警部分关于SNS的说明
-[sns]
-    sns_topic_arn = "arn:aws:sns:ap-northeast-1:xxxx:RelayNotification"
+
 #kafka内网ip地址
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
+...
+[cloudwatch]
+    enabled = false
+    region = ""
 ```
+
+> cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+
 * tokens.json
 
 在[tokens.json](tokens_main.md)的基础上根据实际需要进行必要的裁剪
