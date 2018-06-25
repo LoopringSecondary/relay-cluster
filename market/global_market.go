@@ -139,6 +139,9 @@ func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
 
 func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]GlobalTrend, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		return
+	}
 	trendBytes, err := cache.HMGet(GlobalTrendKey, fields...)
 	if err != nil || len(trendBytes) == 0 {
 		return trends, err
@@ -161,6 +164,9 @@ func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]Gl
 
 func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]GlobalTicker, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		return
+	}
 	tickerBytes, err := cache.HMGet(GlobalTickerKey, fields...)
 	if err != nil || len(tickerBytes) == 0 {
 		return tickers, err
@@ -182,6 +188,9 @@ func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]Gl
 
 func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[string][]GlobalMarketTicker, err error) {
 	fields := getAllTokenField(token)
+	if len(fields) == 0 {
+		return
+	}
 	tickerBytes, err := cache.HMGet(GlobalMarketTickerKey, fields...)
 	if err != nil || len(tickerBytes) == 0 {
 		return tickers, err
@@ -202,11 +211,12 @@ func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[str
 
 func getAllTokenField(token string) [][]byte {
 	fields := [][]byte{}
-	_, ok := util.AllTokens[token]
 
 	if strings.ToUpper(token) == "ETH" {
 		token = "WETH"
 	}
+
+	_, ok := util.AllTokens[token]
 
 	if ok {
 		fields = append(fields, []byte(strings.ToUpper(token)))
