@@ -210,6 +210,9 @@ func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[str
 }
 
 func getAllTokenField(token string) [][]byte {
+
+	token = strings.ToUpper(token)
+
 	fields := [][]byte{}
 
 	if strings.ToUpper(token) == "ETH" {
