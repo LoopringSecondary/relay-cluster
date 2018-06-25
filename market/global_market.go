@@ -140,6 +140,8 @@ func NewGlobalMarket(config MyTokenConfig) GlobalMarket {
 func (g *GlobalMarket) GetGlobalTrendCache(token string) (trends map[string][]GlobalTrend, err error) {
 	fields := getAllTokenField(token)
 	if len(fields) == 0 {
+		trends = make(map[string][]GlobalTrend)
+		trends[strings.ToUpper(token)] = make([]GlobalTrend, 0)
 		return
 	}
 	trendBytes, err := cache.HMGet(GlobalTrendKey, fields...)
@@ -189,6 +191,8 @@ func (g *GlobalMarket) GetGlobalTickerCache(token string) (tickers map[string]Gl
 func (g *GlobalMarket) GetGlobalMarketTickerCache(token string) (tickers map[string][]GlobalMarketTicker, err error) {
 	fields := getAllTokenField(token)
 	if len(fields) == 0 {
+		tickers = make(map[string][]GlobalMarketTicker)
+		tickers[strings.ToUpper(token)] = make([]GlobalMarketTicker, 0)
 		return
 	}
 	tickerBytes, err := cache.HMGet(GlobalMarketTickerKey, fields...)
