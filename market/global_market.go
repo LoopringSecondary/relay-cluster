@@ -321,7 +321,7 @@ func (g *GlobalMarket) GetGlobalMarketTicker(symbol string) (trend []GlobalMarke
 	if strings.ToUpper(symbol) == "ETH" || strings.ToUpper(symbol) == "WETH" {
 		request = GlobalMarketTickerReq{NameId: "ethereum", Anchor: "usd", Symbol: "eth", SortType: "desc", SortField: "volume_24h_usd"}
 	} else {
-		request = GlobalMarketTickerReq{NameId: nameId, Anchor: "usd", Symbol: strings.ToLower(token.Symbol), SortType: "desc", SortField: "volume_24h_usd"}
+		request = GlobalMarketTickerReq{NameId: nameId, Anchor: "eth", Symbol: strings.ToLower(token.Symbol), SortType: "desc", SortField: "volume_24h_usd"}
 	}
 	urlParam, err := g.Sign(request)
 	if err != nil {
