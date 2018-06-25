@@ -59,7 +59,7 @@ miner用来撮合交易
 
 * [alb](deploy_alb_cn.md)
 
-## 辅助管理系统
+## 辅助管理系统【可选】
 * [kafka-manager](deploy_kafka_manager_cn.md)
 
 是一个开源的kafka集群浏览和管理系统
@@ -72,7 +72,7 @@ miner用来撮合交易
 
 提供了一个web界面用来辅助查看motan-rpc的启动状态，并能执行简单的配置操作
 
-## 监控和告警
+## 监控和告警【可选】
 * [cloudwatch](cloud_watch_cn.md)
 
 cloudwatch可以实现指标的上报，并配置相关规则进行告警

@@ -45,3 +45,36 @@ chmod +x ./install
 service codedeploy-agent stop
 service codedeploy-agent start
 ```
+
+## 部署aws sdk鉴权文件
+通过aws sdk可以实现对aws相关服务的接入，目前用到的两个服务是cloudwatch和SNS(Simple Notification Service)两个功能。
+
+aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上服务，在配置将开关关闭即可，跳过以下配置
+
+### 创建鉴权信息
+参考[aws doc](https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-chap-getting-started.html)
+
+打开IAM控制台，点击【添加用户】
+
+步骤1，输入用户名`sdkUser`，【访问类型】选择【编程访问】
+
+步骤2，选择【直接附加现有策略】
+
+	如果开通cloudwatch 服务，请添加`CloudWatchAgentServerPolicy`, `AmazonAPIGatewayPushToCloudWatchLogs`, `CloudWatchActionsEC2Access`三个策略
+
+	如果开通SNS服务，请添加`AmazonSNSFullAccess`
+
+步骤3，点击【创建用户】
+
+步骤4，记录页面中的【访问密钥 ID】和【私有访问密钥】，在后面的部署文件会用到
+
+### 部署鉴权文件
+
+文件部署路径 `~/.aws/credentials`
+
+将前面创建的鉴权信息输入该配置文件中
+```
+[default]
+aws_access_key_id = xxxx
+aws_secret_access_key = xxxx
+```

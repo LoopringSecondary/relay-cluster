@@ -63,8 +63,8 @@
 #### 配置EC2实例
 在EC2实例执行脚本
 ```
-sudo mkdir /opt/loopring/extractor
-sudo chown -R ubuntu:ubuntu /opt/loopring/extractor
+sudo mkdir -p /opt/loopring/extractor
+sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring/extractor 
 mkdir bin/ config/ src/
 ```
