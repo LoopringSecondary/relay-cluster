@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-lib/broadcast/ipfs"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
@@ -43,7 +42,6 @@ type Gateway struct {
 	am               accountmanager.AccountManager
 	isBroadcast      bool
 	maxBroadcastTime int
-	ipfsPubService   ipfs.IPFSPubService
 	marketCap        marketcap.MarketCapProvider
 }
 
@@ -120,6 +118,11 @@ func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, o
 	gateway.filters = append(gateway.filters, signFilter)
 	gateway.filters = append(gateway.filters, tokenFilter)
 	gateway.filters = append(gateway.filters, cutoffFilter)
+
+	if gateway.isBroadcast {
+		listenOrderFromGateway()
+		listenOrderFromBroacast()
+	}
 }
 
 func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error) {

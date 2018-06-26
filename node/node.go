@@ -32,11 +32,12 @@ import (
 	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
 	socketioutil "github.com/Loopring/relay-cluster/util"
+	"github.com/Loopring/relay-lib/broadcast"
+	"github.com/Loopring/relay-lib/broadcast/matrix"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/extractor"
 	"github.com/Loopring/relay-lib/kafka"
@@ -111,6 +112,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	n.registerExtractor()
 	n.registerCloudWatch()
+	n.registerBroadcast()
 
 	return n
 }
@@ -127,7 +129,6 @@ func (n *Node) Start() {
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
-	go gasprice_evaluator.InitGasPriceEvaluator()
 	gateway.StartMotanService(n.globalConfig.MotanServer, n.accountManager, n.orderViewer)
 
 	n.wg.Add(1)
@@ -256,4 +257,19 @@ func (n *Node) registerExtractor() {
 
 func (n *Node) registerCloudWatch() {
 	cloudwatch.Initialize()
+}
+
+func (n *Node) registerBroadcast() {
+	var err error
+	var publishers []broadcast.Publisher
+	var subscribers []broadcast.Subscriber
+	publishers, err = matrix.NewPublishers(n.globalConfig.PublisherOptions)
+	if nil != err {
+		log.Fatalf("err:%s", err.Error())
+	}
+	subscribers, err = matrix.NewSubscribers(n.globalConfig.SubscriberOptions)
+	if nil != err {
+		log.Fatalf("err:%s", err.Error())
+	}
+	broadcast.Initialize(publishers, subscribers)
 }

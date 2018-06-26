@@ -5,8 +5,8 @@ title = "miner"
     development = true
     disable_stacktrace = false
     encoding = "console"
-    output_paths = ["zap.log", "stderr"]
-    error_output_paths = ["err.log"]
+    output_paths = [ "stdout"]
+    error_output_paths = ["stderr"]
     [log.encoder_config]
         message_key = "msg"
         level_key = "level"
@@ -47,7 +47,7 @@ title = "miner"
     cutoff_cache_clean_time = 0
 
 [gateway]
-    is_broadcast = false
+    is_broadcast = true
     max_broadcast_time = 3
 
 [accessor]
@@ -62,11 +62,11 @@ title = "miner"
         "v1.5" = "0x456044789a41b277f033e4d79fab2139d69cd154"
 
 [market]
-    token_file = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
+    token_file = "config/tokens.json"
     old_version_weth_address = "0x88699e7fee2da0462981a08a15a3b940304cc516"
 
 [market_cap]
-        base_url = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
+        base_url = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
         currency = "USD"
         duration = 5
         dust_value = 1.0
@@ -110,3 +110,23 @@ title = "miner"
     app_id = "13gd_-yxB_yUiGyL"
     app_secret = "glRRRRP8ro-OJE83CpXj12TkduJ1rN8w"
     base_url = "https://open.api.mytoken.io/"
+
+[[publisher_options]]
+    rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
+    [publisher_options.MatrixClientOptions]
+        hs_url = "http://13.112.62.24:8008"
+        user = "root"
+        password = "1"
+        access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
+
+[[subscriber_options]]
+    rooms = [ "!RoJQgzCfBKHQznReRT:localhost1111"]
+    cache_from = true
+    cache_ttl = 86400
+    [subscriber_options.MatrixClientOptions]
+        hs_url = "http://13.112.62.24111:8008"
+        user = "root111"
+        password = "1111"
+        access_token = "1111MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
+
+

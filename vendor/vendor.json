@@ -108,10 +108,22 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
+			"checksumSHA1": "GWDCWJS6QMeY91PaUyJkzoRBsSo=",
+			"path": "github.com/Loopring/relay-lib/broadcast",
+			"revision": "3282c420546474cdd1d1df67bba4893639436107",
+			"revisionTime": "2018-06-22T10:45:53Z"
+		},
+		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
 			"path": "github.com/Loopring/relay-lib/broadcast/ipfs",
 			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
 			"revisionTime": "2018-06-19T07:11:06Z"
+		},
+		{
+			"checksumSHA1": "n3J6X6RNVhAkhjwo6/H+cgigyNs=",
+			"path": "github.com/Loopring/relay-lib/broadcast/matrix",
+			"revision": "3282c420546474cdd1d1df67bba4893639436107",
+			"revisionTime": "2018-06-22T10:45:53Z"
 		},
 		{
 			"checksumSHA1": "S7XTs/kDwi8CTUEsecb0d4L8Ku4=",
