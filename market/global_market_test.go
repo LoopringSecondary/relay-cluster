@@ -21,25 +21,32 @@ package market_test
 import (
 	"fmt"
 	"github.com/Loopring/relay-cluster/market"
-	"github.com/Loopring/relay-cluster/test"
+	//"github.com/Loopring/relay-cluster/test"
 	"testing"
+	//"time"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/cache/redis"
 	//"time"
 )
 
 func TestGlobalMarket_Sign(t *testing.T) {
 
 	fmt.Println("11111")
-	test.LoadConfig()
+	//test.LoadConfig()
 	//marketutil.Initialize(&globalConfig.Market)
 
+	cache.NewCache(redis.RedisOptions{Host:"13.112.62.24", Port:"6379", Password:"", IdleTimeout:20, MaxIdle: 50, MaxActive:50})
+
 	config := market.MyTokenConfig{}
-	config.AppId = ""
-	config.AppSecret = ""
+	config.AppId = "83ga_-yxA_yKiFyL"
+	config.AppSecret = "glQVQRP8ro-QRN59CpXj12TzwgJ1rM8w"
 	config.BaseUrl = "https://open.api.mytoken.io/"
 
 	g := market.NewGlobalMarket(config)
 	fmt.Println(g)
-	g.Start()
+	//g.Start()
+
+
 
 	//fmt.Println("12344")
 
@@ -54,5 +61,6 @@ func TestGlobalMarket_Sign(t *testing.T) {
 	//fmt.Println(market.GM.GetGlobalMarketTickerCache(""))
 	//fmt.Println(market.GM.GetGlobalTickerCache("LRC"))
 	//fmt.Println(market.GM.GetGlobalTrendCache("LRC"))
-	//fmt.Println(g.GetGlobalMarketTicker("0X-WETH"))
+	fmt.Println(g.GetGlobalTicker("vite"))
+	//time.Sleep(30* time.Second)
 }
