@@ -47,6 +47,18 @@ func Erc20Allowance(tokenAddress, ownerAddress, spenderAddress common.Address, b
 	}
 }
 
+func Erc20Decimals(tokenAddress common.Address, blockParameter string) (*big.Int, error) {
+	var decimals types.Big
+	callMethod := accessor.ContractCallMethod(loopringParams.Erc20Abi, tokenAddress)
+	if err := callMethod(&decimals, "DECIMALS", blockParameter); nil == err {
+		return decimals.BigInt(), err
+	} else if err := callMethod(&decimals, "decimals", blockParameter); nil == err {
+		return decimals.BigInt(), err
+	} else {
+		return nil, err
+	}
+}
+
 func GetCancelledOrFilled(contractAddress common.Address, orderhash common.Hash, blockNumStr string) (*big.Int, error) {
 	var amount types.Big
 	if _, ok := loopringParams.DelegateAddresses[contractAddress]; !ok {
