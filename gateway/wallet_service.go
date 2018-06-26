@@ -388,6 +388,13 @@ type P2PRingRequest struct {
 	MakerOrderHash string `json:"makerOrderHash"`
 }
 
+type AddTokenReq struct {
+	Owner string `json:"owner"`
+	TokenContractAddress string `json:"tokenContractAddress"`
+	Symbol string `json:"symbol"`
+	Decimals int64 `json:"decimals"`
+}
+
 type WalletServiceImpl struct {
 	trendManager    market.TrendManager
 	orderViewer     viewer.OrderViewer
@@ -1169,6 +1176,18 @@ func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketRec
 
 func (w *WalletServiceImpl) TicketCount() (int, error) {
 	return w.rds.TicketCount()
+}
+
+func (w *WalletServiceImpl) AddCustomToken(req AddTokenReq) (result string, err error) {
+	if !util.IsAddress(req.Owner) || !util.IsAddress(req.TokenContractAddress) {
+		return "", errors.New("illegal address format in request")
+	}
+
+	decimals := new(big.Int)
+	decimals.SetInt64(req.Decimals)
+	return req.TokenContractAddress, util.AddToken(
+		common.HexToAddress(req.Owner),
+		util.CustomToken{Address:common.HexToAddress(req.TokenContractAddress), Symbol:req.Symbol, Decimals:decimals})
 }
 
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
