@@ -96,17 +96,17 @@ The security group is independent of the EC2 instance, but can be created before
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| customized TCP rule | TCP | 3306    |relayCluster-securityGroup|
-| customized TCP rule | TCP | 3306    |miner-SecurityGroup|
-| customized TCP rule | TCP | 3306    |extractor-SecurityGroup|
+| customized TCP rule | TCP | 6379    |relayCluster-securityGroup|
+| customized TCP rule | TCP | 6379    |miner-SecurityGroup|
+| customized TCP rule | TCP | 6379    |extractor-SecurityGroup|
 * ethnode-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| customized TCP rule | TCP | 3306    |alb-SecurityGroup|
-| customized TCP rule | TCP | 3306    |relayCluster-securityGroup|
-| customized TCP rule | TCP | 3306    |miner-SecurityGroup|
+| customized TCP rule | TCP | 8545    |alb-SecurityGroup|
+| customized TCP rule | TCP | 8545    |relayCluster-securityGroup|
+| customized TCP rule | TCP | 8545    |miner-SecurityGroup|
 | customized TCP rule | TCP | 8545    |extractor-SecurityGroup|
 * kafkaManager-securityGroup
 
@@ -134,7 +134,7 @@ The security group is independent of the EC2 instance, but can be created before
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
-| SSH | TCP | 3000    | 	0.0.0.0/0    |
+| SSH | TCP | 22    | 	0.0.0.0/0    |
 | customized TCP rule | TCP | 3000    |yourSpecialIp|
 * zookeeper-securityGroup
 

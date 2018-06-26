@@ -98,18 +98,18 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| 自定义 TCP 规则 | TCP | 3306    |relayCluster-securityGroup|
-| 自定义 TCP 规则 | TCP | 3306    |miner-SecurityGroup|
-| 自定义 TCP 规则 | TCP | 3306    |extractor-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 6379    |relayCluster-securityGroup|
+| 自定义 TCP 规则 | TCP | 6379    |miner-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 6379    |extractor-SecurityGroup|
 
 * ethnode-securityGroup
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| 自定义 TCP 规则 | TCP | 3306    |alb-SecurityGroup|
-| 自定义 TCP 规则 | TCP | 3306    |relayCluster-securityGroup|
-| 自定义 TCP 规则 | TCP | 3306    |miner-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 8545    |alb-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 8545    |relayCluster-securityGroup|
+| 自定义 TCP 规则 | TCP | 8545    |miner-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 8545    |extractor-SecurityGroup|
 
 * kafkaManager-securityGroup
@@ -141,7 +141,7 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
-| SSH | TCP | 3000    | 	0.0.0.0/0    |
+| SSH | TCP | 22      | 	0.0.0.0/0    |
 | 自定义 TCP 规则 | TCP | 3000    |yourSpecialIp|
 
 * zookeeper-securityGroup
