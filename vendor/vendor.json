@@ -210,10 +210,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "v3qRYdfb+TT7gAZ+C/hJKPSSk8Y=",
+			"checksumSHA1": "iqjRKCWQpoHS+fpEN+FDFltPK5U=",
 			"path": "github.com/Loopring/relay-lib/marketutil",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "e52a125240b38ddc240f642363cfc22c493f7f98",
+			"revisionTime": "2018-06-26T06:36:31Z"
 		},
 		{
 			"checksumSHA1": "ToScnYa3M8T9Ip74E96TjqYSVQg=",
