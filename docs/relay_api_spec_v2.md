@@ -80,11 +80,11 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 
 ## JSON RPC API Reference
 
-#### loopring_getBalance
+### loopring_getBalance
 
 Get user's balance and token allowance info.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The address, if is null, will query all orders.
 - `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -96,14 +96,14 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `Account` - Account balance info object.
 
 - `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 2. `tokens` - Info on all token balance and allowance arrays.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getBalance","params":{see above},"id":64}'
@@ -132,11 +132,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getBalance","params":{s
 
 ***
 
-#### loopring_submitOrder
+### loopring_submitOrder
 
 Submits an order. The order is submitted to the relay as a JSON object, which will be broadcasted into a peer-to-peer network for off-chain order-book maintainance and ring-ming. Once mined, the ring will be serialized into a transaction and submitted to the Ethereum blockchain.
 
-##### Parameters
+#### Parameters
 
 `JSON Object` - The order object(refer to [LoopringProtocol](https://github.com/Loopring/protocol/blob/master/contracts/LoopringProtocol.sol))
   - `protocol` - Loopring contract address
@@ -185,11 +185,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `OrderHash` - The hash of the order.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_submitOrder","params":{see above},"id":64}'
@@ -204,11 +204,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_submitOrder","params":{
 
 ***
 
-#### loopring_getOrders
+### loopring_getOrders
 
 Get loopring order list.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The address, if is null, will query all orders.
 - `orderHash` - The order hash.
@@ -234,7 +234,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `PageResult of Order` - Order list with page info
 
@@ -250,7 +250,7 @@ params: [{
 3. `pageIndex` - Index of page.
 4. `pageSize` - Amount per page.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{see above},"id":64}'
@@ -302,11 +302,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{se
 
 ***
 
-#### loopring_getOrderByHash
+### loopring_getOrderByHash
 
 Get loopring order by order hash.
 
-##### Parameters
+#### Parameters
 
 - `orderHash` - The order hash.
 
@@ -316,7 +316,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `Object of Order` - Order detail info.
 
@@ -327,7 +327,7 @@ params: [{
 - `cancelledAmountS` - cancelled amount of token S.
 - `cancelledAmountB` - cancelled amount of token B.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{see above},"id":64}'
@@ -372,11 +372,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{se
 
 ***
 
-#### loopring_getDepth
+### loopring_getDepth
 
 Get depth and accuracy by token pair
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market pair.
 2 `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -391,13 +391,13 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 1. `depth` - The depth data, every depth element is an array of length three, which contains price, amount A, and amount B in market A-B in an order.
 2. `market` - The market pair.
 3. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getDepth","params":{see above},"id":64}'
@@ -424,11 +424,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getDepth","params":{see
 ***
 
 
-#### loopring_getTicker
+### loopring_getTicker
 
 Get info on Loopring's 24hr merged tickers from loopring relay.
 
-##### Parameters
+#### Parameters
 NULL
 
 
@@ -436,7 +436,7 @@ NULL
 params: [{}]
 ```
 
-##### Returns
+#### Returns
 
 1. `high` - The 24hr highest price.
 2. `low`  - The 24hr lowest price.
@@ -447,7 +447,7 @@ params: [{}]
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTicker","params":[{see above}],"id":64}'
@@ -509,11 +509,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTicker","params":[{s
 
 ***
 
-#### loopring_getTickers
+### loopring_getTickers
 
 Get the info on all the 24hr merged tickers in the market from loopring relay.
 
-##### Parameters
+#### Parameters
 1. `market` - The market info like LRC-WETH.
 
 
@@ -523,7 +523,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 1. `high` - The 24hr highest price.
 2. `low`  - The 24hr lowest price.
@@ -534,7 +534,7 @@ params: [{
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getTickers","params":{see above}},"id":64}'
@@ -592,11 +592,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getTickers","params":{se
 
 ***
 
-#### loopring_getFills
+### loopring_getFills
 
 Get order fill history. This history consists of OrderFilled events.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market of the order.(format is LRC-WETH)
 2. `owner` - The address, if is null, will query all orders.
@@ -618,7 +618,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 1. `ARRAY OF DATA` - The fills list.
@@ -643,7 +643,7 @@ params: [{
 3. `pageSize`
 4. `total`
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getFills","params":{see above},"id":64}'
@@ -682,11 +682,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getFills","params":{see 
 
 ***
 
-#### loopring_getTrend
+### loopring_getTrend
 
 Get trend info per market. If you select 1Hr interval, this function will return a list(the length is 100 mostly). Each item represents a data point of the price change in 1Hr. The same goes for other intervals.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market type.
 2. `interval` - The interval like 1Hr, 2Hr, 4Hr, 1Day, 1Week.
@@ -696,7 +696,7 @@ params: {"market" : "LRC-WETH", "interval" : "2Hr"}
 
 ```
 
-##### Returns
+#### Returns
 
 `ARRAY of JSON OBJECT`
   - `market` - The market type.
@@ -709,7 +709,7 @@ params: {"market" : "LRC-WETH", "interval" : "2Hr"}
   - `start` - The statistical cycle start time.
   - `end` - The statistical cycle end time.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getTrend","params":{see above},"id":64}'
@@ -738,11 +738,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getTrend","params":{see 
 
 ***
 
-#### loopring_getRingMined
+### loopring_getRingMined
 
 Get all mined rings.
 
-##### Parameters
+#### Parameters
 
 1. `ringIndex` - The ring index
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -760,7 +760,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 1. `data` - The ring info.(refer to [Ring&RingMined](https://github.com/Loopring/protocol/blob/3bdc40c4f319e8fe70f58f82563db49579094b5c/contracts/LoopringProtocolImpl.sol#L109)
   - `ringHash` - The ring hash.
@@ -775,7 +775,7 @@ params: [{
 3. `pageIndex` - Index of page.
 4. `pageSize` - Amount per page.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getRingMined","params":{see above},"id":64}'
@@ -805,11 +805,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getRingMined","params":{
 ```
 ***
 
-#### loopring_getCutoff
+### loopring_getCutoff
 
 Get cut off time of the address.
 
-##### Parameters
+#### Parameters
 
 1. `address` - The address.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -823,10 +823,10 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 - `string` - the cutoff timestamp string.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getCutoff","params":{see above},"id":64}'
@@ -839,11 +839,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getCutoff","params":{see
 ```
 ***
 
-#### loopring_getPriceQuote
+### loopring_getPriceQuote
 
 Get the USD/CNY/BTC quoted price of tokens
 
-##### Parameters
+#### Parameters
 
 1. `curreny` - The base currency desired from query, supported types are `CNY`, `USD`.
 
@@ -851,11 +851,11 @@ Get the USD/CNY/BTC quoted price of tokens
 params: [{ "currency" : "CNY" }]
 ```
 
-##### Returns
+#### Returns
 - `currency` - The base currency, CNY or USD.
 - `tokens` - Every token price int the currency.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getPriceQuote","params":{see above},"id":64}'
@@ -881,11 +881,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getPriceQuote","params":
 ```
 ***
 
-#### loopring_getEstimatedAllocatedAllowance
+### loopring_getEstimatedAllocatedAllowance
 
 Get the total frozen amount of all unfinished orders
 
-##### Parameters
+#### Parameters
 
 1. `owner` - The address.
 2. `token` - The specific token which you want to get.
@@ -899,10 +899,10 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 - `string` - The frozen amount in hex format.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getEstimatedAllocatedAllowance","params":{see above},"id":64}'
@@ -916,11 +916,11 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getEstimatedAllocatedAll
 ```
 ***
 
-#### loopring_getGetFrozenLRCFee
+### loopring_getGetFrozenLRCFee
 
 Get the total frozen lrcFee of all unfinished orders
 
-##### Parameters
+#### Parameters
 
 1. `owner` - The address, if is null, will query all orders.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -932,10 +932,10 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 - `string` - The frozen amount in hex format.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getGetFrozenLRCFee","params":{see above},"id":64}'
@@ -949,21 +949,21 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getGetFrozenLRCFee","par
 ```
 ***
 
-#### loopring_getSupportedMarket
+### loopring_getSupportedMarket
 
 Get all relay-supported market pairs
 
-##### Parameters
+#### Parameters
 no input params.
 
 ```js
 params: [{}]
 ```
 
-##### Returns
+#### Returns
 - `array of string` - The array of all supported markets.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedMarket","params":{see above},"id":64}'
@@ -977,21 +977,21 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedMarket","par
 ```
 ***
 
-#### loopring_getSupportedTokens
+### loopring_getSupportedTokens
 
 Get all relay-supported tokens
 
-##### Parameters
+#### Parameters
 no input params.
 
 ```js
 params: [{}]
 ```
 
-##### Returns
+#### Returns
 - `array of string` - The array of all supported tokens.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedTokens","params":[{}],"id":64}'
@@ -1014,21 +1014,21 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getSupportedTokens","par
 ```
 ***
 
-#### loopring_getContracts
+### loopring_getContracts
 
 Get all relay-supported contracts. The result is map[delegateAddress] List(loopringProtocol)
 
-##### Parameters
+#### Parameters
 no input params.
 
 ```js
 params: [{}]
 ```
 
-##### Returns
+#### Returns
 - `json object` - The map of delegateAddress with list of loopringProtocol.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getContracts","params":[{}],"id":64}'
@@ -1044,19 +1044,19 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getContracts","params":[
 ```
 ***
 
-#### loopring_getLooprSupportedMarket
+### loopring_getLooprSupportedMarket
 
 Get Loopr wallet supported market pairs. Exactly the same as loopring_getSupportedMarket but the name is different.
 
-#### loopring_getLooprSupportedTokens
+### loopring_getLooprSupportedTokens
 
 Get Loopr wallet supported tokens. Exactly the same as loopring_getSupportedTokens but the name is different.
 
-#### loopring_getPortfolio
+### loopring_getPortfolio
 
 Get user's portfolio info.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address.
 
@@ -1066,13 +1066,13 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `Account` - Portfolio info object.
 
 1. `tokens` - All token portfolio array info.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getPortfolio","params":{see above},"id":64}'
@@ -1098,11 +1098,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getPortfolio","params":
 
 ***
 
-#### loopring_getTransactions
+### loopring_getTransactions
 
 Get user's latest transactions by owner.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address, must be applied.
 - `thxHash` - The transaction hash.
@@ -1125,7 +1125,7 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 1. `ARRAY OF DATA` - The transaction list.
@@ -1143,7 +1143,7 @@ params: [{
 3. `pageSize`
 4. `total`
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTransactions","params":{see above},"id":64}'
@@ -1177,11 +1177,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTransactions","param
 
 ***
 
-#### loopring_unlockWallet
+### loopring_unlockWallet
 
 Tell the relay the unlocked wallet info.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The address, if is null, will query all orders.
 
@@ -1191,13 +1191,13 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `Account` - Account balance info object.
 
 1. `string` - Success or fail info.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_unlockWallet","params":{see above},"id":64}'
@@ -1212,11 +1212,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_unlockWallet","params":
 
 ***
 
-#### loopring_notifyTransactionSubmitted
+### loopring_notifyTransactionSubmitted
 
 wallet should notify relay there was a transaction sending to eth network, then relay will get and save the pending transaction immediately.
 
-##### Parameters
+#### Parameters
 
 - `hash` - The txHash.
 - `nonce` - The owner newest nonce.
@@ -1247,13 +1247,13 @@ params: [{
   }]
 ```
 
-##### Returns
+#### Returns
 
 `String` - txHash.
 
 1. no result if failed, you can see error info in param.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyTransactionSubmitted","params":{see above},"id":64}'
@@ -1269,12 +1269,12 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyTransactionSubmit
 
 ***
 
-#### loopring_submitRingForP2P
+### loopring_submitRingForP2P
 
 submit signed raw transaction of ring information, then relay can help submitting the ring while tracing the status of orders for wallet. 
 please submit taker and maker order before invoking this method.
 
-##### Parameters
+#### Parameters
 
 - `takerOrderHash` - The taker order hash.
 - `makerOrderHash` - The maker order hash.
@@ -1288,11 +1288,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `txHash` - The transaction hash of eth_sendRawTransaction result. 
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_submitRingForP2P","params":{see above},"id":64}'
@@ -1307,11 +1307,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_submitRingForP2P","para
 
 ***
 
-#### loopring_getUnmergedOrderBook
+### loopring_getUnmergedOrderBook
 
 get orderbook from relay. the difference of orderbook and depth is that orderbook doesn't merge amount of order, one orderbook record represents a order.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market pair.
 2 `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -1323,14 +1323,14 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 1. `market` - The market pair.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 3. `buy`  - buy list of orderbook element.
 4. `sell` - sell list of orderbook element.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getUnmergedOrderBook","params":{see above},"id":64}'
@@ -1404,11 +1404,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getUnmergedOrderBook","
 
 ***
 
-#### loopring_flexCancelOrder
+### loopring_flexCancelOrder
 
 flex cancel order, cancel order only in relay, will not use gas.
 
-##### Parameters
+#### Parameters
 
 - `sign` - The Sign Info with timestamp, Please see detail at params detail.
 - `orderHash` - The order hash.
@@ -1435,11 +1435,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 no result. if cancel failed, please see error message result.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_flexCancelOrder","params":{see above},"id":64}'
@@ -1454,11 +1454,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_flexCancelOrder","param
 
 ***
 
-#### loopring_getNonce
+### loopring_getNonce
 
 get newest nonce of user's address, plused on the pending transaction counts submitted to relay.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address.
 
@@ -1468,11 +1468,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `nonce` - The newest nonce value.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getNonce","params":{see above},"id":64}'
@@ -1487,11 +1487,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getNonce","params":{see
 
 ***
 
-#### loopring_getTempStore
+### loopring_getTempStore
 
 a simple temporary string to string k/v store expire in 24hr, normally used when scaning QR intermediate data.
 
-##### Parameters
+#### Parameters
 
 - `key` - The temporacy data key.
 
@@ -1501,11 +1501,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 `string` - The string value.
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTempStore","params":{see above},"id":64}'
@@ -1520,11 +1520,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTempStore","params":
 
 ***
 
-#### loopring_setTempStore
+### loopring_setTempStore
 
 a simple temporary string to string k/v store expire in 24hr, normally used when scaning QR intermediate data.
 
-##### Parameters
+#### Parameters
 
 - `key` - The temporacy data key.
 - `value` - The temporacy data value.
@@ -1536,11 +1536,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 no result
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_setTempStore","params":{see above},"id":64}'
@@ -1555,11 +1555,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_setTempStore","params":
 
 ***
 
-#### loopring_notifyCirculr
+### loopring_notifyCirculr
 
 notify the web wallet when wallet app scaning the QR code, do some action.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address to notify.
 - `body` - The notify message body.
@@ -1571,11 +1571,11 @@ params: [{
 }]
 ```
 
-##### Returns
+#### Returns
 
 no result
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyCirculr","params":{see above},"id":64}'
@@ -1590,22 +1590,22 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_notifyCirculr","params"
 
 ***
 
-#### loopring_getEstimateGasPrice
+### loopring_getEstimateGasPrice
 
 get estimated gas price from Relay.
 
-##### Parameters
+#### Parameters
 no input param.
 
 ```js
 params: [{}]
 ```
 
-##### Returns
+#### Returns
 
 `hex string` - The hex string of gas price
 
-##### Example
+#### Example
 ```js
 // Request
 curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getEstimateGasPrice","params":{see above},"id":64}'
@@ -1622,16 +1622,16 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getEstimateGasPrice","p
 
 ## SocketIO Methods Reference
 
-#### portfolio
+### portfolio
 
 Subscribe user's portfolio info by address.
 
-##### subscribe events
+#### subscribe events
 - portfolio_req : emit this event to receive push message.
 - portfolio_res : subscribe this event to receive push message.
 - portfolio_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address.
 
@@ -1644,13 +1644,13 @@ socketio.on("portfolio_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `portfolios` - Portfolio info object.
 
 1. `tokens` - All token portfolio info array.
 
-##### Example
+#### Example
 ```js
 // Request
 
@@ -1671,16 +1671,16 @@ socketio.on("portfolio_res", function(data) {
 ```
 ***
 
-#### balance
+### balance
 
 Get user's balance and token allowance info.
 
-##### subscribe events
+#### subscribe events
 - balance_req : emit this event to receive push message.
 - balance_res : subscribe this event to receive push message.
 - balance_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The wallet address
 - `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -1694,14 +1694,14 @@ socketio.on("balance_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `Account` - Account balance info object.
 
 1. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 2. `tokens` - All token balance and allowance info array.
 
-##### Example
+#### Example
 ```js
 // Request
 {
@@ -1728,16 +1728,16 @@ socketio.on("balance_res", function(data) {
 ```
 ***
 
-#### loopringTickers
+### loopringTickers
 
 Get 24hr merged tickers info from loopring relay.
 
-##### subscribe events
+#### subscribe events
 - loopringTickers_req : emit this event to receive push message.
 - loopringTickers_res : subscribe this event to receive push message.
 - loopringTickers_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 NULL
 
 ```js
@@ -1749,7 +1749,7 @@ socketio.on("loopringTickers_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 1. `high` - The 24hr highest price.
 2. `low`  - The 24hr lowest price.
@@ -1760,7 +1760,7 @@ socketio.on("loopringTickers_res", function(data) {
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 
-##### Example
+#### Example
 ```js
 // Request
 
@@ -1819,16 +1819,16 @@ socketio.on("loopringTickers_res", function(data) {
 ]
 ```
 
-#### tickers
+### tickers
 
 Get 24hr merged tickers reference info from other exchange like binance, huobi.
 
-##### subscribe events
+#### subscribe events
 - tickers_req : emit this event to receive push message.
 - tickers_res : subscribe this event to receive push message.
 - tickers_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 1. `market` - The market selected.
 
 ```js
@@ -1840,7 +1840,7 @@ socketio.on("tickers_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 1. `high` - The 24hr highest price.
 2. `low`  - The 24hr lowest price.
@@ -1851,7 +1851,7 @@ socketio.on("tickers_res", function(data) {
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 
-##### Example
+#### Example
 ```js
 // Request
 
@@ -1908,16 +1908,16 @@ socketio.on("tickers_res", function(data) {
 
 ***
 
-#### transaction
+### transaction
 
 push user's latest 20 transactions by owner.
 
-##### subscribe events
+#### subscribe events
 - transaction_req : emit this event to receive push message.
 - transaction_res : subscribe this event to receive push message.
 - transaction_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 - `owner` - The owner address.
 - `thxHash` - The transaction hash.
@@ -1936,7 +1936,7 @@ socketio.on("transaction_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 1. `ARRAY OF DATA` - The transaction list.
@@ -1954,7 +1954,7 @@ socketio.on("transaction_res", function(data) {
 3. `pageSize`
 4. `total`
 
-##### Example
+#### Example
 ```js
 // Request
 params: {
@@ -1987,16 +1987,16 @@ params: {
 
 ***
 
-#### marketcap
+### marketcap
 
 Get the USD/CNY/BTC quoted price of tokens.
 
-##### subscribe events
+#### subscribe events
 - marketcap_req : emit this event to receive push message.
 - marketcap_res : subscribe this event to receive push message.
 - marketcap_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 1. `curreny` - The base currency want to query, supported types is `CNY`, `USD`.
 
@@ -2009,11 +2009,11 @@ socketio.on("marketcap_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 - `currency` - The base currency, CNY or USD.
 - `tokens` - Every token price int the currency.
 
-##### Example
+#### Example
 ```js
 // Request
 {"currency" : "CNY"}
@@ -2035,17 +2035,17 @@ socketio.on("marketcap_res", function(data) {
 ```
 ***
 
-#### depth
+### depth
 
 Get depth and accuracy by token pair.
 
-##### subscribe events
+#### subscribe events
 - depth_req : emit this event to receive push message.
 - depth_res : subscribe this event to receive push message.
 - depth_end : emit this event to stop receive push message.
 
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market pair.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -2061,13 +2061,13 @@ socketio.on("depth_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 1. `depth` - The depth data, every depth element is a three length of array, which contain price, amount A and B in market A-B in order.
 2. `market` - The market pair.
 3. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 
-##### Example
+#### Example
 ```js
 // Request
 {
@@ -2094,16 +2094,16 @@ socketio.on("depth_res", function(data) {
 
 ***
 
-#### trends
+### trends
 
 Get trend info per market.
 
-##### subscribe events
+#### subscribe events
 - trends_req : emit this event to receive push message.
 - trends_res : subscribe this event to receive push message.
 - trends_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market type.
 2. `interval` - The interval like 1Hr, 2Hr, 4Hr, 1Day, 1Week default is 1Hr.
@@ -2112,7 +2112,7 @@ params: {"market" : "LRC-WETH", "interval" : "1Hr"}
 
 ```
 
-##### Returns
+#### Returns
 
 `ARRAY of JSON OBJECT`
   - `market` - The market type.
@@ -2125,7 +2125,7 @@ params: {"market" : "LRC-WETH", "interval" : "1Hr"}
   - `start` - The statistical cycle start time.
   - `end` - The statistical cycle end time.
 
-##### Example
+#### Example
 ```js
 // Request
 {"market" : "LRC-WETH", "interval" : "4hr"}
@@ -2150,16 +2150,16 @@ params: {"market" : "LRC-WETH", "interval" : "1Hr"}
 
 ***
 
-#### pendingTx
+### pendingTx
 
 Get pendingTx info per address.
 
-##### subscribe events
+#### subscribe events
 - pendingTx_req : emit this event to receive push message.
 - pendingTx_res : subscribe this event to receive push message.
 - pendingTx_end : emit this event to stop receive push message.
 
-##### Parameters
+#### Parameters
 
 1. `owner` - The owner address.
 ```js
@@ -2167,7 +2167,7 @@ params: {"owner" : "0x5567ee920f7E62274284985D793344351A00142B"}
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("pendingTx_req", '{see below}', function(data) {
@@ -2178,7 +2178,7 @@ socketio.on("pendingTx_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 `ARRAY OF DATA` - The transaction list.
@@ -2193,7 +2193,7 @@ socketio.on("pendingTx_res", function(data) {
   - `type` - The transaction type, like convert, transfer/receive.
   - `status` - The current transaction status.
 
-##### Example
+#### Example
 ```js
 // Request
 params: {
@@ -2220,14 +2220,14 @@ params: {
 
 ***
 
-#### orderbook
+### orderbook
 
 The orderbook sync socketio event key. Please see detail at loopring_getUnmergedOrderBook.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market pair.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -2237,7 +2237,7 @@ params: {"owner" : "0x5567ee920f7E62274284985D793344351A00142B", "delegateAddres
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("orderbook_req", '{see below}', function(data) {
@@ -2248,14 +2248,14 @@ socketio.on("orderbook_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 1. `market` - The market pair.
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 3. `buy`  - buy list of orderbook element.
 4. `sell` - sell list of orderbook element.
 
-##### Example
+#### Example
 ```js
 // Request
 params: {
@@ -2329,14 +2329,14 @@ params: {
 
 ***
 
-#### trades
+### trades
 
 sync latest 40 trades per market.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market of the order.(format is LRC-WETH)
 2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
@@ -2347,7 +2347,7 @@ params: {"market" : "LRC-WETH"}
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("trades_req", '{see below}', function(data) {
@@ -2358,7 +2358,7 @@ socketio.on("trades_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 `ARRAY OF DATA` - The trade list.
@@ -2371,7 +2371,7 @@ socketio.on("trades_res", function(data) {
   - `splitS`
   - `splitB`
 
-##### Example
+#### Example
 ```js
 // Request
 params: {
@@ -2404,14 +2404,14 @@ params: {
 
 ***
 
-#### orders
+### orders
 
 sync latest 40 orders per market.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key.
 
-##### Parameters
+#### Parameters
 
 1. `market` - The market of the order.(format is LRC-WETH)
 2. `owner` - The owner address.
@@ -2426,7 +2426,7 @@ params: {
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("orders_req", '{see below}', function(data) {
@@ -2437,13 +2437,13 @@ socketio.on("orders_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `PAGE RESULT of OBJECT`
 `ARRAY OF DATA` - The order list.
   - same as loopring_getOrders result
 
-##### Example
+#### Example
 ```js
 // Request
 params: {
@@ -2520,14 +2520,14 @@ params: {
 
 ***
 
-#### estimatedGasPrice
+### estimatedGasPrice
 
 sync estimated GasPrice from Relay.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key.
 
-##### Parameters
+#### Parameters
 no input params 
 
 ```js
@@ -2535,7 +2535,7 @@ params: {}
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("estimatedGasPrice_req", '{see below}', function(data) {
@@ -2546,11 +2546,11 @@ socketio.on("estimatedGasPrice_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `hex string` - The hex string of gas price.
 
-##### Example
+#### Example
 ```js
 // Request
 params: {}
@@ -2562,14 +2562,14 @@ params: {}
 
 ***
 
-#### addressUnlock
+### addressUnlock
 
 listen the scan QR to login message notify.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key.
 
-##### Parameters
+#### Parameters
 1. `uuid` - The uuid to notify.
 
 ```js
@@ -2577,7 +2577,7 @@ params: {"uuid" : "dkx921"}
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("addressUnlock_req", '{see below}', function(data) {
@@ -2588,11 +2588,11 @@ socketio.on("addressUnlock_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `string` - notify message body.
 
-##### Example
+#### Example
 ```js
 // Request
 params: {}
@@ -2607,14 +2607,14 @@ params: {}
 
 ***
 
-#### circulrNotify
+### circulrNotify
 
 listen the scan QR message notify.
 
-##### subscribe events
+#### subscribe events
 emit with `_req` postfix and listen on `_res` postfix with the event key.
 
-##### Parameters
+#### Parameters
 1. `owner` - The owner to notify.
 
 ```js
@@ -2622,7 +2622,7 @@ params: {"owner" : "0x71c079107b5af8619d54537a93dbf16e5aab4900"}
 
 ```
 
-##### Returns
+#### Returns
 
 ```js
 socketio.emit("circulrNotify_req", '{see below}', function(data) {
@@ -2633,11 +2633,11 @@ socketio.on("circulrNotify_res", function(data) {
 });
 ```
 
-##### Returns
+#### Returns
 
 `string` - app and web negotiated notify message body.
 
-##### Example
+#### Example
 ```js
 // Request
 params: {}
