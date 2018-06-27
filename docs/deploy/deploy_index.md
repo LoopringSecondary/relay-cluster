@@ -55,7 +55,7 @@ The service analyzes the eth network transaction and synchronizes the result wit
 Used to match orders as rings, and submit them to eth network.
 
 ## Web access
-Web access is supported by aws ALB, which proxy relay-cluster rpc API and ethnode API.
+Web access is supported by aws ALB, which work as a proxy for relay-cluster rpc API and ethnode API.
 
 * [ALB](deploy_alb.md)
 
@@ -68,11 +68,10 @@ This is an open-source kafka cluster browsing and management system
 
 Provides a web interface to assist in viewing and editing kafka for easy system administration
 
-## Monitoring and alerting(optional)
+## Monitoring and alarm(optional)
 * [cloudwatch](cloudwatch.md)
 
-Cloudwatch can report indicators and configure related rules for alarm
-s
+Cloudwatch can report metrics and configure related rules for alarms
 * [SNS](sns.md)
 
 Sns is aws notification service. You can access the SNS service by API for trigger notifications, notification type includes email, SMS and so on. It is convenient to enable this abilibity for key logic monitor or system failure alarm.
