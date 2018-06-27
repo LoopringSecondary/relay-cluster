@@ -63,9 +63,21 @@ func NewPublishers(options []MatrixPublisherOption) ([]broadcast.Publisher, erro
 		if matrixClient, err := NewMatrixClient(option.MatrixClientOptions); nil != err {
 			return nil, fmt.Errorf("client:%s, err:%s", matrixClient.HSUrl, err.Error())
 		} else {
+			rooms, err := matrixClient.CheckAndJoinRoom(option.Rooms)
+			if nil != err {
+				return publishers, err
+			}
+			joinedRooms := []string{}
+			for room, err1 := range rooms {
+				if nil == err1 {
+					joinedRooms = append(joinedRooms, room)
+				} else {
+					log.Errorf("a room can't join with error:%s", err1.Error())
+				}
+			}
 			publishers = append(publishers, &MatrixPublisher{
 				matrixClient: matrixClient,
-				Rooms:        option.Rooms,
+				Rooms:        joinedRooms,
 			})
 		}
 	}

@@ -31,10 +31,12 @@ const (
 	CreateFilterPath = "/_matrix/client/r0/user/%s/filter"
 	SendMessagePath  = "/_matrix/client/r0/rooms/%s/send/%s/%s"
 	WhoAmIPath       = "/_matrix/client/r0/account/whoami"
+	JoinedRoomsPath  = "/_matrix/client/r0/joined_rooms"
 )
 
 const (
-	UNRECOGNISED_TOKEN_ERROR = "Unrecognised access token."
+	UNRECOGNISED_TOKEN_ERROR    = "Unrecognised access token."
+	GUEST_ACCESS_FORBIDDEN_CODE = "M_GUEST_ACCESS_FORBIDDEN"
 )
 
 const (
@@ -250,4 +252,19 @@ func (req *WhoAmIReq) Params() []string {
 
 type WhoAmIRes struct {
 	UserId string `json:"user_id"`
+}
+
+type JoinedRoomsReq struct {
+}
+
+func (req *JoinedRoomsReq) Path() string {
+	return JoinedRoomsPath
+}
+
+func (req *JoinedRoomsReq) Params() []string {
+	return []string{}
+}
+
+type JoinedRoomsRes struct {
+	JoinedRooms []string `json:"joined_rooms"`
 }

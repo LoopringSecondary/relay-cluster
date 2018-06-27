@@ -21,6 +21,7 @@ package matrix
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Loopring/relay-lib/log"
 	"io/ioutil"
@@ -84,6 +85,15 @@ func (client *MatrixClient) RequestUrl(req MatrixReq) string {
 		return client.HSUrl + path + "?access_token=" + client.LoginRes.AccessToken + "&" + paramsStr
 	}
 }
+func (client *MatrixClient) PostWithErrRevocer(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
+	errRes, err = client.Post(req, res)
+	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
+		if err1 := client.Login(); nil == err1 {
+			errRes, err = client.Post(req, res)
+		}
+	}
+	return
+}
 
 func (client *MatrixClient) Post(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
 	if reqData, err := json.Marshal(req); nil != err {
@@ -119,6 +129,16 @@ func (client *MatrixClient) Post(req MatrixReq, res interface{}) (errRes *ErrorR
 			return nil, nil
 		}
 	}
+}
+
+func (client *MatrixClient) PutWithErrRecover(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
+	errRes, err = client.Put(req, res)
+	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
+		if err1 := client.Login(); nil == err1 {
+			errRes, err = client.Put(req, res)
+		}
+	}
+	return
 }
 
 func (client *MatrixClient) Put(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
@@ -161,15 +181,25 @@ func (client *MatrixClient) Put(req MatrixReq, res interface{}) (errRes *ErrorRe
 	}
 }
 
+func (client *MatrixClient) GetWithErrRecover(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
+	errRes, err = client.Get(req, res)
+	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
+		if err1 := client.Login(); nil == err1 {
+			errRes, err = client.Get(req, res)
+		}
+	}
+	return
+}
+
 func (client *MatrixClient) Get(req MatrixReq, res interface{}) (errRes *ErrorRes, err error) {
-	client.mtx.Lock()
+	//client.mtx.Lock()
 	resp, err := http.Get(client.RequestUrl(req))
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		resp.Body.Close()
-		client.mtx.Unlock()
+		//client.mtx.Unlock()
 	}()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -218,12 +248,7 @@ func (client *MatrixClient) Logout() {
 func (client *MatrixClient) WhoAmI() (string, error) {
 	req := &WhoAmIReq{}
 	res := &WhoAmIRes{}
-	errRes, err := client.Get(req, res)
-	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
-		if err1 := client.Login(); nil == err1 {
-			errRes, err = client.Get(req, res)
-		}
-	}
+	_, err := client.GetWithErrRecover(req, res)
 	return res.UserId, err
 }
 
@@ -232,7 +257,7 @@ func (client *MatrixClient) JoinRoom(roomid string) error {
 		RoomId: roomid,
 	}
 	res := &JoinRoomRes{}
-	_, err := client.Post(req, res)
+	_, err := client.PostWithErrRevocer(req, res)
 	log.Debugf("roomid:%s", res.RoomId)
 	return err
 }
@@ -251,13 +276,7 @@ func (client *MatrixClient) RoomMessages(roomId, from, to, dir, limit, filter st
 		Filter: filter,
 	}
 	res := &RoomMessagesRes{}
-	errRes, err := client.Get(req, res)
-	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
-		if err1 := client.Login(); nil == err1 {
-			errRes, err = client.Get(req, res)
-		}
-	}
-
+	_, err := client.GetWithErrRecover(req, res)
 	log.Debugf("start:%s, end:%s, len:%d", res.Start, res.End, len(res.Chunk))
 
 	return res, err
@@ -272,16 +291,47 @@ func (client *MatrixClient) SendMessages(roomId, eventType, txnid, msgtype, body
 		Body:      body,
 	}
 	res := &SendMessageRes{}
-	errRes, err := client.Put(req, res)
-	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
-		if err1 := client.Login(); nil == err1 {
-			errRes, err = client.Put(req, res)
-		}
-	}
+	_, err := client.PutWithErrRecover(req, res)
+
 	log.Debugf("eventId:%s", res.EventId)
 	return res.EventId, err
 }
 
 func (client *MatrixClient) RoomInviteFilter() {
 
+}
+
+func (client *MatrixClient) JoinedRooms() ([]string, *ErrorRes, error) {
+	req := &JoinedRoomsReq{}
+	res := &JoinedRoomsRes{}
+	errRes, err := client.GetWithErrRecover(req, res)
+	return res.JoinedRooms, errRes, err
+}
+
+func (client *MatrixClient) CheckAndJoinRoom(toCheckRooms []string) (rooms map[string]error, err error) {
+	rooms = make(map[string]error)
+	for _, room := range toCheckRooms {
+		rooms[room] = errors.New("hasn't check")
+	}
+	joinedRooms, _, err := client.JoinedRooms()
+	if nil != err {
+		return
+	}
+	for room, _ := range rooms {
+		joined := false
+		for _, joinedRoom := range joinedRooms {
+			if room == joinedRoom {
+				rooms[room] = nil
+				joined = true
+			}
+		}
+		if !joined {
+			if err := client.JoinRoom(room); nil == err {
+				rooms[room] = nil
+			} else {
+				rooms[room] = err
+			}
+		}
+	}
+	return rooms, nil
 }

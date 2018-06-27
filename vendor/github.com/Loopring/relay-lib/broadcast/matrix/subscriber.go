@@ -95,12 +95,31 @@ func NewSubscribers(options []MatrixSubscriberOption) ([]broadcast.Subscriber, e
 	subscribers := []broadcast.Subscriber{}
 	var err error
 	for _, option := range options {
-		for _, room := range option.Rooms {
+
+		var matrixClient *MatrixClient
+		matrixClient, err = NewMatrixClient(option.MatrixClientOptions)
+		if nil != err {
+			return nil, fmt.Errorf("hsurl:%s, err:%s", option.MatrixClientOptions.HSUrl, err.Error())
+		}
+		rooms, err := matrixClient.CheckAndJoinRoom(option.Rooms)
+		if nil != err {
+			return subscribers, err
+		}
+		joinedRooms := []string{}
+		for room, err1 := range rooms {
+			if nil == err1 {
+				joinedRooms = append(joinedRooms, room)
+			} else {
+				log.Errorf("a room can't join with error:%s", err1.Error())
+			}
+		}
+
+		for _, room := range joinedRooms {
 			subscriber := &MatrixSubscriber{}
 			subscriber.Room = room
 			subscriber.CacheFrom = option.CacheFrom
 			subscriber.CacheTtl = option.CacheTtl
-			subscriber.matrixClient, err = NewMatrixClient(option.MatrixClientOptions)
+			subscriber.matrixClient = matrixClient
 			if nil != err {
 				return nil, fmt.Errorf("hsurl:%s, room:%s, err:%s", option.MatrixClientOptions.HSUrl, room, err.Error())
 			}

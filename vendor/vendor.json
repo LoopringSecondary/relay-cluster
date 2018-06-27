@@ -110,8 +110,8 @@
 		{
 			"checksumSHA1": "e+VILnirb/o3xqxotku07Bmj+f4=",
 			"path": "github.com/Loopring/relay-lib/broadcast",
-			"revision": "4655d1166adfa112f450fd618756aceb2aa64d90",
-			"revisionTime": "2018-06-27T08:43:06Z"
+			"revision": "a717e61c9f7f0a558f0518ddcfa69a3b5e53181d",
+			"revisionTime": "2018-06-27T09:58:20Z"
 		},
 		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
@@ -120,10 +120,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "kXvFZomtgZ57J+51iR32ZFBOu0c=",
+			"checksumSHA1": "VeK/WqUOkqNbCgVTrEekXzdZk1g=",
 			"path": "github.com/Loopring/relay-lib/broadcast/matrix",
-			"revision": "4655d1166adfa112f450fd618756aceb2aa64d90",
-			"revisionTime": "2018-06-27T08:43:06Z"
+			"revision": "a717e61c9f7f0a558f0518ddcfa69a3b5e53181d",
+			"revisionTime": "2018-06-27T09:58:20Z"
 		},
 		{
 			"checksumSHA1": "S7XTs/kDwi8CTUEsecb0d4L8Ku4=",
