@@ -27,7 +27,7 @@ This is the main backend store of the relay-cluster.
 
 * [redis](deploy_redis.md)
 
-Mainly used to increase the speed for requests, or store non-critical data.
+Mainly used to increase the request speed for API, or store non-critical data.
 
 * [zookeeper](deploy_zookeeper.md)
 
@@ -57,7 +57,7 @@ Used to match orders as rings, and submit them to eth network.
 ## Web access
 Web access is supported by aws ALB, which proxy relay-cluster rpc API and ethnode API.
 
-[Deploy ALB](deploy_alb.md)
+* [ALB](deploy_alb.md)
 
 ## Auxiliary management system(optional)
 * [kafka-manager](deploy_kafka_manager.md)

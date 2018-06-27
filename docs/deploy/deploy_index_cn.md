@@ -58,7 +58,7 @@ relay-cluster通过和go-ethereum(geth)节点的交互来实现以太坊网络�
 ## web接入
 目前通过aws ALB作为relay-cluster和ethnode的统一请求代理入口。
 
-* [alb](deploy_alb_cn.md)
+* [ALB](deploy_alb_cn.md)
 
 ## 辅助管理系统【可选】
 * [kafka-manager](deploy_kafka_manager_cn.md)

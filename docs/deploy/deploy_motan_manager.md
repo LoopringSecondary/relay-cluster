@@ -3,7 +3,7 @@
 Motan-manager is part of the open-source component of weibo motan-rpc. It can be used to view the rpc service in zookeeper, where the motan-rpc is located, and can perform simple management operations.
 
 ## Applying for an EC2 instance and connecting a security group
-To apply for an EC2 server, reference: [EC2 example](new_ec2.md)
+To apply for an EC2 server, reference: [Start EC2 instance](new_ec2.md)
 
 Apply the `motanManger-SecurityGroup` security group. If the security group is not created, create it first, please refer to: [aws security group](security_group.md)
 

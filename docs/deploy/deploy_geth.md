@@ -4,7 +4,7 @@ We chose to deploy the official go-ethereum (geth) version of the eth service as
 ## Start a new instance
 We recommend you deploy more than two eth nodes to avoid failures or having the service unavailable due to node delay, operation issues, and maintenance reasons.
 
-Due to the need to deploy the full node of the geth, it will consume relatively more resources, and you need to select the instance with the 8core 32g and above configuration. Please also refer to: [EC2 example](new_ec2.md)
+Due to the need to deploy the full node of the geth, it will consume relatively more resources, and you need to select the instance with the 8core 32g and above configuration. Please also refer to: [Start EC2 instance](new_ec2.md)
 
 The `ethnode-SecurityGroup` security group needs to be apply after the instance is started. If the security group has not been created, create it first, please refer to [aws security group](security_group.md).
 

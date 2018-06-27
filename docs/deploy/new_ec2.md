@@ -11,7 +11,7 @@ Log in to the aws console [http://aws.amazon.com](http://aws.amazon.com) and sel
 [Step 2: Select an example type], select the appropriate type on the page. If you do an experiment, you can select a free instance.
 
 [Step 3: Configure Example Details page], select Default VPC in Network. If there are multiple instances, it is recommended that you create them in groups, and then select different subnets for each group to avoid the single aws room failing, which would make the service unavailable. For IAM roles, you do not need to set them and configure them as needed. Other choices are the default
-> If you need to support deployment of services through CodeDeploy in this instance, you must configure additional IAM roles and initialization scripts, refer to [Access CodedDploy](codedeploy.md)
+> If you need to support deployment of services through CodeDeploy in this instance, you must configure additional IAM roles and initialization scripts, refer to [Access CodedDploy](#support-codedeploy)
 
 [Step 4: Add Storage page], the disk size is recommended to be greater than 20G. [Volume Type] is [Default Universal SSD]
 

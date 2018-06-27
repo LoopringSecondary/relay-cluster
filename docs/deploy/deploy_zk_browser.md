@@ -3,7 +3,7 @@
 Node-zk-browser provides functions for traversing and modifying zookeeper data for subsequent viewing and modification of zk-based configurations
 
 ## Start EC2 instance and configure security group
-Start 1 EC2 instance, refer [New EC2 instance](new_ec2.md)
+Start 1 EC2 instance, refer [Start EC2 instance](new_ec2.md)
 
 Apply security group named `zookeeperBrowser-SecurityGroup` for each instance. If the security group hasn't been created, please create it first, refer to: [aws security group](security_group.md)
 

@@ -3,7 +3,7 @@
 ## Initialization environment
 
 ### Start EC2 instance
-Start the EC2 instance and add support for CodeDeploy during the startup process. [Start aws EC2 instance](new_ec2.md)
+Start the EC2 instance and add support for CodeDeploy during the startup process. [Start EC2 instance](new_ec2.md)
 
 ### Configure the security group
 Apply a security group called `relayCluster-SecurityGroup` with each instance. If it hasn't been created, create it first, please refer to: [aws security group](security_group.md) 
@@ -68,7 +68,7 @@ Make the following necessary modifications based on `Loopring/relay-cluster/conf
     region = ""
 ```
 
-> If `cloudwatch` or `sns` segments' config `enabled` is set to true, please refer to: [ec2](new_ec2.md) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+> If `cloudwatch` or `sns` segments' config `enabled` is set to true, please refer to: [deploy credentials file](new_ec2.md#deploy-credentials-file) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
 * motan_server.yaml
 

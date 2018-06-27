@@ -3,7 +3,7 @@
 Kafka-manager is a yahoo open-source kafka management tool that can be used to view the status of nodes and topics in the cluster, as well as some performance indicators
 
 ## Start EC2 instance and configure security group
-Start 1 EC2 instance, refer [New EC2 instance](new_ec2.md)
+Start 1 EC2 instance, refer [Start EC2 instance](new_ec2.md)
 
 Apply security group named `kafkaManager-SecurityGroup` for each instance. If the security group hasn't been created, please create it first, refer to: [aws security group](security_group.md) 
 

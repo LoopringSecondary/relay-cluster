@@ -48,7 +48,7 @@ Suggest to check [Error Log], [General], [Slow Query Log]
 Disable [Automatic Minor Version Upgrade], a similar process to backing up, select the proper maintenance window, and select start the database instance
 
 ### Create a stand-alone MySQL instance
-Reference [New EC2 instance](new_ec2.md), start the instance, and apply the `mysql-securityGroup` security group
+Reference [Start EC2 instance](new_ec2.md), start the instance, and apply the `mysql-securityGroup` security group
 
 Execute the following script to deploy a Mysql instance
 ```

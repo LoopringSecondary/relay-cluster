@@ -97,9 +97,9 @@ Step 3 - For the role name, enter `CodeDeployEc2InstanceProfile`, select [create
 
 ### Configure EC2 instances
 
-> Only need operate once for same EC2 instance
+> Only need operate once for one EC2 instance
 
-> It recommended to configure the EC2 instance when starting it. Reference: [Support CodeDeploy](codedeploy.md), and if you have a similar configuration, you do not need to perform the following two operations.
+> It recommended to configure the EC2 instance when starting it. Reference: [Support CodeDeploy](new_ec2.md#support-codedeploy), and if you have a similar configuration, you do not need to perform the following two operations.
 
 #### Configuration role
 Modify the existing instance of the IAM role, [EC2-instance-instance], select an EC2 instance that needs to be deployed through CodeDeploy, [Operation - Instance Settings - Attach/Replace IAM Role], [IAM Role] select the previously created `CodeDeployEc2InstanceProfile' `, select [Application]
@@ -135,7 +135,7 @@ For example, here is the labeling needed to deploy the relay-cluster instance [r
 
 ### Configure CodeDeploy Application
 
-> Only need operate once for same application
+> Only need operate once for one application
 
 #### Create an application
 Open the CodeDeploy console, and select [Start Now]

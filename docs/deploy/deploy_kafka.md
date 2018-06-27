@@ -10,7 +10,7 @@ Kafka needs cluster deployment to ensure availability. We recommended deploying 
 take 3 node as example
 
 ### Start EC2 instance and configure security group
-Start 3 EC2 instance, refer [New EC2 instance](new_ec2.md)
+Start 3 EC2 instance, refer [Start EC2 instance](new_ec2.md)
 
 Apply security group named `kafka-SecurityGroup` for each instance. If the security group hasn't been created, please create it first, refer to: [aws security group](security_group.md)
 

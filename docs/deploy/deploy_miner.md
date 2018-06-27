@@ -3,7 +3,7 @@
 ## Initialization environment
 
 ### Start EC2 instance
-Start the EC2 instance and add support for CodeDeploy during the startup process, and refer to: [start aws EC2 instance](new_ec2.md)
+Start the EC2 instance and add support for CodeDeploy during the startup process, and refer to: [Start EC2 instance](new_ec2.md)
 
 ### Configure the security group
 Apply the `miner-SecurityGroup` security group. If the security group has not been created, create it first, please refer to the [aws security group](security_group.md). 
@@ -72,7 +72,7 @@ Make the following necessary modifications based on `Loopring/miner/config/miner
     region = ""
 ```
 
-> If `cloudwatch` segment's config `enabled` is set to true, please refer to: [ec2](new_ec2.md) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+> If `cloudwatch` segment's config `enabled` is set to true, please refer to: [deploy credentials file](new_ec2.md#deploy-credentials-file) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
 * motan_client.yaml
 
