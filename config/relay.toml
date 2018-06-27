@@ -5,8 +5,8 @@ title = "miner"
     development = true
     disable_stacktrace = false
     encoding = "console"
-    output_paths = [ "stdout"]
-    error_output_paths = ["stderr"]
+    output_paths = ["zap.log", "stderr"]
+    error_output_paths = ["err.log"]
     [log.encoder_config]
         message_key = "msg"
         level_key = "level"
@@ -125,8 +125,8 @@ title = "miner"
     cache_ttl = 86400
     [subscriber_options.MatrixClientOptions]
         hs_url = "http://13.112.62.24111:8008"
-        user = "root111"
-        password = "1111"
-        access_token = "1111MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
+        user = "root"
+        password = "1"
+        access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
 
 
