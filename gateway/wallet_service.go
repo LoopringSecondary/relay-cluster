@@ -628,26 +628,26 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 }
 
 // 查询p2p订单, 订单类型固定, market不限
-func (w *WalletServiceImpl) GetP2pOrders(query *OrderQuery) (res PageResult, err error) {
-	orderQuery, statusList, pi, ps := convertFromQuery(query)
-	orderQuery["order_type"] = types.ORDER_TYPE_P2P
-	if _, ok := orderQuery["market"]; ok {
-		delete(orderQuery, "market")
-	}
-
-	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
-	if err != nil {
-		log.Info("query order error : " + err.Error())
-	}
-
-	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
-
-	for _, d := range src.Data {
-		o := d.(types.OrderState)
-		rst.Data = append(rst.Data, orderStateToJson(o))
-	}
-	return rst, err
-}
+//func (w *WalletServiceImpl) GetP2pOrders(query *OrderQuery) (res PageResult, err error) {
+//	orderQuery, statusList, pi, ps := convertFromQuery(query)
+//	orderQuery["order_type"] = types.ORDER_TYPE_P2P
+//	if _, ok := orderQuery["market"]; ok {
+//		delete(orderQuery, "market")
+//	}
+//
+//	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
+//	if err != nil {
+//		log.Info("query order error : " + err.Error())
+//	}
+//
+//	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
+//
+//	for _, d := range src.Data {
+//		o := d.(types.OrderState)
+//		rst.Data = append(rst.Data, orderStateToJson(o))
+//	}
+//	return rst, err
+//}
 
 func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
 	if len(query.OrderHash) == 0 {
@@ -1261,7 +1261,7 @@ func convertStatus(s string) []types.OrderStatus {
 	case "ORDER_FINISHED":
 		return []types.OrderStatus{types.ORDER_FINISHED}
 	case "ORDER_CANCELLED":
-		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_CUTOFF}
+		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_FLEX_CANCEL, types.ORDER_CUTOFF}
 	case "ORDER_CUTOFF":
 		return []types.OrderStatus{types.ORDER_CUTOFF}
 	case "ORDER_EXPIRE":
