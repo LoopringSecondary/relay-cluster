@@ -98,9 +98,11 @@ func SubOrderNext() (<-chan interface{}, error) {
 }
 
 func Initialize(publishers []Publisher, subscribers []Subscriber) {
-	broadcaster = &Broadcaster{}
-	broadcaster.publishers = publishers
-	broadcaster.subscribers = subscribers
+	if len(publishers) > 0 || len(subscribers) > 0 {
+		broadcaster = &Broadcaster{}
+		broadcaster.publishers = publishers
+		broadcaster.subscribers = subscribers
+	}
 }
 
 func IsInit() bool {
