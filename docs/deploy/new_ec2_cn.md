@@ -11,7 +11,7 @@
 在【步骤 2: 选择一个实例类型】页面选择合适的类型，如果做实验，可以选择免费的实例。
 
 在【步骤 3: 配置实例详细信息】页面，【网络】选择默认VPC即可。如果有多个实例，建议分批创建，然后每批选择不同的【子网】，可以避免单aws机房故障导致服务不可用。对于IAM角色，可以不设置，后续根据需要进行配置。其他选择默认即可
-> 如果需要支持通过CodeDeploy在该实例部署服务，这里需要额外配置IAM角色和初始化脚本，参考[支持codedeploy](#支持CodeDeploy)
+> 如果需要支持通过CodeDeploy在该实例部署服务，这里需要额外配置IAM角色和初始化脚本，参考[支持codedeploy](#支持codedeploy)
 
 在【步骤 4: 添加存储】页面，磁盘大小建议选择大于20G，【卷类型】为【默认通用SSD】
 
@@ -44,4 +44,37 @@ chmod +x ./install
 ./install auto
 service codedeploy-agent stop
 service codedeploy-agent start
+```
+
+## 部署aws sdk鉴权文件
+通过aws sdk可以实现对aws相关服务的接入，目前用到的两个服务是cloudwatch和SNS(Simple Notification Service)两个功能。
+
+aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上aws 服务，在配置中将开关关闭并跳过下面配置即可。
+
+### 创建鉴权信息
+参考[aws doc](https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-chap-getting-started.html)
+
+打开IAM控制台，点击【添加用户】
+
+步骤1，输入用户名`sdkUser`，【访问类型】选择【编程访问】
+
+步骤2，选择【直接附加现有策略】
+
+	如果开通cloudwatch 服务，请添加`CloudWatchAgentServerPolicy`, `AmazonAPIGatewayPushToCloudWatchLogs`, `CloudWatchActionsEC2Access`三个策略
+
+	如果开通SNS服务，请添加`AmazonSNSFullAccess`
+
+步骤3，点击【创建用户】
+
+步骤4，记录页面中的【访问密钥 ID】和【私有访问密钥】，在后面的部署文件会用到
+
+### 部署鉴权文件
+
+文件部署路径 `~/.aws/credentials`
+
+将前面创建的鉴权信息输入该配置文件中
+```
+[default]
+aws_access_key_id = xxxx
+aws_secret_access_key = xxxx
 ```

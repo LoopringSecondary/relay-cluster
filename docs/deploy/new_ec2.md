@@ -45,3 +45,36 @@ chmod +x ./install
 service codedeploy-agent stop
 service codedeploy-agent start
 ```
+
+## Deploy aws sdk credentials file
+Cloudwatch and SNS(Simple Notification Service) are now used in backend services by aws sdk, which need credentials file for initialization.
+
+If you enabled any of these two services in your service configuration, you will need deploy the credentials file descibed below, otherwise just ignore following operation.
+
+### Create IAM user
+Refer [aws doc](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
+
+Open IAM console, Click [Add User]
+
+[Step 1], enter user name`sdkUser`, [Access type] select [Programmatic access]
+
+[Step 2], select [Attach existing policies directly]
+
+	In case cloudwatch is enabled, please add those three policies: `CloudWatchAgentServerPolicy`, `AmazonAPIGatewayPushToCloudWatchLogs`, `CloudWatchActionsEC2Access`.
+
+	In case SNS is enabled, please add `AmazonSNSFullAccess` policy.
+
+[Step 3], click [Create user].
+
+[Step 4], record [Access key ID] and [Secret access key] for usage at below.
+
+### Deploy credentials file
+
+Deploy path in every EC2 instance is `~/.aws/credentials`.
+
+Add [Access key ID] and [Secret access key] to this file as below format
+```
+[default]
+aws_access_key_id = xxxx
+aws_secret_access_key = xxxx
+```

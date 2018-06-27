@@ -615,7 +615,7 @@ func (so *SocketIOServiceImpl) broadcastGlobalTicker(input interface{}) (err err
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			_, ok := businesses[eventKeyGlobalTicker]
-			if ok {
+			if ok && len(string(respJson[:])) > 0 {
 				//log.Info("emit loopring gas price info")
 				v.Emit(eventKeyGlobalTicker+EventPostfixRes, string(respJson[:]))
 			}
@@ -635,7 +635,9 @@ func (so *SocketIOServiceImpl) broadcastGlobalTrend(input interface{}) (err erro
 		if err != nil {
 			resp = SocketIOJsonResp{Error: err.Error()}
 		} else {
-			resp.Data = v
+			vMap := make(map[string][]market.GlobalTrend)
+			vMap[k] = v
+			resp.Data = vMap
 		}
 
 		respJson, _ := json.Marshal(resp)
@@ -650,7 +652,7 @@ func (so *SocketIOServiceImpl) broadcastGlobalTrend(input interface{}) (err erro
 			if ok {
 				query := &SingleToken{}
 				err := json.Unmarshal([]byte(ctx), query)
-				if err == nil && len(query.Token) > 0 {
+				if err == nil && len(query.Token) > 0 && len(respMap[strings.ToUpper(query.Token)]) > 0 {
 					v.Emit(eventKeyGlobalTrend+EventPostfixRes, respMap[strings.ToUpper(query.Token)])
 				}
 			}
@@ -670,7 +672,9 @@ func (so *SocketIOServiceImpl) broadcastGlobalMarketTicker(input interface{}) (e
 		if err != nil {
 			resp = SocketIOJsonResp{Error: err.Error()}
 		} else {
-			resp.Data = v
+			vMap := make(map[string][]market.GlobalMarketTicker)
+			vMap[k] = v
+			resp.Data = vMap
 		}
 
 		respJson, _ := json.Marshal(resp)
@@ -685,7 +689,7 @@ func (so *SocketIOServiceImpl) broadcastGlobalMarketTicker(input interface{}) (e
 			if ok {
 				query := &SingleToken{}
 				err := json.Unmarshal([]byte(ctx), query)
-				if err == nil && len(query.Token) > 0 {
+				if err == nil && len(query.Token) > 0 && len(respMap[strings.ToUpper(query.Token)]) > 0 {
 					v.Emit(eventKeyGlobalMarketTicker+EventPostfixRes, respMap[strings.ToUpper(query.Token)])
 				}
 			}

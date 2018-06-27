@@ -47,19 +47,31 @@
 #zk内网ip地址
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+
 #如果开通了发送SNS消息的功能，需要做配置，请参考监控与告警部分关于SNS的说明
 [sns]
+    enabled = false
+    region = ""
     sns_topic_arn = "arn:aws:sns:ap-northeast-1:xxxx:RelayNotification"
+
 #kafka内网ip地址
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
 [motan_server]
     conf_file = "/opt/loopring/relay/config/motan_server.yaml"
+
 [my_token]
     app_id = "xxx"
     app_secret = "xxxx"
     base_url = "https://open.api.mytoken.io/"
+
+[cloudwatch]
+    enabled = false
+    region = ""
 ```
+
+> sns 或者 cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+
 * motan_server.yaml
 
 在`Loopring/relay-cluster/config/motan_server.yaml`的基础上进行如下必要的修改
@@ -79,8 +91,8 @@ log_dir: "/var/log/relay"
 #### 配置EC2实例
 在EC2实例执行脚本
 ```
-sudo mkdir /opt/loopring/relay
-sudo chown -R ubuntu:ubuntu /opt/loopring/relay
+sudo mkdir -p /opt/loopring/relay
+sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring/relay 
 mkdir bin/ config/ src/
 ```

@@ -58,7 +58,7 @@
     [data_source.motan_client]
         client_id="miner-client"
         conf_file="/opt/loopring/miner/config/motan_client.yaml"
-...
+
 #zk内网ip地址
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
@@ -66,7 +66,14 @@
 #kafka内网ip地址
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
+
+[cloudwatch]
+    enabled = false
+    region = ""
 ```
+
+> cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+
 * motan_client.yaml
 
 在`Loopring/miner/config/motan_client.yaml`的基础上进行如下必要的修改
@@ -88,8 +95,8 @@ log_dir: "/var/log/miner"
 
 在EC2实例执行脚本
 ```
-sudo mkdir /opt/loopring/miner
-sudo chown -R ubuntu:ubuntu /opt/loopring/miner
+sudo mkdir -p /opt/loopring/miner
+sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring/miner 
 mkdir bin/ config/ src/
 ```

@@ -180,10 +180,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "M5+FPH7uBTrUdkYTiZcRp7OHAco=",
+			"checksumSHA1": "K/WdqY7rPRJ+slAZeEH7Q10IbfA=",
 			"path": "github.com/Loopring/relay-lib/eth/loopringaccessor",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "f7ce2677c2fee909b562c4200aa39c468cf6df0b",
+			"revisionTime": "2018-06-26T08:14:24Z"
 		},
 		{
 			"checksumSHA1": "+6um3id4MJKGs8siWOX6HaMxDns=",
@@ -222,10 +222,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "v3qRYdfb+TT7gAZ+C/hJKPSSk8Y=",
+			"checksumSHA1": "YxZsmBqBQYceDgUxn+iYl9vkM4U=",
 			"path": "github.com/Loopring/relay-lib/marketutil",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "f7ce2677c2fee909b562c4200aa39c468cf6df0b",
+			"revisionTime": "2018-06-26T08:14:24Z"
 		},
 		{
 			"checksumSHA1": "ToScnYa3M8T9Ip74E96TjqYSVQg=",

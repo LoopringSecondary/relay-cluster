@@ -100,7 +100,7 @@ CodeDeloy是aws提供的代码部署工具，通过在项目中添加配置文�
 
 > 同一个EC2实例，本操作只需要执行一次
 
-> 推荐在启动EC2实例的时候进行相关配置，参考[支持CodeDeploy](https://github.com/Loopring/relay-cluster/wiki/%E5%90%AF%E5%8A%A8aws-EC2%E5%AE%9E%E4%BE%8B#%E6%94%AF%E6%8C%81codedeploy)，如果已经进行相关配置，则不需要进行下面两个部分的操作
+> 推荐在启动EC2实例的时候进行相关配置，参考[支持CodeDeploy](new_ec2_cn.md#支持codedeploy)。如果已经进行相关配置，则不需要进行下面两个部分的操作。
 
 #### 配置角色
 修改现有实例的IAM角色，【EC2-实例-实例】，选择一个需要通过CodeDeploy进行部署的EC2实例，【操作-实例设置-附加/替换IAM角色】，【IAM角色】选择前面创建的`CodeDeployEc2InstanceProfile`，选择【应用】

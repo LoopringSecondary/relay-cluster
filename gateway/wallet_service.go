@@ -388,6 +388,13 @@ type P2PRingRequest struct {
 	MakerOrderHash string `json:"makerOrderHash"`
 }
 
+type AddTokenReq struct {
+	Owner                string `json:"owner"`
+	TokenContractAddress string `json:"tokenContractAddress"`
+	Symbol               string `json:"symbol"`
+	Decimals             int64  `json:"decimals"`
+}
+
 type WalletServiceImpl struct {
 	trendManager    market.TrendManager
 	orderViewer     viewer.OrderViewer
@@ -619,6 +626,28 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 	}
 	return rst, err
 }
+
+// 查询p2p订单, 订单类型固定, market不限
+//func (w *WalletServiceImpl) GetP2pOrders(query *OrderQuery) (res PageResult, err error) {
+//	orderQuery, statusList, pi, ps := convertFromQuery(query)
+//	orderQuery["order_type"] = types.ORDER_TYPE_P2P
+//	if _, ok := orderQuery["market"]; ok {
+//		delete(orderQuery, "market")
+//	}
+//
+//	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
+//	if err != nil {
+//		log.Info("query order error : " + err.Error())
+//	}
+//
+//	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
+//
+//	for _, d := range src.Data {
+//		o := d.(types.OrderState)
+//		rst.Data = append(rst.Data, orderStateToJson(o))
+//	}
+//	return rst, err
+//}
 
 func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
 	if len(query.OrderHash) == 0 {
@@ -967,8 +996,8 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		return resultMap, errors.New("owner and delegateAddress must be applied")
 	}
 
-
-	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress); if err != nil {
+	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress)
+	if err != nil {
 		return resultMap, err
 	}
 
@@ -981,7 +1010,8 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	for _, v := range allOrders {
 		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
 		amountS, _ := v.RemainedAmount()
-		amount, ok := tmpResult[token]; if ok {
+		amount, ok := tmpResult[token]
+		if ok {
 			amount = amount.Add(amount, amountS.Num())
 		} else {
 			tmpResult[token] = amountS.Num()
@@ -997,21 +1027,23 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	return resultMap, err
 }
 
-func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error){
+func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error) {
 
 	allOrders := make([]interface{}, 0)
 
-	orderQuery := OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:1, PageSize:200, Status:"ORDER_OPENED"}
-	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+	orderQuery := OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: 1, PageSize: 200, Status: "ORDER_OPENED"}
+	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+	if err != nil {
 		return orders, err
 	}
 
 	allOrders = append(allOrders, pageRst.Data[:]...)
 
 	if pageRst.Total > 200 {
-		for i := 2; i < (pageRst.Total / 200) + 1; i++ {
-			orderQuery = OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:i, PageSize:200, Status:"ORDER_OPENED"}
-			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+		for i := 2; i < (pageRst.Total/200)+1; i++ {
+			orderQuery = OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: i, PageSize: 200, Status: "ORDER_OPENED"}
+			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+			if err != nil {
 				return orders, err
 			}
 			allOrders = append(allOrders, pageRst.Data[:]...)
@@ -1171,6 +1203,18 @@ func (w *WalletServiceImpl) TicketCount() (int, error) {
 	return w.rds.TicketCount()
 }
 
+func (w *WalletServiceImpl) AddCustomToken(req AddTokenReq) (result string, err error) {
+	if !util.IsAddress(req.Owner) || !util.IsAddress(req.TokenContractAddress) {
+		return "", errors.New("illegal address format in request")
+	}
+
+	decimals := new(big.Int)
+	decimals.SetInt64(req.Decimals)
+	return req.TokenContractAddress, util.AddToken(
+		common.HexToAddress(req.Owner),
+		util.CustomToken{Address: common.HexToAddress(req.TokenContractAddress), Symbol: req.Symbol, Decimals: decimals})
+}
+
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
 
 	query = make(map[string]interface{})
@@ -1217,7 +1261,7 @@ func convertStatus(s string) []types.OrderStatus {
 	case "ORDER_FINISHED":
 		return []types.OrderStatus{types.ORDER_FINISHED}
 	case "ORDER_CANCELLED":
-		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_CUTOFF}
+		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_FLEX_CANCEL, types.ORDER_CUTOFF}
 	case "ORDER_CUTOFF":
 		return []types.OrderStatus{types.ORDER_CUTOFF}
 	case "ORDER_EXPIRE":
