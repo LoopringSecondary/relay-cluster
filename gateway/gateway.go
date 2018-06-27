@@ -135,12 +135,6 @@ func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, o
 		if nil != err {
 			log.Fatalf("err:%s", err.Error())
 		}
-		for _,publisher := range publishers {
-			println("######", publisher.Name())
-		}
-		for _,sub := range subscribers {
-			println("####", sub.Name())
-		}
 		broadcast.Initialize(publishers, subscribers)
 		listenOrderFromGateway()
 		listenOrderFromBroacast()
