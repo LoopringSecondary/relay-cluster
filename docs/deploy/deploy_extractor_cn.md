@@ -54,7 +54,7 @@
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
 ...
-[cloudwatch]
+[cloud_watch]
     enabled = false
     region = ""
 ```

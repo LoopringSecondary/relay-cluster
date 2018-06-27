@@ -200,12 +200,12 @@ JSON-RPC是一种基于JSON的跨语言远程调用协议。JSON-RPC非常简单
     "id" : 347579
 }
 ```
-具体JSONRPC接口接入，请参考[API文档](https://github.com/Loopring/relay-cluster/blob/master/LOOPRING_RELAY_API_SPEC_V2.md)。
+具体JSONRPC接口接入，请参考[API文档](relay_api_spec_v2.md)。
 
 ---
 
 ### socketio
-SocketIO将底层通信封装成事件编程模型，提供基于事件的长连接通信方式。中继为了提高数据实时性，也采用了和传统中心化交易所同样的技术手段，来提升用户体验，具体socketio接入方法，请参考[API文档](https://github.com/Loopring/relay-cluster/blob/master/LOOPRING_RELAY_API_SPEC_V2.md)。
+SocketIO将底层通信封装成事件编程模型，提供基于事件的长连接通信方式。中继为了提高数据实时性，也采用了和传统中心化交易所同样的技术手段，来提升用户体验，具体socketio接入方法，请参考[API文档](relay_api_spec_v2.md)。
 
 ---
 

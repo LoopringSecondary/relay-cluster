@@ -2,6 +2,11 @@
 
 Kafka-manager is a yahoo open-source kafka management tool that can be used to view the status of nodes and topics in the cluster, as well as some performance indicators
 
+## Start EC2 instance and configure security group
+Start 1 EC2 instance, refer [New EC2 instance](new_ec2.md)
+
+Apply security group named `kafkaManager-SecurityGroup` for each instance. If the security group hasn't been created, please create it first, refer to: [aws security group](security_group.md) 
+
 ## Deployment
 ```
 sudo mkdir /opt/loopring
@@ -43,11 +48,3 @@ basicAuthentication.password="admin"
 
 ## Access
 Access the browser `http://Extranetip:9000`
-
-## Security group
-Create a security group called`kafka-manager-SecurityGroup`, and configure it as follows
-
-|Type         | Protocol | Port range| Source     |
-|-------------|-----|--------|---------|
-| SSH         | TCP | 22     | 0.0.0.0/0|
-| custom TCP rules| TCP | 9000   | Access terminal exit ip/32 |

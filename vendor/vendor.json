@@ -108,10 +108,22 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
+			"checksumSHA1": "e+VILnirb/o3xqxotku07Bmj+f4=",
+			"path": "github.com/Loopring/relay-lib/broadcast",
+			"revision": "a717e61c9f7f0a558f0518ddcfa69a3b5e53181d",
+			"revisionTime": "2018-06-27T09:58:20Z"
+		},
+		{
 			"checksumSHA1": "EdChFjRkkj+5ILpZ6UbQLr1bXe4=",
 			"path": "github.com/Loopring/relay-lib/broadcast/ipfs",
 			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
 			"revisionTime": "2018-06-19T07:11:06Z"
+		},
+		{
+			"checksumSHA1": "VeK/WqUOkqNbCgVTrEekXzdZk1g=",
+			"path": "github.com/Loopring/relay-lib/broadcast/matrix",
+			"revision": "a717e61c9f7f0a558f0518ddcfa69a3b5e53181d",
+			"revisionTime": "2018-06-27T09:58:20Z"
 		},
 		{
 			"checksumSHA1": "S7XTs/kDwi8CTUEsecb0d4L8Ku4=",
@@ -168,10 +180,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "M5+FPH7uBTrUdkYTiZcRp7OHAco=",
+			"checksumSHA1": "K/WdqY7rPRJ+slAZeEH7Q10IbfA=",
 			"path": "github.com/Loopring/relay-lib/eth/loopringaccessor",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "f7ce2677c2fee909b562c4200aa39c468cf6df0b",
+			"revisionTime": "2018-06-26T08:14:24Z"
 		},
 		{
 			"checksumSHA1": "+6um3id4MJKGs8siWOX6HaMxDns=",
@@ -180,10 +192,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "OJ8jpuAzz9eJYYgJYWqcxVNiLpM=",
+			"checksumSHA1": "S3RJV9vzxb8MlpkvgXMx+WhJnKw=",
 			"path": "github.com/Loopring/relay-lib/eventemitter",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "b15b0817996245c062f738c83ddfe18953f6d586",
+			"revisionTime": "2018-06-27T06:57:16Z"
 		},
 		{
 			"checksumSHA1": "AL9Ti9y5Ut7anc2uIqZ625PxHek=",
@@ -210,10 +222,10 @@
 			"revisionTime": "2018-06-19T07:11:06Z"
 		},
 		{
-			"checksumSHA1": "v3qRYdfb+TT7gAZ+C/hJKPSSk8Y=",
+			"checksumSHA1": "YxZsmBqBQYceDgUxn+iYl9vkM4U=",
 			"path": "github.com/Loopring/relay-lib/marketutil",
-			"revision": "15e56ad2fa8ac535c4dc7fbe69efd3789722d952",
-			"revisionTime": "2018-06-19T07:11:06Z"
+			"revision": "f7ce2677c2fee909b562c4200aa39c468cf6df0b",
+			"revisionTime": "2018-06-26T08:14:24Z"
 		},
 		{
 			"checksumSHA1": "ToScnYa3M8T9Ip74E96TjqYSVQg=",

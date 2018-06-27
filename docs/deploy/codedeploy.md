@@ -117,7 +117,6 @@ wget https://aws-codedeploy-ap-northeast-1.s3.amazonaws.com/latest/install
 chmod +x ./install
 sudo ./install auto
 ```
-
 Verify that the agent executes normally after you execute the script `sudo service codedeploy-agent status`. If the response is `running`, it means it is normal, otherwise, restart through the following script, and refer to: [aws doc](https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html)
 
 ```
@@ -151,6 +150,7 @@ For [Application Name] enter `relay-cluster`, for [Calculation Platform] select 
 
 Select [in-place deployment]
 
+
 * Environment configuration
 
 Select [Amazon Ec2 Instance] and add the previously configured label [relay-cluster/test] in [Label Group] to automatically filter the matched instances.
@@ -165,6 +165,7 @@ Select the CodeDeployServiceRole created earlier
 After other defaults, click [Create Application]
 
 ### Deploy the application
+
 Select [Deploy] in the pull-down menu in the upper left corner of the console and select [Create Deployment]
 
 * Configure basic information
@@ -210,7 +211,6 @@ Reference documents: [aws doc](https://docs.aws.amazon.com/codedeploy/latest/use
 * Confirm that the aws agent status is normal
 
 Execute the script `sudo service codedeploy-agent status`. If the prompt is not running, try executing the following:
-
 ```
 sudo service codedeploy-agent stop
 sudo service codedeploy-agent start

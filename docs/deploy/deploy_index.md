@@ -10,10 +10,12 @@ Before deploying any service, select the appropriate EC2 instance to start and t
 * [EC2 example](new_ec2.md)
 
 * [Aws security group](security_group.md)
+
 ### Storage and Communication
 * ethnode
 
 Relay-cluster implements eth network access by interacting with eth node
+
 * [mysql](deploy_mysql.md)
 
 This is the main backend store of the relay-cluster, the storage contains orders and transactions

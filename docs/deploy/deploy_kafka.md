@@ -52,13 +52,3 @@ default.replication.factor=3
 
 ## Logs
 `/opt/loopring/kafka_2.12-0.11.0.2/logs`
-
-## Access
-Create a security group called kafka-SecurityGroup, configured as follows
-
-|Type         | Protocol | Port Range| Source     |
-|-------------|-----|--------|---------|
-| SSH         | TCP | 22     | 0.0.0.0/0|
-|custom TCP rules| TCP | 9092   |relayCluster-SecurityGroup|
-|custom TCP rules| TCP | 9092   |kafka-SecurityGroup    |
-|custom TCP rules| TCP | 9092   |miner-SecurityGroup    |

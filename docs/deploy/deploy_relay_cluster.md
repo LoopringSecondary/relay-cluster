@@ -14,6 +14,7 @@ Configure the description of the `relayCluster-SecurityGroup` section before con
 The basic configuration of the current relay is implemented through a static configuration file. Therefore, you need to configure the file locally, and upload all the servers that need to be deployed. However, this task is only necessary during the first deployment, and the subsequent configuration will use this static configuration file to start the service [to be optimized].
 
 #### Create a configuration file
+
 * relay.toml
 
 Make the following necessary modifications based on `Loopring/relay-cluster/config/relay.toml`
