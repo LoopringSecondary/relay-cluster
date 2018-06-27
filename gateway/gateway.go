@@ -77,12 +77,7 @@ type GateWayOptions struct {
 }
 
 func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, om viewer.OrderViewer, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
-	// add gateway watcher
-	gatewayWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleOrder}
-	eventemitter.On(eventemitter.GatewayNewOrder, gatewayWatcher)
-
 	gateway = Gateway{filters: make([]Filter, 0), om: om, isBroadcast: options.IsBroadcast, maxBroadcastTime: options.MaxBroadcastTime, am: am}
-	//gateway.ipfsPubService = NewIPFSPubService(ipfsOptions)
 
 	gateway.marketCap = marketCap
 
@@ -159,8 +154,6 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 	order.Market = market
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
-	//var broadcastTime int
-
 	//TODO(xiaolu) 这里需要测试一下，超时error和查询数据为空的error，处理方式不应该一样
 	if state, err = gateway.om.GetOrderByHash(order.Hash); err != nil && err.Error() == "record not found" {
 		if err = generatePrice(order); err != nil {
@@ -176,32 +169,13 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		}
 		state = &types.OrderState{}
 		state.RawOrder = *order
-		//broadcastTime = 0
 		eventemitter.Emit(eventemitter.NewOrder, state)
 	} else {
-		//broadcastTime = state.BroadcastTime
 		log.Infof("gateway,order %s exist,will not insert again", order.Hash.Hex())
 		return orderHash, errors.New("order existed, please not submit again")
 	}
 
-	//if gateway.isBroadcast && broadcastTime < gateway.maxBroadcastTime {
-	//	//broadcast
-	//	log.Infof(">>>>>>> broad to ipfs order : " + state.RawOrder.Hash.Hex())
-	//	pubErr := gateway.ipfsPubService.PublishOrder(state.RawOrder)
-	//	if pubErr != nil {
-	//		log.Errorf("gateway,publish order %s failed", state.RawOrder.Hash.String())
-	//	} else {
-	//		if err = manager.UpdateBroadcastTimeByHash(state.RawOrder.Hash, state.BroadcastTime+1); nil != err {
-	//			return err
-	//		}
-	//	}
-	//}
 	return orderHash, err
-}
-
-func HandleOrder(input eventemitter.EventData) error {
-	_, err := HandleInputOrder(input)
-	return err
 }
 
 func generatePrice(order *types.Order) error {

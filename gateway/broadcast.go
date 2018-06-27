@@ -29,7 +29,7 @@ import (
 //to broadcast
 func listenOrderFromGateway() error {
 	gatewayOrderWatcher := &eventemitter.Watcher{Concurrent: true, Handle: handleGatewayOrder}
-	eventemitter.On(eventemitter.GatewayNewOrder, gatewayOrderWatcher)
+	eventemitter.On(eventemitter.NewOrder, gatewayOrderWatcher)
 	return nil
 }
 
