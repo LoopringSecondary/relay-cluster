@@ -58,7 +58,6 @@ func LoadConfig(file string) *GlobalConfig {
 	if err := toml.NewDecoder(io).Decode(c); err != nil {
 		panic(err)
 	}
-
 	return c
 }
 

@@ -36,7 +36,6 @@ import (
 	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/extractor"
 	"github.com/Loopring/relay-lib/kafka"
@@ -77,7 +76,6 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.logger = logger
 	n.globalConfig = globalConfig
 	n.wg = new(sync.WaitGroup)
-
 	// register
 	n.registerZklock()
 	n.registerSocketIOProducer()
@@ -127,7 +125,6 @@ func (n *Node) Start() {
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
-	go gasprice_evaluator.InitGasPriceEvaluator()
 	gateway.StartMotanService(n.globalConfig.MotanServer, n.accountManager, n.orderViewer)
 
 	n.wg.Add(1)
