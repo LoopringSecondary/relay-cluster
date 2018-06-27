@@ -28,7 +28,6 @@ import (
 	"github.com/Loopring/relay-cluster/market"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/common"
 	"github.com/Loopring/relay-cluster/usermanager"
-	"github.com/Loopring/relay-lib/broadcast/matrix"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/dao"
 	"github.com/Loopring/relay-lib/eth/accessor"
@@ -83,9 +82,6 @@ type GlobalConfig struct {
 	Websocket        gateway.WebsocketOptions
 	AccountManager   accountmanager.AccountManagerOptions
 	MyToken          market.MyTokenConfig
-
-	PublisherOptions  []matrix.MatrixPublisherOption
-	SubscriberOptions []matrix.MatrixSubscriberOption
 }
 
 func Validator(cv reflect.Value) (bool, error) {

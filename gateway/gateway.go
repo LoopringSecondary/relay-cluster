@@ -34,6 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+	"github.com/Loopring/relay-lib/broadcast"
+	"github.com/Loopring/relay-lib/broadcast/matrix"
 )
 
 type Gateway struct {
@@ -70,6 +72,8 @@ type GatewayFiltersOptions struct {
 type GateWayOptions struct {
 	IsBroadcast      bool
 	MaxBroadcastTime int
+	MatrixPubOptions  []matrix.MatrixPublisherOption
+	MatrixSubOptions []matrix.MatrixSubscriberOption
 }
 
 func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, om viewer.OrderViewer, marketCap marketcap.MarketCapProvider, am accountmanager.AccountManager) {
@@ -120,6 +124,24 @@ func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, o
 	gateway.filters = append(gateway.filters, cutoffFilter)
 
 	if gateway.isBroadcast {
+		var err error
+		var publishers []broadcast.Publisher
+		var subscribers []broadcast.Subscriber
+		publishers, err = matrix.NewPublishers(options.MatrixPubOptions)
+		if nil != err {
+			log.Fatalf("err:%s", err.Error())
+		}
+		subscribers, err = matrix.NewSubscribers(options.MatrixSubOptions)
+		if nil != err {
+			log.Fatalf("err:%s", err.Error())
+		}
+		for _,publisher := range publishers {
+			println("######", publisher.Name())
+		}
+		for _,sub := range subscribers {
+			println("####", sub.Name())
+		}
+		broadcast.Initialize(publishers, subscribers)
 		listenOrderFromGateway()
 		listenOrderFromBroacast()
 	}
