@@ -83,11 +83,10 @@ func parseBalanceCacheField(field []byte) common.Address {
 
 func (b AccountBalances) supportedAllTokens() []common.Address {
 	tokens := []common.Address{}
-	for _, token := range util.AllTokens {
-		tokens = append(tokens, token.Protocol)
-	}
-	for _, token := range b.CustomTokens {
-		tokens = append(tokens, token.Protocol)
+	if tokenList,err := util.GetCustomTokenList(b.Owner); nil == err {
+		for _,addr := range tokenList {
+			tokens = append(tokens, addr.Address)
+		}
 	}
 	tokens = append(tokens, types.NilAddress)
 	return tokens
@@ -594,16 +593,24 @@ func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
 		for _, data := range balancesData {
 			accountAddr, token := b.parseCacheBalanceField(data)
 			//log.Debugf("1---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-			if exists, err := rcache.Exists(tokenBalanceCacheKey(accountAddr)); nil == err && exists {
-				//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-				if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && (types.IsZeroAddress(token) || exists1) {
-					log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-					req := &loopringaccessor.BatchBalanceReq{}
-					req.Owner = accountAddr
-					req.Token = token
-					req.BlockParameter = "latest"
-					reqs = append(reqs, req)
-				}
+			//if exists, err := rcache.Exists(tokenBalanceCacheKey(accountAddr)); nil == err && exists {
+			//	//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+			//	if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && (types.IsZeroAddress(token) || exists1) {
+			//		log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+			//		req := &loopringaccessor.BatchBalanceReq{}
+			//		req.Owner = accountAddr
+			//		req.Token = token
+			//		req.BlockParameter = "latest"
+			//		reqs = append(reqs, req)
+			//	}
+			//}
+			if util.HadRegisted(accountAddr, token) {
+				log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+				req := &loopringaccessor.BatchBalanceReq{}
+				req.Owner = accountAddr
+				req.Token = token
+				req.BlockParameter = "latest"
+				reqs = append(reqs, req)
 			}
 		}
 	}
@@ -617,18 +624,19 @@ func (b *ChangedOfBlock) batchAllowanceReqs() loopringaccessor.BatchErc20Allowan
 			owner, token, spender := b.parseCacheAllowanceField(data)
 			//log.Debugf("1---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
 			if loopringaccessor.IsSpenderAddress(spender) {
-				if exists, err := rcache.Exists(tokenBalanceCacheKey(owner)); nil == err && exists {
-					//log.Debugf("2---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-					if exists1, err1 := rcache.HExists(allowanceCacheKey(owner), allowanceCacheField(token, spender)); nil == err1 && exists1 {
-						log.Debugf("3---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-						req := &loopringaccessor.BatchErc20AllowanceReq{}
-						req.BlockParameter = "latest"
-						req.Spender = spender
-						req.Token = token
-						req.Owner = owner
-						reqs = append(reqs, req)
-					}
+				if _, err := util.AddressToToken(token); nil == err {
+					//if exists, err := rcache.Exists(tokenBalanceCacheKey(owner)); nil == err && exists {
+					//	//log.Debugf("2---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
+					//	if exists1, err1 := rcache.HExists(allowanceCacheKey(owner), allowanceCacheField(token, spender)); nil == err1 && exists1 {
+					log.Debugf("3---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
+					req := &loopringaccessor.BatchErc20AllowanceReq{}
+					req.BlockParameter = "latest"
+					req.Spender = spender
+					req.Token = token
+					req.Owner = owner
+					reqs = append(reqs, req)
 				}
+				//}
 			}
 
 		}

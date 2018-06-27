@@ -44,19 +44,43 @@ func GetBalanceWithSymbolResult(owner common.Address) (map[string]*big.Int, erro
 	//err := accountBalances.getOrSave(common.HexToAddress("0x1fa02762bd046abd30f5bf3513f9347d5e6b4257"), common.HexToAddress("0x"), common.HexToAddress("0x3cbcee9ff904ee0351b0ff2c05e08e860c94a5ea"))
 	err := accountBalances.getOrSave(accManager.tokenCacheDuration, accManager.ethCacheDuration)
 
+	tokenToSymbols,err := tokenToSymbol(owner)
+	if nil != err {
+		return res, err
+	}
 	if nil == err {
 		for tokenAddr, balance := range accountBalances.Balances {
-			symbol := ""
-			if types.IsZeroAddress(tokenAddr) {
-				symbol = "ETH"
-			} else {
-				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
+			//symbol := ""
+			//if types.IsZeroAddress(tokenAddr) {
+			//	symbol = "ETH"
+			//} else {
+			//	symbol =
+			//}
+			if symbols,exists := tokenToSymbols[tokenAddr]; exists {
+				for _,symbol := range symbols {
+					res[symbol] = balance.Balance.BigInt()
+				}
 			}
-			res[symbol] = balance.Balance.BigInt()
 		}
 	}
 
 	return res, err
+}
+
+func tokenToSymbol(owner common.Address) (map[common.Address][]string, error) {
+	tokens := make(map[common.Address][]string)
+	tokenList,err := marketutil.GetCustomTokenList(owner)
+	if nil != err {
+		return tokens, err
+	}
+	for _,token := range tokenList {
+		if _, exists := tokens[token.Address]; !exists {
+			tokens[token.Address] = []string{}
+		}
+		tokens[token.Address] = append(tokens[token.Address], token.Symbol)
+	}
+	tokens[types.NilAddress] = []string{"ETH"}
+	return tokens, err
 }
 
 func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*big.Int, error) {
@@ -66,21 +90,34 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 
 	res := make(map[string]*big.Int)
 	err := accountAllowances.getOrSave(accManager.tokenCacheDuration, []common.Address{}, []common.Address{spender})
-
+	tokenToSymbols,err := tokenToSymbol(owner)
+	if nil != err {
+		return res, err
+	}
 	if nil == err {
 		for tokenAddr, allowances := range accountAllowances.Allowances {
-			symbol := ""
-			if types.IsZeroAddress(tokenAddr) {
-				symbol = "ETH"
-				res[symbol] = big.NewInt(int64(0))
-			} else {
-				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
-				if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
-					res[symbol] = big.NewInt(int64(0))
-				} else {
-					res[symbol] = allowances[spender].Allowance.BigInt()
+			if symbols, exists := tokenToSymbols[tokenAddr]; exists {
+				for _,symbol := range symbols {
+					if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
+						res[symbol] = big.NewInt(int64(0))
+					} else {
+						res[symbol] = allowances[spender].Allowance.BigInt()
+					}
 				}
 			}
+
+			//symbol := ""
+			//if types.IsZeroAddress(tokenAddr) {
+			//	symbol = "ETH"
+			//
+			//} else {
+			//	symbol = marketutil.AddressToAlias(tokenAddr.Hex())
+			//	if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
+			//		res[symbol] = big.NewInt(int64(0))
+			//	} else {
+			//		res[symbol] = allowances[spender].Allowance.BigInt()
+			//	}
+			//}
 		}
 	} else {
 		log.Errorf("err:%s", err.Error())
