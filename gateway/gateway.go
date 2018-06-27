@@ -36,6 +36,7 @@ import (
 	"time"
 	"github.com/Loopring/relay-lib/broadcast"
 	"github.com/Loopring/relay-lib/broadcast/matrix"
+	"github.com/Loopring/relay-cluster/ordermanager/manager"
 )
 
 type Gateway struct {
@@ -131,7 +132,7 @@ func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, o
 			log.Fatalf("err:%s", err.Error())
 		}
 		broadcast.Initialize(publishers, subscribers)
-		listenOrderFromGateway()
+		listenOrderForBroadcast()
 		listenOrderFromBroacast()
 	}
 }
@@ -154,8 +155,11 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 	order.Market = market
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
+
 	//TODO(xiaolu) 这里需要测试一下，超时error和查询数据为空的error，处理方式不应该一样
 	if state, err = gateway.om.GetOrderByHash(order.Hash); err != nil && err.Error() == "record not found" {
+		eventemitter.Emit(eventemitter.NewOrderForBroadcast, order)
+
 		if err = generatePrice(order); err != nil {
 			return orderHash, err
 		}
@@ -171,6 +175,13 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		state.RawOrder = *order
 		eventemitter.Emit(eventemitter.NewOrder, state)
 	} else {
+		broadcastTime := state.BroadcastTime + 1
+		if gateway.isBroadcast && broadcastTime < gateway.maxBroadcastTime {
+			eventemitter.Emit(eventemitter.NewOrderForBroadcast, state.RawOrder)
+			if err = manager.UpdateBroadcastTimeByHash(state.RawOrder.Hash, broadcastTime + 1); nil != err {
+				return orderHash, err
+			}
+		}
 		log.Infof("gateway,order %s exist,will not insert again", order.Hash.Hex())
 		return orderHash, errors.New("order existed, please not submit again")
 	}

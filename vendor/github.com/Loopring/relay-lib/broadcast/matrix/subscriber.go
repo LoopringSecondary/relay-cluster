@@ -50,8 +50,10 @@ func (subscriber *MatrixSubscriber) Next() ([][]byte, error) {
 	orderData := [][]byte{}
 	eventTypes := []string{LoopringOrderType}
 	roomEventFilter := RoomEventFilter{
-		Types: eventTypes,
-		Rooms: []string{subscriber.Room},
+		NotSenders: []string{subscriber.matrixClient.UserId},
+		Types:      eventTypes,
+		Rooms:      []string{subscriber.Room},
+		Limit:      100,
 	}
 	filterStr, err := json.Marshal(roomEventFilter)
 	if nil != err {
@@ -66,6 +68,7 @@ func (subscriber *MatrixSubscriber) Next() ([][]byte, error) {
 			return orderData, err
 		}
 		subscriber.From = res.End
+		log.Infof("current point: roomId: %s , end:%s ", subscriber.Room, res.End)
 		if subscriber.CacheFrom {
 			cache.Set(CacheKeyLastFrom+subscriber.Room, []byte(subscriber.From), subscriber.CacheTtl)
 		}

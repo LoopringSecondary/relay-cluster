@@ -21,6 +21,7 @@ package matrix
 import (
 	"fmt"
 	"github.com/Loopring/relay-lib/broadcast"
+	"github.com/Loopring/relay-lib/log"
 )
 
 type MatrixPublisherOption struct {
@@ -36,12 +37,14 @@ type MatrixPublisher struct {
 func (publisher *MatrixPublisher) PubOrder(hash string, orderData []byte) error {
 	var err error
 	for _, room := range publisher.Rooms {
-		if err1 := publisher.matrixClient.SendMessages(room, LoopringOrderType, hash, LoopringOrderType, string(orderData)); nil != err1 {
+		if eventId, err1 := publisher.matrixClient.SendMessages(room, LoopringOrderType, hash, LoopringOrderType, string(orderData)); nil != err1 {
 			if nil == err {
 				err = fmt.Errorf("%s:%s", publisher.matrixClient.HSUrl, err1.Error())
 			} else {
 				err = fmt.Errorf("%s,%s:%s", err.Error(), publisher.matrixClient.HSUrl, err1.Error())
 			}
+		} else {
+			log.Infof("broadcast order:%s in room:%s with eventId:%s", hash, room, eventId)
 		}
 	}
 	return err

@@ -40,6 +40,7 @@ type MatrixClient struct {
 	User     string
 	Password string
 	LoginRes *LoginRes
+	UserId   string
 	mtx      sync.RWMutex
 }
 
@@ -55,9 +56,9 @@ func NewMatrixClient(options MatrixClientOptions) (*MatrixClient, error) {
 	} else {
 		matrixClient.LoginRes = &LoginRes{
 			AccessToken: options.AccessToken,
-			//todo:whoami
-			//UserId:
 		}
+		userId, _ := matrixClient.WhoAmI()
+		matrixClient.UserId = userId
 	}
 	return matrixClient, nil
 }
@@ -90,7 +91,6 @@ func (client *MatrixClient) Post(req MatrixReq, res interface{}) (errRes *ErrorR
 	} else {
 		client.mtx.Lock()
 		resp, err := http.Post(client.RequestUrl(req), ContentType, bytes.NewReader(reqData))
-		//println(client.RequestUrl(req))
 		if err != nil {
 			return nil, err
 		}
@@ -215,6 +215,17 @@ func (client *MatrixClient) CreateRoom() {
 func (client *MatrixClient) Logout() {
 
 }
+func (client *MatrixClient) WhoAmI() (string, error) {
+	req := &WhoAmIReq{}
+	res := &WhoAmIRes{}
+	errRes, err := client.Get(req, res)
+	if nil != errRes && UNRECOGNISED_TOKEN_ERROR == errRes.Error {
+		if err1 := client.Login(); nil == err1 {
+			errRes, err = client.Get(req, res)
+		}
+	}
+	return res.UserId, err
+}
 
 func (client *MatrixClient) JoinRoom(roomid string) error {
 	req := &JoinRoomReq{
@@ -252,7 +263,7 @@ func (client *MatrixClient) RoomMessages(roomId, from, to, dir, limit, filter st
 	return res, err
 }
 
-func (client *MatrixClient) SendMessages(roomId, eventType, txnid, msgtype, body string) error {
+func (client *MatrixClient) SendMessages(roomId, eventType, txnid, msgtype, body string) (string, error) {
 	req := &SendMessageReq{
 		RoomId:    roomId,
 		EventType: eventType,
@@ -268,7 +279,7 @@ func (client *MatrixClient) SendMessages(roomId, eventType, txnid, msgtype, body
 		}
 	}
 	log.Debugf("eventId:%s", res.EventId)
-	return err
+	return res.EventId, err
 }
 
 func (client *MatrixClient) RoomInviteFilter() {

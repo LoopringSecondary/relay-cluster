@@ -1,99 +1,31 @@
 package gateway_test
 
-//import (
-//	"fmt"
-//	"github.com/Loopring/relay-cluster/types"
-//	"testing"
-//	//"github.com/Loopring/relay-cluster/test"
-//	"github.com/Loopring/relay-cluster/dao"
-//	"github.com/Loopring/relay-cluster/gateway"
-//	"github.com/Loopring/relay-cluster/market"
-//	"github.com/Loopring/relay-cluster/market/util"
-//	"github.com/Loopring/relay-cluster/marketcap"
-//	"github.com/Loopring/relay-cluster/ordermanager"
-//	"github.com/Loopring/relay-cluster/test"
-//	"github.com/Loopring/relay-cluster/usermanager"
-//	common2 "github.com/ethereum/go-ethereum/common"
-//	"math/big"
-//	"time"
-//)
-//
-//func Ttt() {
-//	fmt.Println("ttt ")
-//}
-//
-//func TestGetPow(t *testing.T) {
-//
-//	globalConfig := test.LoadConfig()
-//
-//	fmt.Println(util.CalculatePrice("23399999899980370", "2027934200000000", "0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f", "0x639687b7f8501f174356D3aCb1972f749021CCD0"))
-//	fmt.Println(util.GetSide("0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f", "0x639687b7f8501f174356D3aCb1972f749021CCD0"))
-//
-//	rds := dao.NewRdsService(globalConfig.Mysql)
-//
-//	um := usermanager.NewUserManager(&globalConfig.UserManager, rds)
-//	mc := marketcap.NewMarketCapProvider(globalConfig.MarketCap)
-//
-//	om := ordermanager.NewOrderManager(&globalConfig.OrderManager, rds, um, mc)
-//	trendm := market.NewTrendManager(rds)
-//
-//	am := market.NewAccountManager()
-//
-//	ethf := gateway.EthForwarder{}
-//	collector := market.NewCollector()
-//	protocols := make(map[string]string)
-//	ws := gateway.NewWalletService(trendm, om, am, mc, &ethf, *collector, rds, "", protocols)
-//	oq := gateway.OrderQuery{}
-//	oq.ContractVersion = "v1.4"
-//	oq.Side = "buy"
-//	//fmt.Println(ws.GetOrders(&oq))
-//	//trendm.LoadCache()
-//	ore := &types.OrderFilledEvent{}
-//	ore.Market = "LRC-WETH"
-//	ore.TokenS = common2.HexToAddress("0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f")
-//	ore.TokenB = common2.HexToAddress("0x639687b7f8501f174356D3aCb1972f749021CCD0")
-//	ore.Protocol = common2.HexToAddress("0xD8516b98cFe5e33907488B144112e800632055a5")
-//	ore.Owner = common2.HexToAddress("0x750aD4351bB728ceC7d639A9511F9D6488f1E259")
-//	ore.RingIndex = big.NewInt(492)
-//	ore.BlockNumber = big.NewInt(483818)
-//	ore.BlockTime = 1523859094
-//	ore.Status = types.TX_STATUS_SUCCESS
-//	ore.AmountS = big.NewInt(23399999899980370)
-//	ore.AmountB = big.NewInt(2027934200000000)
-//	ore.FillIndex = big.NewInt(1)
-//	//trendm.ProofRead()
-//	time.Sleep(time.Minute * 10)
-//	trendm.HandleOrderFilled(ore)
-//	fmt.Println(ws.GetTrend(gateway.TrendQuery{Market: "LRC-WETH", Interval: "1Hr"}))
-//	//fmt.Println(ws.GetTrend(gateway.TrendQuery{Market:"LRC-WETH", Interval:"2Hr"}))
-//	fmt.Println(ws.GetTicker())
-//
-//	//q := make(map[string]interface{})
-//	//q["side"] = "buy"
-//	//q["protocol"] = "0x13d8d3c7318B118b28ed810E15F1A7B9Bea46fAA"
-//	//os := make([]types.OrderStatus, 0)
-//	//pr, _ := om.GetOrders(q, os, 1, 30)
-//	//fmt.Println(">>>>>>")
-//	//fmt.Println(gateway.BuildOrderResult(pr))
-//	//fmt.Println("2>>>>>>")
-//	//ooo := pr.Data[0].(types.OrderState)
-//	//fmt.Println(ooo)
-//	//fmt.Println(gateway.OrderStateToJson(ooo))
-//
-//	o := types.Order{}
-//	o.V = 27
-//	o.R = types.BytesToBytes32([]byte("0x12345"))
-//	o.S = types.BytesToBytes32([]byte("0x12345"))
-//	o.PowNonce = 30
-//
-//	//difficulty := types.HexToBigint(globalConfig.GatewayFilters.PowFilter.Difficulty)
-//	//powFilter := &gateway.PowFilter{Difficulty:difficulty}
-//	//fmt.Println(types.BigintToHex(gateway.GetPow(o.V, o.R, o.S, o.PowNonce)))
-//
-//	//for o.PowNonce < 1110 {
-//	//	fmt.Println(types.BigintToHex(gateway.GetPow(o.V, o.R, o.S, o.PowNonce)))
-//	//	fmt.Println(powFilter.Filter(&o))
-//	//	o.PowNonce = o.PowNonce + 1
-//	//}
-//
-//}
+import (
+	"testing"
+	"github.com/Loopring/relay-cluster/test"
+	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-cluster/accountmanager"
+	"github.com/Loopring/relay-lib/types"
+	"encoding/json"
+	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
+	"time"
+)
+
+func TestHandleInputOrder(t *testing.T) {
+	cfg := test.LoadConfig()
+
+	rds := test.Rds()
+	marketCap := test.GenerateMarketCap()
+	accountmanager.Initialize(&cfg.AccountManager, cfg.Kafka.Brokers)
+	viewer := orderviewer.NewOrderViewer(&cfg.OrderManager, rds , marketCap)
+	gateway.Initialize(&cfg.GatewayFilters, &cfg.Gateway, viewer, marketCap, accountmanager.AccountManager{})
+
+	s := `{"protocol":"0x456044789a41b277f033e4d79fab2139d69cd154","delegateAddress":"0xa0af16edd397d9e826295df9e564b10d57e3c457","authAddr":"0x47fe1648b80fa04584241781488ce4c0aaca23e4","authPrivateKey":"0x5a12849ba30a17144288161d348094588ade48a3eeb3c80fcfecd8f43934f15b","walletAddress":"0x251f3bd45b06a8b29cb6d171131e192c1254fec1","tokenS":"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","tokenB":"0xef68e7c694f40c8202821edf525de3782458639f","amountS":"0x16345785d8a0000","amountB":"0x1043561a8829300000","validSince":"0x5b334c3d","validUntil":"0x5bb7223d","lrcFee":"0x4563918244f40000","buyNoMoreThanAmountB":false,"marginSplitPercentage":0,"v":27,"r":"0x98d8e21f487d4713be6cc86ea2f408dbfde407ccaf83e3404c248066ec05ba3b","s":"0x1a40d060a90d264b9ca5eef687f8bfe0eae3a91e6c2fb7250e0f10fae29df54d","price":"1/3000","owner":"0x251f3bd45b06a8b29cb6d171131e192c1254fec1","hash":"0xb012700e2923383340976b907d57194f4da26826dc3a5d55403c527fa46017da","market":"LRC-WETH","createTime":0,"powNonce":1,"side":"buy","orderType":"market_order"}`
+	order := &types.Order{}
+	json.Unmarshal([]byte(s), order)
+
+	gateway.HandleInputOrder(order)
+
+	time.Sleep(5 * time.Second)
+}
+

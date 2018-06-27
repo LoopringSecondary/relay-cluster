@@ -19,10 +19,10 @@
 package broadcast
 
 import (
+	"encoding/json"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/utils"
 	"sync"
-	"encoding/json"
 )
 
 var broadcaster *Broadcaster
@@ -45,7 +45,7 @@ type Subscriber interface {
 type PubOrderError map[string]error
 
 func (err PubOrderError) Error() string {
-	if data,e := json.Marshal(err); nil == err {
+	if data, e := json.Marshal(err); nil == err {
 		return string(data)
 	} else {
 		return e.Error()

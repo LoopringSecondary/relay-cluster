@@ -58,18 +58,18 @@ title = "miner"
             access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
 
     [[gateway.matrix_sub_options]]
-        rooms = [ "!RoJQgzCfBKHQznReRT:localhost1111"]
+        rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
         cache_from = true
         cache_ttl = 86400
         [gateway.matrix_sub_options.MatrixClientOptions]
-            hs_url = "http://13.112.62.24111:8008"
+            hs_url = "http://13.112.62.24:8008"
             user = "root"
             password = "1"
             access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjJjaWQgdXNlcl9pZCA9IEByb290OmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IHl3diwwV0VNWmZALFgsX14KMDAyZnNpZ25hdHVyZSDUtdBILxMd-_DHMLxlN-GwZYZkSwdYJJL9uWM8Wx1UeAo"
 
 
 [accessor]
-    raw_urls = ["http://127.0.0.1:8545"]
+    raw_urls = ["http://13.113.214.212:8545"]
     fetch_tx_retry_count = 120
 
 [loopring_protocol]

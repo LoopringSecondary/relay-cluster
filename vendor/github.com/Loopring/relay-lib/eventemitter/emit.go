@@ -29,6 +29,7 @@ type Topic string
 
 const (
 	NewOrder = "NewOrder"
+	NewOrderForBroadcast = "NewOrderForBroadcast"
 
 	WethDeposit         = "WethDeposit"
 	WethWithdrawal      = "WethWithdrawal"

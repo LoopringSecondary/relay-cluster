@@ -27,9 +27,9 @@ import (
 )
 
 //to broadcast
-func listenOrderFromGateway() error {
+func listenOrderForBroadcast() error {
 	gatewayOrderWatcher := &eventemitter.Watcher{Concurrent: true, Handle: handleGatewayOrder}
-	eventemitter.On(eventemitter.NewOrder, gatewayOrderWatcher)
+	eventemitter.On(eventemitter.NewOrderForBroadcast, gatewayOrderWatcher)
 	return nil
 }
 
@@ -63,6 +63,7 @@ func handleGatewayOrder(input eventemitter.EventData) error {
 	if order, ok := input.(*types.Order); ok {
 		data, err := json.Marshal(order)
 		if nil != err {
+			log.Errorf("err:%s", err.Error())
 			return err
 		}
 		if err1 := broadcast.PubOrder(order.Hash.Hex(), data); nil != err1 {

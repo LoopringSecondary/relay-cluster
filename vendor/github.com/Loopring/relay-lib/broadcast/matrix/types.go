@@ -30,6 +30,7 @@ const (
 	RoomMessagesPath = "/_matrix/client/r0/rooms/%s/messages"
 	CreateFilterPath = "/_matrix/client/r0/user/%s/filter"
 	SendMessagePath  = "/_matrix/client/r0/rooms/%s/send/%s/%s"
+	WhoAmIPath       = "/_matrix/client/r0/account/whoami"
 )
 
 const (
@@ -225,7 +226,7 @@ type SendMessageReq struct {
 }
 
 func (req *SendMessageReq) Path() string {
-	return fmt.Sprintf(SendMessagePath, req.RoomId, req.EventType, "m1529661809000.0")
+	return fmt.Sprintf(SendMessagePath, req.RoomId, req.EventType, req.TxnId)
 }
 
 func (req *SendMessageReq) Params() []string {
@@ -234,4 +235,19 @@ func (req *SendMessageReq) Params() []string {
 
 type SendMessageRes struct {
 	EventId string `json:"event_id"`
+}
+
+type WhoAmIReq struct {
+}
+
+func (req *WhoAmIReq) Path() string {
+	return WhoAmIPath
+}
+
+func (req *WhoAmIReq) Params() []string {
+	return []string{}
+}
+
+type WhoAmIRes struct {
+	UserId string `json:"user_id"`
 }
