@@ -7,7 +7,7 @@
 Start the EC2 instance and add support for CodeDeploy during the startup process. Refer to: [Start aws EC2 instance](new_ec2.md)
 
 ### Configure the security group
-Configure a security group called `extractor-SecurityGroup` for each instance. If it has not yet been created, please refer to: [Configure the aws security group](security_group.md). Configure the description of the `extractor-SecurityGroup` section before associating.
+Configure a security group called `extractor-SecurityGroup` for each instance. If it has not yet been created, create it first, please refer to: [Configure the aws security group](security_group.md).
 
 ### Deployment of configuration file
 Currently, the basic configuration of an extractor is implemented through a static configuration file. Therefore, you need to configure the configuration file locally and upload all the servers that need to be deployed. This task is only necessary the first time you deploy it, and the static configuration file will be used later. Start the service [to be optimized].
@@ -58,7 +58,7 @@ Make the following necessary modifications based on `Loopring/extractor/config/e
     region = ""
 ```
 
-> Cloudwatch If `enabled` is set to true, please refer to: [ec2](new_ec2.md) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+> If `cloudwatch` segment's config `enabled` is set to true, please refer to: [ec2](new_ec2.md) to deploy the authentication file. For the value of the region, please refer to: [aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
 * tokens.json
 

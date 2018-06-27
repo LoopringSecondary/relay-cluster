@@ -60,7 +60,7 @@ It is recommended to set a maintenance window to avoid business peak change oper
 Finally click [Create] to create a redis cluster
 
 ### Create a standalone Redis instance
-Refer to; [Start aws EC2 instance](new_ec2.md), start the instance, and connect the `redis-securityGroup` security group
+Refer to; [Start aws EC2 instance](new_ec2.md), start the instance, and apply the `redis-securityGroup` security group
 
 Execute the following script to deploy the redis instance
 

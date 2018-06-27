@@ -6,7 +6,7 @@ We recommend you deploy more than two eth nodes to avoid failures or having the 
 
 Due to the need to deploy the full node of the geth, it will consume relatively more resources, and you need to select the instance with the 8core 32g and above configuration. Please also refer to: [EC2 example](new_ec2.md)
 
-The `ethnode-SecurityGroup` security group needs to be connected after the instance is started. If the security group has not been created, please refer to [aws security group](security_group.md) for the description of the `ethnode-SecurityGroup` security group, and then create the connection again.
+The `ethnode-SecurityGroup` security group needs to be apply after the instance is started. If the security group has not been created, create it first, please refer to [aws security group](security_group.md).
 
 ## Deployment
 For the specific deployment operations, refer to eth official documents: [go-ethereum for ubuntu](https://github.com/ethereum/go-ethereum/wiki/Installation-Instructions-for-Ubuntu)

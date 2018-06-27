@@ -5,7 +5,7 @@ Motan-manager is part of the open-source component of weibo motan-rpc. It can be
 ## Applying for an EC2 instance and connecting a security group
 To apply for an EC2 server, reference: [EC2 example](new_ec2.md)
 
-Connect the `motanManger-SecurityGroup` security group. If the security group is not created, please refer to: [aws security group](security_group.md) for the description of the `motanManger-SecurityGroup` security group, and then create the connection again.
+Apply the `motanManger-SecurityGroup` security group. If the security group is not created, create it first, please refer to: [aws security group](security_group.md)
 
 ## Deployment
 ```

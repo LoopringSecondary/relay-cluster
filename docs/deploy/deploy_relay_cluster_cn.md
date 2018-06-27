@@ -48,7 +48,6 @@
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 
-#如果开通了发送SNS消息的功能，需要做配置，请参考监控与告警部分关于SNS的说明
 [sns]
     enabled = false
     region = ""

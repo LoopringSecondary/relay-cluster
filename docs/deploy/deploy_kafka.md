@@ -1,9 +1,21 @@
 # Deploy kafka
+
 > kafka relies on zookeeper, so you need to deploy zookeeper first
 
 Kafka is used for Message communication between extractor and relay-cluster
 
+Kafka needs cluster deployment to ensure availability. We recommended deploying more than 3 different nodes.
+
 ## Deployment
+take 3 node as example
+
+### Start EC2 instance and configure security group
+Start 3 EC2 instance, refer [New EC2 instance](new_ec2.md)
+
+Apply security group named `kafka-SecurityGroup` for each instance. If the security group hasn't been created, please create it first, refer to: [aws security group](security_group.md)
+
+### Deployment
+
 We recommend you deploy more than three nodes to ensure availability. The following takes a three-node kafka cluster as an example.
 ```
 #If you do not deploy jre, you need to perform the following two operations
