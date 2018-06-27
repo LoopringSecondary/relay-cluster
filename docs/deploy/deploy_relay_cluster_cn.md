@@ -52,7 +52,7 @@
 [sns]
     enabled = false
     region = ""
-    sns_topic_arn = "arn:aws:sns:ap-northeast-1:xxxx:RelayNotification"
+    sns_topic_arn = "arn:aws:sns:region-code:xxxx:RelayNotification"
 
 #kafka内网ip地址
 [kafka]
@@ -70,7 +70,7 @@
     region = ""
 ```
 
-> sns 或者 cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+> sns 或者 cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
 * motan_server.yaml
 
@@ -107,7 +107,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/relay/config
 
 ## 服务日志
 
-### relay业务代码日志
+### relay业务日志
 `/var/log/relay/zap.log`
 
 ### motan-rpc日志

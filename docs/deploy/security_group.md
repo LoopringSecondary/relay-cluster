@@ -4,7 +4,7 @@
 
 > Because the default security group will reject traffic except port 22, we must configure the security group in order to provide services externally.
 
-The aws security group accesses the Ec2 server by setting access rules and intercepting illegal traffic to improve the network security of the server. For details, refer to [aws security group](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)
+The aws security group accesses the Ec2 server by setting access rules and intercepting illegal traffic to improve the network security of the server. For details, refer to [aws security group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 
 ## Configuration entry
 [EC2-Network and Security-Security Group] is the entrance to edit and view security groups
@@ -27,7 +27,7 @@ Set the allowable inbound rules, usually we deploy services are provided through
 
 Allow only specific ip access which is usually only used in special circumstances
 
-We can usually allow access to a specific ipv4 address by configuring ʻip+/32` in the source, which is similar to `203.0.113.1/32`
+We can usually allow access to a specific ipv4 address by configuring `ip+/32` in the source, which is similar to `203.0.113.1/32`
 
 Do not use this for access between services because you will need to manually modify the service once it has been expanded or migrated.
 
@@ -65,11 +65,13 @@ The security group is independent of the EC2 instance, but can be created before
 | HTTP | TCP | 80    | ::/0    |
 | customized TCP rule | TCP | 443  | 0.0.0.0/0|
 | customized TCP rule | TCP | 443    | ::/0    |
+
 * miner-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
+
 * relayCluster-securityGroup
 
 |Type         | Protocol | Port range| Source     |
@@ -78,11 +80,13 @@ The security group is independent of the EC2 instance, but can be created before
 | customized TCP rule | TCP | 8087    |alb-securityGroup|
 | customized TCP rule | TCP | 8083    |alb-securityGroup|
 | customized TCP rule | TCP | 8100    |miner-SecurityGroup|
+
 * extractor-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
+
 * mysql-securityGroup
 
 |Type         | Protocol | Port range| Source     |
@@ -91,29 +95,33 @@ The security group is independent of the EC2 instance, but can be created before
 | customized TCP rule | TCP | 3306    |relayCluster-securityGroup|
 | customized TCP rule | TCP | 3306    |miner-SecurityGroup|
 | customized TCP rule | TCP | 3306    |extractor-SecurityGroup|
+
 * redis-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| customized TCP rule | TCP | 6379    |relayCluster-securityGroup|
-| customized TCP rule | TCP | 6379    |miner-SecurityGroup|
-| customized TCP rule | TCP | 6379    |extractor-SecurityGroup|
+| customized TCP rule | TCP | 3306    |relayCluster-securityGroup|
+| customized TCP rule | TCP | 3306    |miner-SecurityGroup|
+| customized TCP rule | TCP | 3306    |extractor-SecurityGroup|
+
 * ethnode-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| customized TCP rule | TCP | 8545    |alb-SecurityGroup|
-| customized TCP rule | TCP | 8545    |relayCluster-securityGroup|
-| customized TCP rule | TCP | 8545    |miner-SecurityGroup|
+| customized TCP rule | TCP | 3306    |alb-SecurityGroup|
+| customized TCP rule | TCP | 3306    |relayCluster-securityGroup|
+| customized TCP rule | TCP | 3306    |miner-SecurityGroup|
 | customized TCP rule | TCP | 8545    |extractor-SecurityGroup|
+
 * kafkaManager-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
 | customized TCP rule | TCP | 9000    |yourSpecialIp|
+
 * kafka-securityGroup
 
 |Type         | Protocol | Port range| Source     |
@@ -124,18 +132,21 @@ The security group is independent of the EC2 instance, but can be created before
 | customized TCP rule | TCP | 9999    |extractor-SecurityGroup|
 | customized TCP rule | TCP | 9092    |kafka-SecurityGroup|
 | customized TCP rule | TCP | 9999    |kafkaManager-SecurityGroup|
+
 * motanManager-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
 | customized TCP rule | TCP | 8080    |yourSpecialIp|
+
 * zookeeperBrowser-securityGroup
 
 |Type         | Protocol | Port range| Source     |
 |------------|-----|--------|---------|
-| SSH | TCP | 22    | 	0.0.0.0/0    |
+| SSH | TCP | 3000    | 	0.0.0.0/0    |
 | customized TCP rule | TCP | 3000    |yourSpecialIp|
+
 * zookeeper-securityGroup
 
 |Type         | Protocol | Port range| Source     |
