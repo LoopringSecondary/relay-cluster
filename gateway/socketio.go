@@ -1002,6 +1002,10 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 	req := input.(*types.OrderState)
 	owner := req.RawOrder.Owner.Hex()
 	log.Infof("received owner is %s ", owner)
+
+	orderQuery := LatestOrderQuery{Owner:owner, Market:req.RawOrder.Market, OrderType:req.RawOrder.OrderType}
+	orderList, err := so.walletService.GetLatestOrders(orderQuery)
+
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
@@ -1020,7 +1024,7 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 					strings.ToLower(req.RawOrder.OrderType) == strings.ToLower(query.OrderType) {
 					log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
-					resp.Data = orderStateToJson(*req)
+					resp.Data = orderList
 					respJson, _ := json.Marshal(resp)
 					v.Emit(eventKeyOrders+EventPostfixRes, string(respJson[:]))
 				}
