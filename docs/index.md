@@ -238,11 +238,11 @@ The relay currently provides a complete set of testing environments for the part
 2. 13.112.62.24:8000 is the test environment entrance for loopr web wallet
 3. To use relays for wallets, some Relay and Ethereum node configurations are needed. These configuration items are different in the main network and our test environment. Here are the configuration items and test environment configurations:
 ```
-DelegateAddress, please refer to glossary, test environment address: 0xa0af16edd397d9e826295df9e564b10d57e3c457
-ProtocolImplAddress, please refer to glossary, test environment address: 0x456044789a41b277f033e4d79fab2139d69cd154
-walletAddress, wallet sub-address, wallet set by yourself
-chainId，Ethereum EIP155 introduced, in order to prevent repeated attacks, test environment values: 7107171
-List of tokens, list of tokens for wallet configuration, including token details, can also be passed
+DelegateAddress     - please refer to glossary, test environment address: 0xa0af16edd397d9e826295df9e564b10d57e3c457
+ProtocolImplAddress - please refer to glossary, test environment address: 0x456044789a41b277f033e4d79fab2139d69cd154
+walletAddress       - wallet sub-address, wallet set by yourself
+chainId             - Ethereum EIP155 introduced, in order to prevent repeated attacks, test environment values: 7107171
+List of tokens      - list of tokens for wallet configuration, including token details, can also be passed
 loopring_getLooprSupportedTokens, get list of tokens supported by Relay
 ```
 
