@@ -21,25 +21,38 @@ package marketutil
 import (
 	"encoding/json"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
+	"math/big"
 	"strings"
 	"time"
 )
 
 type CustomToken struct {
-	Address common.Address `json:"address"`
-	Symbol  string         `json:"symbol"`
+	Address  common.Address `json:"address"`
+	Symbol   string         `json:"symbol"`
+	Decimals *big.Int       `json:"decimals"`
 }
 
 var localCache *gocache.Cache
 
 const customTokensPreKey = "CTPK_"
+const allCustomTokens = "ALLCT"
 const zkLockCustomToken = "ZKLOCKCT"
 
 func GetCustomTokenList(address common.Address) (tokens map[string]CustomToken, err error) {
+	return getCustomTokenList(buildCacheKey(address))
+}
+
+func GetAllCustomTokenList() (tokens map[string]CustomToken, err error) {
+	return getCustomTokenList(allCustomTokens)
+}
+
+func getCustomTokenList(key string) (tokens map[string]CustomToken, err error) {
 
 	tokens = make(map[string]CustomToken)
 
@@ -47,27 +60,27 @@ func GetCustomTokenList(address common.Address) (tokens map[string]CustomToken, 
 		localCache = gocache.New(5*time.Second, 5*time.Minute)
 	}
 
-	tokensInLocal, ok := localCache.Get(buildCacheKey(address))
+	tokensInLocal, ok := localCache.Get(key)
 	if ok {
 		return tokensInLocal.(map[string]CustomToken), err
 	}
 
-	customTokens, err := getTokensFromRedis(address)
+	customTokens, err := GetCustomTokensFromRedis(key)
 	for _, ct := range customTokens {
 		tokens[ct.Symbol] = ct
 	}
 
 	for _, v := range AllTokens {
-		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol}
+		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol, Decimals: v.Decimals}
 		tokens[v.Symbol] = c
 	}
 
-	localCache.Set(buildCacheKey(address), tokens, 5*time.Second)
+	localCache.Set(key, tokens, 5*time.Second)
 	return tokens, err
 }
 
-func getTokensFromRedis(address common.Address) (customTokens map[string]CustomToken, err error) {
-	tokenBytes, err := cache.Get(buildCacheKey(address))
+func GetCustomTokensFromRedis(key string) (customTokens map[string]CustomToken, err error) {
+	tokenBytes, err := cache.Get(key)
 	if err != nil || len(tokenBytes) == 0 {
 		return make(map[string]CustomToken), nil
 	}
@@ -79,31 +92,61 @@ func getTokensFromRedis(address common.Address) (customTokens map[string]CustomT
 	return customTokens, err
 }
 
-func setTokenToRedis(address common.Address, token common.Address, symbol string) (err error) {
+func setTokenToRedis(key string, token CustomToken) (err error) {
 	err = zklock.TryLock(zkLockCustomToken)
 	if err == nil {
-		ct, err := getTokensFromRedis(address)
-		if err != nil {
-			return err
-		}
-
-		ct[symbol] = CustomToken{Symbol: symbol, Address: token}
-
-		ctByte, err := json.Marshal(ct)
-		if err != nil {
-			return err
-		}
-		err = cache.Set(buildCacheKey(address), ctByte, -1)
-		if err != nil {
-			return err
-		}
+		getAndSetCustomToken(key, token)
+		getAndSetCustomToken(allCustomTokens, token)
 	}
 
 	defer zklock.ReleaseLock(zkLockCustomToken)
 	return err
 }
 
-func AddToken(address common.Address, token common.Address, symbol string) error {
+func getAndSetCustomToken(key string, token CustomToken) (err error) {
+	ct, err := GetCustomTokensFromRedis(key)
+	if err != nil {
+		return err
+	}
+
+	ct[strings.ToUpper(token.Symbol)] = token
+
+	ctByte, err := json.Marshal(ct)
+	if err != nil {
+		return err
+	}
+	return cache.Set(key, ctByte, -1)
+}
+
+func AddToken(address common.Address, token CustomToken) error {
+
+	tokens, err := GetCustomTokenList(address)
+	if err != nil {
+		return err
+	}
+
+	token.Symbol = strings.ToUpper(token.Symbol)
+
+	_, ok := tokens[token.Symbol]
+	if ok {
+		return errors.New("same symbol exist")
+	}
+
+	if hadRegistedInner(tokens, token.Address) {
+		return errors.New("same address was registed")
+	}
+
+	decimals, err := loopringaccessor.Erc20Decimals(token.Address, "latest")
+	if err == nil {
+		token.Decimals = decimals
+	} else {
+		log.Errorf("get decimal failed from address : %s", token.Address.Hex())
+	}
+
+	return setTokenToRedis(buildCacheKey(address), token)
+}
+
+func DeleteToken(address common.Address, symbol string) error {
 
 	tokens, err := GetCustomTokenList(address)
 	if err != nil {
@@ -113,19 +156,29 @@ func AddToken(address common.Address, token common.Address, symbol string) error
 	symbol = strings.ToUpper(symbol)
 
 	_, ok := tokens[symbol]
-	if ok {
-		return errors.New("same symbol exist")
+	if !ok {
+		return errors.New("not exist token symbol")
 	}
 
-	if hadRegistedInner(tokens, token) {
-		return errors.New("same address was registed")
-	}
+	delete(tokens, symbol)
 
-	return setTokenToRedis(address, token, symbol)
+	ctByte, err := json.Marshal(tokens)
+	if err != nil {
+		return err
+	}
+	return cache.Set(buildCacheKey(address), ctByte, -1)
 }
 
-func HadRegisted(address common.Address, token common.Address) bool {
+func HadRegistedByAddress(address common.Address, token common.Address) bool {
 	tokenMap, err := GetCustomTokenList(address)
+	if err != nil {
+		return false
+	}
+	return hadRegistedInner(tokenMap, token)
+}
+
+func HadRegisted(token common.Address) bool {
+	tokenMap, err := GetAllCustomTokenList()
 	if err != nil {
 		return false
 	}
@@ -139,6 +192,20 @@ func hadRegistedInner(tokenMap map[string]CustomToken, address common.Address) b
 		}
 	}
 	return false
+}
+
+func AddressToSymbol(address, token common.Address) (symbol string, err error) {
+
+	tokens, err := GetCustomTokenList(address); if err != nil {
+		return symbol, err
+	}
+
+	for k, v := range tokens {
+		if strings.ToLower(token.Hex()) == strings.ToLower(v.Address.Hex()) {
+			return k, nil
+		}
+	}
+	return symbol, errors.New("address had not register this token")
 }
 
 func buildCacheKey(address common.Address) string {

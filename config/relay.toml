@@ -47,11 +47,27 @@ title = "miner"
     cutoff_cache_clean_time = 0
 
 [gateway]
-    is_broadcast = false
+    is_broadcast = true
     max_broadcast_time = 3
+    [[gateway.matrix_pub_options]]
+        rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
+        [gateway.matrix_pub_options.MatrixClientOptions]
+            hs_url = "http://13.112.62.24:8008"
+            user = "broadcast2"
+            password = "broadcast2"
+            access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjhjaWQgdXNlcl9pZCA9IEBicm9hZGNhc3QyOmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IEtqS0JVNjtXSSY9NnJURWoKMDAyZnNpZ25hdHVyZSC7rg8ODsNmK_SXxe3gxHt7m6RmtHkJd1RCMdoUCE5iuAo"
+    [[gateway.matrix_sub_options]]
+        rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
+        cache_from = true
+        cache_ttl = 86400
+        [gateway.matrix_sub_options.MatrixClientOptions]
+            hs_url = "http://13.112.62.24:8008"
+            user = "broadcast2"
+            password = "broadcast2"
+            access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjhjaWQgdXNlcl9pZCA9IEBicm9hZGNhc3QyOmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IEtqS0JVNjtXSSY9NnJURWoKMDAyZnNpZ25hdHVyZSC7rg8ODsNmK_SXxe3gxHt7m6RmtHkJd1RCMdoUCE5iuAo"
 
 [accessor]
-    raw_urls = ["http://127.0.0.1:8545"]
+    raw_urls = ["http://13.113.214.212:8545"]
     fetch_tx_retry_count = 120
 
 [loopring_protocol]
@@ -62,11 +78,11 @@ title = "miner"
         "v1.5" = "0x456044789a41b277f033e4d79fab2139d69cd154"
 
 [market]
-    token_file = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
+    token_file = "config/tokens.json"
     old_version_weth_address = "0x88699e7fee2da0462981a08a15a3b940304cc516"
 
 [market_cap]
-        base_url = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
+        base_url = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
         currency = "USD"
         duration = 5
         dust_value = 1.0
@@ -110,3 +126,8 @@ title = "miner"
     app_id = "13gd_-yxB_yUiGyL"
     app_secret = "glRRRRP8ro-OJE83CpXj12TkduJ1rN8w"
     base_url = "https://open.api.mytoken.io/"
+
+
+[cloud_watch]
+    enabled = false
+    region = ""

@@ -2,16 +2,16 @@
 
 ## Start a new instance
 
-> If you have not registered for an aws account, please register your account first
+> If you don't have an aws account, please register it first
 
-Log in to the aws console [http://aws.amazon.com] (http://aws.amazon.com) and select [Instance-Instance-Startup Instance]
+Log in to the aws console [http://aws.amazon.com](http://aws.amazon.com) and select [Instance-Instance-Startup Instance]
 
 [Step 1: Select an Amazon System Image (AMI) page], select the ubuntu instance type because all subsequent deployments are based on ubuntu instances. It is recommended to use the generic instance`Ubuntu Server 16.04 LTS (HVM), SSD Volume Type`, and then click [Select]
 
 [Step 2: Select an example type], select the appropriate type on the page. If you do an experiment, you can select a free instance.
 
 [Step 3: Configure Example Details page], select Default VPC in Network. If there are multiple instances, it is recommended that you create them in groups, and then select different subnets for each group to avoid the single aws room failing, which would make the service unavailable. For IAM roles, you do not need to set them and configure them as needed. Other choices are the default
-> If you need to support deployment of services through CodeDeploy in this instance, you must configure additional IAM roles and initialization scripts, refer to [Support codedeploy](https://github.com/Loopring/relay-cluster/wiki/%E5%90%AF%E5%8A%A8aws-EC2%E5%AE%9E%E4%BE%8B#%E6%94%AF%E6%8C%81codedeploy)
+> If you need to support deployment of services through CodeDeploy in this instance, you must configure additional IAM roles and initialization scripts, refer to [Access CodedDploy](#support-codedeploy)
 
 [Step 4: Add Storage page], the disk size is recommended to be greater than 20G. [Volume Type] is [Default Universal SSD]
 
