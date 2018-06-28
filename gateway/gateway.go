@@ -24,7 +24,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/accountmanager"
+	"github.com/Loopring/relay-cluster/ordermanager/manager"
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
+	"github.com/Loopring/relay-lib/broadcast"
+	"github.com/Loopring/relay-lib/broadcast/matrix"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
@@ -34,9 +37,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
-	"github.com/Loopring/relay-lib/broadcast"
-	"github.com/Loopring/relay-lib/broadcast/matrix"
-	"github.com/Loopring/relay-cluster/ordermanager/manager"
 )
 
 type Gateway struct {
@@ -73,7 +73,7 @@ type GatewayFiltersOptions struct {
 type GateWayOptions struct {
 	IsBroadcast      bool
 	MaxBroadcastTime int
-	MatrixPubOptions  []matrix.MatrixPublisherOption
+	MatrixPubOptions []matrix.MatrixPublisherOption
 	MatrixSubOptions []matrix.MatrixSubscriberOption
 }
 
@@ -155,7 +155,6 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 	order.Market = market
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
-
 	//TODO(xiaolu) 这里需要测试一下，超时error和查询数据为空的error，处理方式不应该一样
 	if state, err = gateway.om.GetOrderByHash(order.Hash); err != nil && err.Error() == "record not found" {
 		eventemitter.Emit(eventemitter.NewOrderForBroadcast, order)
@@ -178,7 +177,7 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		broadcastTime := state.BroadcastTime + 1
 		if gateway.isBroadcast && broadcastTime < gateway.maxBroadcastTime {
 			eventemitter.Emit(eventemitter.NewOrderForBroadcast, state.RawOrder)
-			if err = manager.UpdateBroadcastTimeByHash(state.RawOrder.Hash, broadcastTime + 1); nil != err {
+			if err = manager.UpdateBroadcastTimeByHash(state.RawOrder.Hash, broadcastTime+1); nil != err {
 				return orderHash, err
 			}
 		}

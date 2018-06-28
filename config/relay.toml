@@ -128,4 +128,6 @@ title = "miner"
     base_url = "https://open.api.mytoken.io/"
 
 
-
+[cloud_watch]
+    enabled = false
+    region = ""

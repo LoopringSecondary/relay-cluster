@@ -146,6 +146,29 @@ func AddToken(address common.Address, token CustomToken) error {
 	return setTokenToRedis(buildCacheKey(address), token)
 }
 
+func DeleteToken(address common.Address, symbol string) error {
+
+	tokens, err := GetCustomTokenList(address)
+	if err != nil {
+		return err
+	}
+
+	symbol = strings.ToUpper(symbol)
+
+	_, ok := tokens[symbol]
+	if !ok {
+		return errors.New("not exist token symbol")
+	}
+
+	delete(tokens, symbol)
+
+	ctByte, err := json.Marshal(tokens)
+	if err != nil {
+		return err
+	}
+	return cache.Set(buildCacheKey(address), ctByte, -1)
+}
+
 func HadRegistedByAddress(address common.Address, token common.Address) bool {
 	tokenMap, err := GetCustomTokenList(address)
 	if err != nil {
@@ -169,6 +192,20 @@ func hadRegistedInner(tokenMap map[string]CustomToken, address common.Address) b
 		}
 	}
 	return false
+}
+
+func AddressToSymbol(address, token common.Address) (symbol string, err error) {
+
+	tokens, err := GetCustomTokenList(address); if err != nil {
+		return symbol, err
+	}
+
+	for k, v := range tokens {
+		if strings.ToLower(token.Hex()) == strings.ToLower(v.Address.Hex()) {
+			return k, nil
+		}
+	}
+	return symbol, errors.New("address had not register this token")
 }
 
 func buildCacheKey(address common.Address) string {

@@ -252,5 +252,5 @@ func (n *Node) registerExtractor() {
 }
 
 func (n *Node) registerCloudWatch() {
-	cloudwatch.Initialize()
+	cloudwatch.Initialize(n.globalConfig.CloudWatch)
 }
