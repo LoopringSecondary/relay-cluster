@@ -536,7 +536,6 @@ func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash commo
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
 		Where("order_hash=?", orderhash.Hex()).
-		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -546,7 +545,6 @@ func (s *RdsService) FlexCancelOrderByOwner(owner common.Address, validStatus []
 	now := time.Now().Unix()
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
-		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -561,7 +559,6 @@ func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, v
 
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
-		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -577,7 +574,6 @@ func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64,
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
 		Where("market=?", market).
-		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
