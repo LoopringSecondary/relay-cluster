@@ -15,7 +15,6 @@ title = "miner"
         encode_level = "lowercase"
         encode_time = "iso8601"
 
-
 [mysql]
     hostname = "127.0.0.1"
     port = "3306"
@@ -47,7 +46,7 @@ title = "miner"
     cutoff_cache_clean_time = 0
 
 [gateway]
-    is_broadcast = true
+    is_broadcast = false
     max_broadcast_time = 3
     [[gateway.matrix_pub_options]]
         rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]

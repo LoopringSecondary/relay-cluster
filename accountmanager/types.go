@@ -37,7 +37,6 @@ const (
 	BalancePrefix     = "balance_"
 	BalanceEthPrefix  = "balance_eth_"
 	AllowancePrefix   = "allowance_"
-	CustomTokenPrefix = "customtoken_"
 )
 
 type AccountBase struct {
@@ -518,6 +517,7 @@ func (b *ChangedOfBlock) cacheBalanceKey() string {
 func (b *ChangedOfBlock) cacheBalanceField(owner, token common.Address) []byte {
 	return append(owner.Bytes(), token.Bytes()...)
 }
+
 func (b *ChangedOfBlock) parseCacheBalanceField(data []byte) (owner, token common.Address) {
 	return common.BytesToAddress(data[0:20]), common.BytesToAddress(data[20:])
 }
@@ -593,25 +593,25 @@ func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
 		for _, data := range balancesData {
 			accountAddr, token := b.parseCacheBalanceField(data)
 			//log.Debugf("1---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-			//if exists, err := rcache.Exists(tokenBalanceCacheKey(accountAddr)); nil == err && exists {
-			//	//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-			//	if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && (types.IsZeroAddress(token) || exists1) {
-			//		log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-			//		req := &loopringaccessor.BatchBalanceReq{}
-			//		req.Owner = accountAddr
-			//		req.Token = token
-			//		req.BlockParameter = "latest"
-			//		reqs = append(reqs, req)
-			//	}
-			//}
-			if util.HadRegisted(accountAddr, token) {
-				log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
-				req := &loopringaccessor.BatchBalanceReq{}
-				req.Owner = accountAddr
-				req.Token = token
-				req.BlockParameter = "latest"
-				reqs = append(reqs, req)
+			if exists, err := rcache.Exists(tokenBalanceCacheKey(accountAddr)); nil == err && exists {
+				//log.Debugf("2---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+				if exists1, err1 := rcache.HExists(tokenBalanceCacheKey(accountAddr), balanceCacheField(token)); nil == err1 && (types.IsZeroAddress(token) || exists1) {
+					log.Debugf("3---batchBalanceReqsbatchBalanceReqsbatchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+					req := &loopringaccessor.BatchBalanceReq{}
+					req.Owner = accountAddr
+					req.Token = token
+					req.BlockParameter = "latest"
+					reqs = append(reqs, req)
+				}
 			}
+			//if util.HadRegistedByAddress(accountAddr, token) {
+			//	log.Debugf("3---batchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+			//	req := &loopringaccessor.BatchBalanceReq{}
+			//	req.Owner = accountAddr
+			//	req.Token = token
+			//	req.BlockParameter = "latest"
+			//	reqs = append(reqs, req)
+			//}
 		}
 	}
 	return reqs
@@ -624,19 +624,18 @@ func (b *ChangedOfBlock) batchAllowanceReqs() loopringaccessor.BatchErc20Allowan
 			owner, token, spender := b.parseCacheAllowanceField(data)
 			//log.Debugf("1---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
 			if loopringaccessor.IsSpenderAddress(spender) {
-				if _, err := util.AddressToToken(token); nil == err {
-					//if exists, err := rcache.Exists(tokenBalanceCacheKey(owner)); nil == err && exists {
-					//	//log.Debugf("2---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-					//	if exists1, err1 := rcache.HExists(allowanceCacheKey(owner), allowanceCacheField(token, spender)); nil == err1 && exists1 {
-					log.Debugf("3---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
-					req := &loopringaccessor.BatchErc20AllowanceReq{}
-					req.BlockParameter = "latest"
-					req.Spender = spender
-					req.Token = token
-					req.Owner = owner
-					reqs = append(reqs, req)
+				if exists, err := rcache.Exists(tokenBalanceCacheKey(owner)); nil == err && exists {
+					//log.Debugf("2---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
+					if exists1, err1 := rcache.HExists(allowanceCacheKey(owner), allowanceCacheField(token, spender)); nil == err1 && exists1 {
+						log.Debugf("3---batchAllowanceReqs owner:%s, t:%s, s:%s", owner.Hex(), token.Hex(), spender.Hex())
+						req := &loopringaccessor.BatchErc20AllowanceReq{}
+						req.BlockParameter = "latest"
+						req.Spender = spender
+						req.Token = token
+						req.Owner = owner
+						reqs = append(reqs, req)
+					}
 				}
-				//}
 			}
 
 		}
