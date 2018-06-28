@@ -242,8 +242,7 @@ DelegateAddress     - please refer to glossary, test environment address: 0xa0af
 ProtocolImplAddress - please refer to glossary, test environment address: 0x456044789a41b277f033e4d79fab2139d69cd154
 walletAddress       - wallet sub-address, wallet set by yourself
 chainId             - Ethereum EIP155 introduced, in order to prevent repeated attacks, test environment values: 7107171
-List of tokens      - list of tokens for wallet configuration, including token details, can also be passed
-loopring_getLooprSupportedTokens, get list of tokens supported by Relay
+List of tokens      - list of tokens for wallet configuration, including token details, can also be passed loopring_getLooprSupportedTokens, get list of tokens supported by Relay
 ```
 
 4. Online Relay version only supports https, test environment only supports http
