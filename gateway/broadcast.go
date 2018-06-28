@@ -47,7 +47,7 @@ func listenOrderFromBroacast() error {
 						if err := json.Unmarshal(data, order); nil != err {
 							log.Errorf("err:%s", err.Error())
 						} else {
-							log.Debugf("received order hash:%s", order.Hash)
+							log.Debugf("received order hash:%s", order.Hash.Hex())
 							if _, err := HandleInputOrder(order); nil != err {
 								log.Errorf("err:%s", err.Error())
 							}
