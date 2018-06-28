@@ -287,7 +287,7 @@ func (s *RdsService) GetOrderBook(delegate, tokenS, tokenB common.Address, lengt
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_NEW, types.ORDER_PARTIAL}
+	filterStatus := []types.OrderStatus{types.ORDER_NEW, types.ORDER_PARTIAL, types.ORDER_PENDING}
 	nowtime := time.Now().Unix()
 	err = s.Db.Where("delegate_address = ?", delegate.Hex()).
 		Where("token_s = ? and token_b = ?", tokenS.Hex(), tokenB.Hex()).
