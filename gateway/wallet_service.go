@@ -1580,7 +1580,7 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	if err == nil {
 		go func() {
 			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
-			if err != nil {
+			if err == nil {
 				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
 			}
 		}()
