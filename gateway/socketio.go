@@ -628,16 +628,14 @@ func (so *SocketIOServiceImpl) broadcastGlobalTicker(input interface{}) (err err
 func (so *SocketIOServiceImpl) broadcastGlobalTrend(input interface{}) (err error) {
 
 	resp := SocketIOJsonResp{}
-	trendMap, err := so.walletService.GetGlobalTrend(SingleToken{})
+	trendMap, err := so.walletService.GetAllGlobalTrend(SingleToken{})
 
 	respMap := make(map[string]string)
 	for k, v := range trendMap {
 		if err != nil {
 			resp = SocketIOJsonResp{Error: err.Error()}
 		} else {
-			vMap := make(map[string][]market.GlobalTrend)
-			vMap[k] = v
-			resp.Data = vMap
+			resp.Data = v
 		}
 
 		respJson, _ := json.Marshal(resp)
