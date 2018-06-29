@@ -31,6 +31,7 @@ const (
 	DefaultCronSpec3Second  = "0/3 * * * * *"
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
+	DefaultCronSpec1Minute  = "0 */1 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
 	DefaultCronSpec30Day    = "0 0 0 */30 * *"
@@ -166,7 +167,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
 
 		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
@@ -867,17 +868,17 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyTransaction]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &TransactionQuery{}
-				log.Info("txQuery owner is " + txQuery.Owner)
+				//log.Info("txQuery owner is " + txQuery.Owner)
 				err = json.Unmarshal([]byte(ctx), txQuery)
 				if err != nil {
 					log.Error("tx query unmarshal error, " + err.Error())
@@ -909,17 +910,17 @@ func (so *SocketIOServiceImpl) handleLatestTransactions(input interface{}) (err 
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyLatestTransaction]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &TransactionQuery{}
-				log.Info("txQuery owner is " + txQuery.Owner)
+				//log.Info("txQuery owner is " + txQuery.Owner)
 				err = json.Unmarshal([]byte(ctx), txQuery)
 				if err != nil {
 					log.Error("tx query unmarshal error, " + err.Error())
@@ -958,13 +959,13 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyPendingTx]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &SingleOwner{}
@@ -999,7 +1000,7 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 
 	req := input.(*types.OrderState)
 	owner := req.RawOrder.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 
 	orderQuery := LatestOrderQuery{Owner:owner, Market:req.RawOrder.Market, OrderType:req.RawOrder.OrderType}
 	orderList, err := so.walletService.GetLatestOrders(orderQuery)
@@ -1009,18 +1010,18 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrders]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &LatestOrderQuery{}
 				err = json.Unmarshal([]byte(ctx), query)
-				log.Info("single owner is: " + query.Owner)
+				//log.Info("single owner is: " + query.Owner)
 				if err != nil {
-					log.Error("query unmarshal error, " + err.Error())
+					//log.Error("query unmarshal error, " + err.Error())
 				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) &&
 					strings.ToLower(req.RawOrder.Market) == strings.ToLower(query.Market) &&
 					strings.ToLower(req.RawOrder.OrderType) == strings.ToLower(query.OrderType) {
-					log.Info("emit " + ctx)
+					//log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
 					resp.Data = orderList
 					respJson, _ := json.Marshal(resp)
@@ -1046,7 +1047,7 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrderTracing]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &OrderQuery{}
@@ -1120,7 +1121,7 @@ func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrderTransfer]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &OrderTransferQuery{}
@@ -1184,7 +1185,7 @@ func (so *SocketIOServiceImpl) handleCirculrNotify(input interface{}) (err error
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyCirculrNotify]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &SingleOwner{}
