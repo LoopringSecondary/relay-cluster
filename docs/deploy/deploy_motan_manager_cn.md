@@ -12,13 +12,13 @@ motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看�
 #部署mysql并记下用户名口令
 sudo apt install mysql-server -y
 sudo apt install maven -y
-sudo apt install openjdk-9-jre-headless -y
+sudo apt install openjdk-8-jdk-headless -y
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
 git clone https://github.com/weibocom/motan.git
 cd motan
-mvn install
+mvn install -DskipTests
 cd motan-manager
 ```
 
