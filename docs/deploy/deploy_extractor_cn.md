@@ -46,9 +46,6 @@
     [loopring_protocol.address]
          "v1.5.1" = "0x781870080c8c24a2fd6882296c49c837b06a65e6"
 ...
-[market_cap]
-        base_url = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
-        currency = "CNY"
 [market]
     token_file = "/opt/loopring/extractor/config/tokens.json"
 ...
