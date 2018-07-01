@@ -32,7 +32,7 @@ x.x.x.x zoo2
 x.x.x.x zoo3
 ```
 
-* 初始化zk环境
+* 初始化zookeeper环境
 
 ```
 #如果没有部署jre，需要执行下面两步操作
