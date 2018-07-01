@@ -154,6 +154,6 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 2181    |kafka-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2181    |motanManager-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2181    |zookeeperBrowser-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 2181    |kafkaManager-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2888    |zookeeper-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 3888    |zookeeper-SecurityGroup|
-| 自定义 TCP 规则 | TCP | 2181    |kafkaManager-SecurityGroup|
