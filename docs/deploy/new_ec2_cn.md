@@ -2,9 +2,9 @@
 
 ## 启动新实例
 
-> 如果还没有注册aws账户，请先注册账户
+> 如果还没有注册aws账户，请先注册账户，官方网站：https://aws.amazon.com/
 
-登录 aws控制台 [http://aws.amazon.com](http://aws.amazon.com)，选择【实例-实例-启动实例】
+登录 aws控制台 [https://console.aws.amazon.com/console/home]，选择【实例-实例-启动实例】
 
 在【步骤 1: 选择一个 Amazon 系统映像(AMI)】页面，选择ubuntu实例类型，因为后续所有部署都是基于ubuntu实例进行操作的。建议使用通用实例`Ubuntu Server 16.04 LTS (HVM), SSD Volume Type`，然后点击【选择】
 
@@ -49,7 +49,7 @@ service codedeploy-agent start
 ## 部署aws sdk鉴权文件
 通过aws sdk可以实现对aws相关服务的接入，目前用到的两个服务是cloudwatch和SNS(Simple Notification Service)两个功能。
 
-aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上aws 服务，在配置中将开关关闭并跳过下面配置即可。
+> aws sdk会用到鉴权文件，如果打开上面两个服务的开关，需要在实例上部署该鉴权文件。如果不需要以上aws服务，在配置中将开关关闭并跳过下面配置即可。
 
 ### 创建鉴权信息
 参考[aws doc](https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-chap-getting-started.html)
