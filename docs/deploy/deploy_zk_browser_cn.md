@@ -5,7 +5,8 @@ node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查�
 ## 申请EC2实例并关联安全组
 申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
 
-关联`zookeeperBrowser-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`安全组的说明，创建后再关联
+关联`zookeeperBrowser-SecurityGroup`安全组。
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署
 
@@ -68,6 +69,6 @@ pkill -f "node ./app.js"
 
 ## 访问管理页面
 
-`http://x.x.x.x:3000`
+`浏览器访问  http://外网ip:3000`
 
 如果需要编辑，则点击【SignIn】登录
