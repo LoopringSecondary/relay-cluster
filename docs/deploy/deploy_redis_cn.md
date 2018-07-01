@@ -62,7 +62,8 @@ slowlog-max-len 1000
 ### 创建单机Redis实例
 参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`redis-securityGroup`安全组
 
-执行以下脚本以部署redis实例
+执行以下脚本部署redis实例
+
 `sudo apt install redis-server`
 * 启动
 
