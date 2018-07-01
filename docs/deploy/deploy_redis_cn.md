@@ -64,7 +64,7 @@ slowlog-max-len 1000
 
 执行以下命令部署redis实例
 ```
-
+sudo apt update
 sudo apt install redis-server
 ```
 * 启动
