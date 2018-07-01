@@ -12,10 +12,10 @@
 
 ## 部署
 ```
-sudo apt-get install software-properties-common -y
-sudo add-apt-repository ppa:ethereum/ethereum -y
+sudo apt-get -y install software-properties-common
+sudo add-apt-repository -y ppa:ethereum/ethereum
 sudo apt-get update
-sudo apt-get install ethereum -y
+sudo apt-get -y install ethereum
 ```
 ## 启动
 ```
