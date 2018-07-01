@@ -47,8 +47,8 @@ log.flush.interval.ms=300
 log.flush.scheduler.interval.ms=300
 log.flush.start.offset.checkpoint.interval.ms=2000
 log.retention.hours=168
-#设置正确的zookeeper配置，如果已经设置了host可以用下面的配置，否则直接指定ip
-zookeeper.connect=zoo1:2181,zoo2:2181,zoo3:2181
+#设置为三台zookeeper服务器的内网ip
+zookeeper.connect=xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181
 default.replication.factor=3
 ```
 
