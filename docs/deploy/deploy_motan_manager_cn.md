@@ -16,9 +16,9 @@ sudo apt install openjdk-9-jre-headless -y
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
-git clone https://github.com/weibocom/motan.git
+sudo git clone https://github.com/weibocom/motan.git
 cd motan
-mvn install
+sudo mvn clean
 cd motan-manager
 ```
 
