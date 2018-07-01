@@ -20,24 +20,14 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 ### 部署
 建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
 
-* 申请3个ubuntu实例
-* 使用三台服务器的内网ip地址设置`zoo1~zoo3`三个host，便于后面的配置
-
-`sudo vim /etc/hosts`
-
-设置为
-```
-x.x.x.x zoo1
-x.x.x.x zoo2
-x.x.x.x zoo3
-```
+* 申请3台ubuntu实例
 
 * 初始化zookeeper环境
 
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
-sudo apt install openjdk-8-jre-headless -y
+sudo apt -y install openjdk-8-jre-headless
 
 sudo mkdir /opt/loopring
 sudo chown -R ubuntu:ubuntu /opt/loopring
@@ -50,17 +40,17 @@ cp zoo_sample.cfg zoo.cfg
 sudo mkdir -p /opt/loopring/data/zookeeper
 ```
 
-* 修改和添加以下配置项
+* 修改并添加以下配置项(xx.xx.xx.xx为每台服务器的内网ip)
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
 
 ```
 dataDir=/opt/loopring/data/zookeeper
-server.1=zoo1:2888:3888
-server.2=zoo2:2888:3888
-server.3=zoo3:2888:3888
+server.1=xx.xx.xx.xx:2888:3888
+server.2=xx.xx.xx.xx:2888:3888
+server.3=xx.xx.xx.xx:2888:3888
 ```
 
-初始化myid，这里"n"在三台服务器的取值一次为1，2，3，和上面zoo.conf一致
+初始化myid，这里"n"在三台服务器的取值依次为1，2，3，和上面zoo.conf一致
 
 ```
 echo "n" > /opt/loopring/data/zookeeper/myid
