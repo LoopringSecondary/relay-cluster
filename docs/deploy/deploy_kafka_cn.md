@@ -17,7 +17,7 @@ kafka是extractor和relay-cluster之间的消息通信服务
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
-sudo apt install openjdk-9-jre-headless -y
+sudo apt -y install openjdk-9-jre-headless
 
 sudo mkdir /opt/loopring
 sudo chown -R ubuntu:ubuntu /opt/loopring
@@ -47,7 +47,7 @@ log.flush.interval.ms=300
 log.flush.scheduler.interval.ms=300
 log.flush.start.offset.checkpoint.interval.ms=2000
 log.retention.hours=168
-#设置为三台zookeeper服务器的内网ip
+#设置为三台zookeeper服务器的内网ip地址
 zookeeper.connect=xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181
 default.replication.factor=3
 ```
