@@ -15,7 +15,7 @@ sudo add-apt-repository ppa:fkrull/deadsnakes
 sudo apt-get update
 sudo apt-get install python2.6 python2.6-dev -y
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.6 2
-sudo apt-get install gcc g++ libffi-dev libkrb5-dev  libsasl2-dev libsasl2-modules-gssapi-mit libssl-dev libxml2-dev libxslt-dev make libldap2-dev python-dev python-setuptools libgmp3-dev npm
+sudo apt-get install gcc g++ libffi-dev libkrb5-dev libsasl2-dev libsasl2-modules-gssapi-mit libssl-dev libxml2-dev libxslt-dev make libldap2-dev python-dev python-setuptools libgmp3-dev npm
 ```
 
 ### 部署node
