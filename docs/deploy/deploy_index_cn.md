@@ -1,6 +1,6 @@
 # Loopring部署文档
 
-##relay-cluster依赖说明
+## relay-cluster依赖说明
 > relay-cluster相关组件都部署在aws上，部分功能强依赖aws提供的相关服务，如果采用其他云服务提供商，可能会造成部分功能不可用，或出现一些非预期的异常。
 
 > relay-cluster及其依赖的extractor服务，都需要通过集群的方式进行部署来避免单点故障。虽然可以只部署单个节点，但是单节点的正常启动依然需要依赖于组成集群的基础组件，例如zookeeper，kafka。
