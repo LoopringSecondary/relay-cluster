@@ -75,7 +75,10 @@
 
 * motan_server.yaml
 
-在`Loopring/relay-cluster/config/motan_server.yaml`的基础上进行如下必要的修改
+在原基础上进行如下必要的修改
+
+`Loopring/relay-cluster/config/motan_server.yaml`
+
 ```
 log_dir: "/var/log/relay"
 ...
