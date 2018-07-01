@@ -50,11 +50,12 @@ mysql是relay-cluster后端服务的主要存储
 ### 创建单机MySQL实例
 参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`mysql-securityGroup`安全组
 
-执行以下脚本以部署Mysql实例
+执行以下命令部署Mysql实例
 ```
-sudo apt install mysql-server
+sudo apt update
+sudo apt -y install mysql-server
 ```
-根据界面提示输入root用户对应口令，并再次确认
+根据界面提示输入root用户对应的口令，并再次确认
 
 创建relay db
 ```
