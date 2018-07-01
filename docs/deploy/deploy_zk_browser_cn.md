@@ -41,14 +41,20 @@ sudo npm install -d
 ## 启停
 
 ### 启动
-编辑启动脚本，设置连接的zk节点
+编辑启动脚本
 
 `sudo vim start.sh`
 
-修改下面的配置项为正确的ip和端口，多个zk节点使用逗号分隔
+修改下面的配置项为正确zk节点的ip和端口，多个节点之间使用逗号分隔
 ```
 export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 ```
+
+编辑登陆配置文件
+
+`vi /opt/loopring/node-zk-browser/user.json`
+
+
 启动
 ```
 sudo ./start.sh
@@ -67,4 +73,4 @@ pkill -f "node ./app.js"
 ## 访问管理页面
 【EC2/实例/实例】找到【IPv4 公有 IP】，浏览器访问`x.x.x.x:3000`
 
-如果需要编辑，则点击【SignIn】登录，用户名口令查看配置文件 `/opt/loopring/node-zk-browser/user.json`
+如果需要编辑，则点击【SignIn】登录
