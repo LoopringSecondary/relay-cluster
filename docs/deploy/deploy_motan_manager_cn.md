@@ -5,7 +5,8 @@ motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看�
 ## 申请EC2实例并关联安全组
 申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
 
-关联`motanManger-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`安全组的说明，创建后再关联
+关联`motanManger-SecurityGroup`安全组
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署
 ```
@@ -35,7 +36,7 @@ use motan_manager;
 ```
 jdbc_url=jdbc:mysql://127.0.0.1:3306/motan-manager?useUnicode=true&characterEncoding=UTF-8
 #设置正确的数据库用户
-jdbc_username=xxx
+jdbc_username=root
 jdbc_password=xxx
 #配置motan-rpc对应的zookeper地址
 registry.url=127.0.0.1:2181
@@ -43,7 +44,7 @@ registry.url=127.0.0.1:2181
 
 初始化motan_manager db
 
-`mysql --host=localhost --port=3306 --user=xxx -p < src/main/resources/motan-manager.sql`
+`mysql --host=localhost --port=3306 --user=root -p < src/main/resources/motan-manager.sql`
 
 打jar包
 
@@ -61,4 +62,4 @@ registry.url=127.0.0.1:2181
 `/opt/loopring/motan/motan-manager/nohup.out`
 
 ## 访问
-浏览器访问 `http://外网ip:8080`
+浏览器访问  `http://外网ip:8080`
