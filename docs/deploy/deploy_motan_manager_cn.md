@@ -11,9 +11,9 @@ motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看�
 ## 部署
 ```
 #部署mysql并记下用户名口令
-sudo apt -y install mysql-server
-sudo apt -y install maven
-sudo apt -y install openjdk-9-jre-headless
+sudo apt install mysql-server -y
+sudo apt install maven -y
+sudo apt install openjdk-9-jre-headless -y
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
@@ -65,4 +65,4 @@ registry.url=xx.xx.xx.xx:2181
 `/opt/loopring/motan/motan-manager/nohup.out`
 
 ## 访问
-浏览器访问  `http://外网ip:8080`
+浏览器访问 `http://外网ip:8080`
