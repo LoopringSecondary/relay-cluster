@@ -47,7 +47,7 @@ wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-3.4.10/zookeeper
 tar xzf zookeeper-3.4.10.tar.gz
 cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
-mkdir -p /opt/loopring/data/zookeeper
+sudo mkdir -p /opt/loopring/data/zookeeper
 ```
 
 * 修改和添加以下配置项
