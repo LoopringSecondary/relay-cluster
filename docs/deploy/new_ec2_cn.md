@@ -4,7 +4,7 @@
 
 > 如果还没有注册aws账户，请先注册账户，官方网站：https://aws.amazon.com/
 
-登录 aws控制台 [https://console.aws.amazon.com/console/home]， 选择【实例-实例-启动实例】
+登录 aws控制台 [https://console.aws.amazon.com/console/home] ，选择【实例-实例-启动实例】
 
 在【步骤 1: 选择一个 Amazon 系统映像(AMI)】页面，选择ubuntu实例类型，因为后续所有部署都是基于ubuntu实例进行操作的。建议使用通用实例`Ubuntu Server 16.04 LTS (HVM), SSD Volume Type`，然后点击【选择】
 
