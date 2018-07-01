@@ -29,7 +29,7 @@ cd kafka-manager-1.3.3.17
 
 `vim conf/application.conf`
 ```
-#设置为三台zookeeper服务器的内网ip地址
+#修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
 
 kafka-manager.zkhosts="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 
