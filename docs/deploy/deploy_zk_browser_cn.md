@@ -14,9 +14,9 @@ node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查�
 ```
 sudo add-apt-repository ppa:fkrull/deadsnakes
 sudo apt-get update
-sudo apt-get install python2.6 python2.6-dev -y
+sudo apt-get -y install python2.6 python2.6-dev
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.6 2
-sudo apt-get install gcc g++ libffi-dev libkrb5-dev libsasl2-dev libsasl2-modules-gssapi-mit libssl-dev libxml2-dev libxslt-dev make libldap2-dev python-dev python-setuptools libgmp3-dev npm
+sudo apt-get -y install gcc g++ libffi-dev libkrb5-dev libsasl2-dev libsasl2-modules-gssapi-mit libssl-dev libxml2-dev libxslt-dev make libldap2-dev python-dev python-setuptools libgmp3-dev npm
 ```
 
 ### 部署node
@@ -44,12 +44,14 @@ sudo npm install -d
 ### 启动
 编辑启动脚本，`sudo vim start.sh`
 
-修改为正确zk节点的ip和端口，多个节点间使用逗号分隔
+修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
 ```
 export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 ```
 
-编辑配置文件，修改登陆账号/密码，`sudo vi /opt/loopring/node-zk-browser/user.json`
+编辑配置文件，修改登陆账号/密码
+
+`sudo vi /opt/loopring/node-zk-browser/user.json`
 
 
 启动
