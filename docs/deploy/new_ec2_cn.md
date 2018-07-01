@@ -30,7 +30,7 @@
 
 > 角色`CodeDeployEc2InstanceProfile`的创建，请参考[接入CodeDeploy](codedeploy_cn.md)
 
-IAM角色选择`CodeDeployEc2InstanceProfile`，高级详细信息输入一下文本
+IAM角色选择`CodeDeployEc2InstanceProfile`，高级详细信息选择“以文本形势”，然后输入以下文本
 ```
 #!/bin/bash
 apt-get -y update
