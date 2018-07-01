@@ -50,9 +50,9 @@ sudo npm install -d
 export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 ```
 
-编辑登陆配置文件
+编辑配置文件，修改登陆系统的账号/密码
 
-`vi /opt/loopring/node-zk-browser/user.json`
+`sudo vi /opt/loopring/node-zk-browser/user.json`
 
 
 启动
@@ -71,6 +71,7 @@ pkill -f "node ./app.js"
 
 
 ## 访问管理页面
-【EC2/实例/实例】找到【IPv4 公有 IP】，浏览器访问`x.x.x.x:3000`
+
+`http://x.x.x.x:3000`
 
 如果需要编辑，则点击【SignIn】登录
