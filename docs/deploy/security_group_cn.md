@@ -30,7 +30,7 @@ aws安全组是通过设置准入规则来拦截非法流量访问Ec2服务器�
 *  允许一组实例
 
 这是常用的做法，允许绑定了特定安全组A的一组实例访问当前编辑安全组B会绑定的一组实例。
-
+```
 比如已经有名称为 ethnode-SecurityGroup 的安全组绑定了部署eth节点的一组服务器，
 
 这时候我们需要允许relay-cluster能够访问这组eth节点的8545端口。
@@ -42,7 +42,7 @@ aws安全组是通过设置准入规则来拦截非法流量访问Ec2服务器�
 这样我们把relayCluster-SecurityGroup关联到relay-cluster部署的节点，eth的8545端口就对relay-cluster开放了。
 
 后续eth或者relay-cluster扩容，该规则都会自动生效
-
+```
 > 设置安全组为来源的场景，需要在来源字段输入【组ID】，而非组名
 
 * 允许所有流量
