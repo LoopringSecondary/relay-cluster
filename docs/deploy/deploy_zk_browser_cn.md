@@ -42,7 +42,9 @@ sudo npm install -d
 ## 启停
 
 ### 启动
-编辑启动脚本，`sudo vim start.sh`
+编辑启动脚本
+
+`sudo vim start.sh`
 
 修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
 ```
