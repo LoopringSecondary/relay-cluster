@@ -67,7 +67,7 @@
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
 
-[cloudwatch]
+[cloud_watch]
     enabled = false
     region = ""
 ```
@@ -83,7 +83,7 @@ log_dir: "/var/log/miner"
 #设置zookeeper内网ip地址
   zk-registry:
     protocol: zookeeper
-    host: xx.xx.xx.xx,xx.xx.xx.xx,xx.xx.xx.xx
+    host: xx.xx.xx.xx
     port: 2181
 ```
 * tokens.json
