@@ -6,7 +6,8 @@
 启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
 ### 配置安全组
-关联`miner-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`miner-SecurityGroup`安全组的说明，创建后再关联
+关联`miner-SecurityGroup`安全组。
+> 若未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`miner-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署配置文件
 
@@ -15,7 +16,7 @@
 ### 创建配置文件
 * miner.toml
 
-在`Loopring/miner/config/miner.toml`的基础上进行如下必要的修改
+在 https://github.com/Loopring/miner/blob/master/config/miner.toml 的基础上进行如下必要的修改
 ```
     output_paths = ["/var/log/miner/zap.log"]
     error_output_paths = ["/var/log/miner/err.log"]
@@ -76,7 +77,7 @@
 
 * motan_client.yaml
 
-在`Loopring/miner/config/motan_client.yaml`的基础上进行如下必要的修改
+在 https://github.com/Loopring/miner/blob/master/config/motan_client.yaml 的基础上进行如下必要的修改
 ```
 log_dir: "/var/log/miner"
 ...
@@ -107,6 +108,11 @@ scp -i xx.pem motan_client.yaml ubuntu@x.x.x.x:/opt/loopring/miner/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 ```
 * 部署keystore
+
+创建keystore文件夹
+```
+mkdir -p /opt/loopring/miner/config/keystore
+```
 
 将接受矿工费用的eth地址对应keystore文件复制到目录 `/opt/loopring/miner/config/keystore`
 
