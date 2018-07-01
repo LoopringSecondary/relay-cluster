@@ -2,15 +2,13 @@
 
 > 因为默认安全组会拒绝除了22端口之外的流量进入，为了能够正常对外提供服务，我们需要配置安全组
 
-aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，提高服务器的网络安全性，详情可以参考[aws安全组](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)
+aws安全组是通过设置准入规则来拦截非法流量访问Ec2服务器，以此提高服务器的网络安全性，详情可以参考[aws安全组](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)
 
 ## 配置入口
 【EC2-网络与安全-安全组】是编辑和查看安全组的入口
 
 ## 默认安全组
 如果未自建安全组，请选择新建`launch-wizard-1`的默认安全组，该安全组开通ssh端口22，允许通过ssh方式访问
-
-在启动新实例的时候，建议使用该默认安全组，后面再手动配置适用的安全组
 
 ## 自定义安全组
 当实例部署的服务需要提供额外的端口供外界访问，或者需要访问其他实例的特定端口时候，就需要新建自定义安全组
@@ -58,10 +56,8 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
-| HTTP | TCP | 80  | 0.0.0.0/0|
-| HTTP | TCP | 80    | ::/0    |
-| 自定义 TCP 规则 | TCP | 443  | 0.0.0.0/0|
-| 自定义 TCP 规则 | TCP | 443    | ::/0    |
+| HTTP | TCP | 80  | 0.0.0.0/0,::/0|
+| 自定义 TCP 规则 | TCP | 443  | 0.0.0.0/0,::/0|
 
 * miner-securityGroup
 
@@ -74,9 +70,9 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
 | SSH | TCP | 22    | 	0.0.0.0/0    |
-| 自定义 TCP 规则 | TCP | 8087    |alb-securityGroup|
-| 自定义 TCP 规则 | TCP | 8083    |alb-securityGroup|
-| 自定义 TCP 规则 | TCP | 8100    |miner-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 8087    |alb-securityGroup的【组ID|
+| 自定义 TCP 规则 | TCP | 8083    |alb-securityGroup【组ID|
+| 自定义 TCP 规则 | TCP | 8100    |miner-SecurityGroup【组ID|
 
 * extractor-securityGroup
 
