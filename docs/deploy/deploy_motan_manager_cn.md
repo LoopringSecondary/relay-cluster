@@ -11,9 +11,9 @@ motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看�
 ## 部署
 ```
 #部署mysql并记下用户名口令
-sudo apt install mysql-server -y
-sudo apt install maven -y
-sudo apt install openjdk-9-jre-headless -y
+sudo apt -y install mysql-server
+sudo apt -y install maven
+sudo apt -y install openjdk-9-jre-headless
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
@@ -32,14 +32,17 @@ create database motan_manager;
 use motan_manager;
 ```
 
-修改配置文件，`vim src/main/resources/application.properties`
+修改配置文件
+
+`vim src/main/resources/application.properties`
+
 ```
 jdbc_url=jdbc:mysql://127.0.0.1:3306/motan-manager?useUnicode=true&characterEncoding=UTF-8
-#设置正确的数据库用户
+#设置正确的数据库用户和密码
 jdbc_username=root
 jdbc_password=xxx
-#配置motan-rpc对应的zookeper地址
-registry.url=127.0.0.1:2181
+#配置motan-rpc对应的zookeeper地址
+registry.url=xx.xx.xx.xx:2181
 ```
 
 初始化motan_manager db
