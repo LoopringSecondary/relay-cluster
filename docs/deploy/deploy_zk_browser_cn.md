@@ -20,6 +20,7 @@ sudo apt-get install gcc g++ libffi-dev libkrb5-dev  libsasl2-dev libsasl2-modul
 
 ### 部署node
 ```
+sudo mkdir -p /opt/loopring
 cd /opt/loopring
 wget https://github.com/nodejs/node-v0.x-archive/archive/v0.12.7.tar.gz
 tar xzf v0.12.7.tar.gz
