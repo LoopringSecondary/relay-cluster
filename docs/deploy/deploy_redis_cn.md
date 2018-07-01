@@ -67,6 +67,16 @@ slowlog-max-len 1000
 sudo apt update
 sudo apt -y install redis-server
 ```
+
+修改配置项
+
+`sudo vim /etc/redis/redis.conf`
+
+```
+cluster-enabled no
+slow-log-slower-than 1000
+slowlog-max-len 1000
+```
 * 启动
 
 `sudo systemctl start redis`
