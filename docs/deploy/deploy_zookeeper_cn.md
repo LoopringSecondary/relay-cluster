@@ -25,7 +25,8 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 * 初始化zookeeper环境
 
 ```
-#如果没有部署jre，需要先安装openjdk-8-jre-headless
+#如果没有部署jre，需要先部署
+
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
 
