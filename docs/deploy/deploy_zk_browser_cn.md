@@ -57,7 +57,6 @@ export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 启动
 ```
 sudo ./start.sh
-
 ```
 
 ### 终止
