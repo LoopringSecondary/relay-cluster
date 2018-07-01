@@ -15,7 +15,7 @@
 #### 创建配置文件
 * relay.toml
 
-在`Loopring/relay-cluster/config/relay.toml`的基础上进行如下必要的修改
+在 https://github.com/Loopring/relay-cluster/blob/master/config/relay.toml 的基础上进行如下必要的修改
 ```
     output_paths = ["/var/log/relay/zap.log"]
     error_output_paths = ["/var/log/relay/err.log"]
@@ -71,13 +71,11 @@
     region = ""
 ```
 
-> sns 或者 cloudwatch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
+> sns 或者 cloud_watch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
 * motan_server.yaml
 
-在原基础上进行如下必要的修改
-
-`Loopring/relay-cluster/config/motan_server.yaml`
+在 https://github.com/Loopring/relay-cluster/blob/master/config/motan_server.yaml 的基础上进行如下必要的修改
 
 ```
 log_dir: "/var/log/relay"
