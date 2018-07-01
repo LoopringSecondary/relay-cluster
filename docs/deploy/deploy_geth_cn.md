@@ -9,8 +9,12 @@
 实例需关联`ethnode-SecurityGroup`安全组。若未创建该安全组，请务必参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署
-具体部署操作，请参考eth官方文档[go-ethereum for ubuntu](https://github.com/ethereum/go-ethereum/wiki/Installation-Instructions-for-Ubuntu)
-
+```
+sudo apt-get install software-properties-common
+sudo add-apt-repository -y ppa:ethereum/ethereum
+sudo apt-get update
+sudo apt-get install ethereum
+```
 ## 启动
 ```
 sudo mkdir -p /data/ethereum
