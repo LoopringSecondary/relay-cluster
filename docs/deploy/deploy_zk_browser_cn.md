@@ -41,18 +41,14 @@ sudo npm install -d
 ## 启停
 
 ### 启动
-编辑启动脚本
-
-`sudo vim start.sh`
+编辑启动脚本，`sudo vim start.sh`
 
 修改下面的配置项为正确zk节点的ip和端口，多个节点之间使用逗号分隔
 ```
 export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 ```
 
-编辑配置文件，修改登陆系统的账号/密码
-
-`sudo vi /opt/loopring/node-zk-browser/user.json`
+编辑配置文件，修改登陆系统的账号/密码，`sudo vi /opt/loopring/node-zk-browser/user.json`
 
 
 启动
