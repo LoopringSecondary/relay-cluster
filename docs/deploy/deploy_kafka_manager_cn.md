@@ -29,9 +29,12 @@ cd kafka-manager-1.3.3.17
 
 `vim conf/application.conf`
 ```
-#如果设置了zookeeper的hosts，可以如下配置，否则使用zookeeper 内网ip地址
-kafka-manager.zkhosts="zoo1:2181,zoo2:2181,zoo3:2181"
-#根据实际情况配置下面认证选项
+#设置为三台zookeeper服务器的内网ip地址
+
+kafka-manager.zkhosts="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+
+#配置认证选项
+
 basicAuthentication.enabled=true
 basicAuthentication.username="admin"
 basicAuthentication.password="admin"
@@ -45,7 +48,7 @@ basicAuthentication.password="admin"
 `pkill -f "play.core.server.ProdServerStart"`
 
 ## 日志
-/opt/loopring/kafka-manager-1.3.3.17/nohup.out
+`/opt/loopring/kafka-manager-1.3.3.17/nohup.out`
 
 ## 访问
 浏览器访问 `http://外网ip:9000`
