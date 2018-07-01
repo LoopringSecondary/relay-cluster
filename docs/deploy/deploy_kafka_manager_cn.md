@@ -4,7 +4,8 @@ kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的
 ## 申请EC2实例并关联安全组
 申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
 
-关联`kafkaManger-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`安全组的说明，创建后再关联
+关联`kafkaManger-SecurityGroup`安全组。
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署
 ```
