@@ -27,7 +27,7 @@ cd kafka-manager-1.3.3.17
 ```
 修改conf/application.conf
 
-`vim conf/application.conf`
+`vim /opt/loopring/kafka-manager/kafka-manager-1.3.3.17/conf/application.conf`
 ```
 #修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
 
@@ -48,7 +48,7 @@ basicAuthentication.password="admin"
 `pkill -f "play.core.server.ProdServerStart"`
 
 ## 日志
-`/opt/loopring/kafka-manager-1.3.3.17/nohup.out`
+`/opt/loopring/kafka-manager/kafka-manager-1.3.3.17/nohup.out`
 
 ## 访问
 浏览器访问 `http://外网ip:9000`
