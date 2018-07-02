@@ -98,6 +98,7 @@ const (
 	eventKeyOrders            = "orders"
 	eventKeyOrderTracing      = "orderTracing"
 	eventKeyEstimatedGasPrice = "estimatedGasPrice"
+	eventKeyOrderAllocateChange = "orderAllocateChange"
 
 	eventKeyGlobalTicker       = "globalTicker"
 	eventKeyGlobalTrend        = "globalTrend"
@@ -169,6 +170,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
 		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+		eventKeyOrderAllocateChange:      {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 
 		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
@@ -1035,6 +1037,45 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 	return nil
 }
 
+func (so *SocketIOServiceImpl) handleOrderAllocateChange(input interface{}) (err error) {
+
+	req := input.(*types.OrderState)
+	owner := req.RawOrder.Owner.Hex()
+	delegateAddress := req.RawOrder.DelegateAddress.Hex()
+	//log.Infof("received order allocated owner  is %s ", owner)
+
+	allocatedQuery := EstimatedAllocatedAllowanceQuery{Owner:owner, DelegateAddress:delegateAddress}
+	allocateMap, err := so.walletService.GetAllEstimatedAllocatedAmount(allocatedQuery)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyOrderAllocateChange]
+
+			if ok {
+				query := &EstimatedAllocatedAllowanceQuery{}
+				err = json.Unmarshal([]byte(ctx), query)
+				//log.Info("single owner is: " + query.Owner)
+				if err != nil {
+					log.Error("query unmarshal error, " + err.Error())
+				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) &&
+					strings.ToLower(req.RawOrder.DelegateAddress.Hex()) == strings.ToLower(delegateAddress) {
+					log.Info("emit ctx " + ctx)
+					resp := SocketIOJsonResp{}
+					resp.Data = allocateMap
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyOrderAllocateChange+EventPostfixRes, string(respJson[:]))
+					log.Info("emit data " + string(respJson))
+				}
+			}
+		}
+		return true
+	})
+
+	return nil
+}
+
 func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order hash tracing input")
@@ -1071,10 +1112,15 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 }
 
 func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) {
-	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	order := input.(*types.OrderState)
 	so.handleOrdersUpdate(order)
-	so.handleOrderTracing(order)
+	//so.handleOrderTracing(order)
+
+	log.Info("received order " + order.RawOrder.Hash.Hex())
+	if order.Status == types.ORDER_NEW {
+		so.handleOrderAllocateChange(input)
+	}
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
 		return nil
