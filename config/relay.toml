@@ -53,8 +53,8 @@ title = "miner"
         rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
         [gateway.matrix_pub_options.MatrixClientOptions]
             hs_url = "http://13.112.62.24:8008"
-            user = "broadcast2"
-            password = "broadcast2"
+            user = "broadcast1"
+            password = "broadcast1"
             access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjhjaWQgdXNlcl9pZCA9IEBicm9hZGNhc3QyOmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IEtqS0JVNjtXSSY9NnJURWoKMDAyZnNpZ25hdHVyZSC7rg8ODsNmK_SXxe3gxHt7m6RmtHkJd1RCMdoUCE5iuAo"
     [[gateway.matrix_sub_options]]
         rooms = [ "!RoJQgzCfBKHQznReRT:localhost"]
@@ -62,8 +62,8 @@ title = "miner"
         cache_ttl = 86400
         [gateway.matrix_sub_options.MatrixClientOptions]
             hs_url = "http://13.112.62.24:8008"
-            user = "broadcast2"
-            password = "broadcast2"
+            user = "broadcast1"
+            password = "broadcast1"
             access_token = "MDAxN2xvY2F0aW9uIGxvY2FsaG9zdAowMDEzaWRlbnRpZmllciBrZXkKMDAxMGNpZCBnZW4gPSAxCjAwMjhjaWQgdXNlcl9pZCA9IEBicm9hZGNhc3QyOmxvY2FsaG9zdAowMDE2Y2lkIHR5cGUgPSBhY2Nlc3MKMDAyMWNpZCBub25jZSA9IEtqS0JVNjtXSSY9NnJURWoKMDAyZnNpZ25hdHVyZSC7rg8ODsNmK_SXxe3gxHt7m6RmtHkJd1RCMdoUCE5iuAo"
 
 [accessor]
