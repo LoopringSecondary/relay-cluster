@@ -14,7 +14,7 @@ motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看�
 sudo apt update
 sudo apt install mysql-server -y
 sudo apt install maven -y
-sudo apt install openjdk-8-jre-headless -y
+sudo apt install openjdk-8-jdk-headless -y
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
