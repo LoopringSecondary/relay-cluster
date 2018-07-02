@@ -22,7 +22,6 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 ### 部署
 使用三台服务器的内网ip地址设置`zoo1~zoo3`三个host，便于后面的配置
 
-
 `sudo vim /etc/hosts`
 
 设置为
