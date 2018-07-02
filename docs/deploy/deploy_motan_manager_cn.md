@@ -20,7 +20,7 @@ sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
 sudo git clone https://github.com/weibocom/motan.git
 cd motan
-sudo mvn clean
+mvn install -DskipTests
 cd motan-manager
 ```
 
