@@ -18,7 +18,6 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 关联`zookeeper-SecurityGroup`安全组。
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
-
 ### 部署
 使用三台服务器的内网ip地址设置`zoo1~zoo3`三个host，便于后面的配置
 
