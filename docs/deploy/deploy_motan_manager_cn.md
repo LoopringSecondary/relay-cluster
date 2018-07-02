@@ -26,7 +26,7 @@ cd motan-manager
 
 修改初始化sql文件，在“DROP TABLE...”这句前面插入以下命令来创建motan_manager db
 
-`vim src/main/resources/motan-manager.sql`
+`vim /opt/loopring/motan/motan-manager/src/main/resources/motan-manager.sql`
 
 ```
 create database motan_manager;
@@ -35,7 +35,7 @@ use motan_manager;
 
 修改配置文件
 
-`vim src/main/resources/application.properties`
+`vim /opt/loopring/motan/motan-manager/src/main/resources/application.properties`
 
 ```
 jdbc_url=jdbc:mysql://127.0.0.1:3306/motan-manager?useUnicode=true&characterEncoding=UTF-8
