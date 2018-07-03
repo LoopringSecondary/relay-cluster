@@ -205,6 +205,11 @@ type EstimatedAllocatedAllowanceQuery struct {
 	Token           string `json: "token"`
 }
 
+type EstimatedAllocatedAllowanceResult struct {
+	AllocatedResult map[string]string `json:"allocatedResult"`
+	FrozenLrcFee    string `json: "frozenLrcFee"`
+}
+
 type TransactionQuery struct {
 	ThxHash   string   `json:"thxHash"`
 	Owner     string   `json:"owner"`
@@ -990,19 +995,19 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	return types.BigintToHex(allLrcFee), err
 }
 
-func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (resultMap map[string]string, err error) {
+func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (result EstimatedAllocatedAllowanceResult, err error) {
 
 	if len(query.Owner) == 0 || len(query.DelegateAddress) == 0 {
-		return resultMap, errors.New("owner and delegateAddress must be applied")
+		return result, errors.New("owner and delegateAddress must be applied")
 	}
 
 	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress)
 	if err != nil {
-		return resultMap, err
+		return result, err
 	}
 
 	if len(allOrders) == 0 {
-		return resultMap, nil
+		return result, nil
 	}
 
 	tmpResult := make(map[string]*big.Int)
@@ -1018,13 +1023,17 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		}
 	}
 
-	resultMap = make(map[string]string)
+	resultMap := make(map[string]string)
 
 	for k, v := range tmpResult {
 		resultMap[k] = types.BigintToHex(v)
 	}
 
-	return resultMap, err
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner}); if err != nil {
+		return result, err
+	}
+
+	return EstimatedAllocatedAllowanceResult{resultMap, lrcFee}, err
 }
 
 func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error) {
