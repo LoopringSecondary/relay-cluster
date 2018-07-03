@@ -20,8 +20,9 @@ This document contains the following sections:
 JSON-RPC : http://{hostname}:{port}/rpc/v2/
 JSON-RPC(mainnet) : https://relay1.loopring.io/rpc/v2/
 Ethereum standard JSON-RPC : https://relay1.loopring.io/eth
-SocketIO(local|test) : https://{hostname}:{port}/socket.io/
-SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
+SocketIO(local|test) : https://{hostname}:{port}/socket.io
+SocketIO(mainnet) : https://relay1.loopring.io/socket.io
+*** Some socketio client make append '/socket.io' path in the end of the URL automatically. 
 ```
 
 ## JSON-RPC Methods 
