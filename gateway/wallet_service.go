@@ -564,7 +564,13 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 
 	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
-	tx.Input = txNotify.Input
+
+	if len(txNotify.Input) > 2 && !strings.HasPrefix(txNotify.Input, "0x") && !strings.HasPrefix(txNotify.Input, "0X") {
+		tx.Input = "0x" + txNotify.Input
+	} else {
+		tx.Input = txNotify.Input
+	}
+
 	tx.From = txNotify.From
 	tx.To = txNotify.To
 	tx.Gas = *types.NewBigPtr(types.HexToBigint(txNotify.Gas))
