@@ -47,7 +47,6 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io
 * [loopring_getContracts](#loopring_getcontracts)
 * [loopring_getLooprSupportedMarket](#loopring_getlooprsupportedmarket)
 * [loopring_getLooprSupportedTokens](#loopring_getlooprsupportedtokens)
-* [loopring_getPortfolio](#loopring_getportfolio)
 * [loopring_getTransactions](#loopring_gettransactions)
 * [loopring_unlockWallet](#loopring_unlockwallet)
 * [loopring_notifyTransactionSubmitted](#loopring_notifytransactionsubmitted)
@@ -1053,52 +1052,6 @@ Get Loopr wallet supported market pairs. Exactly the same as loopring_getSupport
 
 Get Loopr wallet supported tokens. Exactly the same as loopring_getSupportedTokens but the name is different.
 
-### loopring_getPortfolio
-
-Get user's portfolio info.
-
-#### Parameters
-
-- `owner` - The owner address.
-
-```js
-params: [{
-  "owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"
-}]
-```
-
-#### Returns
-
-`Account` - Portfolio info object.
-
-1. `tokens` - All token portfolio array info.
-
-#### Example
-```js
-// Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getPortfolio","params":{see above},"id":64}'
-
-// Result
-{
-  "id":64,
-  "jsonrpc": "2.0",
-  "result": [
-      {
-          "token": "LRC",
-          "amount": "0x000001234d",
-          "percentage": "2.35"
-      },
-      {
-          "token": "WETH",
-          "amount": "0x00000012dae734",
-          "percentage": "80.23"
-      }
-    ]
-}
-```
-
-***
-
 ### loopring_getTransactions
 
 Get user's latest transactions by owner.
@@ -1622,55 +1575,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getEstimateGasPrice","p
 ***
 
 ## SocketIO Methods Reference
-
-### portfolio
-
-Subscribe user's portfolio info by address.
-
-#### subscribe events
-- portfolio_req : emit this event to receive push message.
-- portfolio_res : subscribe this event to receive push message.
-- portfolio_end : emit this event to stop receive push message.
-
-#### Parameters
-
-- `owner` - The owner address.
-
-```js
-socketio.emit("portfolio_req", '{"owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"}', function(data) {
-  // your business code
-});
-socketio.on("portfolio_res", function(data) {
-  // your business code
-});
-```
-
-#### Returns
-
-`portfolios` - Portfolio info object.
-
-1. `tokens` - All token portfolio info array.
-
-#### Example
-```js
-// Request
-
-'{"owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"}'
-
-// Result
-[
-  {
-    "token": "LRC",
-    "amount": "0x000001234d",
-    "percentage": 2.35
-  },{
-    "token": "WETH",
-    "amount": "0x00000012dae734",
-    "percentage": 80.23
-  }
-]
-```
-***
 
 ### balance
 
