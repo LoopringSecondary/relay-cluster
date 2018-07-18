@@ -1019,7 +1019,10 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
-		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex()); if len(token) == 0 {
+			continue
+		}
+
 		amountS, _ := v.RemainedAmount()
 		amount, ok := tmpResult[token]
 		if ok {
