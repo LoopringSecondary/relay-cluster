@@ -371,7 +371,7 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 
 	mkts, _ := so.walletService.GetSupportedMarket()
 
-	tickerMap := make(map[string]SocketIOJsonResp)
+	tickerMap := make(map[string]string)
 
 	for _, mkt := range mkts {
 		ticker, err := so.walletService.GetTickers(SingleMarket{mkt})
@@ -382,7 +382,8 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 		} else {
 			resp.Data = ticker
 		}
-		tickerMap[mkt] = resp
+		respJson, _ := json.Marshal(resp)
+		tickerMap[mkt] = string(respJson[:])
 	}
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
