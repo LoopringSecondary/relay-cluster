@@ -389,7 +389,7 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			ctx, ok := businesses[eventKeyLoopringTickers]
+			ctx, ok := businesses[eventKeyTickers]
 			if ok {
 				var singleMarket SingleMarket
 				err = json.Unmarshal([]byte(ctx), &singleMarket)
