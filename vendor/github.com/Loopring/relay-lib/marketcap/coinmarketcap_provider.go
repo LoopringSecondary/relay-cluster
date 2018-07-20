@@ -506,10 +506,14 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 }
 
 func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bool {
-	remainedAmountS, _ := state.RemainedAmount()
+	remainedAmountS, remainedAmountB := state.RemainedAmount()
 
 	remainedValue := new(big.Rat)
-	remainedValue, _ = p.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
+	if p.IsSupport(state.RawOrder.TokenS) {
+		remainedValue, _ = p.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
+	} else {
+		remainedValue, _ = p.LegalCurrencyValue(state.RawOrder.TokenB, remainedAmountB)
+	}
 
 	return p.IsValueDusted(remainedValue)
 }
