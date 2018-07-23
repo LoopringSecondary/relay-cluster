@@ -1,6 +1,6 @@
 # 部署kafka
 
-> kafka依赖zookeeper，所以需要先部署zookeeper
+> kafka依赖zookeeper，所以应先部署zookeeper
 
 kafka是extractor和relay-cluster之间的消息通信服务
 
