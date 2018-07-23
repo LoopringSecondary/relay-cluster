@@ -3,7 +3,7 @@
 mysql是relay-cluster后端服务的主要存储
 
 ## 创建MySQL实例
-可选择AWS的RDS或自建mysql实例，生产环境推荐前者，因为RDS会包含更丰富的监控及管理功能，扩展也更加方便，而对于测试场景只需自建一个mysql单实例即可
+可选择AWS的RDS或自建mysql实例，生产环境下推荐前者，因为RDS会包含更丰富的监控及管理功能，扩展也更加方便，而对于测试场景只需自建一个mysql单实例即可
 
 ### 创建RDS实例
 从服务列表查找`RDS`找到入口，然后选择【立即开始使用】
@@ -62,6 +62,14 @@ sudo apt -y install mysql-server
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
 ```
+
+取消ip绑定
+
+`vim /etc/mysql/mysql.conf.d/mysqld.cnf`
+
+注释掉这句 bind-address= 127.0.0.1
+
+然后重启数据库即可
 
 > relay和miner都会用到mysql数据库，建议创建不同的数据库实例，避免互相影响
 
