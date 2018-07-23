@@ -39,7 +39,7 @@ cp zoo_sample.cfg zoo.cfg
 sudo mkdir -p /opt/loopring/data/zookeeper
 ```
 
-* 修改并添加以下配置项，分别填入三台zookeeper服务器的内网ip
+* 修改以下配置项，分别填入三台zookeeper服务器的内网ip
 
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
 
