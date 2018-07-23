@@ -69,7 +69,7 @@ CREATE DATABASE relay;
 
 `vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
-注释掉这句 bind-address= 127.0.0.1
+注释掉这句 `bind-address= 127.0.0.1`
 
 重启数据库
 
