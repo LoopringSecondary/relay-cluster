@@ -114,7 +114,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 sudo mkdir -p /opt/loopring/miner/config/keystore
 ```
 
-将接受挖矿收益的以太坊账号通过私钥生成keystore并导入到miner中，其中--private-key填私钥，--passphrase为设置keystore的密码
+通过私钥生成keystore并自动导入到miner中，其中--private-key填私钥，--passphrase为设置keystore的密码
 ```
 cd /opt/loopring/miner
 bin/miner account import --datadir config/keystore --private-key xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx --passphrase xxxxxx
