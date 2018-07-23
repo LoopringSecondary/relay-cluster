@@ -63,13 +63,15 @@ mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
 ```
 
-取消ip绑定
+取消mysql ip绑定
 
 `vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
 注释掉这句 bind-address= 127.0.0.1
 
-然后重启数据库即可
+重启数据库
+
+`sudo systemctl restart mysql`
 
 > relay和miner都会用到mysql数据库，建议创建不同的数据库实例，避免互相影响
 
