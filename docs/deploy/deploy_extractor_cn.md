@@ -16,7 +16,7 @@
 #### 创建配置文件
 * extractor.toml
 
-在`Loopring/extractor/config/extractor.toml`的基础上进行如下必要的修改
+在`https://github.com/Loopring/extractor/blob/master/config/extractor.toml`的基础上进行如下必要的修改
 ```
     output_paths = ["/var/log/extractor/zap.log", "stderr"]
     error_output_paths = ["/var/log/extractor/err.log"]
