@@ -82,7 +82,7 @@ slowlog-max-len 1000
 
 `sudo vim /etc/redis/redis.conf`
 
-注释掉这句 bind 127.0.0.1
+注释掉这句 `bind 127.0.0.1`
 
 重启redis
 
