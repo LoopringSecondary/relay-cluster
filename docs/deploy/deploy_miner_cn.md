@@ -114,7 +114,11 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 sudo mkdir -p /opt/loopring/miner/config/keystore
 ```
 
-将接受矿工费用的eth地址对应keystore文件复制到该目录 
+生成keystore
+```
+cd /opt/loopring/miner
+bin/miner account import --private-key xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx --datadir config/keystore
+```
 
 ### 部署deamontools配置
 
