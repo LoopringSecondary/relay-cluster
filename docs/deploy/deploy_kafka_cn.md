@@ -17,7 +17,7 @@ kafka是extractor和relay-cluster之间的消息通信服务
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
-sudo apt -y install openjdk-9-jre-headless
+sudo apt -y install openjdk-8-jre-headless
 
 sudo mkdir /opt/loopring
 sudo chown -R ubuntu:ubuntu /opt/loopring
