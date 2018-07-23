@@ -19,16 +19,6 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
 ### 部署
-使用三台服务器的内网ip地址设置`zoo1~zoo3`三个host，便于后面的配置
-
-`sudo vim /etc/hosts`
-
-设置为
-```
-x.x.x.x zoo1
-x.x.x.x zoo2
-x.x.x.x zoo3
-```
 
 * 初始化zookeeper环境
 
@@ -49,15 +39,15 @@ cp zoo_sample.cfg zoo.cfg
 sudo mkdir -p /opt/loopring/data/zookeeper
 ```
 
-* 修改并添加以下配置项，分别填入zookeeper服务器的内网ip
+* 修改并添加以下配置项，分别填入三台zookeeper服务器的内网ip
 
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
 
 ```
 dataDir=/opt/loopring/data/zookeeper
-server.1=zoo1:2888:3888
-server.2=zoo2:2888:3888
-server.3=zoo3:2888:3888
+server.1=xx.xx.xx.xx:2888:3888
+server.2=xx.xx.xx.xx:2888:3888
+server.3=xx.xx.xx.xx:2888:3888
 ```
 
 初始化myid，这里"n"在三台服务器的取值依次为1，2，3，和上面zoo.conf一致，每台服务器仅执行自己对应取值的那条命令
