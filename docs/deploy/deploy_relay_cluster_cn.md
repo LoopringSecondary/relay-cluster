@@ -17,8 +17,8 @@
 
 在 https://github.com/Loopring/relay-cluster/blob/master/config/relay.toml 的基础上进行如下必要的修改
 ```
-    output_paths = ["/var/log/relay/zap.log"]
-    error_output_paths = ["/var/log/relay/err.log"]
+output_paths = ["/var/log/relay/zap.log"]
+error_output_paths = ["/var/log/relay/err.log"]
 ...
 [redis]
     host = "xx.xx.xx.xx"
