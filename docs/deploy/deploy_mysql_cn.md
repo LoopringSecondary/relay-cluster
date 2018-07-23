@@ -67,7 +67,7 @@ CREATE DATABASE relay;
 
 取消mysql ip绑定
 
-`vim /etc/mysql/mysql.conf.d/mysqld.cnf`
+`sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
 注释掉这句 `bind-address= 127.0.0.1`
 
