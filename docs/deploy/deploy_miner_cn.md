@@ -150,7 +150,7 @@ rm -rf /tmp/svc
 
 ## 服务日志
 
-## relay业务代码日志
+## miner业务日志
 `/var/log/miner/zap.log`
 
 ## motan-rpc日志

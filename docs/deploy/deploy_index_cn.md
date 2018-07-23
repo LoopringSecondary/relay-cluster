@@ -62,7 +62,7 @@ relay-cluster通过和ethereum(geth)节点的交互来实现以太坊网络的�
 
 ## web接入
 
-* [alb](deploy_alb_cn.md)
+* [ALB](deploy_alb_cn.md)
 
 目前通过aws ALB作为relay-cluster和ethnode的统一请求代理入口。
 
@@ -80,7 +80,7 @@ relay-cluster通过和ethereum(geth)节点的交互来实现以太坊网络的�
 提供了web界面方便查看motan-rpc的启动状态，并能执行简单的配置操作。
 
 ## 监控和告警【可选】
-* [cloudwatch](cloud_watch_cn.md)
+* [cloudwatch](cloudwatch_cn.md)
 
 cloudwatch可以实现指标的上报、查看和基于规则的报警，用来辅助发现和解决问题。
 

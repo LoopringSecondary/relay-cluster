@@ -35,7 +35,7 @@ func TestGlobalMarket_Sign(t *testing.T) {
 	//test.LoadConfig()
 	//marketutil.Initialize(&globalConfig.Market)
 
-	cache.NewCache(redis.RedisOptions{Host:"13.112.62.24", Port:"6379", Password:"", IdleTimeout:20, MaxIdle: 50, MaxActive:50})
+	cache.NewCache(redis.RedisOptions{Host: "13.112.62.24", Port: "6379", Password: "", IdleTimeout: 20, MaxIdle: 50, MaxActive: 50})
 
 	config := market.MyTokenConfig{}
 	config.AppId = "83ga_-yxA_yKiFyL"
@@ -45,8 +45,6 @@ func TestGlobalMarket_Sign(t *testing.T) {
 	g := market.NewGlobalMarket(config)
 	fmt.Println(g)
 	//g.Start()
-
-
 
 	//fmt.Println("12344")
 

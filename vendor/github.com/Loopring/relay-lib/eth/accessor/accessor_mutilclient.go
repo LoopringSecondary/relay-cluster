@@ -115,9 +115,11 @@ func (mc *MutilClient) bestClient(routeParam string) *RpcClient {
 	urls := []string{}
 	for _, url := range usageUrls {
 		if _, exists := mc.clients[url]; !exists {
-			mc.newRpcClient(url)
+			if _, downedExists := mc.downedClients[url]; !downedExists {
+				mc.newRpcClient(url)
+			}
 		}
-		if _,exists := mc.downedClients[url]; !exists {
+		if _, exists := mc.downedClients[url]; !exists {
 			urls = append(urls, url)
 		}
 	}

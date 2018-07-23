@@ -29,7 +29,6 @@ import (
 	"time"
 )
 
-const region = "ap-northeast-1"
 const namespace = "LoopringDefine"
 const obsoleteCountThreshold = 200
 const obsoleteTimeoutSeconds = 4
@@ -37,7 +36,18 @@ const batchDatumBufferSize = 400
 const batchTimeoutSeconds = 2
 const batchSendSize = 20 //aws only allow not more than 20 items in one request, request size should less than 40960
 
-var cwc *cloudwatch.CloudWatch
+type CloudWatchConfig struct {
+	Enabled bool
+	Region string
+}
+
+type CloudWatchClient struct {
+	innerClient *cloudwatch.CloudWatch
+	enabled     bool
+}
+
+var cwc *CloudWatchClient
+
 var inChan chan<- interface{}
 var outChan <-chan interface{}
 
@@ -51,16 +61,25 @@ export AWS_SHARED_CREDENTIALS_FILE=/home/ubuntu/.aws/credentials
 2. local run as current user, then will default use this credentials file base in home dir
 */
 
-func Initialize() error {
+func Initialize(config CloudWatchConfig) error {
+	if !config.Enabled {
+		log.Infof("CloudWatch is not enabled")
+		cwc = &CloudWatchClient{nil, false}
+		return nil
+	} else if len(config.Region) == 0 {
+		log.Errorf("CloudWatchConfig.Region is empty")
+		return fmt.Errorf("CloudWatchConfig.Region is empty")
+	}
+
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
+		Region:      aws.String(config.Region),
 		Credentials: credentials.NewSharedCredentials("", ""),
 	})
 	if err != nil {
 		log.Errorf("Initialize cloudwatch metric producer failed : %s\n", err.Error())
 		return err
 	} else {
-		cwc = cloudwatch.New(sess)
+		cwc = &CloudWatchClient{cloudwatch.New(sess), true}
 		inChan, outChan = utils.MakeInfinite()
 		log.Info("Ready for produce cloudwatch metric\n")
 		go func() {
@@ -105,17 +124,18 @@ func Initialize() error {
 }
 
 func Close() {
-	close(inChan)
+	if IsValid() {
+		close(inChan)
+	}
 }
 
 func IsValid() bool {
-	return cwc != nil
+	return cwc != nil && cwc.enabled
 }
 
 func PutResponseTimeMetric(methodName string, costTime float64) error {
 	if !IsValid() {
-		log.Error("cloud watch client has not initialized\n")
-		return fmt.Errorf("cloud watch client has not initialized")
+		return nil
 	}
 	dt := &cloudwatch.MetricDatum{}
 	metricName := fmt.Sprintf("response_%s", methodName)
@@ -131,8 +151,7 @@ func PutResponseTimeMetric(methodName string, costTime float64) error {
 
 func PutHeartBeatMetric(metricName string) error {
 	if !IsValid() {
-		log.Error("cloud watch client has not initialized\n")
-		return fmt.Errorf("cloud watch client has not initialized")
+		return nil
 	}
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
@@ -184,7 +203,7 @@ func batchSendMetricData(datums []*cloudwatch.MetricDatum) {
 		input.MetricData = datums[i*batchSendSize : endIndex]
 		input.Namespace = namespaceNormal()
 		go func() {
-			if _, err := cwc.PutMetricData(input); err != nil {
+			if _, err := cwc.innerClient.PutMetricData(input); err != nil {
 				log.Errorf("cwc.PutMetricData failed with error : %s\n", err.Error())
 			}
 		}()

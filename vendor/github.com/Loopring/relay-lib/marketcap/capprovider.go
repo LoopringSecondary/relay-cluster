@@ -74,6 +74,7 @@ type MarketCapProvider interface {
 	GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error)
 	IsOrderValueDust(state *types.OrderState) bool
 	IsValueDusted(value *big.Rat) bool
+        IsSupport(token common.Address) bool
 }
 
 type CapProvider_LocalCap struct {

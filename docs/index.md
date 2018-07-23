@@ -201,7 +201,7 @@ The meta-information management here includes information on the best estimated 
 
 There are currently 3 ways to access the relay: jsonrpc, socketio, and sdk.
 
-### jsonrpc
+### JSONRPC
 
 JSON-RPC is a cross-language Remote Call Protocol based on JSON. JSON-RPC is very simple. The format of the data transfer to the server requested is as follows (based on JSON2.0):
 ```
@@ -223,7 +223,7 @@ SocketIO encapsulates the underlying communication as an event programming model
 
 --- 
 
-### sdk
+### SDK
 Based on the network interface, we further encapsulated the relay interface calls to form multiple platforms of sdk, allowing developers to get access through method calls. Currently, the JavaScript version of Loopring.js is open source, and IOS and Java SDK are under development. The SDK is a development from the JSONRPC and Socketio interface calls.
 
 ---
@@ -238,25 +238,24 @@ The relay currently provides a complete set of testing environments for the part
 2. 13.112.62.24:8000 is the test environment entrance for loopr web wallet
 3. To use relays for wallets, some Relay and Ethereum node configurations are needed. These configuration items are different in the main network and our test environment. Here are the configuration items and test environment configurations:
 ```
-DelegateAddress, please refer to glossary, test environment address: 0xa0af16edd397d9e826295df9e564b10d57e3c457
-ProtocolImplAddress, please refer to glossary, test environment address: 0x456044789a41b277f033e4d79fab2139d69cd154
-walletAddress, wallet sub-address, wallet set by yourself
-chainId，Ethereum EIP155 introduced, in order to prevent repeated attacks, test environment values: 7107171
-List of tokens, list of tokens for wallet configuration, including token details, can also be passed
-loopring_getLooprSupportedTokens, get list of tokens supported by Relay
+DelegateAddress     - please refer to glossary, test environment address: 0xa0af16edd397d9e826295df9e564b10d57e3c457
+ProtocolImplAddress - please refer to glossary, test environment address: 0x456044789a41b277f033e4d79fab2139d69cd154
+walletAddress       - wallet sub-address, wallet set by yourself
+chainId             - Ethereum EIP155 introduced, in order to prevent repeated attacks, test environment values: 7107171
+List of tokens      - list of tokens for wallet configuration, including token details, can also be passed loopring_getLooprSupportedTokens, get list of tokens supported by Relay
 ```
 
 4. Online Relay version only supports https, test environment only supports http
 
 ---
 
-## How to deploy your own Relay
+## How to Deploy Your Own Relay
 
 The Loopring Foundation implements two versions of the relay: standalone and cluster. Below is how to compile and deploy the standalone version.
 
 ---
 
-### Code Compilation
+### Compilation
 Relays are developed using the golang language. Version 1.9.2 is used when developing relays. Version 1.9 is recommended for compiler relays. Go build your own environment. Please make your own google source code address: https://github.com/Loopring/relay, please use the master branch code to compile and run, and please refer to README
 
 --- 
@@ -307,7 +306,7 @@ Ethereum analyzing services. Every transaction, every event, etc. that occur on 
 
 ---
 
-## Who is better for deploying a distributed version
+## Who should deploy a distributed version
 Distributed relay is a complete enterprise-level distributed application. The current system volume is relatively small and only contains 3 micro-services, but with other distributed applications, we have done the following:
 * Based on aws ALB to provide a complete load-balancing strategy
 * We deployed a highly available kafka&zookeeper cluster
@@ -320,13 +319,13 @@ Therefore, if partners want to deploy a highly capable relay, they need to do a 
 
 ---
 
-### Distributed Version Mirroring
-In order to facilitate the deployment of distributed relays by partners, we will provide the following mirrors (in production):
-* relay-cluster mirror
-* Miner mirror
-* Extractor mirror
-* zookeeper&kafka
-* mysql & redis, please download the official mirror yourself
+### Distributed Version Docker Images
+In order to facilitate the deployment of distributed relays by partners, we will provide the following docker images (in production):
+* relay-cluster docker image
+* Miner mirror docker image
+* Extractor docker image
+* zookeeper&kafka docker image
+* mysql & redis, please download the official docker image yourself
 
 Please see the setion `Work With Docker`
 
@@ -338,4 +337,4 @@ The configuration files of each microservice and middleware need to be independe
 ---
 
 ## Get Help
-Please visit the official website for contact information and help: https://loopring.org
+Please visit the official website for contact information and help: https://loopring.org.

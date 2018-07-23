@@ -159,22 +159,29 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 		tx1, tx2 TransactionView
 	)
 
-	if tx1.Symbol = util.AddressToAlias(src.Protocol.Hex()); tx1.Symbol == "" {
-		return list, fmt.Errorf("transaction manager,transfer view, unsupported symbol")
+	tx1.Amount = src.Amount
+	tx1.Owner = src.Sender
+	tx1.Type = TX_TYPE_SEND
+	if symbol, err := util.AddressToSymbol(tx1.Owner, src.Protocol); err != nil {
+		return list, fmt.Errorf("transaction manager,transfer view error:%s", err.Error())
+	} else {
+		tx1.Symbol = symbol
 	}
 	if err := tx1.fullFilled(src.TxInfo); err != nil {
 		return list, err
 	}
-
-	tx1.Amount = src.Amount
-	tx1.Owner = src.Sender
-	tx1.Type = TX_TYPE_SEND
+	list = append(list, tx1)
 
 	tx2 = tx1
 	tx2.Owner = src.Receiver
 	tx2.Type = TX_TYPE_RECEIVE
+	if symbol, err := util.AddressToSymbol(tx2.Owner, src.Protocol); err != nil {
+		return list, fmt.Errorf("transaction manager,transfer view error:%s", err.Error())
+	} else {
+		tx2.Symbol = symbol
+		list = append(list, tx2)
+	}
 
-	list = append(list, tx1, tx2)
 	return list, nil
 }
 

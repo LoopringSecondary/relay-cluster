@@ -205,6 +205,11 @@ type EstimatedAllocatedAllowanceQuery struct {
 	Token           string `json: "token"`
 }
 
+type EstimatedAllocatedAllowanceResult struct {
+	AllocatedResult map[string]string `json:"allocatedResult"`
+	FrozenLrcFee    string `json: "frozenLrcFee"`
+}
+
 type TransactionQuery struct {
 	ThxHash   string   `json:"thxHash"`
 	Owner     string   `json:"owner"`
@@ -389,10 +394,10 @@ type P2PRingRequest struct {
 }
 
 type AddTokenReq struct {
-	Owner string `json:"owner"`
+	Owner                string `json:"owner"`
 	TokenContractAddress string `json:"tokenContractAddress"`
-	Symbol string `json:"symbol"`
-	Decimals int64 `json:"decimals"`
+	Symbol               string `json:"symbol"`
+	Decimals             int64  `json:"decimals"`
 }
 
 type WalletServiceImpl struct {
@@ -559,7 +564,13 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 
 	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
-	tx.Input = txNotify.Input
+
+	if len(txNotify.Input) > 2 && !strings.HasPrefix(txNotify.Input, "0x") && !strings.HasPrefix(txNotify.Input, "0X") {
+		tx.Input = "0x" + txNotify.Input
+	} else {
+		tx.Input = txNotify.Input
+	}
+
 	tx.From = txNotify.From
 	tx.To = txNotify.To
 	tx.Gas = *types.NewBigPtr(types.HexToBigint(txNotify.Gas))
@@ -626,6 +637,28 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 	}
 	return rst, err
 }
+
+// 查询p2p订单, 订单类型固定, market不限
+//func (w *WalletServiceImpl) GetP2pOrders(query *OrderQuery) (res PageResult, err error) {
+//	orderQuery, statusList, pi, ps := convertFromQuery(query)
+//	orderQuery["order_type"] = types.ORDER_TYPE_P2P
+//	if _, ok := orderQuery["market"]; ok {
+//		delete(orderQuery, "market")
+//	}
+//
+//	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
+//	if err != nil {
+//		log.Info("query order error : " + err.Error())
+//	}
+//
+//	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
+//
+//	for _, d := range src.Data {
+//		o := d.(types.OrderState)
+//		rst.Data = append(rst.Data, orderStateToJson(o))
+//	}
+//	return rst, err
+//}
 
 func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
 	if len(query.OrderHash) == 0 {
@@ -968,57 +1001,67 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	return types.BigintToHex(allLrcFee), err
 }
 
-func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (resultMap map[string]string, err error) {
+func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (result EstimatedAllocatedAllowanceResult, err error) {
 
 	if len(query.Owner) == 0 || len(query.DelegateAddress) == 0 {
-		return resultMap, errors.New("owner and delegateAddress must be applied")
+		return result, errors.New("owner and delegateAddress must be applied")
 	}
 
-
-	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress); if err != nil {
-		return resultMap, err
+	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress)
+	if err != nil {
+		return result, err
 	}
 
 	if len(allOrders) == 0 {
-		return resultMap, nil
+		return result, nil
 	}
 
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
-		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex()); if len(token) == 0 {
+			continue
+		}
+
 		amountS, _ := v.RemainedAmount()
-		amount, ok := tmpResult[token]; if ok {
+		amount, ok := tmpResult[token]
+		if ok {
 			amount = amount.Add(amount, amountS.Num())
 		} else {
 			tmpResult[token] = amountS.Num()
 		}
 	}
 
-	resultMap = make(map[string]string)
+	resultMap := make(map[string]string)
 
 	for k, v := range tmpResult {
 		resultMap[k] = types.BigintToHex(v)
 	}
 
-	return resultMap, err
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner}); if err != nil {
+		return result, err
+	}
+
+	return EstimatedAllocatedAllowanceResult{resultMap, lrcFee}, err
 }
 
-func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error){
+func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error) {
 
 	allOrders := make([]interface{}, 0)
 
-	orderQuery := OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:1, PageSize:200, Status:"ORDER_OPENED"}
-	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+	orderQuery := OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: 1, PageSize: 200, Status: "ORDER_OPENED"}
+	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+	if err != nil {
 		return orders, err
 	}
 
 	allOrders = append(allOrders, pageRst.Data[:]...)
 
 	if pageRst.Total > 200 {
-		for i := 2; i < (pageRst.Total / 200) + 1; i++ {
-			orderQuery = OrderQuery{Owner:owner, DelegateAddress:delegateAddress, PageIndex:i, PageSize:200, Status:"ORDER_OPENED"}
-			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery)); if err != nil {
+		for i := 2; i < (pageRst.Total/200)+1; i++ {
+			orderQuery = OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: i, PageSize: 200, Status: "ORDER_OPENED"}
+			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+			if err != nil {
 				return orders, err
 			}
 			allOrders = append(allOrders, pageRst.Data[:]...)
@@ -1187,7 +1230,7 @@ func (w *WalletServiceImpl) AddCustomToken(req AddTokenReq) (result string, err 
 	decimals.SetInt64(req.Decimals)
 	return req.TokenContractAddress, util.AddToken(
 		common.HexToAddress(req.Owner),
-		util.CustomToken{Address:common.HexToAddress(req.TokenContractAddress), Symbol:req.Symbol, Decimals:decimals})
+		util.CustomToken{Address: common.HexToAddress(req.TokenContractAddress), Symbol: req.Symbol, Decimals: decimals})
 }
 
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
@@ -1236,7 +1279,7 @@ func convertStatus(s string) []types.OrderStatus {
 	case "ORDER_FINISHED":
 		return []types.OrderStatus{types.ORDER_FINISHED}
 	case "ORDER_CANCELLED":
-		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_CUTOFF}
+		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_FLEX_CANCEL, types.ORDER_CUTOFF}
 	case "ORDER_CUTOFF":
 		return []types.OrderStatus{types.ORDER_CUTOFF}
 	case "ORDER_EXPIRE":
@@ -1484,8 +1527,18 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	return
 }
 
-func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
-	return w.globalMarket.GetGlobalTrendCache(req.Token)
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+	if len(req.Token) == 0 {
+		return nil, errors.New("token required")
+	}
+	tokenMap, err :=  w.globalMarket.GetGlobalTrendCache(req.Token); if err != nil {
+		return nil, err
+	}
+	return tokenMap[req.Token], err
+}
+
+func (w *WalletServiceImpl) GetAllGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
+	return w.globalMarket.GetGlobalTrendCache("")
 }
 
 func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]market.GlobalTicker, err error) {
@@ -1555,7 +1608,7 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	if err == nil {
 		go func() {
 			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
-			if err != nil {
+			if err == nil {
 				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
 			}
 		}()
