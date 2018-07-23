@@ -37,7 +37,7 @@ relay-cluster通过和ethereum(geth)节点的交互来实现以太坊网络的�
 
 * [zookeeper](deploy_zookeeper_cn.md)
 
-系统的配置管理及kafka元数据存储。
+做系统的配置管理及kafka元数据存储。
 
 * [kafka](deploy_kafka_cn.md)
 
