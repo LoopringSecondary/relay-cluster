@@ -16,12 +16,14 @@ sudo apt-get -y install software-properties-common
 sudo add-apt-repository -y ppa:ethereum/ethereum
 sudo apt-get update
 sudo apt-get -y install ethereum
-```
-## 启动
-```
 sudo mkdir -p /data/ethereum
 sudo chown -R ubuntu:ubuntu /data/ethereum
+```
+
+## 启动
 
 #启动脚本请参考如下配置，x.x.x.x为本机内网ip地址
+
+```
 sudo geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain *
 ```
