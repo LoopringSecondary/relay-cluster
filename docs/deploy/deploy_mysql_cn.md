@@ -71,7 +71,7 @@ CREATE DATABASE relay;
 
 注释掉这句 `bind-address= 127.0.0.1`
 
-重启
+重启mysql
 
 `sudo systemctl restart mysql`
 
