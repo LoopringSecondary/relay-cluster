@@ -55,7 +55,7 @@ mysql是relay-cluster后端服务的主要存储
 sudo apt update
 sudo apt -y install mysql-server
 ```
-根据界面提示输入root用户对应的口令，并再次确认
+根据界面提示输入root用户的口令
 
 创建relay db
 ```
@@ -67,4 +67,4 @@ CREATE DATABASE relay;
 
 > relay和miner都会用到mysql数据库，建议创建不同的数据库实例，避免互相影响
 
-记录前面创建db时指定的用户名口令，在相关配置文件中配置即可，同时也可以通过上面的命令行工具访问数据库实例
+记录前面创建db时指定的root用户口令，在相关配置文件中配置即可，同时也可通过上面的命令行工具访问数据库实例
