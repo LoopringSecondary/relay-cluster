@@ -77,6 +77,17 @@ cluster-enabled no
 slow-log-slower-than 1000
 slowlog-max-len 1000
 ```
+
+取消redis ip绑定
+
+`sudo vim /etc/redis/redis.conf`
+
+注释掉这句 bind 127.0.0.1
+
+重启redis
+
+`sudo systemctl restart redis`
+
 * 启动
 
 `sudo systemctl start redis`
