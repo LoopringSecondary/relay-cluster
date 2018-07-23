@@ -69,11 +69,11 @@ relay-cluster通过和ethereum(geth)节点的交互来实现以太坊网络的�
 ## 辅助管理系统【可选】
 * [kafka-manager](deploy_kafka_manager_cn.md)
 
-是一个开源的kafka集群浏览和管理系统。
+开源的kafka集群浏览和管理系统。
 
 * [node-zookeeper-browser](deploy_zk_browser_cn.md)
 
-提供了一个web界面用来辅助查看和编辑kafka，方便对系统进行配制管理。
+提供了web界面来辅助查看和编辑kafka，以便对系统进行配置管理。
 
 * [motan-manager](deploy_motan_manager_cn.md)
 
