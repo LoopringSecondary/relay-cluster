@@ -55,10 +55,10 @@ default.replication.factor=3
 ## 启停
 
 ### 启动
-`nohup bin/kafka-server-start.sh config/server.properties &`
+`nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh config/server.properties &`
 
 ### 终止
-`bin/kafka-server-stop.sh`
+`/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh`
 
 ## 日志
 `/opt/loopring/kafka_2.12-0.11.0.2/logs`
