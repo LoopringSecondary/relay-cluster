@@ -78,9 +78,10 @@ sudo mkdir -p /opt/loopring/data/zookeeper3
 
 ```
 dataDir=/opt/loopring/data/zookeeper
-server.1=127.0.0.1:2888:3888
-server.2=127.0.0.1:2889:3889
-server.3=127.0.0.1:2890:3890
+# 修改为本实例的内网ip
+server.1=x.x.x.x:2888:3888
+server.2=x.x.x.x:2889:3889
+server.3=x.x.x.x:2890:3890
 clientPort=2181
 ```
 
@@ -90,9 +91,10 @@ clientPort=2181
 
 ```
 dataDir=/opt/loopring/data/zookeeper2
-server.1=127.0.0.1:2888:3888
-server.2=127.0.0.1:2889:3889
-server.3=127.0.0.1:2890:3890
+# 修改为本实例的内网ip
+server.1=x.x.x.x:2888:3888
+server.2=x.x.x.x:2889:3889
+server.3=x.x.x.x:2890:3890
 clientPort=2182
 ```
 
@@ -102,9 +104,10 @@ clientPort=2182
 
 ```
 dataDir=/opt/loopring/data/zookeeper3
-server.1=127.0.0.1:2888:3888
-server.2=127.0.0.1:2889:3889
-server.3=127.0.0.1:2890:3890
+# 修改为本实例的内网ip
+server.1=x.x.x.x:2888:3888
+server.2=x.x.x.x:2889:3889
+server.3=x.x.x.x:2890:3890
 clientPort=2183
 ```
 
