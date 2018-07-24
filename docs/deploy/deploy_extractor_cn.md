@@ -87,14 +87,6 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-## 服务日志
-
-### extractor业务日志
-`/var/log/extractor/zap.log`
-
-### stdout
-`/var/log/svc/extractor/current`
-
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
 
@@ -103,3 +95,12 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 
 ### 停止
 `sudo svc -d /etc/service/extractor`
+
+## 服务日志
+
+### extractor业务日志
+`/var/log/extractor/zap.log`
+
+### stdout
+`/var/log/svc/extractor/current`
+
