@@ -30,7 +30,7 @@ sudo nohup geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x
 ```
 
 ### 终止
-`kill -9 进程id`
+`sudo kill -9 进程id`
 
 ## 日志
 
