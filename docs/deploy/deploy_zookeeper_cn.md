@@ -106,15 +106,15 @@ echo "1" > /opt/loopring/data/zookeeper/myid
 echo "2" > /opt/loopring/data/zookeeper2/myid
 echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
-### 测试环境启停
-#### 启动
+#### 测试环境启停
+##### 启动
 ```
 cd /opt/loopring/zookeeper-3.4.10/bin/
 ./zkServer.sh zoo.cfg start
 ./zkServer.sh zoo2.cfg start
 ./zkServer.sh zoo3.cfg start
 ```
-#### 停止
+##### 停止
 ```
 cd /opt/loopring/zookeeper-3.4.10/bin/
 ./zkServer.sh zoo.cfg stop
