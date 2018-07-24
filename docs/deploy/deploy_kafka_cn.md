@@ -9,11 +9,12 @@ kafka是extractor和relay-cluster之间的消息通信服务
 
 ### 申请EC2实例并关联安全组
 申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+>测试环境只需申请1台EC2服务器
 
 关联`kafka-SecurityGroup`安全组。
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
 
-### 部署kafka
+### 生产环境部署
 ```
 #如果没有部署jre，需要执行下面两步操作
 sudo apt update
@@ -51,8 +52,107 @@ log.retention.hours=168
 zookeeper.connect=xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181
 default.replication.factor=3
 ```
+### 测试环境部署
+>为了简便，测试环境采用单台实例部署kafka伪集群
 
-## 启停
+安装过程参考生产环境的步骤，再执行以下脚本
+```
+sudo mkdir -p /opt/loopring/data/kafka-logs
+sudo mkdir -p /opt/loopring/data/kafka-logs2
+sudo mkdir -p /opt/loopring/data/kafka-logs3
+sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs /opt/loopring/data/kafka-logs2 /opt/loopring/data/kafka-logs3
+
+cd /opt/loopring/kafka_2.12-0.11.0.2
+cp config/server.properties config/server.properties2
+cp config/server.properties config/server.properties3
+```
+修改config/server.properties
+
+`vim config/server.properties`
+```
+#不同节点设置不同的id
+broker.id=0
+# 修改ip地址为本实列的内网ip地址
+listeners=PLAINTEXT://x.x.x.x:9092
+
+log.dirs=/opt/loopring/data/kafka-logs
+offsets.topic.replication.factor=3
+min.insync.replicas=1
+transaction.state.log.replication.factor=2
+log.flush.interval.messages=300
+log.flush.interval.ms=300
+log.flush.scheduler.interval.ms=300
+log.flush.start.offset.checkpoint.interval.ms=2000
+log.retention.hours=168
+#修改为本实列的内网ip
+zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
+default.replication.factor=3
+```
+
+修改config/server.properties2
+
+`vim config/server.properties`
+```
+#不同节点设置不同的id
+broker.id=1
+# 修改ip地址为本实列的内网ip地址
+listeners=PLAINTEXT://x.x.x.x:9093
+
+log.dirs=/opt/loopring/data/kafka-logs2
+offsets.topic.replication.factor=3
+min.insync.replicas=1
+transaction.state.log.replication.factor=2
+log.flush.interval.messages=300
+log.flush.interval.ms=300
+log.flush.scheduler.interval.ms=300
+log.flush.start.offset.checkpoint.interval.ms=2000
+log.retention.hours=168
+#修改为本实列的内网ip
+zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
+default.replication.factor=3
+```
+
+修改config/server.properties3
+
+`vim config/server.properties`
+```
+#不同节点设置不同的id
+broker.id=2
+# 修改ip地址为本实列的内网ip地址
+listeners=PLAINTEXT://x.x.x.x:9094
+
+log.dirs=/opt/loopring/data/kafka-logs3
+offsets.topic.replication.factor=3
+min.insync.replicas=1
+transaction.state.log.replication.factor=2
+log.flush.interval.messages=300
+log.flush.interval.ms=300
+log.flush.scheduler.interval.ms=300
+log.flush.start.offset.checkpoint.interval.ms=2000
+log.retention.hours=168
+#修改为本实列的内网ip
+zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
+default.replication.factor=3
+```
+#### 测试环境启停
+
+##### 启动
+
+nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh config/server.properties &
+nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh config/server.properties2 &
+nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh config/server.properties3 &
+
+##### 终止
+
+/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh config/server.properties
+/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh config/server.properties2
+/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh config/server.properties3
+
+##### 日志
+
+/opt/loopring/kafka_2.12-0.11.0.2/logs
+
+## 生产环境启停
 
 ### 启动
 `nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh config/server.properties &`
