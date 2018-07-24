@@ -150,11 +150,13 @@ nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/
 ```
 
 ###### 确认服务正常启动
+```
 tail -f /opt/loopring/kafka_2.12-0.11.0.2/nohup.out
 
 telnet localhost 9092
 telnet localhost 9093
 telnet localhost 9094
+```
 
 ##### 终止
 ```
