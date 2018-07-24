@@ -145,6 +145,15 @@ rm -rf /tmp/svc
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
+## 启停
+通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
+
+### 启动
+`sudo svc -u /etc/service/miner`
+
+### 停止
+`sudo svc -d /etc/service/miner`
+
 ## 服务日志
 
 ## miner业务日志
@@ -155,12 +164,3 @@ rm -rf /tmp/svc
 
 ## stdout
 `/var/log/svc/miner/current`
-
-## 启停
-通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
-
-### 启动
-`sudo svc -u /etc/service/miner`
-
-### 停止
-`sudo svc -d /etc/service/miner`
