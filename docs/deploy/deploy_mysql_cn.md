@@ -54,6 +54,7 @@ mysql是relay-cluster后端服务的主要存储
 
 > 测试环境可将mysql和redis部署到同一台实例，再关联`mysql-securityGroup`和`redis-securityGroup`两个安全组即可
 
+
 执行以下命令部署Mysql实例
 ```
 sudo apt update
