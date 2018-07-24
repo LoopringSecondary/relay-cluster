@@ -132,6 +132,14 @@ log.retention.hours=168
 zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
 default.replication.factor=3
 ```
+
+若采用免费aws实例，由于内存不足，查看nohup.out报错“Cannot allocate memory”，进行修改即可
+
+`sudo vim /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh`
+
+```
+export KAFKA_HEAP_OPTS="-Xmx512M -Xms512M"
+```
 #### 测试环境启停
 
 ##### 启动
