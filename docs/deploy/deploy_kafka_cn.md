@@ -71,9 +71,8 @@ cp config/server.properties config/server.properties3
 
 `vim config/server.properties`
 ```
-#不同节点设置不同的id
 broker.id=0
-# 修改ip地址为本实列的内网ip地址
+# 修改为本实列的内网ip
 listeners=PLAINTEXT://x.x.x.x:9092
 
 log.dirs=/opt/loopring/data/kafka-logs
@@ -94,9 +93,8 @@ default.replication.factor=3
 
 `vim config/server.properties`
 ```
-#不同节点设置不同的id
 broker.id=1
-# 修改ip地址为本实列的内网ip地址
+# 修改为本实列的内网ip
 listeners=PLAINTEXT://x.x.x.x:9093
 
 log.dirs=/opt/loopring/data/kafka-logs2
@@ -117,9 +115,8 @@ default.replication.factor=3
 
 `vim config/server.properties`
 ```
-#不同节点设置不同的id
 broker.id=2
-# 修改ip地址为本实列的内网ip地址
+# 修改为本实列的内网ip
 listeners=PLAINTEXT://x.x.x.x:9094
 
 log.dirs=/opt/loopring/data/kafka-logs3
