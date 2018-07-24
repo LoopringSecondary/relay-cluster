@@ -24,14 +24,14 @@
 output_paths = ["/var/log/extractor/zap.log", "stderr"]
 error_output_paths = ["/var/log/extractor/err.log"]
 ...
-#mysql服务器内网ip
+#mysql实例内网ip
 [mysql]
     hostname = "x.x.x.x"
     port = "3306"
     user = "xxx"
     password = "xxx"
 ...
-#mysql服务器内网ip
+#redis实例内网ip
 [redis]
     host = "x.x.x.x"
     port = "6379"
