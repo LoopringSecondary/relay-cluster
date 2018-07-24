@@ -31,6 +31,7 @@ const (
 	DefaultCronSpec3Second  = "0/3 * * * * *"
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
+	DefaultCronSpec30Second = "0/30 * * * * *"
 	DefaultCronSpec1Minute  = "0 */1 * * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
@@ -155,27 +156,27 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
-		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec30Second},
+		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
-		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyOrderAllocateChange:      {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 
-		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec30Second},
+		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
-		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec30Second},
 		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 		eventKeyCirculrNotify:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
