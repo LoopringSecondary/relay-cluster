@@ -63,6 +63,7 @@ sudo mkdir -p /opt/loopring/data/kafka-logs3
 sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs /opt/loopring/data/kafka-logs2 /opt/loopring/data/kafka-logs3
 
 cd /opt/loopring/kafka_2.12-0.11.0.2
+cp config/server.properties config/server.properties
 cp config/server.properties config/server.properties2
 cp config/server.properties config/server.properties3
 ```
