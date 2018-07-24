@@ -61,8 +61,13 @@ echo "n" > /opt/loopring/data/zookeeper/myid
 安装过程参考生产环境的步骤，再执行以下脚本
 
 ```
+cd zookeeper-3.4.10/conf
+
+cp zoo_sample.cfg zoo.cfg
 cp zoo_sample.cfg zoo2.cfg
 cp zoo_sample.cfg zoo3.cfg
+
+sudo mkdir -p /opt/loopring/data/zookeeper
 sudo mkdir -p /opt/loopring/data/zookeeper2
 sudo mkdir -p /opt/loopring/data/zookeeper3
 ```
