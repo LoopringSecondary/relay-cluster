@@ -62,21 +62,30 @@ slowlog-max-len 1000
 ### 创建单机Redis实例
 参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`redis-securityGroup`安全组
 
+> 测试环境下mysql和redis可部署到同一台实例，再关联`mysql-securityGroup`和`redis-securityGroup`两个安全组即可
+
+
 执行以下命令部署redis实例
 ```
 sudo apt update
 sudo apt -y install redis-server
 ```
 
-修改配置项
+修改配置项，并取消redis ip绑定
 
 `sudo vim /etc/redis/redis.conf`
 
 ```
 cluster-enabled no
-slow-log-slower-than 1000
+slowlog-log-slower-than 1000
 slowlog-max-len 1000
 ```
+注释掉这句 `bind 127.0.0.1`
+
+最后重启redis即可
+
+`sudo systemctl restart redis`
+
 * 启动
 
 `sudo systemctl start redis`
