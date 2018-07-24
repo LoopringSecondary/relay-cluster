@@ -32,7 +32,7 @@ sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs
 ```
 修改config/server.properties配置项
 
-`vim config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
 ```
 #不同节点设置不同的id
 broker.id=0
@@ -69,7 +69,7 @@ cp config/server.properties config/server.properties3
 ```
 修改config/server.properties
 
-`vim config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
 ```
 broker.id=0
 # 修改为本实列的内网ip
@@ -91,7 +91,7 @@ default.replication.factor=3
 
 修改config/server.properties2
 
-`vim config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
 ```
 broker.id=1
 # 修改为本实列的内网ip
@@ -113,7 +113,7 @@ default.replication.factor=3
 
 修改config/server.properties3
 
-`vim config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
 ```
 broker.id=2
 # 修改为本实列的内网ip
