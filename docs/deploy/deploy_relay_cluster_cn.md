@@ -17,7 +17,7 @@
 #### 创建配置文件
 * relay.toml
 
-下载 `https://github.com/Loopring/relay-cluster/blob/master/config/relay.toml` 到本地，并在此基础上进行如下修改
+下载`https://github.com/Loopring/relay-cluster/blob/master/config/relay.toml`到本地，并在此基础上进行如下修改
 ```
 output_paths = ["/var/log/relay/zap.log"]
 error_output_paths = ["/var/log/relay/err.log"]
@@ -79,7 +79,7 @@ error_output_paths = ["/var/log/relay/err.log"]
 
 * motan_server.yaml
 
-下载 `https://github.com/Loopring/relay-cluster/blob/master/config/motan_server.yaml` 到本地，并在此基础上进行如下修改
+下载`https://github.com/Loopring/relay-cluster/blob/master/config/motan_server.yaml`到本地，并在此基础上进行如下修改
 
 ```
 log_dir: "/var/log/relay"
