@@ -91,7 +91,7 @@ default.replication.factor=3
 
 修改config/server.properties2
 
-`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties2`
 ```
 broker.id=1
 # 修改为本实列的内网ip
@@ -113,7 +113,7 @@ default.replication.factor=3
 
 修改config/server.properties3
 
-`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties`
+`vim /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties3`
 ```
 broker.id=2
 # 修改为本实列的内网ip
