@@ -58,19 +58,18 @@ error_output_paths = ["/var/log/extractor/err.log"]
 #zk内网ip地址
 [zk_lock]
     zk_servers = "x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
+    #测试环境下，ip zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
     connect_time_out = 10
 
 #kafka内网ip地址
 [kafka]
     brokers = ["x.x.x.x:9092","x.x.x.x:9092","x.x.x.x:9092"]
+    测试环境下，brokers = ["x.x.x.x:9092","x.x.x.x:9093","x.x.x.x:9094"]
 ...
 [cloud_watch]
     enabled = false
     region = ""
 ```
-> 测试环境下，填zk伪集群内网ip zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
-
-> 测试环境下，填kafka伪集群内网ip brokers = ["x.x.x.x:9092","x.x.x.x:9093","x.x.x.x:9094"]
 
 > cloud_watch如果设置`enabled`为true，请参考[ec2](new_ec2_cn.md)部署鉴权文件，region取值请参考[aws doc](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-regions-availability-zones.html)
 
