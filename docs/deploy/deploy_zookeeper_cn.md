@@ -128,8 +128,7 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 
 ### 启动
 ```
-cd /opt/loopring/zookeeper-3.4.10/bin/
-./zkServer.sh start
+/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
 确认服务正常启动
 ```
@@ -139,8 +138,7 @@ telnet localhost 2181
 
 ### 终止
 ```
-cd /opt/loopring/zookeeper-3.4.10/bin/
-./zkServer.sh stop
+/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
 
 ## 日志
