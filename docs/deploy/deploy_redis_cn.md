@@ -68,7 +68,7 @@ sudo apt update
 sudo apt -y install redis-server
 ```
 
-修改配置项
+修改配置项，并取消redis ip绑定
 
 `sudo vim /etc/redis/redis.conf`
 
@@ -76,13 +76,8 @@ sudo apt -y install redis-server
 cluster-enabled no
 slow-log-slower-than 1000
 slowlog-max-len 1000
+注释掉这句 bind 127.0.0.1
 ```
-
-取消redis ip绑定
-
-`sudo vim /etc/redis/redis.conf`
-
-注释掉这句 `bind 127.0.0.1`
 
 重启redis
 
