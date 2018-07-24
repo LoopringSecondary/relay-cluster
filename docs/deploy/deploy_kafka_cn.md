@@ -153,9 +153,9 @@ nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/
 ```
 tail -f /opt/loopring/kafka_2.12-0.11.0.2/nohup.out
 
-telnet localhost 9092
-telnet localhost 9093
-telnet localhost 9094
+telnet 本实列内网ip 9092
+telnet 本实列内网ip 9093
+telnet 本实列内网ip 9094
 ```
 
 ##### 终止
