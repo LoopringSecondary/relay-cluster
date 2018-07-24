@@ -80,7 +80,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
 sudo mkdir -p /opt/loopring/extractor
 sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring/extractor 
-sudo mkdir bin/ config/ src/
+sudo mkdir config
 ```
 上传本地配置文件
 ```
