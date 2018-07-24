@@ -25,7 +25,9 @@ sudo chown -R ubuntu:ubuntu /data/ethereum
 ### 启动
 修改 x.x.x.x 为本机内网ip地址
 
-`sudo nohup geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain * &`
+```
+sudo nohup geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain * &
+```
 
 ### 终止
 `kill -9 进程id`
