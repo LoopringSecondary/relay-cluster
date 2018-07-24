@@ -113,6 +113,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 * 部署keystore
 
 创建keystore文件夹
+
 `sudo mkdir -p /opt/loopring/miner/config/keystore`
 
 通过私钥生成keystore并自动导入到miner中，其中--private-key填私钥，--passphrase为设置keystore的密码
