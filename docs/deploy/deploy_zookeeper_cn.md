@@ -81,6 +81,7 @@ dataDir=/opt/loopring/data/zookeeper
 server.1=127.0.0.1:2888:3888
 server.2=127.0.0.1:2889:3889
 server.3=127.0.0.1:2890:3890
+clientPort=2181
 ```
 
 修改zoo2.cfg
@@ -92,6 +93,7 @@ dataDir=/opt/loopring/data/zookeeper2
 server.1=127.0.0.1:2888:3888
 server.2=127.0.0.1:2889:3889
 server.3=127.0.0.1:2890:3890
+clientPort=2182
 ```
 
 修改zoo3.cfg
@@ -103,6 +105,7 @@ dataDir=/opt/loopring/data/zookeeper3
 server.1=127.0.0.1:2888:3888
 server.2=127.0.0.1:2889:3889
 server.3=127.0.0.1:2890:3890
+clientPort=2183
 ```
 
 继续执行以下命令
@@ -121,7 +124,10 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 确认服务正常启动
 ```
 tail -f zookeeper.out
+
 telnet localhost 2181
+telnet localhost 2182
+telnet localhost 2183
 ```
 
 ##### 终止
