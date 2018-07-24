@@ -62,7 +62,7 @@ sudo apt -y install mysql-server
 ```
 根据界面提示输入root用户口令
 
-创建relay db，开启root外网访问
+创建relay db，开启root远程访问
 ```
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
