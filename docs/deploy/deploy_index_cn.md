@@ -73,7 +73,7 @@
 
 * [node-zookeeper-browser](deploy_zk_browser_cn.md)
 
-提供web界面来辅助查看和编辑kafka，以便对系统进行配置管理。
+提供web界面方便辅助查看和编辑kafka，以便对系统进行配置管理。
 
 * [motan-manager](deploy_motan_manager_cn.md)
 
