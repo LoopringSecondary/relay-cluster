@@ -59,7 +59,7 @@ slowlog-max-len 1000
 
 最后点击【创建】来创建redis集群
 
-### 创建单机Redis实例
+### 创建Redis单实例
 参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`redis-securityGroup`安全组
 
 > 测试环境下mysql和redis可部署到同一台实例，再关联`mysql-securityGroup`和`redis-securityGroup`两个安全组即可
