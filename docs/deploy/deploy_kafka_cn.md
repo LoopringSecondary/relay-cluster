@@ -133,7 +133,7 @@ zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
 default.replication.factor=3
 ```
 
-若采用免费aws实例，由于内存不足，查看nohup.out报错“Cannot allocate memory”，进行修改即可
+若采用免费aws实例，由于内存不足，启动会exit，并报错“Cannot allocate memory”，进行如下修改即可
 
 `sudo vim /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh`
 
