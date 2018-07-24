@@ -82,7 +82,7 @@ slowlog-max-len 1000
 ```
 注释掉这句 `bind 127.0.0.1`
 
-重启redis即可
+最后重启redis即可
 
 `sudo systemctl restart redis`
 
