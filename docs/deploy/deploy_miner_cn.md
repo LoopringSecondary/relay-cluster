@@ -5,35 +5,37 @@
 ### 启动EC2实例
 启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
-### 配置安全组
+### 关联安全组
 关联`miner-SecurityGroup`安全组。
 > 若未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`miner-SecurityGroup`安全组的说明，创建后再关联
 
 ## 部署配置文件
 
-目前miner的基本配置是通过静态配置文件来实现的，所以需要将配置文件在本地配置好并上传所有待部署服务器，不过这个工作只在第一次部署的时候必要，后续都会利用这个静态配置文件启动服务【待优化】
+目前miner是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署miner的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
 
 ### 创建配置文件
 * miner.toml
 
-在 https://github.com/Loopring/miner/blob/master/config/miner.toml 的基础上进行如下必要的修改
+下载`https://github.com/Loopring/miner/blob/master/config/miner.toml`到本地，并在此基础上进行如下修改
 ```
-    output_paths = ["/var/log/miner/zap.log"]
-    error_output_paths = ["/var/log/miner/err.log"]
+output_paths = ["/var/log/miner/zap.log"]
+error_output_paths = ["/var/log/miner/err.log"]
 ...
+#mysql实例内网ip
 [mysql]
-    hostname = "xx.xx.xx.xx"
+    hostname = "x.x.x.x"
     port = "3306"
     user = "xxx"
     password = "xxx"
 ...
+#redis实例内网ip
 [redis]
-    host = "xx.xx.xx.xx"
+    host = "x.x.x.x"
     port = "6379"
-#下面是eth节点的内网ip地址
+#ethnode实例内网ip
 [accessor]
     raw_urls = ["http://xx.xx.xx.xx:8545", "http://xx.xx.xx.xx:8545"]
-#下面是eth主网合约配置，如果非主网，要联系开源人员获取最新的测试配置
+#eth主网合约配置，如果非主网，要联系开源人员获取最新的测试配置
 [loopring_accessor.address]
     "v1.5" = "0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78"
 ...
@@ -60,14 +62,15 @@
         client_id="miner-client"
         conf_file="/opt/loopring/miner/config/motan_client.yaml"
 
-#zk内网ip地址
+#zookeeper内网ip
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+    #测试环境下修改为：zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
 ...
-#kafka内网ip地址
+#kafka内网ip
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
-
+    #测试环境下修改为：brokers = ["x.x.x.x:9092","x.x.x.x:9093","x.x.x.x:9094"]
 [cloud_watch]
     enabled = false
     region = ""
@@ -77,14 +80,14 @@
 
 * motan_client.yaml
 
-在 https://github.com/Loopring/miner/blob/master/config/motan_client.yaml 的基础上进行如下必要的修改
+下载`https://github.com/Loopring/miner/blob/master/config/motan_client.yaml`到本地，并在此基础上进行如下修改
 ```
 log_dir: "/var/log/miner"
 ...
 #设置zookeeper内网ip地址
   zk-registry:
     protocol: zookeeper
-    host: xx.xx.xx.xx
+    host: x.x.x.x
     port: 2181
 ```
 * tokens.json
@@ -96,10 +99,10 @@ log_dir: "/var/log/miner"
 
 在EC2实例执行脚本
 ```
-sudo mkdir -p /opt/loopring/miner
+sudo mkdir -p /opt/loopring/miner/bin
+sudo mkdir -p /opt/loopring/miner/config
+sudo mkdir -p /opt/loopring/miner/src
 sudo chown -R ubuntu:ubuntu /opt/loopring
-cd /opt/loopring/miner 
-mkdir bin/ config/ src/
 ```
 上传本地配置文件
 ```
@@ -110,9 +113,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 * 部署keystore
 
 创建keystore文件夹
-```
-sudo mkdir -p /opt/loopring/miner/config/keystore
-```
+`sudo mkdir -p /opt/loopring/miner/config/keystore`
 
 通过私钥生成keystore并自动导入到miner中，其中--private-key填私钥，--passphrase为设置keystore的密码
 ```
@@ -125,10 +126,8 @@ bin/miner account import --datadir config/keystore --private-key xxxxxxxxxxxxxxx
 和其他两个服务不同，因为miner启动脚本包含本地参数，因此不能放在自动启动脚本中进行每次覆盖部署，在第一次部署前需要手动配置启动脚本【待优化】
 
 在EC2实例执行下面脚本创建临时目录
-```
-mkdir -p /tmp/svc/log
-```
-在 https://github.com/Loopring/miner/blob/master/bin/svc/run 的基础上修改svc/run
+`mkdir -p /tmp/svc/log`
+在`https://github.com/Loopring/miner/blob/master/bin/svc/run`的基础上修改svc/run
 ```
 #修改unlocks为矿工费用接受地址，password为该地址对应口令，这里的地址应该和上面配置的keystore地址一致
 exec setuidgid ubuntu $WORK_DIR/bin/miner --unlocks ‘0x1111111111111111111111111111’ --passwords ‘xxxxxxxx’ --config $WORK_DIR/config/miner.toml 2>&1
