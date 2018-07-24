@@ -36,7 +36,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
     host = "x.x.x.x"
     port = "6379"
 ...
-#下面是eth节点的内网ip地址
+#eth节点内网ip
 [accessor]
     raw_urls = ["http://x.x.x.x:8545", "http://x.x.x.x:8545"]
 [extractor]
