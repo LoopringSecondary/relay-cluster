@@ -62,10 +62,13 @@ sudo apt -y install mysql-server
 ```
 根据界面提示输入root用户口令
 
-创建relay db
+创建relay db，开启root外网访问
 ```
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
+use mysql;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该数据库账号密码' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 ```
 
 取消mysql ip绑定
