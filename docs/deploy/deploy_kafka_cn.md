@@ -36,7 +36,7 @@ sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs
 ```
 #不同节点设置不同的id
 broker.id=0
-# 修改ip地址为当前节点的内网ip地址
+# 修改为当前节点的内网ip
 listeners=PLAINTEXT://x.x.x.x:9092
 
 log.dirs=/opt/loopring/data/kafka-logs
