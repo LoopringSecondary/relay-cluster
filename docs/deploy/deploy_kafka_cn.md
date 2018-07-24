@@ -84,7 +84,7 @@ log.flush.interval.ms=300
 log.flush.scheduler.interval.ms=300
 log.flush.start.offset.checkpoint.interval.ms=2000
 log.retention.hours=168
-#修改为本实列的内网ip
+#修改为zookeeper实列的内网ip
 zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
 default.replication.factor=3
 ```
@@ -106,7 +106,7 @@ log.flush.interval.ms=300
 log.flush.scheduler.interval.ms=300
 log.flush.start.offset.checkpoint.interval.ms=2000
 log.retention.hours=168
-#修改为本实列的内网ip
+#修改为zookeeper实列的内网ip
 zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
 default.replication.factor=3
 ```
@@ -128,7 +128,7 @@ log.flush.interval.ms=300
 log.flush.scheduler.interval.ms=300
 log.flush.start.offset.checkpoint.interval.ms=2000
 log.retention.hours=168
-#修改为本实列的内网ip
+#修改为zookeeper实列的内网ip
 zookeeper.connect=x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183
 default.replication.factor=3
 ```
