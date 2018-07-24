@@ -21,15 +21,17 @@
 
 下载`https://github.com/Loopring/extractor/blob/master/config/extractor.toml`到本地，并在此基础上进行如下修改
 ```
-    output_paths = ["/var/log/extractor/zap.log", "stderr"]
-    error_output_paths = ["/var/log/extractor/err.log"]
+output_paths = ["/var/log/extractor/zap.log", "stderr"]
+error_output_paths = ["/var/log/extractor/err.log"]
 ...
+#mysql服务器内网ip
 [mysql]
     hostname = "xx.xx.xx.xx"
     port = "3306"
     user = "xxx"
     password = "xxx"
 ...
+#mysql服务器内网ip
 [redis]
     host = "xx.xx.xx.xx"
     port = "6379"
@@ -55,12 +57,14 @@
 ...
 #zk内网ip地址
 [zk_lock]
-    zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+    zk_servers = "x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
+    # 测试环境下，填zk伪集群内网ip zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
     connect_time_out = 10
 
 #kafka内网ip地址
 [kafka]
-    brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
+    brokers = ["x.x.x.x:9092","x.x.x.x:9092","x.x.x.x:9092"]
+    # 测试环境下，填kafka伪集群内网ip brokers = ["x.x.x.x:9092","x.x.x.x:9093","x.x.x.x:9094"]
 ...
 [cloud_watch]
     enabled = false
