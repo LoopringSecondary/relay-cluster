@@ -131,7 +131,7 @@ telnet localhost 2181
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
 ##### 日志
-`/opt/loopring/zookeeper-3.4.10/bin/zookeeper.out`
+`/opt/loopring/zookeeper-3.4.10/zookeeper.out`
 
 ## 生产环境启停
 
