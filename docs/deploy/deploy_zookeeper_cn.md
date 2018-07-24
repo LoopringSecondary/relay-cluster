@@ -124,6 +124,9 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
+##### 日志
+`/opt/loopring/zookeeper-3.4.10/bin/zookeeper.out`
+
 ## 生产环境启停
 
 ### 启动
