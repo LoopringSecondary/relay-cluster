@@ -26,19 +26,19 @@ error_output_paths = ["/var/log/extractor/err.log"]
 ...
 #mysql服务器内网ip
 [mysql]
-    hostname = "xx.xx.xx.xx"
+    hostname = "x.x.x.x"
     port = "3306"
     user = "xxx"
     password = "xxx"
 ...
 #mysql服务器内网ip
 [redis]
-    host = "xx.xx.xx.xx"
+    host = "x.x.x.x"
     port = "6379"
 ...
 #下面是eth节点的内网ip地址
 [accessor]
-    raw_urls = ["http://xx.xx.xx.xx:8545", "http://xx.xx.xx.xx:8545"]
+    raw_urls = ["http://x.x.x.x:8545", "http://x.x.x.x:8545"]
 [extractor]
     start_block_number = 5863727
     end_block_number = 0
