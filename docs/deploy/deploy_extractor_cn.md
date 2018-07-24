@@ -91,7 +91,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-> 若首次部署提示失败或一直正在进行中，需先登陆实例执行一次启动命令，并查看业务日志排错，然后再一次部署即可
+> 若首次部署提示失败或一直正在进行中，需先登陆实例执行启动命令，并查看业务日志排错，最后重新部署即可
 
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
