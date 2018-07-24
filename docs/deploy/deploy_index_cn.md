@@ -25,7 +25,7 @@
 ## 存储及通信
 * [ethnode](deploy_geth_cn.md)
 
-relay-cluster通过和ethereum(geth)节点的交互来实现以太坊网络的接入。
+通过和relay-cluster的交互来实现接入以太坊网络。
 
 * [mysql](deploy_mysql_cn.md)
 
