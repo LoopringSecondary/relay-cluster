@@ -16,7 +16,6 @@ kafka是extractor和relay-cluster之间的消息通信服务
 
 ### 生产环境部署
 ```
-#如果没有部署jre，需要执行下面两步操作
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
 
