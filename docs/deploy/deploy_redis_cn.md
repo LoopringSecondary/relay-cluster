@@ -74,7 +74,7 @@ sudo apt -y install redis-server
 
 ```
 cluster-enabled no
-slow-log-slower-than 1000
+slowlog-log-slower-than 1000
 slowlog-max-len 1000
 ```
 注释掉这句 `bind 127.0.0.1`
