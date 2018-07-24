@@ -7,7 +7,7 @@
 启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
 ### 配置安全组
-为每个实例配置名为`extractor-SecurityGroup`的安全组
+为每个extractor实例关联`extractor-SecurityGroup`安全组
 > 如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
 ### 部署配置文件
