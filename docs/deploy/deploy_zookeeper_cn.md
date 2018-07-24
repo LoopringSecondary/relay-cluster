@@ -114,17 +114,15 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 #### 测试环境启停
 ##### 启动
 ```
-cd /opt/loopring/zookeeper-3.4.10
-./bin/zkServer.sh start conf/zoo.cfg
-./bin/zkServer.sh start conf/zoo2.cfg
-./bin/zkServer.sh start confzoo3.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
 ##### 停止
 ```
-cd /opt/loopring/zookeeper-3.4.10
-./bin/zkServer.sh stop conf/zoo.cfg
-./bin/zkServer.sh stop conf/zoo2.cfg
-./bin/zkServer.sh stop confzoo3.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
+./opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
 ## 启停
 
