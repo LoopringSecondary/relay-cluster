@@ -55,7 +55,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
 #zk内网ip
 [zk_lock]
     zk_servers = "x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
-    #测试环境下修改为：ip zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
+    #测试环境下修改为：zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
     connect_time_out = 10
 
 #kafka内网ip
