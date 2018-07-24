@@ -4,7 +4,7 @@
 
 ### 启动EC2实例
 
-启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
+启动EC2实例，并添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
 
 ### 关联安全组
 为每个extractor实例关联`extractor-SecurityGroup`安全组
@@ -13,13 +13,13 @@
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-### 部署配置文件
-目前extractor的基本配置是通过静态配置文件来实现的，所以需要将配置文件在本地配置好并上传所有待部署服务器，不过这个工作只在第一次部署的时候必要，后续都会利用这个静态配置文件启动服务【待优化】
+### 配置文件
+目前extractor是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署extractor的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
 
 #### 创建配置文件
 * extractor.toml
 
-在`https://github.com/Loopring/extractor/blob/master/config/extractor.toml`的基础上进行如下必要的修改
+下载`https://github.com/Loopring/extractor/blob/master/config/extractor.toml`到本地，并在此基础上进行如下修改
 ```
     output_paths = ["/var/log/extractor/zap.log", "stderr"]
     error_output_paths = ["/var/log/extractor/err.log"]
