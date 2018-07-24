@@ -10,9 +10,6 @@
 为每个extractor实例关联`extractor-SecurityGroup`安全组
 > 如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
-## 部署
-通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
-
 ### 配置文件
 目前extractor是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署extractor的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
 
@@ -90,6 +87,9 @@ sudo mkdir bin/ config/ src/
 scp -i xx.pem extractor.toml ubuntu@x.x.x.x:/opt/loopring/extractor/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ```
+
+## 部署
+通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
