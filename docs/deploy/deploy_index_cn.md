@@ -25,7 +25,7 @@
 ## 存储及通信
 * [ethnode](deploy_geth_cn.md)
 
-通过和relay-cluster交互来实现接入以太坊网络。
+通过和relay-cluster交互来实现以太坊网络的接入。
 
 * [mysql](deploy_mysql_cn.md)
 
