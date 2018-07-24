@@ -102,6 +102,7 @@ log_dir: "/var/log/miner"
 sudo mkdir -p /opt/loopring/miner/bin
 sudo mkdir -p /opt/loopring/miner/config
 sudo mkdir -p /opt/loopring/miner/src
+sudo mkdir -p /opt/loopring/miner/config/keystore
 sudo chown -R ubuntu:ubuntu /opt/loopring
 ```
 上传本地配置文件
@@ -111,10 +112,6 @@ scp -i xx.pem motan_client.yaml ubuntu@x.x.x.x:/opt/loopring/miner/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/miner/config
 ```
 * 部署keystore
-
-创建keystore文件夹
-
-`sudo mkdir -p /opt/loopring/miner/config/keystore`
 
 通过私钥生成keystore并自动导入到miner中，其中--private-key填私钥，--passphrase为设置keystore的密码
 ```
