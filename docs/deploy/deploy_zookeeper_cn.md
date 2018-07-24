@@ -123,7 +123,7 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
 确认服务正常启动
 ```
-tail -f zookeeper.out
+tail -f /opt/loopring/zookeeper-3.4.10/zookeeper.out
 
 telnet localhost 2181
 telnet localhost 2182
