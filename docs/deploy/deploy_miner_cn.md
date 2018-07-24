@@ -84,7 +84,7 @@ error_output_paths = ["/var/log/miner/err.log"]
 ```
 log_dir: "/var/log/miner"
 ...
-#设置zookeeper内网ip地址
+#设置zookeeper内网ip
   zk-registry:
     protocol: zookeeper
     host: x.x.x.x
