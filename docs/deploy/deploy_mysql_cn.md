@@ -67,7 +67,7 @@ sudo apt -y install mysql-server
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
 use mysql;
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该数据库账号密码' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该账号的密码' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 ```
 
