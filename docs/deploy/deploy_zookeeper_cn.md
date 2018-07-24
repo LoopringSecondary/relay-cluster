@@ -51,7 +51,7 @@ server.3=xx.xx.xx.xx:2888:3888
 初始化myid，这里"n"在三台服务器的取值依次为1，2，3，和上面zoo.conf一致，每台服务器仅执行一次自身对应取值的命令
 
 ```
-sudo echo "n" > /opt/loopring/data/zookeeper/myid
+echo "n" > /opt/loopring/data/zookeeper/myid
 ```
 
 ### 测试环境部署
@@ -102,9 +102,9 @@ server.3=127.0.0.1:2890:3890
 
 继续执行以下命令
 ```
-sudo echo "1" > /opt/loopring/data/zookeeper/myid
-sudo echo "2" > /opt/loopring/data/zookeeper2/myid
-sudo echo "3" > /opt/loopring/data/zookeeper3/myid
+echo "1" > /opt/loopring/data/zookeeper/myid
+echo "2" > /opt/loopring/data/zookeeper2/myid
+echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
 #### 测试环境启停
 ##### 启动
