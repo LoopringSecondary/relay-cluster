@@ -77,9 +77,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
 #### 配置EC2实例
 在EC2实例执行脚本
 ```
-sudo mkdir -p /opt/loopring/extractor
-cd /opt/loopring/extractor 
-sudo mkdir config
+sudo mkdir -p /opt/loopring/extractor/config
 sudo chown -R ubuntu:ubuntu /opt/loopring
 ```
 上传本地配置文件
