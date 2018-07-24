@@ -96,7 +96,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ### 停止
 `sudo svc -d /etc/service/extractor`
 
-## 服务日志
+## 日志
 
 ### extractor业务日志
 `/var/log/extractor/zap.log`
