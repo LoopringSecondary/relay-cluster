@@ -91,7 +91,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
-> 部署失败请先检查状态`sudo service codedeploy-agent status`，如果响应结果是running说明正常，否则进行重启，再重新部署
+> 部署失败请先检查状态`sudo service codedeploy-agent status`，如果响应结果是running说明正常，否则重启后重新部署
 
 > 若仍然提示失败或一直正在进行中，需先登陆实例执行启动命令，再查看业务日志排错，最后重新部署即可
 
