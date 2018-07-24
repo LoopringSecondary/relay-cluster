@@ -52,7 +52,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
 [market]
     token_file = "/opt/loopring/extractor/config/tokens.json"
 ...
-#zk内网ip
+#zookeeper内网ip
 [zk_lock]
     zk_servers = "x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
     #测试环境下修改为：zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
