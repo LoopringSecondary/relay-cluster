@@ -29,7 +29,7 @@ error_output_paths = ["/var/log/extractor/err.log"]
     host = "x.x.x.x"
     port = "6379"
 ...
-#ethnode实例内网ip
+#ethnode实例内网ip，多个实例之间用逗号分割
 [accessor]
     raw_urls = ["http://x.x.x.x:8545", "http://x.x.x.x:8545"]
 [extractor]
