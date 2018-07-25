@@ -22,18 +22,16 @@
 output_paths = ["/var/log/relay/zap.log"]
 error_output_paths = ["/var/log/relay/err.log"]
 ...
-#mysql实例内网ip
 [mysql]
     hostname = "x.x.x.x"
     port = "3306"
     user = "xxx"
     password = "xxx"
-#redis实例内网ip
 [redis]
     host = "x.x.x.x"
     port = "6379"
 ...
-#ethnode实例内网ip
+#ethnode实例内网ip，多个实例用逗号分割
 [accessor]
     raw_urls = ["http://x.x.x.x:8545", "http://x.x.x.x:8545"]
 #eth主网合约配置，如果非主网，要联系开源人员获取最新的测试配置
