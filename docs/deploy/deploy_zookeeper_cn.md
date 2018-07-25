@@ -55,7 +55,7 @@ server.3=xx.xx.xx.xx:2888:3888
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
-确认服务正常启动
+##### 确认服务正常启动
 ```
 tail -f zookeeper.out
 telnet localhost 2181
