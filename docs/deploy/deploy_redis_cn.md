@@ -78,8 +78,8 @@ sudo apt -y install redis-server
 cluster-enabled no
 slowlog-log-slower-than 1000
 slowlog-max-len 1000
+# bind 127.0.0.1
 ```
-注释这句 `bind 127.0.0.1`
 
 最后重启redis即可
 
