@@ -134,7 +134,7 @@ echo "1" > /opt/loopring/data/zookeeper/myid
 echo "2" > /opt/loopring/data/zookeeper2/myid
 echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
-#### 测试场景启停
+#### 启停
 ##### 启动
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
@@ -157,4 +157,5 @@ telnet localhost 2183
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
 ##### 日志
+
 `/opt/loopring/zookeeper-3.4.10/zookeeper.out`
