@@ -91,7 +91,7 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 
 > 部署失败请先检查`sudo service codedeploy-agent status`，结果是running说明正常，否则重启服务后再部署
 
-> 若仍然提示失败或长时间显示正在进行中，请先登陆实例启动extractor，再查看业务日志排错，最后重新部署即可
+> 若仍然提示失败或长时间显示正在进行中，请先登陆实例启动extractor，查看业务日志进行排错，再重新部署即可
 
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
