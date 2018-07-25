@@ -47,9 +47,27 @@ server.3=xx.xx.xx.xx:2888:3888
 
 初始化myid，这里"n"在三台服务器的取值依次为1，2，3，和上面zoo.conf一致，每台服务器仅执行一次自身对应取值的命令
 
+`echo "n" > /opt/loopring/data/zookeeper/myid`
+
+#### 启停
+
+##### 启动
 ```
-echo "n" > /opt/loopring/data/zookeeper/myid
+/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
+确认服务正常启动
+```
+tail -f zookeeper.out
+telnet localhost 2181
+```
+
+##### 终止
+```
+/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
+```
+
+#### 日志
+`/opt/loopring/zookeeper-3.4.10/bin/zookeeper.out`
 
 ### 测试场景部署zookeeper
 
@@ -140,23 +158,3 @@ telnet localhost 2183
 ```
 ##### 日志
 `/opt/loopring/zookeeper-3.4.10/zookeeper.out`
-
-## 生产场景启停
-
-### 启动
-```
-/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
-```
-确认服务正常启动
-```
-tail -f zookeeper.out
-telnet localhost 2181
-```
-
-### 终止
-```
-/opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
-```
-
-## 日志
-`/opt/loopring/zookeeper-3.4.10/bin/zookeeper.out`
