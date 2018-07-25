@@ -50,14 +50,6 @@ log.retention.hours=168
 zookeeper.connect=xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181
 default.replication.factor=3
 ```
-
-若采用免费aws实例，由于内存不足，启动会立即exit，并在日志报错“Cannot allocate memory”，进行如下修改即可
-
-`sudo vim /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh`
-
-```
-export KAFKA_HEAP_OPTS="-Xmx256M -Xms256M"
-```
 #### 启停
 
 ##### 启动
@@ -165,9 +157,8 @@ default.replication.factor=3
 
 `sudo vim /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh`
 
-```
-export KAFKA_HEAP_OPTS="-Xmx256M -Xms256M"
-```
+`export KAFKA_HEAP_OPTS="-Xmx256M -Xms256M"`
+
 #### 启停
 
 ##### 启动
