@@ -26,7 +26,7 @@ sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring
 wget http://apache.mirrors.lucidnetworks.net/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz
 tar xzf kafka_2.12-0.11.0.2.tgz
-cd kafka_2.12-0.11.0.2/
+cd kafka_2.12-0.11.0.2
 ```
 修改config/server.properties配置项
 
