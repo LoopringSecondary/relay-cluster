@@ -79,7 +79,19 @@ FLUSH PRIVILEGES;
 
 `# bind-address= 127.0.0.1`
 
-重启mysql
+最后重启mysql即可 `sudo systemctl restart mysql`
+
+#### 启停
+
+* 启动
+
+`sudo systemctl start mysql`
+
+* 终止
+
+`sudo systemctl stop mysql`
+
+* 重启
 
 `sudo systemctl restart mysql`
 
