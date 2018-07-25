@@ -2,7 +2,7 @@
 
 mysql是relay-cluster后端服务的主要存储
 
-## 创建MySQL实例
+## 选择MySQL实例类型
 
 测试场景下仅需自建mysql单实例即可，简便快捷
 
