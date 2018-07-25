@@ -6,11 +6,10 @@ redis是relay-cluster后端服务的缓存，并提供非关键业务数据的�
 
 > 目前redis为非cluster方式部署，后续会升级为cluster模式
 
-可以选择aws的ElastiCache或者自建redis，推荐使用前者
+测试环境下部署仅需自建redis单实例即可，简便快捷
 
-ElastiCache包含集群功能，方便进行弹性伸缩，并且提供更丰富的监控及管理功能，适合线上环境使用
+生产环境下部署推荐采用aws的ElastiCache，其包含集群功能，方便进行弹性伸缩，并且提供更丰富的监控及管理功能，适合线上环境使用
 
-自建单实例redis更加快速，适合测试场景
 
 ## 创建ElastiCache实例
 
