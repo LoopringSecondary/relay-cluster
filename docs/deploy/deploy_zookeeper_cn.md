@@ -32,6 +32,7 @@ tar xzf zookeeper-3.4.10.tar.gz
 cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
 sudo mkdir -p /opt/loopring/data/zookeeper
+sudo chown -R ubuntu:ubuntu /opt/loopring/data/zookeeper
 ```
 
 修改以下配置项，依次填入三台zookeeper服务器的内网ip
