@@ -73,11 +73,11 @@ GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该账号的密码' 
 FLUSH PRIVILEGES;
 ```
 
-取消mysql ip绑定
+禁用mysql的bind-address
 
 `sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
-`#bind-address= 127.0.0.1`
+`# bind-address= 127.0.0.1`
 
 重启mysql
 
