@@ -70,7 +70,7 @@ sudo apt update
 sudo apt -y install redis-server
 ```
 
-修改配置项，并取消redis ip绑定
+修改配置项，并禁用redis bind
 
 `sudo vim /etc/redis/redis.conf`
 
