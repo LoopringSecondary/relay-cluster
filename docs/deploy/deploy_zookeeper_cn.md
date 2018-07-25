@@ -109,7 +109,8 @@ server.3=x.x.x.x:2890:3890
 clientPort=2183
 ```
 
-继续执行以下命令
+初始化myid
+
 ```
 echo "1" > /opt/loopring/data/zookeeper/myid
 echo "2" > /opt/loopring/data/zookeeper2/myid
