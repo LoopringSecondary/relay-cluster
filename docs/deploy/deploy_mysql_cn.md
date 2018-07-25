@@ -77,7 +77,7 @@ FLUSH PRIVILEGES;
 
 `sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
-注释这句 `bind-address= 127.0.0.1`
+`#bind-address= 127.0.0.1`
 
 重启mysql
 
