@@ -16,6 +16,8 @@ kafka是extractor和relay-cluster之间的消息通信服务
 
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
 
+每台服务器都要按以下步骤进行部署
+
 ```
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
