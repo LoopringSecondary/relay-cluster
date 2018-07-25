@@ -19,14 +19,12 @@
 output_paths = ["/var/log/extractor/zap.log", "stderr"]
 error_output_paths = ["/var/log/extractor/err.log"]
 ...
-#mysql实例内网ip
 [mysql]
     hostname = "x.x.x.x"
     port = "3306"
     user = "xxx"
     password = "xxx"
 ...
-#redis实例内网ip
 [redis]
     host = "x.x.x.x"
     port = "6379"
