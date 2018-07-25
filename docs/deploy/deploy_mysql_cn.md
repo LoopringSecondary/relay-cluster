@@ -73,7 +73,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该账号的密码' 
 FLUSH PRIVILEGES;
 ```
 
-禁用mysql的bind-address
+禁用mysql bind-address
 
 `sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf`
 
