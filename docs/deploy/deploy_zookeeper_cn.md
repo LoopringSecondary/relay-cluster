@@ -24,14 +24,13 @@ sudo apt update
 sudo apt -y install openjdk-8-jre-headless
 
 sudo mkdir /opt/loopring
-sudo chown -R ubuntu:ubuntu /opt/loopring
-
 cd /opt/loopring
 wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz
 tar xzf zookeeper-3.4.10.tar.gz
 cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
 sudo mkdir -p /opt/loopring/data/zookeeper
+sudo chown -R ubuntu:ubuntu /opt/loopring
 ```
 
 修改以下配置项，依次填入三台zookeeper服务器的内网ip
