@@ -73,18 +73,22 @@ telnet localhost 2181
 申请1台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组。
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
-安装过程请参考生产环境的前面的步骤，再执行以下命令
-
 ```
-cd zookeeper-3.4.10/conf
-
-cp zoo_sample.cfg zoo.cfg
-cp zoo_sample.cfg zoo2.cfg
-cp zoo_sample.cfg zoo3.cfg
+sudo apt update
+sudo apt -y install openjdk-8-jre-headless
 
 sudo mkdir -p /opt/loopring/data/zookeeper
 sudo mkdir -p /opt/loopring/data/zookeeper2
 sudo mkdir -p /opt/loopring/data/zookeeper3
+sudo chown -R ubuntu:ubuntu /opt/loopring
+
+cd /opt/loopring
+wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz
+tar xzf zookeeper-3.4.10.tar.gz
+cd zookeeper-3.4.10
+cp conf/zoo_sample.cfg conf/zoo.cfg
+cp conf/zoo_sample.cfg conf/zoo2.cfg
+cp conf/zoo_sample.cfg conf/zoo3.cfg
 ```
 
 修改zoo.cfg
@@ -143,10 +147,7 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 ###### 确认服务正常启动
 ```
 tail -f /opt/loopring/zookeeper-3.4.10/zookeeper.out
-
 telnet localhost 2181
-telnet localhost 2182
-telnet localhost 2183
 ```
 
 ##### 终止
