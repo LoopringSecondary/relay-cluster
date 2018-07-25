@@ -63,7 +63,7 @@ mysql是relay-cluster后端服务的主要存储
 sudo apt update
 sudo apt -y install mysql-server
 ```
-根据界面提示输入root用户口令
+根据界面提示输入口令
 
 创建relay db，开启root远程访问
 ```
