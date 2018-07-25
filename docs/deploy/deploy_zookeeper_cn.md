@@ -33,7 +33,7 @@ cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
 ```
 
-修改以下配置项，依次填入三台zookeeper服务器的内网ip
+修改以下配置项，依次填入3台zookeeper服务器的内网ip
 
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
 
