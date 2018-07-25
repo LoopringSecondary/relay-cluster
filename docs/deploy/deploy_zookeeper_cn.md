@@ -23,7 +23,7 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
 
-sudo mkdir /opt/loopring
+sudo mkdir /opt/loopring/data/zookeeper
 sudo chown -R ubuntu:ubuntu /opt/loopring
 
 cd /opt/loopring
@@ -31,8 +31,6 @@ wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-3.4.10/zookeeper
 tar xzf zookeeper-3.4.10.tar.gz
 cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
-sudo mkdir -p /opt/loopring/data/zookeeper
-sudo chown -R ubuntu:ubuntu /opt/loopring/data/zookeeper
 ```
 
 修改以下配置项，依次填入三台zookeeper服务器的内网ip
