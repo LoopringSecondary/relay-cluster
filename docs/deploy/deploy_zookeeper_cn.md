@@ -8,17 +8,16 @@ zookeeper使用场景
 
 zookeeper需要进行集群部署来保证可用性，建议部署3个以上的奇数节点。
 
-## 部署
-3个节点为例
+## 选择zookeeper集群部署场景
 
-### 申请EC2实例并关联安全组
-申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
->测试环境只需申请1台EC2服务器
+测试场景下仅需部署单实例伪集群即可，简便快捷
 
-关联`zookeeper-SecurityGroup`安全组。
+生产场景下以部署3个节点为例
+
+### 生产场景部署zookeeper
+
+申请3台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组。
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
-
-### 生产环境部署
 
 ```
 sudo apt update
@@ -52,9 +51,10 @@ server.3=xx.xx.xx.xx:2888:3888
 echo "n" > /opt/loopring/data/zookeeper/myid
 ```
 
-### 测试环境部署
+### 测试场景部署zookeeper
 
-> 为了简便，测试环境采用单台实例部署zookeeper伪集群
+申请1台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组。
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
 安装过程参考生产环境的步骤，再执行以下脚本
 
@@ -115,7 +115,7 @@ echo "1" > /opt/loopring/data/zookeeper/myid
 echo "2" > /opt/loopring/data/zookeeper2/myid
 echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
-#### 测试环境启停
+#### 测试场景启停
 ##### 启动
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
@@ -140,7 +140,7 @@ telnet localhost 2183
 ##### 日志
 `/opt/loopring/zookeeper-3.4.10/zookeeper.out`
 
-## 生产环境启停
+## 生产场景启停
 
 ### 启动
 ```
