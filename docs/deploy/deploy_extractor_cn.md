@@ -2,12 +2,14 @@
 
 ## 初始化环境
 
-启动EC2实例，添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)，并且为每个extractor关联`extractor-SecurityGroup`安全组
+申请EC2实例，添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)，并且为每个extractor关联`extractor-SecurityGroup`安全组
 
 > 如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
 ### 配置文件
-目前extractor是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署extractor的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
+目前extractor是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到待部署的extractor的服务器
+
+> 该操作仅首部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
 
 #### 创建配置文件
 * extractor.toml
