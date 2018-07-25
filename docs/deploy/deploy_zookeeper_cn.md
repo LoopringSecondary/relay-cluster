@@ -6,7 +6,7 @@ zookeeper使用场景
 * relay-cluster分布式锁
 * miner负载均衡
 
-zookeeper需要进行集群部署来保证可用性，建议部署3个以上的奇数节点。
+zookeeper需要进行集群部署来保证可用性，建议部署3个以上的奇数节点
 
 ## 选择zookeeper部署场景
 
@@ -16,7 +16,7 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 
 ### 生产场景部署
 
-申请3台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组。
+申请3台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
 ```
