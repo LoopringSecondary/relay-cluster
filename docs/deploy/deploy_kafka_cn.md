@@ -74,15 +74,19 @@ telnet 本实列内网ip 9092
 
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
 
-安装过程请参考生产场景前面的步骤，再执行以下命令
-
 ```
+sudo apt update
+sudo apt -y install openjdk-8-jre-headless
+
 sudo mkdir -p /opt/loopring/data/kafka-logs
 sudo mkdir -p /opt/loopring/data/kafka-logs2
 sudo mkdir -p /opt/loopring/data/kafka-logs3
-sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs /opt/loopring/data/kafka-logs2 /opt/loopring/data/kafka-logs3
+sudo chown -R ubuntu:ubuntu /opt/loopring
 
-cd /opt/loopring/kafka_2.12-0.11.0.2
+cd /opt/loopring
+wget http://apache.mirrors.lucidnetworks.net/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz
+tar xzf kafka_2.12-0.11.0.2.tgz
+cd kafka_2.12-0.11.0.2
 cp config/server.properties config/server.properties
 cp config/server.properties config/server.properties2
 cp config/server.properties config/server.properties3
