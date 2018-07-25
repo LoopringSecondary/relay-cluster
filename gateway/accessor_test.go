@@ -212,7 +212,7 @@ func TestEthNodeAccessor_CancelOrder(t *testing.T) {
 		state        types.OrderState
 		err          error
 		result       string
-		orderhash    = common.HexToHash("0xab377f4095335807f722bcc4edb342fdd1fdf86586f8f146015f260225a97d6e")
+		orderhash    = common.HexToHash("0x2fd51638ad98d79aef0e1aecd5d85c5a471914792b9aaf74afdb1fafd5c25ff2")
 		cancelAmount = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2))
 	)
 
@@ -264,7 +264,7 @@ func TestEthNodeAccessor_GetCancelledOrFilled(t *testing.T) {
 
 // cutoff的值必须在两个块的timestamp之间
 func TestEthNodeAccessor_CutoffAll(t *testing.T) {
-	account := common.HexToAddress("0xb1018949b241D76A1AB2094f473E9bEfeAbB5Ead")
+	account := common.HexToAddress("0x1B978a1D302335a6F2Ebe4B8823B5E17c3C84135")
 	cutoff := big.NewInt(1531808145)
 
 	callMethod := accessor.ContractSendTransactionMethod("latest", test.LprAbi(), test.Protocol())

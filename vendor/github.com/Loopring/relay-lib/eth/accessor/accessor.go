@@ -119,7 +119,7 @@ func BatchCall(routeParam string, reqs []BatchReq) error {
 		elemsLength = append(elemsLength, len(elems1))
 		elems = append(elems, elems1...)
 	}
-	if elems, err = accessor.BatchCall(routeParam, elems); nil != err {
+	if elems, err = accessor.RetryBatchCall(routeParam, elems, 3); nil != err {
 		return err
 	} else {
 		startId := 0

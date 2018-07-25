@@ -154,6 +154,42 @@ func (s *RdsService) FindTxEntity(txhash string, logIndex int64) (TransactionEnt
 	return tx, err
 }
 
+func (s *RdsService) DelDuplicateTxEntity(txhash string, logindex, nonce int64) error {
+	err := s.Db.Where("tx_hash=?", txhash).
+		Where("tx_log_index=?", logindex).
+		Where("nonce=?", nonce).
+		Where("fork=?", false).
+		Delete(&TransactionEntity{}).Error
+	return err
+}
+
+func (s *RdsService) GetMaxNonce(owner common.Address) (*big.Int, error) {
+	var model TransactionEntity
+	err := s.Db.Where("tx_from=?", owner.Hex()).
+		Where("fork=?", false).
+		Order("nonce DESC").First(&model).Error
+
+	if err == nil {
+		return big.NewInt(model.Nonce), nil
+	} else {
+		return big.NewInt(0), err
+	}
+}
+
+func (s *RdsService) GetMaxSuccessNonce(owner common.Address) (*big.Int, error) {
+	var model TransactionEntity
+	err := s.Db.Where("tx_from=?", owner.Hex()).
+		Where("fork=?", false).
+		Where("status=?", types.TX_STATUS_SUCCESS).
+		Order("nonce DESC").First(&model).Error
+
+	if err == nil {
+		return big.NewInt(model.Nonce), nil
+	} else {
+		return big.NewInt(0), err
+	}
+}
+
 func (s *RdsService) RollBackTxEntity(from, to int64) error {
 	return s.Db.Model(&TransactionEntity{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }

@@ -20,10 +20,9 @@ package manager
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/cache"
 	"github.com/Loopring/relay-cluster/ordermanager/common"
-	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/eventemitter"
-	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
@@ -37,10 +36,7 @@ type OrderManager interface {
 type OrderManagerImpl struct {
 	options                    *common.OrderManagerOptions
 	brokers                    []string
-	rds                        *dao.RdsService
 	processor                  *ForkProcessor
-	cutoffCache                *common.CutoffCache
-	mc                         marketcap.MarketCapProvider
 	newOrderWatcher            *eventemitter.Watcher
 	ringMinedWatcher           *eventemitter.Watcher
 	fillOrderWatcher           *eventemitter.Watcher
@@ -58,53 +54,59 @@ type OrderManagerImpl struct {
 	submitRingMethodWatcher    *eventemitter.Watcher
 }
 
-const kafka_consume_group = "relay_cluster_order_manager"
+var (
+	rds               *dao.RdsService
+	marketCapProvider marketcap.MarketCapProvider
+	cutoffcache       *common.CutoffCache
+)
 
 func NewOrderManager(
 	options *common.OrderManagerOptions,
-	rds *dao.RdsService,
+	db *dao.RdsService,
 	market marketcap.MarketCapProvider,
-	um usermanager.UserManager,
 	brokers []string) *OrderManagerImpl {
 
 	om := &OrderManagerImpl{}
 	om.options = options
 	om.brokers = brokers
-	om.rds = rds
-	om.processor = NewForkProcess(om.rds, market)
-	om.mc = market
-	om.cutoffCache = common.NewCutoffCache(options.CutoffCacheCleanTime)
+	om.processor = NewForkProcess()
+	cutoffcache = common.NewCutoffCache(options.CutoffCacheCleanTime)
 
-	// register watchers for kafka
-	// om.registryFlexCancelWatcher()
+	marketCapProvider = market
+	rds = db
 
-	InitializeWriter(om.rds, um)
+	if cache.Invalid() {
+		cache.Initialize(rds)
+	}
+
 	return om
 }
 
 // Start start orderbook as a service
 func (om *OrderManagerImpl) Start() {
-	om.newOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleGatewayOrder}
+	// order related
+	om.newOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.ringMinedWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.fillOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
+	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandlerOrderRelatedEvent}
 
-	om.ringMinedWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleRingMined}
-	om.fillOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderFilled}
-	om.cancelOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleOrderCancelled}
-	om.cutoffOrderWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoff}
-	om.cutoffPairWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleCutoffPair}
+	// order correlated
+	om.approveWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
+	om.depositWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
+	om.withdrawalWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
+	om.transferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
+	om.ethTransferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
+	om.unsupportedContractWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.HandleOrderCorrelatedEvent}
 
-	om.approveWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleApprove}
-	om.depositWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleDeposit}
-	om.withdrawalWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWithdrawal}
-	om.transferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleTransfer}
-	om.ethTransferWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleEthTransfer}
-	om.unsupportedContractWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleUnsupportedContract}
-
+	// procedure related
 	om.forkWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleFork}
 	om.warningWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleWarning}
-	om.submitRingMethodWatcher = &eventemitter.Watcher{Concurrent: false, Handle: om.handleSubmitRingMethod}
 
 	eventemitter.On(eventemitter.NewOrder, om.newOrderWatcher)
-
+	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 	eventemitter.On(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.On(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.On(eventemitter.CancelOrder, om.cancelOrderWatcher)
@@ -120,16 +122,16 @@ func (om *OrderManagerImpl) Start() {
 
 	eventemitter.On(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.On(eventemitter.ExtractorWarning, om.warningWatcher)
-	eventemitter.On(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 }
 
 func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.NewOrder, om.newOrderWatcher)
-
+	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
 	eventemitter.Un(eventemitter.RingMined, om.ringMinedWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, om.fillOrderWatcher)
 	eventemitter.Un(eventemitter.CancelOrder, om.cancelOrderWatcher)
 	eventemitter.Un(eventemitter.CutoffAll, om.cutoffOrderWatcher)
+	eventemitter.Un(eventemitter.CutoffPair, om.cutoffPairWatcher)
 
 	eventemitter.On(eventemitter.Approve, om.approveWatcher)
 	eventemitter.On(eventemitter.WethDeposit, om.depositWatcher)
@@ -140,21 +142,6 @@ func (om *OrderManagerImpl) Stop() {
 
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
-	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, om.submitRingMethodWatcher)
-}
-
-func (om *OrderManagerImpl) registryFlexCancelWatcher() error {
-	register := &kafka.ConsumerRegister{}
-	register.Initialize(om.brokers)
-
-	topic := kafka.Kafka_Topic_OrderManager_FlexCancelOrder
-	group := kafka_consume_group
-
-	err := register.RegisterTopicAndHandler(topic, group, types.FlexCancelOrderEvent{}, om.handleFlexOrderCancellation)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	return nil
 }
 
 func (om *OrderManagerImpl) handleFork(input eventemitter.EventData) error {
@@ -175,145 +162,59 @@ func (om *OrderManagerImpl) handleWarning(input eventemitter.EventData) error {
 	return nil
 }
 
-func (om *OrderManagerImpl) basehandler() BaseHandler {
-	var base BaseHandler
-	base.Rds = om.rds
-	base.CutoffCache = om.cutoffCache
-	base.MarketCap = om.mc
+func (om *OrderManagerImpl) HandlerOrderRelatedEvent(input eventemitter.EventData) error {
+	var err error
 
-	return base
-}
-
-// 所有来自gateway的订单都是新订单
-func (om *OrderManagerImpl) handleGatewayOrder(input eventemitter.EventData) error {
-	handler := &GatewayOrderHandler{
-		State:     input.(*types.OrderState),
-		Rds:       om.rds,
-		MarketCap: om.mc,
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleSubmitRingMethod(input eventemitter.EventData) error {
-	handler := &SubmitRingHandler{
-		Event:       input.(*types.SubmitRingMethodEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleRingMined(input eventemitter.EventData) error {
-	handler := &RingMinedHandler{
-		Event:       input.(*types.RingMinedEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderFilled(input eventemitter.EventData) error {
-	handler := &FillHandler{
-		Event:       input.(*types.OrderFilledEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleOrderCancelled(input eventemitter.EventData) error {
-	handler := &OrderCancelHandler{
-		Event:       input.(*types.OrderCancelledEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleFlexOrderCancellation(input interface{}) error {
-	handler := &FlexCancelOrderHandler{
-		Event:       input.(*types.FlexCancelOrderEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoff(input eventemitter.EventData) error {
-	handler := &CutoffHandler{
-		Event:       input.(*types.CutoffEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleCutoffPair(input eventemitter.EventData) error {
-	handler := &CutoffPairHandler{
-		Event:       input.(*types.CutoffPairEvent),
-		BaseHandler: om.basehandler(),
-	}
-
-	return om.orderRelatedWorking(handler)
-}
-
-func (om *OrderManagerImpl) handleApprove(input eventemitter.EventData) error {
-	src := input.(*types.ApprovalEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleDeposit(input eventemitter.EventData) error {
-	src := input.(*types.WethDepositEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleWithdrawal(input eventemitter.EventData) error {
-	src := input.(*types.WethWithdrawalEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleTransfer(input eventemitter.EventData) error {
-	src := input.(*types.TransferEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleEthTransfer(input eventemitter.EventData) error {
-	src := input.(*types.EthTransferEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) handleUnsupportedContract(input eventemitter.EventData) error {
-	src := input.(*types.UnsupportedContractEvent)
-	return om.orderCorrelatedWorking(src.TxInfo)
-}
-
-func (om *OrderManagerImpl) orderRelatedWorking(handler EventStatusHandler) error {
-	if err := handler.HandlePending(); err != nil {
-		log.Debugf(err.Error())
+	switch event := input.(type) {
+	case *types.OrderState:
+		err = HandleGatewayOrder(event)
+	case *types.SubmitRingMethodEvent:
+		err = HandleSubmitRingMethodEvent(event)
+	case *types.RingMinedEvent:
+		err = HandleRingMinedEvent(event)
+	case *types.OrderFilledEvent:
+		err = HandleOrderFilledEvent(event)
+	case *types.OrderCancelledEvent:
+		err = HandleOrderCancelledEvent(event)
+	case *types.CutoffEvent:
+		err = HandleCutoffEvent(event)
+	case *types.CutoffPairEvent:
+		err = HandleCutoffPair(event)
+	default:
 		return nil
 	}
-	if err := handler.HandleFailed(); err != nil {
-		log.Debugf(err.Error())
-		return nil
-	}
-	if err := handler.HandleSuccess(); err != nil {
-		log.Debugf(err.Error())
-		return nil
+
+	if err != nil {
+		log.Errorf(err.Error())
 	}
 
 	return nil
 }
 
-func (om *OrderManagerImpl) orderCorrelatedWorking(txinfo types.TxInfo) error {
-	//handler := &OrderTxHandler{
-	//	OrderHash:   types.NilHash,
-	//	OrderStatus: types.ORDER_UNKNOWN,
-	//	BaseHandler: om.basehandler(),
-	//}
-	//
-	//handler.HandleFailed()
-	//handler.HandleSuccess()
+func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventData) error {
+	var txinfo types.TxInfo
+
+	switch event := input.(type) {
+	case *types.ApprovalEvent:
+		txinfo = event.TxInfo
+	case *types.WethDepositEvent:
+		txinfo = event.TxInfo
+	case *types.WethWithdrawalEvent:
+		txinfo = event.TxInfo
+	case *types.TransferEvent:
+		txinfo = event.TxInfo
+	case *types.EthTransferEvent:
+		txinfo = event.TxInfo
+	case *types.UnsupportedContractEvent:
+		txinfo = event.TxInfo
+	default:
+		return nil
+	}
+
+	handler := BaseOrderTxHandler(txinfo)
+	if err := handler.HandlerOrderCorrelatedTx(); err != nil {
+		log.Errorf(err.Error())
+	}
 
 	return nil
 }

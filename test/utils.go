@@ -24,8 +24,9 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/node"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
-	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/txmanager"
+	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
+	//txmanager "github.com/Loopring/relay-cluster/txmanager/manager"
+	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
@@ -89,7 +90,7 @@ func init() {
 	cache.NewCache(cfg.Redis)
 	entity = loadTestData()
 
-	txmanager.NewTxView(rds)
+	txviewer.NewTxView(rds)
 	accessor.Initialize(cfg.Accessor)
 	loopringaccessor.Initialize(cfg.LoopringProtocol)
 	unlockAccounts()
@@ -215,14 +216,13 @@ func LrcAddress() common.Address {
 
 func GenerateOrderManager() *ordermanager.OrderManagerImpl {
 	mc := GenerateMarketCap()
-	um := GenerateUserManager()
-	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, um, cfg.Kafka.Brokers)
+	ob := ordermanager.NewOrderManager(&cfg.OrderManager, rds, mc, cfg.Kafka.Brokers)
 	return ob
 }
 
-func GenerateOrderView() *viewer.OrderViewerImpl {
+func GenerateOrderView() *orderviewer.OrderViewerImpl {
 	mc := GenerateMarketCap()
-	ov := viewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
+	ov := orderviewer.NewOrderViewer(&cfg.OrderManager, rds, mc)
 	return ov
 }
 
@@ -238,11 +238,9 @@ func GenerateMarketCap() *marketcap.CapProvider_CoinMarketCap {
 	return marketcap.NewMarketCapProvider(&cfg.MarketCap)
 }
 
-func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) *types.Order {
+func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) types.Order {
 	var (
 		order types.Order
-		state types.OrderState
-		model dao.Order
 	)
 	order.Protocol = protocol
 	order.DelegateAddress = delegate
@@ -273,6 +271,16 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	order.OrderType = "market_order"
 	order.Side = util.GetSide(order.TokenS.Hex(), order.TokenB.Hex())
 
+	return order
+}
+
+func CreateOrderState(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee *big.Int) *types.Order {
+	var (
+		state types.OrderState
+		model dao.Order
+	)
+
+	order := CreateOrder(tokenS, tokenB, owner, amountS, amountB, lrcFee)
 	state.RawOrder = order
 	state.DealtAmountS = big.NewInt(0)
 	state.DealtAmountB = big.NewInt(0)

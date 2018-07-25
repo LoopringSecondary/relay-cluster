@@ -27,7 +27,6 @@ import (
 	"time"
 )
 
-
 /*
  need following config files for aws service connect
 	~/.aws/config/credentials
@@ -41,24 +40,28 @@ export AWS_SHARED_CREDENTIALS_FILE=/home/ubuntu/.aws/credentials
 type SnsClient struct {
 	innerClient *sns.SNS
 	topicArn    string
-	valid       bool
+	Enabled   bool
 }
 
 type SnsConfig struct {
+	Enabled bool
 	SNSTopicArn string
+	Region string
 }
-
-const region = "ap-northeast-1"
 
 var sc *SnsClient
 
 func Initialize(config SnsConfig) (*SnsClient, error) {
-	if len(config.SNSTopicArn) == 0 {
-		return nil, fmt.Errorf("Sns TopicArn not set, will not init sns client")
+	if !config.Enabled {
+		sc = &SnsClient{nil, "", false}
+		return sc, nil
+	}
+	if len(config.SNSTopicArn) == 0 || len(config.Region) == 0 {
+		return nil, fmt.Errorf("SnsConfig invalid : %+v", config)
 	}
 	//NOTE: use default config ~/.asw/credentials
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
+		Region:      aws.String(config.Region),
 		Credentials: credentials.NewSharedCredentials("", ""),
 	})
 	if err != nil {
@@ -72,6 +75,8 @@ func Initialize(config SnsConfig) (*SnsClient, error) {
 func PublishSns(subject string, message string) error {
 	if sc == nil {
 		return fmt.Errorf("SnsClient not initialized, will not send message")
+	} else if !sc.Enabled {
+		return nil
 	} else {
 		input := &sns.PublishInput{}
 		input.SetTopicArn(sc.topicArn)

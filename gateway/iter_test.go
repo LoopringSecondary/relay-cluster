@@ -20,8 +20,11 @@ package gateway
 
 import (
 	"github.com/Loopring/relay-cluster/test"
+	"github.com/Loopring/relay-lib/cache"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"math/big"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
@@ -43,13 +46,13 @@ func TestRing(t *testing.T) {
 	amountS1, _ := new(big.Int).SetString("10"+suffix, 0)
 	amountB1, _ := new(big.Int).SetString("30000"+suffix, 0)
 	lrcFee1 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(5)) // 20个lrc
-	test.CreateOrder(eth, lrc, account1.Address, amountS1, amountB1, lrcFee1)
+	test.CreateOrderState(eth, lrc, account1.Address, amountS1, amountB1, lrcFee1)
 
 	// 卖出1000个lrc,买入0.1个eth,lrcFee为20个lrc
 	amountS2, _ := new(big.Int).SetString("60000"+suffix, 0)
 	amountB2, _ := new(big.Int).SetString("10"+suffix, 0)
 	lrcFee2 := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(3))
-	test.CreateOrder(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
+	test.CreateOrderState(lrc, eth, account2.Address, amountS2, amountB2, lrcFee2)
 }
 
 func TestUnlockWallet(t *testing.T) {
@@ -67,4 +70,24 @@ func TestUnlockWallet(t *testing.T) {
 
 func TestPrepare(t *testing.T) {
 	test.PrepareTestData()
+}
+
+func TestRedis(t *testing.T) {
+	var wg *sync.WaitGroup
+	wg = new(sync.WaitGroup)
+	for i := 0; i < 100000; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			member := []byte(strconv.Itoa(idx))
+			//cache.Set("test_1", []byte(strconv.Itoa(idx)), 1000)
+			if err := cache.SAdd("test", 100, member); err != nil {
+				t.Errorf(err.Error())
+			}
+			//t.Log(idx)
+			wg.Done()
+		}(i)
+	}
+	//wg.Wait()
+	time.Sleep(30 * time.Second)
+	t.Log("end")
 }

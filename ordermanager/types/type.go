@@ -23,9 +23,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-//go:generate gencodec -type OrderRelatedPendingTx -out gen_order_related_pending_tx_json.go
-type OrderRelatedPendingTx struct {
-	Owner       common.Address    `json:"owner"`
+//go:generate gencodec -type OrderTx -out gen_order_tx_json.go
+type OrderTx struct {
+	Owner       common.Address    `json:"owner"` // tx_from
 	TxHash      common.Hash       `json:"tx_hash"`
 	OrderHash   common.Hash       `json:"order_hash"`
 	OrderStatus types.OrderStatus `json:"order_status"`

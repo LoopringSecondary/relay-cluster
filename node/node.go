@@ -28,14 +28,14 @@ import (
 	"github.com/Loopring/relay-cluster/market"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
 	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/txmanager"
+	txmanager "github.com/Loopring/relay-cluster/txmanager/manager"
+	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
 	socketioutil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/extractor"
 	"github.com/Loopring/relay-lib/kafka"
@@ -76,7 +76,6 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.logger = logger
 	n.globalConfig = globalConfig
 	n.wg = new(sync.WaitGroup)
-
 	// register
 	n.registerZklock()
 	n.registerSocketIOProducer()
@@ -102,13 +101,14 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	n.registerTrendManager()
 	n.registerTickerCollector()
+	n.registerGlobalMarket()
 	n.registerWalletService()
 	n.registerJsonRpcService()
 	n.registerWebsocketService()
 	n.registerSocketIOService()
 
 	n.registerExtractor()
-	cloudwatch.Initialize()
+	n.registerCloudWatch()
 
 	return n
 }
@@ -121,12 +121,10 @@ func (n *Node) Start() {
 	//gateway.NewJsonrpcService("8080").Start()
 	fmt.Println("step in relay node start")
 	n.tickerCollector.Start()
-	// todo: need fix bug
-	//n.globalMarket.Start()
+	n.globalMarket.Start()
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
-	go gasprice_evaluator.InitGasPriceEvaluator()
 	gateway.StartMotanService(n.globalConfig.MotanServer, n.accountManager, n.orderViewer)
 
 	n.wg.Add(1)
@@ -169,7 +167,7 @@ func (n *Node) registerAccessor() {
 //}
 
 func (n *Node) registerOrderManager() {
-	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.userManager, n.globalConfig.Kafka.Brokers)
+	n.orderManager = ordermanager.NewOrderManager(&n.globalConfig.OrderManager, n.rdsService, n.marketCapProvider, n.globalConfig.Kafka.Brokers)
 }
 
 func (n *Node) registerOrderViewer() {
@@ -189,7 +187,7 @@ func (n *Node) registerTransactionManager() {
 }
 
 func (n *Node) registerTransactionViewer() {
-	txmanager.NewTxView(n.rdsService)
+	txviewer.NewTxView(n.rdsService)
 }
 
 func (n *Node) registerTickerCollector() {
@@ -251,4 +249,8 @@ func (n *Node) registerExtractor() {
 	if err := extractor.Initialize(n.globalConfig.Kafka, kafka.Kafka_Group_RelayCluster_EventOnChain); err != nil {
 		log.Fatalf("node start, register extractor error:%s", err.Error())
 	}
+}
+
+func (n *Node) registerCloudWatch() {
+	cloudwatch.Initialize(n.globalConfig.CloudWatch)
 }

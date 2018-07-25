@@ -27,8 +27,8 @@ import (
 	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/ordermanager/manager"
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/txmanager"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
+	txmanager "github.com/Loopring/relay-cluster/txmanager/viewer"
 	kafkaUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/crypto"
@@ -42,6 +42,7 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math"
 	"math/big"
 	"sort"
 	"strconv"
@@ -66,6 +67,8 @@ const OT_STATUS_INIT = "init"
 const OT_STATUS_ACCEPT = "accept"
 const OT_STATUS_REJECT = "reject"
 const OT_REDIS_PRE_KEY = "otrpk_"
+const SL_REDIS_PRE_KEY = "slrpk_"
+const TS_REDIS_PRE_KEY = "tsrpk_"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -158,6 +161,20 @@ type OrderTransferQuery struct {
 	Hash string `json:"hash"`
 }
 
+type SimpleKey struct {
+	Key string `json:"key"`
+}
+
+type TempStore struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type NotifyCirculrBody struct {
+	Owner string                 `json:"owner"`
+	Body  map[string]interface{} `json:"body"`
+}
+
 type TxNotify struct {
 	Hash     string `json:"hash"`
 	Nonce    string `json:"nonce"`
@@ -186,6 +203,11 @@ type EstimatedAllocatedAllowanceQuery struct {
 	DelegateAddress string `json:"delegateAddress"`
 	Owner           string `json: "owner"`
 	Token           string `json: "token"`
+}
+
+type EstimatedAllocatedAllowanceResult struct {
+	AllocatedResult map[string]string `json:"allocatedResult"`
+	FrozenLrcFee    string `json: "frozenLrcFee"`
 }
 
 type TransactionQuery struct {
@@ -328,12 +350,40 @@ type LatestFill struct {
 }
 
 type CancelOrderQuery struct {
-	Owner      string `json:"owner"`
-	OrderHash  string `json:"orderHash"`
-	CutoffTime int64  `json:"cutoff"`
-	TokenS     string `json:"tokenS"`
-	TokenB     string `json:"tokenB"`
-	Type       uint8  `json:"type"`
+	Sign       SignInfo `json:"sign"`
+	OrderHash  string   `json:"orderHash"`
+	CutoffTime int64    `json:"cutoff"`
+	TokenS     string   `json:"tokenS"`
+	TokenB     string   `json:"tokenB"`
+	Type       uint8    `json:"type"`
+}
+
+type SignInfo struct {
+	Timestamp string `json:"timestamp"`
+	V         uint8  `json:"v"'`
+	R         string `json:"r"`
+	S         string `json:"s"`
+	Owner     string `json:"owner"`
+}
+
+type Ticket struct {
+	Sign   SignInfo           `json:"sign"`
+	Ticket dao.TicketReceiver `json:"ticket"`
+}
+
+type TicketQuery struct {
+	Sign  SignInfo `json:"sign"`
+	Owner string   `json:"owner"`
+}
+
+type LoginInfo struct {
+	Owner string `json:"owner"`
+	UUID  string `json:"uuid"`
+}
+
+type SignedLoginInfo struct {
+	Sign SignInfo `json:"sign"`
+	UUID string   `json:"uuid"`
 }
 
 type P2PRingRequest struct {
@@ -341,6 +391,13 @@ type P2PRingRequest struct {
 	//Taker          *types.OrderJsonRequest `json:"taker"`
 	TakerOrderHash string `json:"takerOrderHash"`
 	MakerOrderHash string `json:"makerOrderHash"`
+}
+
+type AddTokenReq struct {
+	Owner                string `json:"owner"`
+	TokenContractAddress string `json:"tokenContractAddress"`
+	Symbol               string `json:"symbol"`
+	Decimals             int64  `json:"decimals"`
 }
 
 type WalletServiceImpl struct {
@@ -498,9 +555,22 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 		return "", errors.New("from or to address is illegal")
 	}
 
+	nonce := types.HexToBigint(txNotify.Nonce)
+
+	err = txmanager.ValidateNonce(txNotify.From, nonce)
+	if err != nil {
+		return "", err
+	}
+
 	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
-	tx.Input = txNotify.Input
+
+	if len(txNotify.Input) > 2 && !strings.HasPrefix(txNotify.Input, "0x") && !strings.HasPrefix(txNotify.Input, "0X") {
+		tx.Input = "0x" + txNotify.Input
+	} else {
+		tx.Input = txNotify.Input
+	}
+
 	tx.From = txNotify.From
 	tx.To = txNotify.To
 	tx.Gas = *types.NewBigPtr(types.HexToBigint(txNotify.Gas))
@@ -567,6 +637,28 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 	}
 	return rst, err
 }
+
+// 查询p2p订单, 订单类型固定, market不限
+//func (w *WalletServiceImpl) GetP2pOrders(query *OrderQuery) (res PageResult, err error) {
+//	orderQuery, statusList, pi, ps := convertFromQuery(query)
+//	orderQuery["order_type"] = types.ORDER_TYPE_P2P
+//	if _, ok := orderQuery["market"]; ok {
+//		delete(orderQuery, "market")
+//	}
+//
+//	src, err := w.orderViewer.GetOrders(orderQuery, statusList, pi, ps)
+//	if err != nil {
+//		log.Info("query order error : " + err.Error())
+//	}
+//
+//	rst := PageResult{Total: src.Total, PageIndex: src.PageIndex, PageSize: src.PageSize, Data: make([]interface{}, 0)}
+//
+//	for _, d := range src.Data {
+//		o := d.(types.OrderState)
+//		rst.Data = append(rst.Data, orderStateToJson(o))
+//	}
+//	return rst, err
+//}
 
 func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonResult, err error) {
 	if len(query.OrderHash) == 0 {
@@ -658,7 +750,7 @@ func (w *WalletServiceImpl) GetLatestP2POrders(query LatestOrderQuery) (res []Or
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
-	defaultDepthLength := 40
+	defaultDepthLength := 100
 	asks, bids, err := w.getInnerOrderBook(query, defaultDepthLength)
 	if err != nil {
 		return
@@ -909,6 +1001,77 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	return types.BigintToHex(allLrcFee), err
 }
 
+func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (result EstimatedAllocatedAllowanceResult, err error) {
+
+	if len(query.Owner) == 0 || len(query.DelegateAddress) == 0 {
+		return result, errors.New("owner and delegateAddress must be applied")
+	}
+
+	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress)
+	if err != nil {
+		return result, err
+	}
+
+	if len(allOrders) == 0 {
+		return result, nil
+	}
+
+	tmpResult := make(map[string]*big.Int)
+
+	for _, v := range allOrders {
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		amountS, _ := v.RemainedAmount()
+		amount, ok := tmpResult[token]
+		if ok {
+			amount = amount.Add(amount, amountS.Num())
+		} else {
+			tmpResult[token] = amountS.Num()
+		}
+	}
+
+	resultMap := make(map[string]string)
+
+	for k, v := range tmpResult {
+		resultMap[k] = types.BigintToHex(v)
+	}
+
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner}); if err != nil {
+		return result, err
+	}
+
+	return EstimatedAllocatedAllowanceResult{resultMap, lrcFee}, err
+}
+
+func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error) {
+
+	allOrders := make([]interface{}, 0)
+
+	orderQuery := OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: 1, PageSize: 200, Status: "ORDER_OPENED"}
+	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+	if err != nil {
+		return orders, err
+	}
+
+	allOrders = append(allOrders, pageRst.Data[:]...)
+
+	if pageRst.Total > 200 {
+		for i := 2; i < (pageRst.Total/200)+1; i++ {
+			orderQuery = OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: i, PageSize: 200, Status: "ORDER_OPENED"}
+			pageRst, err = w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+			if err != nil {
+				return orders, err
+			}
+			allOrders = append(allOrders, pageRst.Data[:]...)
+		}
+	}
+
+	for _, v := range allOrders {
+		orders = append(orders, v.(types.OrderState))
+	}
+
+	return orders, nil
+}
+
 func (w *WalletServiceImpl) GetLooprSupportedMarket() (markets []string, err error) {
 	return w.GetSupportedMarket()
 }
@@ -1025,17 +1188,46 @@ func (w *WalletServiceImpl) GetEstimateGasPrice() (result string, err error) {
 	return types.BigintToHex(gasprice_evaluator.EstimateGasPrice(nil, nil)), nil
 }
 
-func (w *WalletServiceImpl) ApplyTicket(ticket dao.TicketReceiver) (result string, err error) {
-	isSignCorrect := verifyTicketSign(ticket)
+func (w *WalletServiceImpl) ApplyTicket(ticket Ticket) (result string, err error) {
+
+	ticket.Ticket.Address = ticket.Sign.Owner
+	isSignCorrect, err := verifySign(ticket.Sign)
 	if isSignCorrect {
-		exist, err := w.rds.QueryTicketByAddress(ticket.Address)
-		if err != nil && exist.ID > 0 {
-			ticket.ID = exist.ID
+		exist, err := w.rds.QueryTicketByAddress(ticket.Ticket.Address)
+		if err == nil && exist.ID > 0 {
+			log.Debugf("update ticket id %d", exist.ID)
+			ticket.Ticket.ID = exist.ID
 		}
-		return "", w.rds.Save(&ticket)
+		return "", w.rds.Save(&ticket.Ticket)
 	} else {
-		return "", errors.New("sign v, r, s is incorrect")
+		return "", err
 	}
+}
+
+func (w *WalletServiceImpl) QueryTicket(query TicketQuery) (ticket dao.TicketReceiver, err error) {
+
+	isSignCorrect, err := verifySign(query.Sign)
+	if isSignCorrect {
+		return w.rds.QueryTicketByAddress(query.Sign.Owner)
+	} else {
+		return ticket, err
+	}
+}
+
+func (w *WalletServiceImpl) TicketCount() (int, error) {
+	return w.rds.TicketCount()
+}
+
+func (w *WalletServiceImpl) AddCustomToken(req AddTokenReq) (result string, err error) {
+	if !util.IsAddress(req.Owner) || !util.IsAddress(req.TokenContractAddress) {
+		return "", errors.New("illegal address format in request")
+	}
+
+	decimals := new(big.Int)
+	decimals.SetInt64(req.Decimals)
+	return req.TokenContractAddress, util.AddToken(
+		common.HexToAddress(req.Owner),
+		util.CustomToken{Address: common.HexToAddress(req.TokenContractAddress), Symbol: req.Symbol, Decimals: decimals})
 }
 
 func convertFromQuery(orderQuery *OrderQuery) (query map[string]interface{}, statusList []types.OrderStatus, pageIndex int, pageSize int) {
@@ -1084,11 +1276,15 @@ func convertStatus(s string) []types.OrderStatus {
 	case "ORDER_FINISHED":
 		return []types.OrderStatus{types.ORDER_FINISHED}
 	case "ORDER_CANCELLED":
-		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_CUTOFF}
+		return []types.OrderStatus{types.ORDER_CANCEL, types.ORDER_FLEX_CANCEL, types.ORDER_CUTOFF}
 	case "ORDER_CUTOFF":
 		return []types.OrderStatus{types.ORDER_CUTOFF}
 	case "ORDER_EXPIRE":
 		return []types.OrderStatus{types.ORDER_EXPIRE}
+	case "ORDER_PENDING":
+		return []types.OrderStatus{types.ORDER_PENDING}
+	case "ORDER_CANCELLING":
+		return []types.OrderStatus{types.ORDER_CANCELLING, types.ORDER_CUTOFFING}
 	}
 	return []types.OrderStatus{}
 }
@@ -1119,6 +1315,8 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_CUTOFF"
 	case types.ORDER_PENDING:
 		return "ORDER_PENDING"
+	case types.ORDER_CANCELLING, types.ORDER_CUTOFFING:
+		return "ORDER_CANCELLING"
 	case types.ORDER_EXPIRE:
 		return "ORDER_EXPIRE"
 	}
@@ -1326,8 +1524,18 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	return
 }
 
-func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
-	return w.globalMarket.GetGlobalTrendCache(req.Token)
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+	if len(req.Token) == 0 {
+		return nil, errors.New("token required")
+	}
+	tokenMap, err :=  w.globalMarket.GetGlobalTrendCache(req.Token); if err != nil {
+		return nil, err
+	}
+	return tokenMap[req.Token], err
+}
+
+func (w *WalletServiceImpl) GetAllGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
+	return w.globalMarket.GetGlobalTrendCache("")
 }
 
 func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]market.GlobalTicker, err error) {
@@ -1353,12 +1561,42 @@ func (w *WalletServiceImpl) GetOrderTransfer(req OrderTransferQuery) (ot OrderTr
 	}
 }
 
+func (w *WalletServiceImpl) GetTempStore(req SimpleKey) (ts string, err error) {
+	otByte, err := cache.Get(TS_REDIS_PRE_KEY + strings.ToLower(req.Key))
+	if err != nil {
+		return ts, err
+	} else {
+		return string(otByte[:]), err
+	}
+}
+
+func (w *WalletServiceImpl) SetTempStore(req TempStore) (hash string, err error) {
+	if len(req.Key) == 0 {
+		return hash, errors.New("key can't be nil")
+	}
+
+	err = cache.Set(TS_REDIS_PRE_KEY+strings.ToLower(req.Key), []byte(req.Value), 3600*24)
+	return req.Key, err
+}
+
+func (w *WalletServiceImpl) NotifyCirculr(req NotifyCirculrBody) (owner string, err error) {
+	if len(req.Owner) == 0 {
+		return owner, errors.New("owner can't be nil")
+	}
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Notify_Circulr, &req)
+	return req.Owner, err
+}
+
 func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, err error) {
-	//TODO(finish this later)
-	return rst, err
+
+	isCorrect, err := verifySign(req.Sign)
+	if !isCorrect {
+		return rst, err
+	}
+
 	cancelOrderEvent := types.FlexCancelOrderEvent{}
 	cancelOrderEvent.OrderHash = common.HexToHash(req.OrderHash)
-	cancelOrderEvent.Owner = common.HexToAddress(req.Owner)
+	cancelOrderEvent.Owner = common.HexToAddress(req.Sign.Owner)
 	cancelOrderEvent.TokenS = common.HexToAddress(req.TokenS)
 	cancelOrderEvent.TokenB = common.HexToAddress(req.TokenB)
 	cancelOrderEvent.CutoffTime = req.CutoffTime
@@ -1367,7 +1605,7 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	if err == nil {
 		go func() {
 			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
-			if err != nil {
+			if err == nil {
 				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
 			}
 		}()
@@ -1412,6 +1650,25 @@ func (w *WalletServiceImpl) UpdateOrderTransfer(req OrderTransfer) (hash string,
 		kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Order_Transfer, &OrderTransfer{Hash: ot.Hash, Status: ot.Status})
 		return req.Hash, err
 	}
+}
+
+func (w *WalletServiceImpl) NotifyScanLogin(req SignedLoginInfo) (rst string, err error) {
+
+	isCorrect, err := verifySign(req.Sign)
+	if !isCorrect {
+		return req.UUID, err
+	}
+
+	kafkaUtil.ProducerSocketIOMessage(Kafka_Topic_SocketIO_Scan_Login, &LoginInfo{UUID: req.UUID, Owner: req.Sign.Owner})
+	return req.UUID, err
+}
+
+func (w *WalletServiceImpl) GetNonce(owner SingleOwner) (n int64, err error) {
+	nonce, err := txmanager.GetNonce(owner.Owner)
+	if err != nil {
+		return n, err
+	}
+	return nonce.Int64(), err
 }
 
 func fillQueryToMap(q FillQuery) (map[string]interface{}, int, int) {
@@ -1520,83 +1777,6 @@ func orderStateToJson(src types.OrderState) OrderJsonResult {
 	return rst
 }
 
-func txStatusToUint8(txType string) int {
-	switch txType {
-	case "pending":
-		return 1
-	case "success":
-		return 2
-	case "failed":
-		return 3
-	default:
-		return -1
-	}
-}
-
-func txTypeToUint8(status string) int {
-	switch status {
-	case "approve":
-		return 1
-	case "send":
-		return 2
-	case "receive":
-		return 3
-	case "sell":
-		return 4
-	case "buy":
-		return 5
-	case "convert":
-		return 7
-	case "cancel_order":
-		return 8
-	case "cutoff":
-		return 9
-	case "cutoff_trading_pair":
-		return 10
-	default:
-		return -1
-	}
-}
-
-//func toTxJsonResult(tx types.Transaction) txmanager.TransactionJsonResult {
-//	dst := txmanager.TransactionJsonResult{}
-//	dst.Protocol = tx.Protocol
-//	dst.Owner = tx.Owner
-//	dst.From = tx.From
-//	dst.To = tx.To
-//	dst.TxHash = tx.TxHash
-//
-//	if tx.Type == types.TX_TYPE_CUTOFF_PAIR {
-//		ctx, err := tx.GetCutoffPairContent()
-//		if err == nil && ctx != nil {
-//			mkt, err := util.WrapMarketByAddress(ctx.Token1.Hex(), ctx.Token2.Hex())
-//			if err == nil {
-//				dst.Content = txmanager.TransactionContent{Market: mkt}
-//			}
-//		}
-//	} else if tx.Type == types.TX_TYPE_CANCEL_ORDER {
-//		ctx, err := tx.GetCancelOrderHash()
-//		if err == nil && ctx != "" {
-//			dst.Content = txmanager.TransactionContent{OrderHash: ctx}
-//		}
-//	}
-//
-//	dst.BlockNumber = tx.BlockNumber.Int64()
-//	dst.LogIndex = tx.TxLogIndex
-//	if tx.Value == nil {
-//		dst.Value = "0"
-//	} else {
-//		dst.Value = tx.Value.String()
-//	}
-//	dst.Type = tx.TypeStr()
-//	dst.Status = tx.StatusStr()
-//	dst.CreateTime = tx.CreateTime
-//	dst.UpdateTime = tx.UpdateTime
-//	dst.Symbol = tx.Symbol
-//	dst.Nonce = tx.TxInfo.Nonce.String()
-//	return dst
-//}
-
 func fillDetail(ring dao.RingMinedEvent, fills []dao.FillEvent) (rst RingMinedDetail, err error) {
 	rst = RingMinedDetail{Fills: fills}
 	ringInfo := RingMinedInfo{}
@@ -1678,27 +1858,38 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 	return rst, nil
 }
 
-func saveMatchedRelation(takerOrderHash, makerOrderHash, ringTxHash string) (err error) {
-	return nil
-}
-
 func fmtFloat(src *big.Rat) float64 {
 	f, _ := src.Float64()
 	rst, _ := strconv.ParseFloat(fmt.Sprintf("%0.8f", f), 64)
 	return rst
 }
 
-func verifyTicketSign(t dao.TicketReceiver) bool {
+func verifySign(sign SignInfo) (bool, error) {
+
+	now := time.Now().Unix()
+	ts, err := strconv.ParseInt(sign.Timestamp, 10, 64)
+	if err != nil {
+		return false, err
+	}
+
+	if math.Abs(float64(now-ts)) > 60*10 {
+		return false, errors.New("timestamp had expired")
+	}
+
 	h := &common.Hash{}
 	address := &common.Address{}
-	hashBytes := crypto.GenerateHash([]byte(t.Phone), []byte(t.Email))
+	hashBytes := crypto.GenerateHash([]byte(sign.Timestamp))
 	h.SetBytes(hashBytes)
-	sig, _ := crypto.VRSToSig(t.V, types.HexToBytes32(t.R).Bytes(), types.HexToBytes32(t.S).Bytes())
+	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
 	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
-		log.Errorf("order signer address error:%s", err.Error())
-		return false
+		log.Errorf("signer address error:%s", err.Error())
+		return false, errors.New("sign is incorrect")
 	} else {
 		address.SetBytes(addressBytes)
-		return strings.ToLower(address.Hex()) == strings.ToLower(t.Address)
+		if strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner) {
+			return true, nil
+		} else {
+			return false, errors.New("sign address not matched")
+		}
 	}
 }

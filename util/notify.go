@@ -78,3 +78,11 @@ func NotifyAccountBalanceUpdate(event *libTypes.BalanceUpdateEvent) error {
 	}
 	return err
 }
+
+func NotifyRingMined(event *libTypes.RingMinedEvent) error {
+	err := ProducerNormalMessage(kafka.Kafka_Topic_orderManager_RingminedUpdated, event)
+	if err != nil {
+		log.Errorf("notify ringmined tx:%s failed", event.TxHash.Hex())
+	}
+	return err
+}

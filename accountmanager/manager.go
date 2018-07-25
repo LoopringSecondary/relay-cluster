@@ -246,6 +246,10 @@ func (a *AccountManager) handleBlockNew(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
 	event := input.(*types.EthTransferEvent)
+	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
+		log.Info("received wrong status event, drop it")
+		return nil
+	}
 	log.Debugf("transfer owner:%s, to:%s", event.From.Hex(), event.To.Hex())
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
@@ -257,6 +261,10 @@ func (a *AccountManager) handleEthTransfer(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleCancelOrder(input eventemitter.EventData) error {
 	event := input.(*types.OrderCancelledEvent)
+	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
+		log.Info("received wrong status event, drop it")
+		return nil
+	}
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
@@ -266,6 +274,10 @@ func (a *AccountManager) handleCancelOrder(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleCutOff(input eventemitter.EventData) error {
 	event := input.(*types.CutoffEvent)
+	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
+		log.Info("received wrong status event, drop it")
+		return nil
+	}
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
@@ -275,6 +287,10 @@ func (a *AccountManager) handleCutOff(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleCutOffPair(input eventemitter.EventData) error {
 	event := input.(*types.CutoffPairEvent)
+	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
+		log.Info("received wrong status event, drop it")
+		return nil
+	}
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
@@ -284,6 +300,10 @@ func (a *AccountManager) handleCutOffPair(input eventemitter.EventData) error {
 
 func (a *AccountManager) handleUnsupportedContract(input eventemitter.EventData) error {
 	event := input.(*types.UnsupportedContractEvent)
+	if event == nil || event.Status != types.TX_STATUS_SUCCESS {
+		log.Info("received wrong status event, drop it")
+		return nil
+	}
 	block := &ChangedOfBlock{}
 	block.cachedDuration = new(big.Int).Set(a.cachedBlockCount)
 	block.currentBlockNumber = new(big.Int).Set(event.BlockNumber)
@@ -300,7 +320,7 @@ func (a *AccountManager) UnlockedWallet(owner string) (err error) {
 	//accountBalances.Owner = common.HexToAddress(owner)
 	//accountBalances.Balances = make(map[common.Address]Balance)
 	//err = accountBalances.getOrSave(a.cacheDuration)
-	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), a.tokenCacheDuration)
+	rcache.Set(unlockCacheKey(common.HexToAddress(owner)), []byte("true"), -1)
 	return
 }
 
