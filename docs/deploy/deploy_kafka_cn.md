@@ -20,15 +20,13 @@ kafka是extractor和relay-cluster之间的消息通信服务
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
 
-sudo mkdir /opt/loopring
+sudo mkdir /opt/loopring/data/kafka-logs
 sudo chown -R ubuntu:ubuntu /opt/loopring
 
 cd /opt/loopring
 wget http://apache.mirrors.lucidnetworks.net/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz
 tar xzf kafka_2.12-0.11.0.2.tgz
 cd kafka_2.12-0.11.0.2/
-sudo mkdir -p /opt/loopring/data/kafka-logs
-sudo chown -R ubuntu:ubuntu /opt/loopring/data/kafka-logs
 ```
 修改config/server.properties配置项
 
