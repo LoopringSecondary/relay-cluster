@@ -1,20 +1,21 @@
-# 部署kafka
+# 部署kafka集群
 
 > kafka依赖zookeeper，所以应先部署zookeeper
 
 kafka是extractor和relay-cluster之间的消息通信服务
 
-## 部署
-建议部署3个以上的节点来保证可用性，下面以3个节点的kafka集群为例
+## 选择kafka部署场景
 
-### 申请EC2实例并关联安全组
-申请3台EC2服务器，参考[EC2实例](new_ec2_cn.md)
->测试环境只需申请1台EC2服务器
+测试场景下仅需部署单实例伪集群即可，简便快捷
 
-关联`kafka-SecurityGroup`安全组。
-> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
+生产场景下以部署3个节点为例，保证可用性
 
 ### 生产环境部署
+
+申请3台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`kafka-SecurityGroup`安全组
+
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
+
 ```
 sudo apt update
 sudo apt -y install openjdk-8-jre-headless
@@ -51,10 +52,33 @@ log.retention.hours=168
 zookeeper.connect=xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181
 default.replication.factor=3
 ```
-### 测试环境部署
->为了简便，测试环境采用单台实例部署kafka伪集群
+#### 生产环境启停
 
-安装过程参考生产环境的步骤，再执行以下脚本
+##### 启动
+```
+nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties &
+```
+###### 确认服务正常启动
+```
+tail -f /opt/loopring/kafka_2.12-0.11.0.2/nohup.out
+
+telnet 本实列内网ip 9092
+```
+
+##### 终止
+`/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh`
+
+#### 日志
+`/opt/loopring/kafka_2.12-0.11.0.2/logs`
+
+### 测试环境部署
+
+申请1台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`kafka-SecurityGroup`安全组
+
+> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafka-SecurityGroup`安全组的说明，创建后再关联
+
+安装过程请参考生产场景前面的步骤，再执行以下命令
+
 ```
 sudo mkdir -p /opt/loopring/data/kafka-logs
 sudo mkdir -p /opt/loopring/data/kafka-logs2
@@ -139,7 +163,7 @@ default.replication.factor=3
 ```
 export KAFKA_HEAP_OPTS="-Xmx256M -Xms256M"
 ```
-#### 测试环境启停
+#### 启停
 
 ##### 启动
 ```
@@ -164,16 +188,4 @@ telnet 本实列内网ip 9094
 /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties3
 ```
 ##### 日志
-`/opt/loopring/kafka_2.12-0.11.0.2/logs`
-## 生产环境启停
-
-### 启动
-```
-nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties &
-```
-
-### 终止
-`/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh`
-
-## 日志
 `/opt/loopring/kafka_2.12-0.11.0.2/logs`
