@@ -55,13 +55,13 @@ error_output_paths = ["/var/log/extractor/err.log"]
 #zookeeper内网ip
 [zk_lock]
     zk_servers = "x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
-    #测试环境下修改为：zk_servers = "x.x.x.x:2181,x.x.x.x:2182,x.x.x.x:2183"
+    #测试环境下修改为：zk_servers = "x.x.x.x:2181"
     connect_time_out = 10
 
 #kafka内网ip
 [kafka]
     brokers = ["x.x.x.x:9092","x.x.x.x:9092","x.x.x.x:9092"]
-    #测试环境下修改为：brokers = ["x.x.x.x:9092","x.x.x.x:9093","x.x.x.x:9094"]
+    #测试环境下修改为：brokers = ["x.x.x.x:9092"]
 ...
 [cloud_watch]
     enabled = false
