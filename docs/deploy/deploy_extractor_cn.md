@@ -2,12 +2,8 @@
 
 ## 初始化环境
 
-### 启动EC2实例
+启动EC2实例，添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)，并且为每个extractor关联`extractor-SecurityGroup`安全组
 
-启动EC2实例，并添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
-
-### 关联安全组
-为每个extractor实例关联`extractor-SecurityGroup`安全组
 > 如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
 ### 配置文件
