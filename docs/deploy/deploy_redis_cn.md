@@ -83,7 +83,7 @@ slowlog-max-len 1000
 
 最后重启redis即可 `sudo systemctl restart redis`
 
-#### 启停
+#### redis启停
 
 * 启动
 
