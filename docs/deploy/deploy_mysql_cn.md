@@ -5,7 +5,8 @@ mysql是relay-cluster后端服务的主要存储
 ## 创建MySQL实例
 
 测试环境部署MySQL仅需自建mysql单实例即可，简便快捷
-生产环境部署MySQL推荐采用aws的RDS，其包含更丰富的监控及管理功能，扩展也更加方便
+
+生产环境部署MySQL推荐采用aws的RDS，其包含丰富的监控及管理功能，扩展也更方便
 
 > relay和miner都会用到mysql数据库，生产环境建议创建不同的数据库实例，避免相互影响
 
