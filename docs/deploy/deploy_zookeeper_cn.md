@@ -33,7 +33,7 @@ cd zookeeper-3.4.10/conf
 cp zoo_sample.cfg zoo.cfg
 ```
 
-修改以下配置项，依次填入3台zookeeper服务器的内网ip
+修改以下配置项，依次填入3台zookeeper节点的内网ip
 
 `vim /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg`
 
@@ -44,7 +44,7 @@ server.2=xx.xx.xx.xx:2888:3888
 server.3=xx.xx.xx.xx:2888:3888
 ```
 
-初始化myid，这里"n"在三台服务器的取值依次为1，2，3，和上面zoo.conf一致，每台服务器仅执行一次自身对应取值的命令
+初始化myid，这里"n"在3台服务器的取值依次为1，2，3，和上面zoo.conf一致，每台服务器仅执行一次自身对应取值的命令
 
 `echo "n" > /opt/loopring/data/zookeeper/myid`
 
