@@ -55,7 +55,7 @@ server.3=xx.xx.xx.xx:2888:3888
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
-##### 确认服务正常启动
+###### 确认服务正常启动
 ```
 tail -f zookeeper.out
 telnet localhost 2181
@@ -74,7 +74,7 @@ telnet localhost 2181
 申请1台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组。
 > 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
 
-安装过程参考生产环境的步骤，再执行以下脚本
+安装过程请参考生产环境的前面的步骤，再执行以下命令
 
 ```
 cd zookeeper-3.4.10/conf
@@ -141,7 +141,7 @@ echo "3" > /opt/loopring/data/zookeeper3/myid
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
-##### 确认服务正常启动
+###### 确认服务正常启动
 ```
 tail -f /opt/loopring/zookeeper-3.4.10/zookeeper.out
 
