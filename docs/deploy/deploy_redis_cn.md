@@ -89,11 +89,11 @@ slowlog-max-len 1000
 
 `sudo systemctl start redis`
 
-* 终止
+* ##### 终止
 
 `sudo systemctl stop redis`
 
-* 重启
+* ##### 重启
 
 `sudo systemctl restart redis`
 
