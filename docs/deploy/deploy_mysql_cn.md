@@ -83,15 +83,15 @@ FLUSH PRIVILEGES;
 
 #### 启停
 
-* 启动
+* ##### 启动
 
 `sudo systemctl start mysql`
 
-* 终止
+* ##### 终止
 
 `sudo systemctl stop mysql`
 
-* 重启
+* ##### 重启
 
 `sudo systemctl restart mysql`
 
