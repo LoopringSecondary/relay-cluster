@@ -2,9 +2,9 @@
 
 node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查看和修改基于zookeeper的配置
 
-申请1台EC2服务器，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeperBrowser-SecurityGroup`安全组
+申请1台EC2服务器，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`zookeeperBrowser-SecurityGroup`安全组
 
-> 如果还没创建，请参考[配置aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`部分的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 
