@@ -110,19 +110,19 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/relay/config
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
 
-### 启动
+* ### 启动
 `sudo svc -u /etc/service/relay`
 
-### 停止
+* ### 终止
 `sudo svc -d /etc/service/relay`
 
-## 服务日志
+## 日志
 
-### relay业务日志
+* ### relay业务日志
 `/var/log/relay/zap.log`
 
-### motan-rpc日志
+* ### motan-rpc日志
 `/var/log/relay/relay.INFO`
 
-### stdout
+* ### stdout
 `/var/log/svc/relay/current`
