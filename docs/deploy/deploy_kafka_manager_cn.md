@@ -44,10 +44,10 @@ basicAuthentication.password="admin"
 ```
 ## 启停
 
-### 启动
+* ### 启动
 `nohup ./bin/kafka-manager &`
 
-### 终止
+* ### 终止
 `pkill -f "play.core.server.ProdServerStart"`
 
 ## 日志
