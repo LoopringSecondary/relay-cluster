@@ -55,9 +55,11 @@ mysql是relay-cluster后端服务的主要存储
 ### 创建MySQL单实例（测试场景）
 申请1台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`mysql-securityGroup`安全组
 
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`mysql-securityGroup`部分的说明，创建后再关联
+
 > 测试场景以简便快捷为主，因此mysql和redis可部署到同一台实例，再同时关联`mysql-securityGroup`和`redis-securityGroup`这两个安全组即可
 
-执行以下命令部署Mysql实例
+执行以下命令部署MySQL
 ```
 sudo apt update
 sudo apt -y install mysql-server
