@@ -85,7 +85,7 @@ slowlog-max-len 1000
 
 #### 启停
 
-* 启动
+* ##### 启动
 
 `sudo systemctl start redis`
 
