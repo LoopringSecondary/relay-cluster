@@ -24,11 +24,11 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 
 ```
 sudo apt update
+
 sudo apt -y install openjdk-8-jre-headless
 
 sudo mkdir /opt/loopring/data/zookeeper
 sudo chown -R ubuntu:ubuntu /opt/loopring
-
 cd /opt/loopring
 wget http://mirrors.ocf.berkeley.edu/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz
 tar xzf zookeeper-3.4.10.tar.gz
