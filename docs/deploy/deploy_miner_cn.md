@@ -138,7 +138,7 @@ sudo cp -rf /tmp/svc/* /etc/service/miner
 sudo chmod -R 755 /etc/service/miner
 rm -rf /tmp/svc
 ```
-## 部署
+## 部署miner
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
 ## 启停
