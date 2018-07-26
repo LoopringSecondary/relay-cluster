@@ -104,7 +104,7 @@ scp -i xx.pem relay.toml ubuntu@x.x.x.x:/opt/loopring/relay/config
 scp -i xx.pem motan_server.yaml ubuntu@x.x.x.x:/opt/loopring/relay/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/relay/config
 ```
-## 部署
+## 部署relay-cluster
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
 ## 启停
