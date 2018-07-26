@@ -119,7 +119,7 @@ bin/miner account import --datadir config/keystore --private-key xxxxxxxxxxxxxxx
 
 和其他两个服务不同，因为miner启动脚本包含本地参数，因此不能放在自动启动脚本中进行每次覆盖部署，在第一次部署前需要手动配置启动脚本【待优化】
 
-在EC2实例执行下面脚本创建临时目录
+在EC2实例执行下面命令创建临时目录
 `mkdir -p /tmp/svc/log`
 在`https://github.com/Loopring/miner/blob/master/bin/svc/run`的基础上修改svc/run
 ```
