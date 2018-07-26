@@ -39,7 +39,7 @@ sudo npm install -d
 
 ## 启停
 
-### 启动
+* ### 启动
 编辑启动脚本
 
 `sudo vim start.sh`
@@ -58,7 +58,7 @@ export ZK_HOST="x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
 
 `sudo ./start.sh`
 
-### 终止
+* ### 终止
 
 `pkill -f "node ./app.js"`
 
