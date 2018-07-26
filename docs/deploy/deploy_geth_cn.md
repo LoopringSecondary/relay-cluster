@@ -24,7 +24,7 @@ sudo chown -R ubuntu:ubuntu /data/ethereum
 ## 启停
 
 * ### 启动
-修改 x.x.x.x 为本机内网ip地址
+修改x.x.x.x为本实例内网ip
 
 ```
 sudo nohup geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain * &
