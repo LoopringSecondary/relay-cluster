@@ -47,7 +47,7 @@ error_output_paths = ["/var/log/relay/err.log"]
 #zookeeper内网ip
 [zk_lock]
     zk_servers = "xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
-    #测试环境下修改为：zk_servers = "x.x.x.x:2181"
+    #测试场景下修改为：zk_servers = "x.x.x.x:2181"
 [sns]
     enabled = false
     region = ""
@@ -56,7 +56,7 @@ error_output_paths = ["/var/log/relay/err.log"]
 #kafka内网ip
 [kafka]
     brokers = ["xx.xx.xx.xx:9092","xx.xx.xx.xx:9092","xx.xx.xx.xx:9092"]
-    #测试环境下修改为：brokers = ["x.x.x.x:9092"]
+    #测试场景下修改为：brokers = ["x.x.x.x:9092"]
 [motan_server]
     conf_file = "/opt/loopring/relay/config/motan_server.yaml"
 
