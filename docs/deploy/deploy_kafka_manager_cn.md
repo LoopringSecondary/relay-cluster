@@ -10,15 +10,20 @@ kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的
 sudo mkdir /opt/loopring
 sudo chown -R ubuntu:ubuntu /opt/loopring
 cd /opt/loopring
+
 sudo apt update
+
 sudo apt install openjdk-8-jdk-headless -y
+
 wget https://downloads.lightbend.com/scala/2.12.6/scala-2.12.6.deb
 sudo dpkg -i scala-2.12.6.deb 
 wget https://dl.bintray.com/sbt/debian/sbt-1.1.5.deb
 sudo dpkg -i sbt-1.1.5.deb
 git clone https://github.com/yahoo/kafka-manager.git
 cd kafka-manager
+
 sbt clean dist
+
 mv ./target/universal/kafka-manager-1.3.3.17.zip ./
 unzip kafka-manager-1.3.3.17.zip
 cd kafka-manager-1.3.3.17
