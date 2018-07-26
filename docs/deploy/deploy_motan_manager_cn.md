@@ -3,9 +3,9 @@
 motan-manager是weibo motan-rpc的开源组件的一部分，可用来查看注册到motan-rpc所在zookeeper的rpc服务，并能进行简单的管理操作
 
 ## 申请EC2实例并关联安全组
-申请1台EC2服务器，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`motanManger-SecurityGroup`安全组
+申请1台EC2服务器，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`motanManger-SecurityGroup`安全组
 
-> 如果还没创建，请参考[配置aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`部分的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
