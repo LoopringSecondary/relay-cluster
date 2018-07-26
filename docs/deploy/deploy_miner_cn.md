@@ -28,7 +28,7 @@ error_output_paths = ["/var/log/miner/err.log"]
 [redis]
     host = "x.x.x.x"
     port = "6379"
-#ethnode实例内网ip，多个实例之间用逗号分割
+#ethnode实例内网ip，多个实例之间用逗号进行分割
 [accessor]
     raw_urls = ["http://xx.xx.xx.xx:8545", "http://xx.xx.xx.xx:8545"]
 #eth主网合约配置，如果非主网，要联系开源人员获取最新的测试配置
