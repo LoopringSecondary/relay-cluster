@@ -27,9 +27,10 @@ cd kafka-manager-1.3.3.17
 
 `vim /opt/loopring/kafka-manager/kafka-manager-1.3.3.17/conf/application.conf`
 ```
-#修改为zookeeper节点的内网ip，多个节点间用逗号分隔
+#修改为zookeeper节点的内网ip，多个节点间用逗号进行分隔
 
-kafka-manager.zkhosts="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+kafka-manager.zkhosts="x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
+#测试场景下修改为：kafka-manager.zkhosts="x.x.x.x:2181"
 
 #配置认证选项
 
