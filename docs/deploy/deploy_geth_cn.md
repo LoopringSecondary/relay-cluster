@@ -9,7 +9,7 @@
 
 申请2台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`ethnode-SecurityGroup`安全组
 
-> 若未创建该安全组，请务必参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`部分的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
