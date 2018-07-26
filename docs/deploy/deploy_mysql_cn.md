@@ -53,7 +53,7 @@ mysql是relay-cluster后端服务的主要存储
 禁用【自动次要版本升级】，和备份类似选择合适的维护窗口，选择启动数据库实例
 
 ### 创建MySQL单实例（测试场景）
-参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`mysql-securityGroup`安全组
+申请1台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`mysql-securityGroup`安全组
 
 > 测试场景以简便快捷为主，因此mysql和redis可部署到同一台实例，再同时关联`mysql-securityGroup`和`redis-securityGroup`这两个安全组即可
 
