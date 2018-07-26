@@ -53,7 +53,7 @@ server.3=xx.xx.xx.xx:2888:3888
 
 #### 启停
 
-##### 启动
+* ##### 启动
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
@@ -63,7 +63,7 @@ tail -f zookeeper.out
 telnet localhost 2181
 ```
 
-##### 终止
+* ##### 终止
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 ```
@@ -141,19 +141,19 @@ echo "2" > /opt/loopring/data/zookeeper2/myid
 echo "3" > /opt/loopring/data/zookeeper3/myid
 ```
 #### 启停
-##### 启动
+* ##### 启动
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh start /opt/loopring/zookeeper-3.4.10/conf/zoo3.cfg
 ```
-###### 确认服务正常启动
+* ###### 确认服务正常启动
 ```
 tail -f /opt/loopring/zookeeper-3.4.10/zookeeper.out
 telnet localhost 2181
 ```
 
-##### 终止
+* ##### 终止
 ```
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo.cfg
 /opt/loopring/zookeeper-3.4.10/bin/zkServer.sh stop /opt/loopring/zookeeper-3.4.10/conf/zoo2.cfg
