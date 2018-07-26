@@ -1,11 +1,9 @@
 # 部署kafka-manager
 kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的节点和topic状态，以及一些性能指标
 
-## 申请EC2实例并关联安全组
-申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+申请1台EC2服务器，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`kafkaManger-SecurityGroup`安全组
 
-关联`kafkaManger-SecurityGroup`安全组。
-> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`安全组的说明，创建后再关联
+> 如果还没创建，请参考配置[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
@@ -29,7 +27,7 @@ cd kafka-manager-1.3.3.17
 
 `vim /opt/loopring/kafka-manager/kafka-manager-1.3.3.17/conf/application.conf`
 ```
-#修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
+#修改为zookeeper节点的内网ip，多个节点间用逗号分隔
 
 kafka-manager.zkhosts="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
 
