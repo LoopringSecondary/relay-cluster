@@ -16,8 +16,9 @@ zookeeper需要进行集群部署来保证可用性，建议部署3个以上的�
 
 ### 生产场景部署
 
-申请3台EC2实例，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组
-> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`安全组的说明，创建后再关联
+申请3台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`zookeeper-SecurityGroup`安全组
+
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`zookeeper-SecurityGroup`部分的说明，创建后再关联
 
 每台服务器都需要按以下步骤进行部署
 
