@@ -2,18 +2,16 @@
 
 ## 初始化环境
 
-### 启动EC2实例
-启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
+申请EC2实例，配置时添加对CodeDeploy的支持，参考启动aws EC2实例，并且关联`miner-SecurityGroup`安全组
 
-### 关联安全组
-关联`miner-SecurityGroup`安全组。
-> 若未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`miner-SecurityGroup`安全组的说明，创建后再关联
+> 如果还没有创建，请参考配置aws安全组关于`miner-SecurityGroup`部分的说明，创建后再关联
 
-## 部署配置文件
+### 部署配置文件
+目前miner是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到待部署的miner服务器
 
-目前miner是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署miner的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
+> 该操作仅首次部署有必要，后续会利用该静态配置文件直接启动服务【待优化】
 
-### 创建配置文件
+#### 创建配置文件
 * miner.toml
 
 下载`https://github.com/Loopring/miner/blob/master/config/miner.toml`到本地，并在此基础上进行如下修改
@@ -92,7 +90,7 @@ log_dir: "/var/log/miner"
 
 在[tokens.json](tokens_main.md)的基础上根据实际需要进行必要的裁剪
 
-### 配置EC2实例
+#### 配置EC2实例
 * 部署配置文件
 
 在EC2实例执行脚本
@@ -117,7 +115,7 @@ cd /opt/loopring/miner
 bin/miner account import --datadir config/keystore --private-key xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx --passphrase xxxxxx
 ```
 
-### 部署deamontools配置
+#### 部署deamontools配置
 
 和其他两个服务不同，因为miner启动脚本包含本地参数，因此不能放在自动启动脚本中进行每次覆盖部署，在第一次部署前需要手动配置启动脚本【待优化】
 
