@@ -90,17 +90,17 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ## 启停
 通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
 
-### 启动
+* ### 启动
 `sudo svc -u /etc/service/extractor`
 
-### 停止
+* ### 终止
 `sudo svc -d /etc/service/extractor`
 
 ## 日志
 
-### extractor业务日志
+* ### extractor业务日志
 `/var/log/extractor/zap.log`
 
-### stdout
+* ### stdout
 `/var/log/svc/extractor/current`
 
