@@ -66,7 +66,7 @@ slowlog-max-len 1000
 > 测试场景以简便快捷为主，因此mysql和redis可部署到同一台实例，再同时关联`mysql-securityGroup`和`redis-securityGroup`这两个安全组即可
 
 
-执行以下命令部署redis实例
+执行以下命令部署redis
 ```
 sudo apt update
 sudo apt -y install redis-server
