@@ -84,7 +84,7 @@ scp -i xx.pem extractor.toml ubuntu@x.x.x.x:/opt/loopring/extractor/config
 scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/extractor/config
 ```
 
-## 部署
+## 部署extractor
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
 ## 启停
