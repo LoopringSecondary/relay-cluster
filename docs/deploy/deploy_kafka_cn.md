@@ -54,7 +54,7 @@ default.replication.factor=3
 ```
 #### 启停
 
-##### 启动
+* ##### 启动
 ```
 nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties &
 ```
@@ -64,7 +64,7 @@ tail -f /opt/loopring/kafka_2.12-0.11.0.2/nohup.out
 telnet 本实列内网ip 9092
 ```
 
-##### 终止
+* ##### 终止
 `/opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh`
 
 #### 日志
@@ -167,7 +167,7 @@ default.replication.factor=3
 
 #### 启停
 
-##### 启动
+* ##### 启动
 ```
 nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties &
 nohup /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-start.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties2 &
@@ -180,7 +180,7 @@ tail -f /opt/loopring/kafka_2.12-0.11.0.2/nohup.out
 telnet 本实列内网ip 9092
 ```
 
-##### 终止
+* ##### 终止
 ```
 /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties
 /opt/loopring/kafka_2.12-0.11.0.2/bin/kafka-server-stop.sh /opt/loopring/kafka_2.12-0.11.0.2/config/server.properties2
