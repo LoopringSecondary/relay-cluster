@@ -38,7 +38,6 @@ kafka-manager.zkhosts="x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
 #测试场景下修改为：kafka-manager.zkhosts="x.x.x.x:2181"
 
 #配置认证选项
-
 basicAuthentication.enabled=true
 basicAuthentication.username="admin"
 basicAuthentication.password="admin"
