@@ -59,10 +59,10 @@ registry.url=x.x.x.x:2181
 
 ## 启停
 
-### 启动
+* ### 启动
 `nohup java -jar target/motan-manager.jar &`
 
-### 终止
+* ### 终止
 `pkill -f "motan-manager"`
 
 ## 日志
