@@ -4,7 +4,7 @@
 
 申请EC2实例，配置时添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`extractor-SecurityGroup`安全组
 
-> 如果还没有创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
+> 如果还没创建，请参考[配置aws安全组](security_group_cn.md)关于`extractor-SecurityGroup`部分的说明进行配置后再进行关联
 
 ### 部署配置文件
 目前extractor是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到待部署的extractor服务器
