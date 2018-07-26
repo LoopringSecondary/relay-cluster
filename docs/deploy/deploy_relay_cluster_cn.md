@@ -2,12 +2,9 @@
 
 ## 初始化环境
 
-### 启动EC2实例
-启动EC2实例，并在启动实例过程中添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)
+申请EC2实例，配置时添加对CodeDeploy的支持，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`relayCluster-SecurityGroup`安全组
 
-### 关联安全组
-为每个实例关联`relayCluster-SecurityGroup`安全组
-> 若没创建，请参考[配置aws安全组](security_group_cn.md)关于`relayCluster-SecurityGroup`部分的说明进行配置后再进行关联
+> 如果还没创建，请参考[配置aws安全组](security_group_cn.md)关于`relayCluster-SecurityGroup`部分的说明进行配置后再进行关联
 
 ### 部署配置文件
 目前relay是通过静态文件来实现基本配置的，所以需要先在本地修改好配置文件，再上传到部署relay的服务器，此操作仅第一次部署时有必要，后续会利用该静态配置文件直接启动服务【待优化】
@@ -86,7 +83,7 @@ log_dir: "/var/log/relay"
   zk-registry:
     protocol: zookeeper
     host: x.x.x.x,x.x.x.x,x.x.x.x
-    #测试环境下为：x.x.x.x
+    #测试环境下为：host: x.x.x.x
     port: 2181
 ```
 * tokens.json
@@ -110,6 +107,15 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/relay/config
 ## 部署
 通过CodeDeploy进行配置，详细步骤参考[接入CodeDeloy](codedeploy_cn.md)
 
+## 启停
+通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
+
+### 启动
+`sudo svc -u /etc/service/relay`
+
+### 停止
+`sudo svc -d /etc/service/relay`
+
 ## 服务日志
 
 ### relay业务日志
@@ -120,12 +126,3 @@ scp -i xx.pem tokens.json ubuntu@x.x.x.x:/opt/loopring/relay/config
 
 ### stdout
 `/var/log/svc/relay/current`
-
-## 启停
-通过CodeDeploy的方式部署会为服务添加daemontools支持，也就是服务如果意外终止，会自动启动，所以不能通过kill的方式手动停止
-
-### 启动
-`sudo svc -u /etc/service/relay`
-
-### 停止
-`sudo svc -d /etc/service/relay`
