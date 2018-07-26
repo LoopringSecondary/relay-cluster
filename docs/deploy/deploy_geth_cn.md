@@ -8,7 +8,7 @@
 
 
 ethnode实例需要关联`ethnode-SecurityGroup`安全组
-> 若未创建该安全组，请务必参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`安全组的说明，创建后再关联
+> 若未创建该安全组，请务必参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
