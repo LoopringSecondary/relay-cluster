@@ -1,9 +1,9 @@
 # 部署kafka-manager
 kafka-manager是yahoo开源的kafka管理工具，可以用来查看集群内的节点和topic状态，以及一些性能指标
 
-申请1台EC2服务器，参考[启动aws EC2实例](new_ec2_cn.md)，并且关联`kafkaManger-SecurityGroup`安全组
+申请1台EC2服务器，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`kafkaManger-SecurityGroup`安全组
 
-> 如果还没创建，请参考配置[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`部分的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`kafkaManger-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
