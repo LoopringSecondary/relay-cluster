@@ -1,20 +1,21 @@
 # 部署motan-manager
 
-motan-manager是weibo motan-rpc的开源组件的一部分，可以用来查看注册到motan-rpc所在zookeeper的rpc服务，并可以进行简单的管理操作
+motan-manager是weibo motan-rpc的开源组件的一部分，可用来查看注册到motan-rpc所在zookeeper的rpc服务，并能进行简单的管理操作
 
-## 申请EC2实例并关联安全组
-申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+申请1台EC2服务器，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`motanManger-SecurityGroup`安全组
 
-关联`motanManger-SecurityGroup`安全组
-> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`安全组的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`motanManger-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 ```
-#部署mysql并记下用户名口令
 sudo apt update
+
 sudo apt install mysql-server -y
+
 sudo apt install maven -y
+
 sudo apt install openjdk-8-jdk-headless -y
+
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
@@ -43,7 +44,7 @@ jdbc_url=jdbc:mysql://127.0.0.1:3306/motan-manager?useUnicode=true&characterEnco
 jdbc_username=root
 jdbc_password=xxx
 #配置motan-rpc对应的zookeeper地址
-registry.url=xx.xx.xx.xx:2181
+registry.url=x.x.x.x:2181
 ```
 
 初始化motan_manager db
@@ -56,10 +57,10 @@ registry.url=xx.xx.xx.xx:2181
 
 ## 启停
 
-### 启动
+* ### 启动
 `nohup java -jar target/motan-manager.jar &`
 
-### 终止
+* ### 终止
 `pkill -f "motan-manager"`
 
 ## 日志

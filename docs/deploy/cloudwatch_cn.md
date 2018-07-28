@@ -53,14 +53,14 @@ sudo ./install.sh
 
 或者参考[aws doc](https://docs.aws.amazon.com/zh_cn/AmazonCloudWatch/latest/monitoring/create-cloudwatch-agent-configuration-file-wizard.html) 生成
 
-将配置文件copy到实例 /opt/aws/cloudwatch_agent_config.json
+将配置文件copy到实例`/opt/aws/cloudwatch_agent_config.json`
 
 * 启动代理
 
 执行脚本
-
-`sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/cloudwatch_agent_config.json -s`
-
+```
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/cloudwatch_agent_config.json -s
+```
 * 确认状态
 
 如果第一个脚本提示running说明成功启动，否则可以结合stop命令和上面的启动脚本来重启

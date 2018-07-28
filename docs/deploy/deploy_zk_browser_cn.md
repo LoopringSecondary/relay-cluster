@@ -2,11 +2,9 @@
 
 node-zk-browser提供遍历和修改zookeeper数据的功能，方便后续查看和修改基于zookeeper的配置
 
-## 申请EC2实例并关联安全组
-申请1台EC2服务器，参考[EC2实例](new_ec2_cn.md)
+申请1台EC2服务器，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`zookeeperBrowser-SecurityGroup`安全组
 
-关联`zookeeperBrowser-SecurityGroup`安全组。
-> 如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`安全组的说明，创建后再关联
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`zookeeperBrowser-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
 
@@ -41,30 +39,28 @@ sudo npm install -d
 
 ## 启停
 
-### 启动
+* ### 启动
 编辑启动脚本
 
 `sudo vim start.sh`
 
-修改为zookeeper节点的内网ip和端口，多个节点间使用逗号分隔
+修改为zookeeper节点的内网ip，多个节点间用逗号进行分隔
 ```
-export ZK_HOST="xx.xx.xx.xx:2181,xx.xx.xx.xx:2181,xx.xx.xx.xx:2181"
+export ZK_HOST="x.x.x.x:2181,x.x.x.x:2181,x.x.x.x:2181"
+#测试场景下修改为：export ZK_HOST="x.x.x.x:2181"
 ```
 
 编辑配置文件，修改登陆账号/密码
 
 `sudo vi /opt/loopring/node-zk-browser/user.json`
 
-
 启动
-```
-sudo ./start.sh
-```
 
-### 终止
-```
-pkill -f "node ./app.js"
-```
+`sudo ./start.sh`
+
+* ### 终止
+
+`pkill -f "node ./app.js"`
 
 ## 日志
 `/opt/loopring/node-zk-browser/logs`
@@ -74,4 +70,4 @@ pkill -f "node ./app.js"
 
 浏览器访问  `http://外网ip:3000`
 
-如果需要编辑，则点击【SignIn】登录
+如果需要编辑，需点击【SignIn】登录
