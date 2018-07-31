@@ -18,10 +18,10 @@ This document contains the following sections:
 ## Endport
 ```
 JSON-RPC : http://{hostname}:{port}/rpc/v2/
-JSON-RPC(mainnet) : https://relay1.loopring.io/rpc/v2/
-Ethereum standard JSON-RPC : https://relay1.loopring.io/eth
+JSON-RPC(mainnet) : https://relay1.loopring.io/rpc/v2/ or https://relay1.loopr.io/rpc/v2/ (better for china 4G network)
+Ethereum standard JSON-RPC : https://relay1.loopring.io/eth or https://relay1.loopr.io/eth (better for china 4G network)
 SocketIO(local|test) : https://{hostname}:{port}/socket.io
-SocketIO(mainnet) : https://relay1.loopring.io/socket.io
+SocketIO(mainnet) : https://relay1.loopring.io/socket.io or https://relay1.loopr.io/socket.io (better for china 4G network)
 *** Some socketio client make append '/socket.io' path in the end of the URL automatically. 
 ```
 
