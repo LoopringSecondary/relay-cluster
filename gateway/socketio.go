@@ -32,7 +32,7 @@ const (
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
 	DefaultCronSpec30Second = "0/30 * * * * *"
-	DefaultCronSpec1Minute  = "0 */1 * * * * *"
+	DefaultCronSpec1Minute  = "0 */1 * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
 	DefaultCronSpec30Day    = "0 0 0 */30 * *"
