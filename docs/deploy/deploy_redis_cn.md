@@ -6,13 +6,12 @@ redis是relay-cluster后端服务的缓存，并提供非关键业务数据的�
 
 > 目前redis为非cluster方式部署，后续会升级为cluster模式
 
-可以选择aws的ElastiCache或者自建redis，推荐使用前者
+测试场景下仅需自建redis单实例即可，简便快捷
 
-ElastiCache包含集群功能，方便进行弹性伸缩，并且提供更丰富的监控及管理功能，适合线上环境使用
+生产场景下推荐采用aws的ElastiCache，其包含集群功能，方便进行弹性伸缩，并且提供更丰富的监控及管理功能，适合线上环境使用
 
-自建单实例redis更加快速，适合测试场景
 
-## 创建ElastiCache实例
+## 创建ElastiCache实例（生产场境）
 
 从服务列表查找`ElastiCache`找到入口
 
@@ -59,18 +58,47 @@ slowlog-max-len 1000
 
 最后点击【创建】来创建redis集群
 
-### 创建单机Redis实例
-参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`redis-securityGroup`安全组
+### 创建Redis单实例（测试场境）
+申请1台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`redis-securityGroup`安全组
 
-执行以下脚本以部署redis实例
-`sudo apt install redis-server`
-* 启动
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`redis-securityGroup`部分的说明，创建后再关联
+
+> 测试场景以简便快捷为主，因此mysql和redis可部署到同一台实例，再同时关联`mysql-securityGroup`和`redis-securityGroup`这两个安全组即可
+
+
+执行以下命令部署redis
+```
+sudo apt update
+sudo apt -y install redis-server
+```
+
+修改配置项，并禁用redis bind
+
+`sudo vim /etc/redis/redis.conf`
+
+```
+cluster-enabled no
+slowlog-log-slower-than 1000
+slowlog-max-len 1000
+# bind 127.0.0.1
+```
+
+最后重启redis即可 `sudo systemctl restart redis`
+
+#### 启停
+
+* ##### 启动
 
 `sudo systemctl start redis`
 
-* 终止
+* ##### 终止
 
 `sudo systemctl stop redis`
+
+* ##### 重启
+
+`sudo systemctl restart redis`
+
 
 ## 连接redis
 

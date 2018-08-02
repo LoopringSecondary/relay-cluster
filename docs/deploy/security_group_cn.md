@@ -2,15 +2,13 @@
 
 > 因为默认安全组会拒绝除了22端口之外的流量进入，为了能够正常对外提供服务，我们需要配置安全组
 
-aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，提高服务器的网络安全性，详情可以参考[aws安全组](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)
+aws安全组是通过设置准入规则来拦截非法流量访问Ec2服务器，以此提高服务器的网络安全性，详情可以参考[aws安全组](https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/using-network-security.html)
 
 ## 配置入口
 【EC2-网络与安全-安全组】是编辑和查看安全组的入口
 
 ## 默认安全组
 如果未自建安全组，请选择新建`launch-wizard-1`的默认安全组，该安全组开通ssh端口22，允许通过ssh方式访问
-
-在启动新实例的时候，建议使用该默认安全组，后面再手动配置适用的安全组
 
 ## 自定义安全组
 当实例部署的服务需要提供额外的端口供外界访问，或者需要访问其他实例的特定端口时候，就需要新建自定义安全组
@@ -33,7 +31,8 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 
 这是常用的做法，允许绑定了特定安全组A的一组实例访问当前编辑安全组B会绑定的一组实例。
 
-比如已经有名称为 ethnode-SecurityGroup 的安全组绑定了部署eth节点的一组服务器，这时候我们需要允许relay-cluster能够访问这组eth节点的8545端口。我们会新建relayCluster-SecurityGroup安全组，并得到组ID，假设为sg-123456。然后编辑ethnode-SecurityGroup，添加新规则允许8545端口的来源为sg-123456。这样我们把relayCluster-SecurityGroup关联到relay-cluster部署的节点，eth的8545端口就对relay-cluster开放了。后续eth或者relay-cluster扩容，该规则都会自动生效
+> 假如现有一组绑定了 ethnode-SecurityGroup 安全组的eth节点，需要允许 relay-cluster 能访问这组节点的8545端口，此时先新建 relayCluster-SecurityGroup 安全组并得到组ID（假设为sg-123456），然后再编辑 ethnode-SecurityGroup 安全组，添加新规则允许8545端口来源为sg-123456即可，这样就把 relayCluster-SecurityGroup 安全组关联到部署的relay-cluster节点了，同时eth节点的8545端口也成功对relay-cluster开放。就算以后eth节点或relay-cluster扩容，该规则同样会自动生效。
+
 > 设置安全组为来源的场景，需要在来源字段输入【组ID】，而非组名
 
 * 允许所有流量
@@ -50,7 +49,7 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 【EC2-实例-实例-操作-联网-更改安全组】
 
 ## 安全组叠加
-对于单个服务器可能部署多个服务的情况，建议针对每个服务设置安全组，然后编辑该服务器关联所需要的多个安全组，这样可以能提高安全组配置的灵活性，也便于命名。
+对于单个服务器可能部署多个服务的情况，建议先针对每个服务分别设置安全组，然后再编辑该服务器关联所需要的多个安全组，可提高安全组配置的灵活性，也便于命名。
 
 ## relay-cluster涉及全部安全组配置
 安全组独立于EC2实例，可以预先创建，建立他们之间的关联关系，待服务部署时只需要关联就可以
@@ -58,10 +57,8 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 
 |类型         | 协议 | 端口范围| 来源     |
 |------------|-----|--------|---------|
-| HTTP | TCP | 80  | 0.0.0.0/0|
-| HTTP | TCP | 80    | ::/0    |
-| 自定义 TCP 规则 | TCP | 443  | 0.0.0.0/0|
-| 自定义 TCP 规则 | TCP | 443    | ::/0    |
+| HTTP | TCP | 80  | 0.0.0.0/0,::/0|
+| 自定义 TCP 规则 | TCP | 443  | 0.0.0.0/0,::/0|
 
 * miner-securityGroup
 
@@ -126,9 +123,8 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | SSH | TCP | 22    | 	0.0.0.0/0    |
 | 自定义 TCP 规则 | TCP | 9092    |relayCluster-securityGroup|
 | 自定义 TCP 规则 | TCP | 9092    |miner-SecurityGroup|
-| 自定义 TCP 规则 | TCP | 9999    |extractor-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 9092    |extractor-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 9092    |kafka-SecurityGroup|
-| 自定义 TCP 规则 | TCP | 9999    |kafkaManager-SecurityGroup|
 
 * motanManager-securityGroup
 
@@ -155,5 +151,6 @@ aws安全组通过设置准入规则并拦截非法流量访问Ec2服务器，�
 | 自定义 TCP 规则 | TCP | 2181    |kafka-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2181    |motanManager-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2181    |zookeeperBrowser-SecurityGroup|
+| 自定义 TCP 规则 | TCP | 2181    |kafkaManager-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 2888    |zookeeper-SecurityGroup|
 | 自定义 TCP 规则 | TCP | 3888    |zookeeper-SecurityGroup|

@@ -1,8 +1,8 @@
 # 部署Aws LoadBalancer
 
-ALB（Application Load Balancer）是aws提供的负载局衡器，ALB具有比较高的可用性。
+ALB（Application Load Balancer）是aws提供的负载均衡器，具有较高的可用性。
 
-通过把一组服务器映射到目标组，然后关联ALB，我们可以配置请求url和后端服务的映射关系，从而转发请求到正确的后端接口
+通过把一组服务器映射到目标组，然后关联ALB，实现配置请求url和后端服务的映射关系，将请求转发到正确的后端接口
 
 ## 配置目标组
 目标组将一组服务器的某个端口汇总为一个组，该组作为ALB的的请求转发目标
@@ -56,7 +56,7 @@ ALB（Application Load Balancer）是aws提供的负载局衡器，ALB具有比�
 
 【侦听器】，添加HTTP，端口选择默认的80。如果在证书颁发机构申请了证书，请额外添加HTTPS侦听器
 
-【可用区】选择你部署了relay-cluster的所有可用区，至少选择连个区
+【可用区】选择你部署了relay-cluster的所有可用区，至少选择两个区
 
 * 步骤 2: 配置安全设置
 如果已经在证书颁发机构申请了https的证书，请在这里配置该证书，安全策略选择`ELBSecurityPolicy-2016-08`

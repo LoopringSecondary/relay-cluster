@@ -347,6 +347,8 @@ type LatestFill struct {
 	LrcFee     string  `json:"lrcFee"`
 	SplitS     string  `json:"splitS"`
 	SplitB     string  `json:"splitB"`
+	OrderHash  string  `json:"orderHash"`
+	PreOrderHash  string  `json:"preOrderHash"`
 }
 
 type CancelOrderQuery struct {
@@ -1019,7 +1021,10 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
-		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex()); if len(token) == 0 {
+			continue
+		}
+
 		amountS, _ := v.RemainedAmount()
 		amount, ok := tmpResult[token]
 		if ok {
@@ -1835,6 +1840,8 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 	rst.LrcFee = f.LrcFee
 	rst.SplitS = f.SplitS
 	rst.SplitB = f.SplitB
+	rst.OrderHash = f.OrderHash
+	rst.PreOrderHash = f.PreOrderHash
 	var amount float64
 	if util.GetSide(f.TokenS, f.TokenB) == util.SideBuy {
 		amountB, _ := new(big.Int).SetString(f.AmountB, 0)

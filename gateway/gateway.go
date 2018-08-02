@@ -316,20 +316,20 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 	}
 
 	// USD min amount check
-	tokenSPrice, err := gateway.marketCap.GetMarketCapByCurrency(o.TokenS, "USD")
-	if err != nil || tokenSPrice == nil {
-		return false, fmt.Errorf("get price error. please retry later")
-	}
-	tokenSFloatPrice, _ := tokenSPrice.Float64()
-	if tokenSFloatPrice <= 0 {
-		return false, fmt.Errorf("get zero token s price. symbol : " + tokenS.Symbol)
-	}
-
-	amountDivDecimal, _ := new(big.Rat).SetFrac(o.AmountS, tokenS.Decimals).Float64()
-	usdAmount := amountDivDecimal * tokenSFloatPrice
-	if o.OrderType == types.ORDER_TYPE_MARKET && usdAmount < f.MinTokenSUsdAmount {
-		return false, fmt.Errorf("tokenS usd amount is too small, price:%f, amount:%f, value:%f, usdMinValue:%f", tokenSFloatPrice, amountDivDecimal, usdAmount, f.MinTokenSUsdAmount)
-	}
+	//tokenSPrice, err := gateway.marketCap.GetMarketCapByCurrency(o.TokenS, "USD")
+	//if err != nil || tokenSPrice == nil {
+	//	return false, fmt.Errorf("get price error. please retry later")
+	//}
+	//tokenSFloatPrice, _ := tokenSPrice.Float64()
+	//if tokenSFloatPrice <= 0 {
+	//	return false, fmt.Errorf("get zero token s price. symbol : " + tokenS.Symbol)
+	//}
+	//
+	//amountDivDecimal, _ := new(big.Rat).SetFrac(o.AmountS, tokenS.Decimals).Float64()
+	//usdAmount := amountDivDecimal * tokenSFloatPrice
+	//if o.OrderType == types.ORDER_TYPE_MARKET && usdAmount < f.MinTokenSUsdAmount {
+	//	return false, fmt.Errorf("tokenS usd amount is too small, price:%f, amount:%f, value:%f, usdMinValue:%f", tokenSFloatPrice, amountDivDecimal, usdAmount, f.MinTokenSUsdAmount)
+	//}
 
 	return true, nil
 }

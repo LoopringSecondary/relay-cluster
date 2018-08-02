@@ -1,20 +1,38 @@
 # 部署ethnode
-我们选择部署官方的go-ethereum(geth)版本的eth服务，作为接入eth网络的入口
+部署官方的PPA(geth)版本，作为接入eth网络的入口
 
 ## 启动新实例
-建议部署两台以上eth节点，避免单台故障，或者由于节点时延或者运维原因导致服务不可用
 
-由于需要部署geth全节点，相对会比较耗费资源，需要选择8core 32g及以上配置的实例，可以参考[EC2实例](new_ec2_cn.md)
+因需要部署以太坊全节点，相对比较耗费资源，所以推荐最低配置为8核_32g内存_300GB SSD以上的实例
 
-启动实例后需要关联`ethnode-SecurityGroup`安全组。如果未创建该安全组，请参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`安全组的说明，创建后再关联
+建议部署两台以上eth节点，避免因单台故障、节点延时或运维不当等造成的服务不可用
+
+申请2台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`ethnode-SecurityGroup`安全组
+
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`ethnode-SecurityGroup`部分的说明，创建后再关联
 
 ## 部署
-具体部署操作，参考eth官方文档[go-ethereum for ubuntu](https://github.com/ethereum/go-ethereum/wiki/Installation-Instructions-for-Ubuntu)
-
-## 启动
 ```
-sudo mdkir -p /data/ethereum
+sudo apt-get -y install software-properties-common
+sudo add-apt-repository -y ppa:ethereum/ethereum
+sudo apt-get update
+sudo apt-get -y install ethereum
+sudo mkdir -p /data/ethereum
 sudo chown -R ubuntu:ubuntu /data/ethereum
-#启动脚本请参考如下进行配置，其中ip地址为本机内网地址
-geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain *
 ```
+
+## 启停
+
+* ### 启动
+修改x.x.x.x为本实例内网ip
+
+```
+sudo nohup geth --datadir /data/ethereum --fast --cache=1024 --rpc --rpcaddr x.x.x.x --rpcport 8545 --rpccorsdomain * &
+```
+
+* ### 终止
+`sudo kill -9 进程id`
+
+## 日志
+
+当前目录下 `nohup.out`

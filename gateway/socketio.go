@@ -31,7 +31,8 @@ const (
 	DefaultCronSpec3Second  = "0/3 * * * * *"
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
-	DefaultCronSpec1Minute  = "0 */1 * * * * *"
+	DefaultCronSpec30Second = "0/30 * * * * *"
+	DefaultCronSpec1Minute  = "0 */1 * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
 	DefaultCronSpec30Day    = "0 0 0 */30 * *"
@@ -155,27 +156,27 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
-		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec1Minute},
+		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
-		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyOrderAllocateChange:      {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 
-		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
-		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 		eventKeyCirculrNotify:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
@@ -371,7 +372,7 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 
 	mkts, _ := so.walletService.GetSupportedMarket()
 
-	tickerMap := make(map[string]SocketIOJsonResp)
+	tickerMap := make(map[string]string)
 
 	for _, mkt := range mkts {
 		ticker, err := so.walletService.GetTickers(SingleMarket{mkt})
@@ -382,14 +383,15 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 		} else {
 			resp.Data = ticker
 		}
-		tickerMap[mkt] = resp
+		respJson, _ := json.Marshal(resp)
+		tickerMap[mkt] = string(respJson[:])
 	}
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			ctx, ok := businesses[eventKeyLoopringTickers]
+			ctx, ok := businesses[eventKeyTickers]
 			if ok {
 				var singleMarket SingleMarket
 				err = json.Unmarshal([]byte(ctx), &singleMarket)
