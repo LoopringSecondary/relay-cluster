@@ -26,11 +26,13 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"math/rand"
+	"sync"
 )
 
 type CityPartnerStatus struct {
-	CustomerCount int
-	Received      map[string]string
+	CustomerCount int	`json:"customer_price"`
+	Received      map[string]string	`json:"received"`
 }
 
 func (w *WalletServiceImpl) CreateCityPartner(req dao.CityPartner) (isSuccessed bool, err error) {
@@ -38,9 +40,44 @@ func (w *WalletServiceImpl) CreateCityPartner(req dao.CityPartner) (isSuccessed 
 	return
 }
 
-func (w *WalletServiceImpl) CreateCustumerInvitationInfo(req dao.CustumerInvitationInfo) (isSuccessed bool, err error) {
-	isSuccessed, err = w.rds.SaveCustumerInvitationInfo(req)
+var activateMtx sync.Mutex
+
+type ExcludeCodes []string
+
+func (codes ExcludeCodes) contains(code string) bool {
+	for _,c := range codes {
+		if c == code {
+			return true
+		}
+	}
+	return false
+}
+
+func (w *WalletServiceImpl) CreateCustumerInvitationInfo(invitationCode string) (activateCode string, err error) {
+	activateMtx.Lock()
+	defer activateMtx.Unlock()
+
+	info := &dao.CustumerInvitationInfo{}
+	info.InvitationCode = invitationCode
+	info.Activate = 0
+	activateCodes,_ := w.rds.GetAllActivateCode(invitationCode)
+	activateCode = generateactivateCode(activateCodes, 10)
+	info.ActivateCode = activateCode
+	err = w.rds.SaveCustumerInvitationInfo(info)
 	return
+}
+
+func generateactivateCode(excludeCodes ExcludeCodes, count int) string {
+	if count <= 0 {
+		return string(rand.Intn(99000) + 1000)
+	}
+	count = count - 1
+	activateCode := string(rand.Intn(10000))
+	if excludeCodes.contains(activateCode) {
+		return generateactivateCode(excludeCodes, count)
+	} else {
+		return activateCode
+	}
 }
 
 func (w *WalletServiceImpl) ActivateCustumerInvitation(req dao.CustumerInvitationInfo) (invitationCode string, err error) {
@@ -75,6 +112,7 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPa
 }
 
 func (w *WalletServiceImpl) Start() {
+	activateMtx = sync.Mutex{}
 	orderFilledEventWatcher := &eventemitter.Watcher{Concurrent: false, Handle: w.handleFilledEventForCityPartner}
 	eventemitter.On(eventemitter.OrderFilled, orderFilledEventWatcher)
 }
