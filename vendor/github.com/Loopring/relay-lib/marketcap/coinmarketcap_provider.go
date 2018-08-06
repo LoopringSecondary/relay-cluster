@@ -388,12 +388,12 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 		}
 		if nil != err {
 			notSupportTokens[tokenAddr] = true
-			log.Errorf("can't get marketcap of token:%s", tokenAddr.Hex())
+			log.Warnf("can't get marketcap of token:%s", tokenAddr.Hex())
 		} else {
 			c := &CoinMarketCap{}
 			if err := json.Unmarshal(data, c); nil != err {
 				notSupportTokens[tokenAddr] = true
-				log.Errorf("get marketcap of token err:%s", err.Error())
+				log.Warnf("get marketcap of token err:%s", err.Error())
 			} else {
 				p.tokenMarketCaps[tokenAddr].Quotes = c.Quotes
 				p.tokenMarketCaps[tokenAddr].CirculatingSupply = c.CirculatingSupply

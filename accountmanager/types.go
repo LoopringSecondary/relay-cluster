@@ -205,7 +205,7 @@ func (accountBalances AccountBalances) syncFromCacheAll() (uncachedTokens []comm
 	syncedToken := make(map[common.Address]bool)
 
 	if err := accountBalances.syncEthFromCache(); nil != err {
-		log.Errorf("err:%s", err.Error())
+		log.Warnf("err:%s", err.Error())
 	} else {
 		syncedToken[types.NilAddress] = true
 	}
