@@ -1609,8 +1609,17 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	err = manager.FlexCancelOrder(&cancelOrderEvent)
 	if err == nil {
 		go func() {
-			orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: req.Sign.Owner, OrderType: types.ORDER_TYPE_MARKET})
-			ot, err := w.orderViewer.GetLatestOrders(orderQuery, 1)
+
+			orderQuery := OrderQuery{Owner: req.Sign.Owner, OrderType: types.ORDER_TYPE_MARKET}
+			if cancelOrderEvent.Type == types.FLEX_CANCEL_BY_HASH {
+				orderQuery.OrderHash = cancelOrderEvent.OrderHash.Hex()
+			} else if cancelOrderEvent.Type == types.FLEX_CANCEL_BY_MARKET {
+				orderQuery.Market, _ = util.WrapMarketByAddress(req.TokenS, req.TokenB)
+			} else {
+				// other conditions will notify all market, not implement now
+			}
+			orderQueryMap, _, _, _ := convertFromQuery(&orderQuery)
+			ot, err := w.orderViewer.GetLatestOrders(orderQueryMap, 1)
 			if err == nil && len(ot) > 0 {
 				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot[0])
 			}
