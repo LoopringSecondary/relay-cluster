@@ -24,35 +24,36 @@ import (
 )
 
 type CityPartner struct {
-	ID             int            `gorm:"column:id;primary_key;"`
-	WalletAddress  common.Address `gorm:"column:wallet_address;type:varchar(42)"`
-	InvitationCode string         `gorm:"column:invitation_code;type:varchar(50)"`
+	ID             int            `gorm:"column:id;primary_key;" json:"-"`
+	WalletAddress  common.Address `gorm:"column:wallet_address;type:varchar(42)" json:"walletAddress"`
+	InvitationCode string         `gorm:"column:invitation_code;type:varchar(50)" json:"invitationCode"`
 }
 
 type CustumerInvitationInfo struct {
-	ID             int    `gorm:"column:id;primary_key;"`
-	Device         string `gorm:"column:device;type:varchar(50)"`
-	InvitationCode string `gorm:"column:invitation_code;type:varchar(50)"`
-	Activate       int    `gorm:"column:activate;type:int"`
+	ID             int    `gorm:"column:id;primary_key;" json:"-"`
+	Device string `gorm:"column:device;type:varchar(100)" json:"device"`
+	ActivateCode   string `gorm:"column:activate_code;type:varchar(50)" json:"activateCode"`
+	InvitationCode string `gorm:"column:invitation_code;type:varchar(50)" json:"invitationCode"`
+	Activate       int    `gorm:"column:activate;type:int" json:"activate"`
 }
 
 type CityPartnerReceivedDetail struct {
-	ID            int    `gorm:"column:id;primary_key;"`
-	WalletAddress string `gorm:"column:wallet_address;type:varchar(50)"`
-	TokenSymbol   string `gorm:"column:token_symbol;type:varchar(50)"`
-	TokenAddress  string `gorm:"column:token_address;type:varchar(50)"`
-	Amount        string `gorm:"column:amount;type:varchar(50)"`
-	Ringhash      string `gorm:"column:ringhash;type:varchar(100)"`
-	Orderhash     string `gorm:"column:orderhash;type:varchar(100)"`
+	ID            int    `gorm:"column:id;primary_key;" json:"-"`
+	WalletAddress string `gorm:"column:wallet_address;type:varchar(50)" json:"walletAddress"`
+	TokenSymbol   string `gorm:"column:token_symbol;type:varchar(50)" json:"tokenSymbol"`
+	TokenAddress  string `gorm:"column:token_address;type:varchar(50)" json:"tokenAddress"`
+	Amount        string `gorm:"column:amount;type:varchar(50)" json:"amount"`
+	Ringhash      string `gorm:"column:ringhash;type:varchar(100)" json:"ringhash"`
+	Orderhash     string `gorm:"column:orderhash;type:varchar(100)" json:"orderhash"`
 }
 
 type CityPartnerReceived struct {
-	ID            int    `gorm:"column:id;primary_key;"`
-	WalletAddress string `gorm:"column:wallet_address;type:varchar(50)"`
-	TokenSymbol   string `gorm:"column:token_symbol;type:varchar(50)"`
-	TokenAddress  string `gorm:"column:token_address;type:varchar(50)"`
-	Amount        string `gorm:"column:amount;type:varchar(50)"`
-	HumanAmount   string `gorm:"column:human_amount;type:varchar(50)"`
+	ID            int    `gorm:"column:id;primary_key;" json:"-"`
+	WalletAddress string `gorm:"column:wallet_address;type:varchar(50)" json:"walletAddress"`
+	TokenSymbol   string `gorm:"column:token_symbol;type:varchar(50)" json:"tokenSymbol"`
+	TokenAddress  string `gorm:"column:token_address;type:varchar(50)" json:"tokenAddress"`
+	Amount        string `gorm:"column:amount;type:varchar(50)" json:"amount"`
+	HumanAmount   string `gorm:"column:human_amount;type:varchar(50)" json:"humanAmount"`
 }
 
 func (s *RdsService) SaveCityPartner(cp CityPartner) (bool, error) {
@@ -71,11 +72,19 @@ func (s *RdsService) SaveCityPartner(cp CityPartner) (bool, error) {
 }
 
 func (s *RdsService) FindCityPartnerByWalletAddress(address common.Address) (*CityPartner, error) {
-
+	cp := &CityPartner{}
+	err := s.Db.Model(&CityPartner{}).
+		Where("wallet_address=?", address).
+		First(&cp).Error
+	return cp, err
 }
 
 func (s *RdsService) FindCityPartnerByInvitationCode(invitationCode string) (*CityPartner, error) {
-
+	cp := &CityPartner{}
+	err := s.Db.Model(&CityPartner{}).
+		Where("invitation_code=?", invitationCode).
+		FirstOrInit(&cp).Error
+	return cp, err
 }
 
 func (s *RdsService) GetCityPartnerCustomerCount(invitationCode string) (int, error) {
@@ -84,32 +93,55 @@ func (s *RdsService) GetCityPartnerCustomerCount(invitationCode string) (int, er
 	return count, err
 }
 
-func (s *RdsService) FindReceivedByWalletAndToken(walletAddress, tokenAddress common.Address) (*CityPartnerReceived, error) {
+func (s *RdsService) GetAllActivateCode(invitationCode string) ([]string, error) {
+	var codes []string
+	err := s.Db.Model(&CustumerInvitationInfo{}).
+		Where("invitation_code=?", invitationCode).
+		Where("activate=?", 0).
+		Count(&codes).Error
+	return codes, err
+}
 
+func (s *RdsService) FindReceivedByWalletAndToken(walletAddress, tokenAddress common.Address) (*CityPartnerReceived, error) {
+	received := &CityPartnerReceived{}
+	err := s.Db.Model(&CityPartnerReceived{}).
+		Where("wallet_address=?", walletAddress.Hex()).
+		Where("token_address=?", tokenAddress.Hex()).First(&received).Error
+	return received, err
 }
 
 func (s *RdsService) GetAllReceivedByWallet(walletAddress common.Address) ([]*CityPartnerReceived, error) {
-
+	receiveds := []*CityPartnerReceived{}
+	err := s.Db.Model(&CityPartnerReceived{}).
+		Where("wallet_address=?", walletAddress.Hex()).
+		Find(&receiveds).Error
+	return receiveds, err
 }
 
-func (s *RdsService) SaveCustumerInvitationInfo(info CustumerInvitationInfo) (bool, error) {
+func (s *RdsService) SaveCustumerInvitationInfo(info *CustumerInvitationInfo) error {
 	var count int
-	err := s.Db.Model(&CustumerInvitationInfo{}).Where("device=?", info.Device).Count(&count).Error
+	err := s.Db.Model(&CustumerInvitationInfo{}).
+		Where("activate_code=?", info.ActivateCode).
+		Where("activate=?", 0).
+		Count(&count).Error
 	if nil != err {
-		return false, err
+		return err
 	} else {
 		if count <= 0 {
 			s.Add(info)
-			return true, nil
+			return nil
 		} else {
-			return false, errors.New("duplicated device info")
+			return errors.New("duplicated device info")
 		}
 	}
 }
 
 func (s *RdsService) FindCustumerInvitationInfo(info CustumerInvitationInfo) (*CustumerInvitationInfo, error) {
 	resInfo := &CustumerInvitationInfo{}
-	err := s.Db.Model(&CustumerInvitationInfo{}).Where("device=?", info.Device).Count(resInfo).Error
+	err := s.Db.Model(&CustumerInvitationInfo{}).
+		Where("activate_code=?", info.ActivateCode).
+		Where("activate=?", 0).
+		Count(resInfo).Error
 	if nil != err {
 		return nil, err
 	} else {
@@ -118,5 +150,8 @@ func (s *RdsService) FindCustumerInvitationInfo(info CustumerInvitationInfo) (*C
 }
 
 func (s *RdsService) AddCustumerInvitationActivate(info *CustumerInvitationInfo) error {
-	return s.Db.Model(&CustumerInvitationInfo{}).Where("device=?", info.Device).Update("activate", info.Activate).Error
+	return s.Db.Model(&CustumerInvitationInfo{}).
+		Where("activate_code=?", info.ActivateCode).
+		Where("invitation_code=?", info.InvitationCode).
+		Update("activate", info.Activate).Error
 }
