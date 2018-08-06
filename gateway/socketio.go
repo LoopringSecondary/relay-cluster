@@ -1120,9 +1120,7 @@ func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) 
 	//so.handleOrderTracing(order)
 
 	log.Info("received order " + order.RawOrder.Hash.Hex())
-	if order.Status == types.ORDER_NEW {
-		so.handleOrderAllocateChange(input)
-	}
+	so.handleOrderAllocateChange(input)
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
 		return nil

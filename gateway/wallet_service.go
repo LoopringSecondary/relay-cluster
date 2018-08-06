@@ -561,6 +561,7 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 
 	err = txmanager.ValidateNonce(txNotify.From, nonce)
 	if err != nil {
+		log.Infof("nonce invalid in tx %s, %s", txNotify.Hash, err.Error())
 		return "", err
 	}
 
@@ -593,7 +594,6 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 	tx.TransactionIndex = *types.NewBigWithInt(0)
 
 	log.Debug("emit Pending tx >>>>>>>>>>>>>>>> " + tx.Hash)
-	//eventemitter.Emit(eventemitter.PendingTransaction, tx)
 	kafkaUtil.ProducerNormalMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, tx)
 	txByte, err := json.Marshal(txNotify)
 	if err == nil {
@@ -1609,9 +1609,10 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	err = manager.FlexCancelOrder(&cancelOrderEvent)
 	if err == nil {
 		go func() {
-			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
-			if err == nil {
-				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
+			orderQuery, _, _, _ := convertFromQuery(&OrderQuery{Owner: req.Sign.Owner, OrderType: types.ORDER_TYPE_MARKET})
+			ot, err := w.orderViewer.GetLatestOrders(orderQuery, 1)
+			if err == nil && len(ot) > 0 {
+				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot[0])
 			}
 		}()
 	}
