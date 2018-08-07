@@ -29,6 +29,8 @@ import (
 	"math/big"
 	"math/rand"
 	"sync"
+	"time"
+	"qiniupkg.com/x/log.v7"
 )
 
 type CityPartnerStatus struct {
@@ -64,7 +66,7 @@ func (w *WalletServiceImpl) CreateCustumerInvitationInfo(invitationCode string) 
 	info.Activate = 0
 	activateCodes, err := w.rds.GetAllActivateCode(invitationCode)
 	if nil != err {
-		println(err.Error())
+		log.Errorf("err:%s", err.Error())
 	}
 	activateCode = generateactivateCode(activateCodes, 10, 5)
 	info.ActivateCode = activateCode
@@ -175,12 +177,15 @@ func (w *WalletServiceImpl) HandleFilledEventForCityPartner(input eventemitter.E
 	amountInt := new(big.Int)
 	amountInt.SetString(amount.FloatString(0), 10)
 	receivedDetail.Amount = "0x" + common.Bytes2Hex(amountInt.Bytes())
+	receivedDetail.CreateTime = time.Now().Unix()
 	w.rds.Add(receivedDetail)
 
 	if received, err := w.rds.FindReceivedByWalletAndToken(common.HexToAddress(order.WalletAddress), common.HexToAddress(receivedDetail.TokenAddress)); nil != err && "record not found" != err.Error() {
 		return err
 	} else {
 		if nil == received || (nil != err && "record not found" == err.Error()) {
+			received = &dao.CityPartnerReceived{}
+			received.CreateTime = time.Now().Unix()
 			received.TokenAddress = receivedDetail.TokenAddress
 			received.WalletAddress = receivedDetail.WalletAddress
 			received.Amount = receivedDetail.Amount
