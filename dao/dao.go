@@ -57,6 +57,10 @@ func NewDb(options *libdao.MysqlOptions) *RdsService {
 	tables = append(tables, &CheckPoint{})
 	tables = append(tables, &OrderPendingTransaction{})
 	tables = append(tables, &TicketReceiver{})
+	tables = append(tables, &CityPartner{})
+	tables = append(tables, &CityPartnerReceived{})
+	tables = append(tables, &CustumerInvitationInfo{})
+	tables = append(tables, &CityPartnerReceivedDetail{})
 
 	s.SetTables(tables)
 	if err := s.CreateTables(); err != nil {
