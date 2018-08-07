@@ -36,6 +36,7 @@ import (
 type CityPartnerStatus struct {
 	CustomerCount int               `json:"customer_count"`
 	Received      map[string]string `json:"received"`
+	WalletAddress string `json:"walletAddress"`
 }
 
 func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (isSuccessed bool, err error) {
@@ -57,14 +58,14 @@ func (codes ExcludeCodes) contains(code string) bool {
 	return false
 }
 
-func (w *WalletServiceImpl) CreateCustumerInvitationInfo(invitationCode string) (activateCode string, err error) {
+func (w *WalletServiceImpl) CreateCustumerInvitationInfo(req *dao.CustumerInvitationInfo) (activateCode string, err error) {
 	activateMtx.Lock()
 	defer activateMtx.Unlock()
 
 	info := &dao.CustumerInvitationInfo{}
-	info.InvitationCode = invitationCode
+	info.InvitationCode = req.InvitationCode
 	info.Activate = 0
-	activateCodes, err := w.rds.GetAllActivateCode(invitationCode)
+	activateCodes, err := w.rds.GetAllActivateCode(info.InvitationCode)
 	if nil != err {
 		log.Errorf("err:%s", err.Error())
 	}
@@ -87,14 +88,16 @@ func generateactivateCode(excludeCodes ExcludeCodes, count, halfCount int) strin
 	}
 }
 
-func (w *WalletServiceImpl) ActivateCustumerInvitation(req *dao.CustumerInvitationInfo) (res bool, err error) {
+func (w *WalletServiceImpl) ActivateCustumerInvitation(req *dao.CustumerInvitationInfo) (res *dao.CityPartner, err error) {
+	res = &dao.CityPartner{}
 	info, err := w.rds.FindCustumerInvitationInfo(req)
 	if nil != err {
-		return false, err
+		return res, err
 	} else {
 		info.Activate = info.Activate + 1
 		err = w.rds.AddCustumerInvitationActivate(info)
-		return true, err
+		res,err = w.rds.FindCityPartnerByInvitationCode(info.InvitationCode)
+		return res, err
 	}
 }
 
@@ -106,6 +109,7 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPa
 		return nil, err
 	}
 	status := &CityPartnerStatus{}
+	status.WalletAddress = cityPartner.WalletAddress
 	status.CustomerCount, err = w.rds.GetCityPartnerCustomerCount(invitationCode)
 	status.Received = make(map[string]string)
 	for _, token := range marketutil.AllTokens {
