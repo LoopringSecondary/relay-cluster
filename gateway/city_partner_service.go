@@ -20,6 +20,7 @@ package gateway
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/marketutil"
@@ -31,11 +32,12 @@ import (
 )
 
 type CityPartnerStatus struct {
-	CustomerCount int	`json:"customer_price"`
-	Received      map[string]string	`json:"received"`
+	CustomerCount int               `json:"customer_count"`
+	Received      map[string]string `json:"received"`
 }
 
-func (w *WalletServiceImpl) CreateCityPartner(req dao.CityPartner) (isSuccessed bool, err error) {
+func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (isSuccessed bool, err error) {
+	req.WalletAddress = common.HexToAddress(req.WalletAddress).Hex()
 	isSuccessed, err = w.rds.SaveCityPartner(req)
 	return
 }
@@ -45,7 +47,7 @@ var activateMtx sync.Mutex
 type ExcludeCodes []string
 
 func (codes ExcludeCodes) contains(code string) bool {
-	for _,c := range codes {
+	for _, c := range codes {
 		if c == code {
 			return true
 		}
@@ -60,34 +62,37 @@ func (w *WalletServiceImpl) CreateCustumerInvitationInfo(invitationCode string) 
 	info := &dao.CustumerInvitationInfo{}
 	info.InvitationCode = invitationCode
 	info.Activate = 0
-	activateCodes,_ := w.rds.GetAllActivateCode(invitationCode)
-	activateCode = generateactivateCode(activateCodes, 10)
+	activateCodes, err := w.rds.GetAllActivateCode(invitationCode)
+	if nil != err {
+		println(err.Error())
+	}
+	activateCode = generateactivateCode(activateCodes, 10, 5)
 	info.ActivateCode = activateCode
 	err = w.rds.SaveCustumerInvitationInfo(info)
 	return
 }
 
-func generateactivateCode(excludeCodes ExcludeCodes, count int) string {
-	if count <= 0 {
-		return string(rand.Intn(99000) + 1000)
+func generateactivateCode(excludeCodes ExcludeCodes, count, halfCount int) string {
+	activateCode := fmt.Sprintf("%d", rand.Intn(900000)+100000)
+	if count <= halfCount {
+		activateCode = fmt.Sprintf("%d", rand.Intn(90000000)+10000000)
 	}
 	count = count - 1
-	activateCode := string(rand.Intn(10000))
 	if excludeCodes.contains(activateCode) {
-		return generateactivateCode(excludeCodes, count)
+		return generateactivateCode(excludeCodes, count, halfCount)
 	} else {
 		return activateCode
 	}
 }
 
-func (w *WalletServiceImpl) ActivateCustumerInvitation(req dao.CustumerInvitationInfo) (invitationCode string, err error) {
+func (w *WalletServiceImpl) ActivateCustumerInvitation(req *dao.CustumerInvitationInfo) (res bool, err error) {
 	info, err := w.rds.FindCustumerInvitationInfo(req)
 	if nil != err {
-		return "", err
+		return false, err
 	} else {
 		info.Activate = info.Activate + 1
-		w.rds.AddCustumerInvitationActivate(info)
-		return info.InvitationCode, err
+		err = w.rds.AddCustumerInvitationActivate(info)
+		return true, err
 	}
 }
 
@@ -101,6 +106,9 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPa
 	status := &CityPartnerStatus{}
 	status.CustomerCount, err = w.rds.GetCityPartnerCustomerCount(invitationCode)
 	status.Received = make(map[string]string)
+	for _, token := range marketutil.AllTokens {
+		status.Received[token.Symbol] = "0"
+	}
 	if allReceived, err := w.rds.GetAllReceivedByWallet(cityPartner.WalletAddress); nil != err {
 		return status, err
 	} else {
@@ -113,11 +121,11 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPa
 
 func (w *WalletServiceImpl) Start() {
 	activateMtx = sync.Mutex{}
-	orderFilledEventWatcher := &eventemitter.Watcher{Concurrent: false, Handle: w.handleFilledEventForCityPartner}
+	orderFilledEventWatcher := &eventemitter.Watcher{Concurrent: false, Handle: w.HandleFilledEventForCityPartner}
 	eventemitter.On(eventemitter.OrderFilled, orderFilledEventWatcher)
 }
 
-func (w *WalletServiceImpl) handleFilledEventForCityPartner(input eventemitter.EventData) error {
+func (w *WalletServiceImpl) HandleFilledEventForCityPartner(input eventemitter.EventData) error {
 	event := input.(*types.OrderFilledEvent)
 	order, err := w.rds.GetOrderByHash(event.OrderHash)
 	if nil != err {
@@ -140,6 +148,7 @@ func (w *WalletServiceImpl) handleFilledEventForCityPartner(input eventemitter.E
 			token.Symbol = "LRC"
 			token.Decimals = big.NewInt(100000000000000000)
 		}
+
 		amount.SetInt(event.LrcFee)
 	} else if event.SplitB.Sign() > 0 {
 		if token, err = marketutil.AddressToToken(common.HexToAddress(order.TokenB)); nil != err {
@@ -147,8 +156,8 @@ func (w *WalletServiceImpl) handleFilledEventForCityPartner(input eventemitter.E
 			token.Symbol = "Unknown"
 			token.Decimals = big.NewInt(1)
 		}
-		receivedDetail.TokenAddress = order.TokenB
-		receivedDetail.TokenSymbol = marketutil.AddressToAlias(order.TokenB)
+		//receivedDetail.TokenAddress = order.TokenB
+		//receivedDetail.TokenSymbol = marketutil.AddressToAlias(order.TokenB)
 		amount.SetInt(event.SplitB)
 	} else if event.SplitS.Sign() > 0 {
 		if token, err = marketutil.AddressToToken(common.HexToAddress(order.TokenS)); nil != err {
@@ -156,25 +165,32 @@ func (w *WalletServiceImpl) handleFilledEventForCityPartner(input eventemitter.E
 			token.Symbol = "Unknown"
 			token.Decimals = big.NewInt(1)
 		}
-		receivedDetail.TokenAddress = order.TokenS
-		receivedDetail.TokenSymbol = marketutil.AddressToAlias(order.TokenS)
+		//receivedDetail.TokenAddress = order.TokenS
+		//receivedDetail.TokenSymbol = marketutil.AddressToAlias(order.TokenS)
 		amount.SetInt(event.SplitS)
 	}
+	receivedDetail.TokenAddress = token.Protocol.Hex()
+	receivedDetail.TokenSymbol = token.Symbol
 	amount.Quo(amount, splitRate)
 	amountInt := new(big.Int)
 	amountInt.SetString(amount.FloatString(0), 10)
 	receivedDetail.Amount = "0x" + common.Bytes2Hex(amountInt.Bytes())
 	w.rds.Add(receivedDetail)
 
-	if received, err := w.rds.FindReceivedByWalletAndToken(common.HexToAddress(order.WalletAddress), common.HexToAddress(receivedDetail.TokenAddress)); nil != err {
+	if received, err := w.rds.FindReceivedByWalletAndToken(common.HexToAddress(order.WalletAddress), common.HexToAddress(receivedDetail.TokenAddress)); nil != err && "record not found" != err.Error() {
 		return err
 	} else {
-		if nil == received {
+		if nil == received || (nil != err && "record not found" == err.Error()) {
 			received.TokenAddress = receivedDetail.TokenAddress
 			received.WalletAddress = receivedDetail.WalletAddress
 			received.Amount = receivedDetail.Amount
+			sumAmount := new(big.Int)
+			sumAmount.SetBytes(common.Hex2Bytes(received.Amount))
+			humanAmount := new(big.Rat)
+			humanAmount.SetFrac(sumAmount, token.Decimals)
+			received.HumanAmount = humanAmount.FloatString(8)
 			received.TokenSymbol = receivedDetail.TokenSymbol
-			w.rds.Add(received)
+			return w.rds.Add(received)
 		} else {
 			sumAmount := new(big.Int)
 			sumAmount.SetBytes(common.Hex2Bytes(received.Amount))
@@ -183,7 +199,7 @@ func (w *WalletServiceImpl) handleFilledEventForCityPartner(input eventemitter.E
 			humanAmount := new(big.Rat)
 			humanAmount.SetFrac(sumAmount, token.Decimals)
 			received.HumanAmount = humanAmount.FloatString(8)
-			w.rds.Add(received)
+			return w.rds.UpdateCityPartnerReceived(received)
 		}
 	}
 
