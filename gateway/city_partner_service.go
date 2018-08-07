@@ -119,7 +119,9 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPa
 		return status, err
 	} else {
 		for _, received := range allReceived {
-			status.Received[received.TokenSymbol] = received.HumanAmount
+			amount := new(big.Int)
+			amount.SetBytes(common.Hex2Bytes(received.Amount))
+			status.Received[received.TokenSymbol] = amount.String()
 		}
 		return status, nil
 	}
