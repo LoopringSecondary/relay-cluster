@@ -109,7 +109,6 @@ func (s *RdsService) GetCityPartnerCustomerCount(invitationCode string) (int, er
 func (s *RdsService) GetAllActivateCode(invitationCode string) ([]string, error) {
 	var codes []string
 	now := time.Now().Add(-24 * time.Hour)
-	println("GetAllActivateCode.nownownow", now.Unix())
 	err := s.Db.Table("lpr_custumer_invitation_infos").
 		//Where("invitation_code=?", invitationCode).
 		Where("activate=?", 0).
@@ -136,16 +135,18 @@ func (s *RdsService) GetAllReceivedByWallet(walletAddress string) ([]*CityPartne
 
 func (s *RdsService) SaveCustumerInvitationInfo(info *CustumerInvitationInfo) error {
 	var count int
+	now := time.Now().Add(-24 * time.Hour)
 	err := s.Db.Model(&CustumerInvitationInfo{}).
 		Where("activate_code=?", info.ActivateCode).
 		Where("activate=?", 0).
+		Where("create_time >= ?", now.Unix()).
 		Count(&count).Error
 	if nil != err {
 		return err
 	} else {
 		if count <= 0 {
-			s.Add(info)
-			return nil
+			info.CreateTime = time.Now().Unix()
+			return s.Add(info)
 		} else {
 			return errors.New("duplicated activate code, code:" + info.ActivateCode)
 		}
