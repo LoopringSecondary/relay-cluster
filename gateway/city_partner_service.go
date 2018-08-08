@@ -101,9 +101,10 @@ func (w *WalletServiceImpl) ActivateCustumerInvitation(req *dao.CustumerInvitati
 	}
 }
 
-func (w *WalletServiceImpl) GetCityPartnerStatus(invitationCode string) (*CityPartnerStatus, error) {
+func (w *WalletServiceImpl) GetCityPartnerStatus(req *dao.CityPartner) (*CityPartnerStatus, error) {
 	var err error
 	var cityPartner *dao.CityPartner
+	invitationCode := req.InvitationCode
 	cityPartner, err = w.rds.FindCityPartnerByInvitationCode(invitationCode)
 	if nil == cityPartner || nil != err {
 		return nil, err
