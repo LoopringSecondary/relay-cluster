@@ -30,7 +30,7 @@ import (
 	"math/rand"
 	"sync"
 	"time"
-	"qiniupkg.com/x/log.v7"
+	"github.com/Loopring/relay-lib/log"
 )
 
 type CityPartnerStatus struct {
