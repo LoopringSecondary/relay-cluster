@@ -207,7 +207,7 @@ type EstimatedAllocatedAllowanceQuery struct {
 
 type EstimatedAllocatedAllowanceResult struct {
 	AllocatedResult map[string]string `json:"allocatedResult"`
-	FrozenLrcFee    string `json: "frozenLrcFee"`
+	FrozenLrcFee    string            `json: "frozenLrcFee"`
 }
 
 type TransactionQuery struct {
@@ -222,15 +222,16 @@ type TransactionQuery struct {
 }
 
 type OrderQuery struct {
-	Status          string `json:"status"`
-	PageIndex       int    `json:"pageIndex"`
-	PageSize        int    `json:"pageSize"`
-	DelegateAddress string `json:"delegateAddress"`
-	Owner           string `json:"owner"`
-	Market          string `json:"market"`
-	OrderHash       string `json:"orderHash"`
-	Side            string `json:"side"`
-	OrderType       string `json:"orderType"`
+	Status          string   `json:"status"`
+	PageIndex       int      `json:"pageIndex"`
+	PageSize        int      `json:"pageSize"`
+	DelegateAddress string   `json:"delegateAddress"`
+	Owner           string   `json:"owner"`
+	Market          string   `json:"market"`
+	OrderHash       string   `json:"orderHash"`
+	OrderHashes     []string `json:"orderHashes"`
+	Side            string   `json:"side"`
+	OrderType       string   `json:"orderType"`
 }
 
 type DepthQuery struct {
@@ -339,16 +340,16 @@ type AccountJson struct {
 }
 
 type LatestFill struct {
-	CreateTime int64   `json:"createTime"`
-	Price      float64 `json:"price"`
-	Amount     float64 `json:"amount"`
-	Side       string  `json:"side"`
-	RingHash   string  `json:"ringHash"`
-	LrcFee     string  `json:"lrcFee"`
-	SplitS     string  `json:"splitS"`
-	SplitB     string  `json:"splitB"`
-	OrderHash  string  `json:"orderHash"`
-	PreOrderHash  string  `json:"preOrderHash"`
+	CreateTime   int64   `json:"createTime"`
+	Price        float64 `json:"price"`
+	Amount       float64 `json:"amount"`
+	Side         string  `json:"side"`
+	RingHash     string  `json:"ringHash"`
+	LrcFee       string  `json:"lrcFee"`
+	SplitS       string  `json:"splitS"`
+	SplitB       string  `json:"splitB"`
+	OrderHash    string  `json:"orderHash"`
+	PreOrderHash string  `json:"preOrderHash"`
 }
 
 type CancelOrderQuery struct {
@@ -671,6 +672,30 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 			return order, err
 		} else {
 			return orderStateToJson(*state), err
+		}
+	}
+}
+
+func (w *WalletServiceImpl) GetOrdersByHashes(query OrderQuery) (order []OrderJsonResult, err error) {
+	if query.OrderHashes == nil || len(query.OrderHashes) == 0 {
+		return order, errors.New("param orderHashes can't be empty")
+	}
+	if len(query.OrderHashes) > 50 {
+		return order, errors.New("param orderHashes's length can't be over 50")
+	} else {
+		rst := make([]OrderJsonResult, 0)
+		orderHashHex := make([]common.Hash, len(query.OrderHashes))
+		for _, oh := range query.OrderHashes {
+			orderHashHex = append(orderHashHex, common.HexToHash(oh))
+		}
+		orderList, err := w.orderViewer.GetOrdersByHashes(orderHashHex)
+		if err != nil {
+			return order, err
+		} else {
+			for _, order := range orderList {
+				rst = append(rst, orderStateToJson(order))
+			}
+			return rst, err
 		}
 	}
 }
@@ -1021,7 +1046,8 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
-		token := util.AddressToAlias(v.RawOrder.TokenS.Hex()); if len(token) == 0 {
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex());
+		if len(token) == 0 {
 			continue
 		}
 
@@ -1040,7 +1066,8 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		resultMap[k] = types.BigintToHex(v)
 	}
 
-	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner}); if err != nil {
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner});
+	if err != nil {
 		return result, err
 	}
 
@@ -1533,7 +1560,8 @@ func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.Glob
 	if len(req.Token) == 0 {
 		return nil, errors.New("token required")
 	}
-	tokenMap, err :=  w.globalMarket.GetGlobalTrendCache(req.Token); if err != nil {
+	tokenMap, err := w.globalMarket.GetGlobalTrendCache(req.Token);
+	if err != nil {
 		return nil, err
 	}
 	return tokenMap[req.Token], err
