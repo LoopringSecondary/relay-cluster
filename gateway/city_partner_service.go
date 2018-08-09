@@ -75,7 +75,7 @@ func (w *WalletServiceImpl) CreateCustumerInvitationInfo(req *dao.CustumerInvita
 		activateCode = generateactivateCode(activateCodes, 10, 5)
 		info.ActivateCode = activateCode
 		err = w.rds.SaveCustumerInvitationInfo(info)
-		return
+		return activateCode, err
 	}
 }
 
