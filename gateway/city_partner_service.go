@@ -65,14 +65,18 @@ func (w *WalletServiceImpl) CreateCustumerInvitationInfo(req *dao.CustumerInvita
 	info := &dao.CustumerInvitationInfo{}
 	info.InvitationCode = req.InvitationCode
 	info.Activate = 0
-	activateCodes, err := w.rds.GetAllActivateCode(info.InvitationCode)
-	if nil != err {
-		log.Errorf("err:%s", err.Error())
+	if _,err := w.rds.FindCityPartnerByInvitationCode(info.InvitationCode); nil != err {
+		return "", err
+	} else {
+		activateCodes, err := w.rds.GetAllActivateCode(info.InvitationCode)
+		if nil != err {
+			log.Errorf("err:%s", err.Error())
+		}
+		activateCode = generateactivateCode(activateCodes, 10, 5)
+		info.ActivateCode = activateCode
+		err = w.rds.SaveCustumerInvitationInfo(info)
+		return
 	}
-	activateCode = generateactivateCode(activateCodes, 10, 5)
-	info.ActivateCode = activateCode
-	err = w.rds.SaveCustumerInvitationInfo(info)
-	return
 }
 
 func generateactivateCode(excludeCodes ExcludeCodes, count, halfCount int) string {
