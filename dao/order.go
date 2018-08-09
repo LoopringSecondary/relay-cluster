@@ -188,6 +188,19 @@ func (s *RdsService) GetOrderByHash(orderhash common.Hash) (*Order, error) {
 	return order, err
 }
 
+func (s *RdsService) GetOrdersByHashes(orderHashes []common.Hash) ([]Order, error) {
+	var (
+		orders []Order
+		err    error
+	)
+	orderList := make([]string, len(orderHashes))
+	for _, orderHash := range orderHashes {
+		orderList = append(orderList, orderHash.Hex())
+	}
+	err = s.Db.Where("order_hash in (?)", orderList).Find(&orders).Error
+	return orders, err
+}
+
 func (s *RdsService) MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error {
 	if len(filterOrderhashs) == 0 {
 		return nil
