@@ -70,7 +70,12 @@ func (j *JsonrpcServiceImpl) Start() {
 		return
 	}
 	//httpServer := rpc.NewHTTPServer([]string{"*"}, handler)
-	httpServer := &http.Server{Handler: newCorsHandler(handler, []string{"*"})}
+	lprServer := &http.ServeMux{}
+	lprServer.Handle("/", handler)
+	lprServer.HandleFunc("/city_partner/add_customer/", j.walletService.CreateCustomerInvitationInfo)
+	lprServer.HandleFunc("/city_partner/activate_customer", j.walletService.ActivateCustomerInvitation)
+
+	httpServer := &http.Server{Handler: newCorsHandler(lprServer, []string{"*"})}
 	//httpServer.Handler = newCorsHandler(handler, []string{"*"})
 	go httpServer.Serve(listener)
 	log.Info(fmt.Sprintf("HTTP endpoint opened on " + j.port))
@@ -78,7 +83,7 @@ func (j *JsonrpcServiceImpl) Start() {
 	return
 }
 
-func newCorsHandler(srv *rpc.Server, allowedOrigins []string) http.Handler {
+func newCorsHandler(srv *http.ServeMux, allowedOrigins []string) http.Handler {
 	// disable CORS support if user has not specified a custom CORS configuration
 	if len(allowedOrigins) == 0 {
 		return srv
@@ -91,5 +96,6 @@ func newCorsHandler(srv *rpc.Server, allowedOrigins []string) http.Handler {
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
+
 	return c.Handler(srv)
 }
