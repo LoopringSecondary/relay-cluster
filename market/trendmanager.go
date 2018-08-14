@@ -1028,7 +1028,8 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			return err
 		}
 
-		amountSFloat, err := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS); if err != nil {
+		amountSFloat, err := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS)
+		if err != nil {
 			log.Debug(err.Error())
 			return err
 		}
@@ -1038,7 +1039,8 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			return err
 		}
 
-		amountBFloat, err := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB); if err != nil {
+		amountBFloat, err := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB)
+		if err != nil {
 			log.Debug(err.Error())
 			return err
 		}
@@ -1134,11 +1136,13 @@ func addAmount(srcVol, srcAmount float64, data dao.FillEvent) (vol, amount float
 
 	var amountS, amountB float64 = 0, 0
 
-	amountS, err := util.StringToFloat(data.TokenS, data.AmountS); if err != nil {
+	amountS, err := util.StringToFloat(data.TokenS, data.AmountS)
+	if err != nil {
 		amountS = 0
 	}
 
-	amountB, err = util.StringToFloat(data.TokenB, data.AmountB); if err != nil {
+	amountB, err = util.StringToFloat(data.TokenB, data.AmountB)
+	if err != nil {
 		amountB = 0
 	}
 
@@ -1152,4 +1156,3 @@ func addAmount(srcVol, srcAmount float64, data dao.FillEvent) (vol, amount float
 
 	return vol, amount
 }
-

@@ -1565,6 +1565,7 @@ func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.Glob
 	if len(req.Token) == 0 {
 		return nil, errors.New("token required")
 	}
+
 	tokenMap, err := w.globalMarket.GetGlobalTrendCache(req.Token)
 	if err != nil {
 		return nil, err

@@ -85,20 +85,20 @@ type InvokeInfo struct {
 }
 
 const (
-	eventKeyTickers           = "tickers"
-	eventKeyLoopringTickers   = "loopringTickers"
-	eventKeyTrends            = "trends"
-	eventKeyMarketCap         = "marketcap"
-	eventKeyBalance           = "balance"
-	eventKeyTransaction       = "transaction"
-	eventKeyLatestTransaction = "latestTransaction"
-	eventKeyPendingTx         = "pendingTx"
-	eventKeyDepth             = "depth"
-	eventKeyOrderBook         = "orderBook"
-	eventKeyTrades            = "trades"
-	eventKeyOrders            = "orders"
-	eventKeyOrderTracing      = "orderTracing"
-	eventKeyEstimatedGasPrice = "estimatedGasPrice"
+	eventKeyTickers             = "tickers"
+	eventKeyLoopringTickers     = "loopringTickers"
+	eventKeyTrends              = "trends"
+	eventKeyMarketCap           = "marketcap"
+	eventKeyBalance             = "balance"
+	eventKeyTransaction         = "transaction"
+	eventKeyLatestTransaction   = "latestTransaction"
+	eventKeyPendingTx           = "pendingTx"
+	eventKeyDepth               = "depth"
+	eventKeyOrderBook           = "orderBook"
+	eventKeyTrades              = "trades"
+	eventKeyOrders              = "orders"
+	eventKeyOrderTracing        = "orderTracing"
+	eventKeyEstimatedGasPrice   = "estimatedGasPrice"
 	eventKeyOrderAllocateChange = "orderAllocateChange"
 
 	eventKeyGlobalTicker       = "globalTicker"
@@ -165,13 +165,13 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
-		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
-		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
-		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
-		eventKeyOrderAllocateChange:      {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyBalance:             {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTransaction:         {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyLatestTransaction:   {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyPendingTx:           {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyOrders:              {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderTracing:        {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderAllocateChange: {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 
 		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
@@ -1006,7 +1006,7 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 	owner := req.RawOrder.Owner.Hex()
 	//log.Infof("received owner is %s ", owner)
 
-	orderQuery := LatestOrderQuery{Owner:owner, Market:req.RawOrder.Market, OrderType:req.RawOrder.OrderType}
+	orderQuery := LatestOrderQuery{Owner: owner, Market: req.RawOrder.Market, OrderType: req.RawOrder.OrderType}
 	orderList, err := so.walletService.GetLatestOrders(orderQuery)
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
@@ -1046,7 +1046,7 @@ func (so *SocketIOServiceImpl) handleOrderAllocateChange(input interface{}) (err
 	delegateAddress := req.RawOrder.DelegateAddress.Hex()
 	//log.Infof("received order allocated owner  is %s ", owner)
 
-	allocatedQuery := EstimatedAllocatedAllowanceQuery{Owner:owner, DelegateAddress:delegateAddress}
+	allocatedQuery := EstimatedAllocatedAllowanceQuery{Owner: owner, DelegateAddress: delegateAddress}
 	allocateMap, err := so.walletService.GetAllEstimatedAllocatedAmount(allocatedQuery)
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
