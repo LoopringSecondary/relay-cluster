@@ -732,12 +732,12 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50003)
 	}
 
-	remainedAmountS, _ := maker.RemainedAmount()
+	//remainedAmountS, _ := maker.RemainedAmount()
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
 		return res, err
 	} else {
-		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
-			//return res, errors.New("maker's remainedAmount is not enough")
+		totalAmountS := new(big.Rat).SetInt64(maker.RawOrder.AmountS.Int64())
+		if pendingAmountB.Cmp(totalAmountS) >= 0 {
 			return res, errors.New(P2P_50004)
 		}
 	}
