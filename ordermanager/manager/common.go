@@ -118,3 +118,7 @@ func IsEventDuplicate(eventStatus types.TxStatus, modelStatus uint8) bool {
 	}
 	return false
 }
+
+func IsDustyOrder(state *types.OrderState) bool {
+	return marketCapProvider.IsOrderValueDust(state)
+}

@@ -722,19 +722,24 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50003)
 	}
 
-	if taker.RawOrder.AmountS.Cmp(maker.RawOrder.AmountB) != 0 || taker.RawOrder.AmountB.Cmp(maker.RawOrder.AmountS) != 0 {
-		//return res, errors.New("the amount of maker and taker are not matched")
-		return res, errors.New(P2P_50004)
-	}
-
 	if taker.RawOrder.Owner.Hex() == maker.RawOrder.Owner.Hex() {
 		//return res, errors.New("taker and maker's address can't be same")
 		return res, errors.New(P2P_50005)
 	}
 
-	if manager.IsP2PMakerLocked(maker.RawOrder.Hash.Hex()) {
-		//return res, errors.New("maker order has been locked by other taker or expired")
-		return res, errors.New(P2P_50006)
+	if manager.IsDustyOrder(maker) {
+		//return res, errors.New("It's dusty order")
+		return res, errors.New(P2P_50003)
+	}
+
+	remainedAmountS, _ := maker.RemainedAmount()
+	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
+		return res, err
+	} else {
+		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
+			//return res, errors.New("maker's remainedAmount is not enough")
+			return res, errors.New(P2P_50004)
+		}
 	}
 
 	var txHashRst string
@@ -743,7 +748,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, err
 	}
 
-	err = manager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst)
+	err = manager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst, taker.RawOrder.AmountB.String(), maker.RawOrder.ValidUntil.String())
 	if err != nil {
 		return res, errors.New(SYS_10001)
 	}
@@ -1046,7 +1051,7 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
-		token := util.AddressToAlias(v.RawOrder.TokenS.Hex());
+		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
 		if len(token) == 0 {
 			continue
 		}
@@ -1066,7 +1071,7 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		resultMap[k] = types.BigintToHex(v)
 	}
 
-	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner});
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner})
 	if err != nil {
 		return result, err
 	}
@@ -1560,7 +1565,7 @@ func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.Glob
 	if len(req.Token) == 0 {
 		return nil, errors.New("token required")
 	}
-	tokenMap, err := w.globalMarket.GetGlobalTrendCache(req.Token);
+	tokenMap, err := w.globalMarket.GetGlobalTrendCache(req.Token)
 	if err != nil {
 		return nil, err
 	}
