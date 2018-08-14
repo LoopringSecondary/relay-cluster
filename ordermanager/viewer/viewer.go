@@ -152,7 +152,7 @@ func (om *OrderViewerImpl) GetOrdersByHashes(orders []common.Hash) (orderState [
 	if err != nil {
 		return nil, err
 	}
-	rst := make([] types.OrderState, 0)
+	rst := make([]types.OrderState, 0)
 	for _, order := range orderList {
 		if err := order.ConvertUp(&result); err != nil {
 			return nil, err

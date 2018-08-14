@@ -20,23 +20,24 @@ package gateway
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"math/rand"
-	"sync"
 	"time"
-	"github.com/Loopring/relay-lib/log"
+
+	"encoding/json"
+	"net"
+	"net/http"
+	"strings"
 )
 
 type CityPartnerStatus struct {
 	CustomerCount int               `json:"customer_count"`
 	Received      map[string]string `json:"received"`
-	WalletAddress string `json:"walletAddress"`
+	WalletAddress string            `json:"walletAddress"`
 }
 
 func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (isSuccessed bool, err error) {
@@ -45,77 +46,108 @@ func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (isSuccessed
 	return
 }
 
-var activateMtx sync.Mutex
+const (
+	XForwardedFor = "X-Forwarded-For"
+	XRealIP       = "X-Real-IP"
+)
 
-type ExcludeCodes []string
-
-func (codes ExcludeCodes) contains(code string) bool {
-	for _, c := range codes {
-		if c == code {
-			return true
-		}
+func clientIp(req *http.Request) string {
+	remoteAddr := req.RemoteAddr
+	if ip := req.Header.Get(XRealIP); ip != "" {
+		remoteAddr = ip
+	} else if ip = req.Header.Get(XForwardedFor); ip != "" {
+		remoteAddr = ip
+	} else {
+		remoteAddr, _, _ = net.SplitHostPort(remoteAddr)
 	}
-	return false
+
+	if remoteAddr == "::1" {
+		remoteAddr = "127.0.0.1"
+	}
+
+	return remoteAddr
 }
 
-func (w *WalletServiceImpl) CreateCustumerInvitationInfo(req *dao.CustumerInvitationInfo) (activateCode string, err error) {
-	activateMtx.Lock()
-	defer activateMtx.Unlock()
+type JsonRpcError struct {
+	Message string `json:"message"`
+}
+type JsonRpcRes struct {
+	JsonRPc string        `json:"jsonrpc"`
+	Id      interface{}   `json:"id,omitempty"`
+	Result  interface{}   `json:"result,omitempty"`
+	Error   *JsonRpcError `json:"error,omitempty"`
+}
 
-	info := &dao.CustumerInvitationInfo{}
-	info.InvitationCode = req.InvitationCode
-	info.Activate = 0
-	if _,err := w.rds.FindCityPartnerByInvitationCode(info.InvitationCode); nil != err {
-		return "", err
+func NewJsonRpcRes() JsonRpcRes {
+	return JsonRpcRes{JsonRPc: "2.0"}
+}
+
+func (w *WalletServiceImpl) CreateCustomerInvitationInfo(writer http.ResponseWriter, req *http.Request) {
+	res := NewJsonRpcRes()
+	ip := clientIp(req)
+	res.Result = ip
+	cityPartner := strings.Split(req.URL.Path, "/")[3]
+	if _, err := w.rds.FindCityPartnerByCityPartner(cityPartner); nil != err {
+		res.Error = &JsonRpcError{}
+		res.Error.Message = err.Error()
 	} else {
-		activateCodes, err := w.rds.GetAllActivateCode(info.InvitationCode)
+		info := &dao.CustumerInvitationInfo{}
+		info.CityPartner = cityPartner
+		info.ActivateCode = ip
+		info.Activate = 0
+		err := w.rds.SaveCustomerInvitationInfo(info)
 		if nil != err {
-			log.Errorf("err:%s", err.Error())
+			res.Error = &JsonRpcError{}
+			res.Error.Message = err.Error()
 		}
-		activateCode = generateactivateCode(activateCodes, 10, 5)
-		info.ActivateCode = activateCode
-		err = w.rds.SaveCustumerInvitationInfo(info)
-		return activateCode, err
 	}
-}
-
-func generateactivateCode(excludeCodes ExcludeCodes, count, halfCount int) string {
-	activateCode := fmt.Sprintf("%d", rand.Intn(900000)+100000)
-	if count <= halfCount {
-		activateCode = fmt.Sprintf("%d", rand.Intn(90000000)+10000000)
-	}
-	count = count - 1
-	if excludeCodes.contains(activateCode) {
-		return generateactivateCode(excludeCodes, count, halfCount)
+	if data, err1 := json.Marshal(res); nil != err1 {
+		writer.Write([]byte("{\"error\":{\"message\":\"" + err1.Error() + "\"}}"))
 	} else {
-		return activateCode
+		writer.Write(data)
 	}
 }
 
-func (w *WalletServiceImpl) ActivateCustumerInvitation(req *dao.CustumerInvitationInfo) (res *dao.CityPartner, err error) {
-	res = &dao.CityPartner{}
-	info, err := w.rds.FindCustumerInvitationInfo(req)
+func (w *WalletServiceImpl) ActivateCustomerInvitation(writer http.ResponseWriter, req *http.Request) {
+	res := NewJsonRpcRes()
+	ip := clientIp(req)
+	res.Result = ip
+	cityPartner := &dao.CityPartner{}
+	info, err := w.rds.FindCustomerInvitationInfo(ip)
 	if nil != err {
-		return res, err
+		res.Error = &JsonRpcError{}
+		res.Error.Message = err.Error()
 	} else {
-		info.Activate = info.Activate + 1
-		err = w.rds.AddCustumerInvitationActivate(info)
-		res,err = w.rds.FindCityPartnerByInvitationCode(info.InvitationCode)
-		return res, err
+		err = w.rds.AddCustomerInvitationActivate(info)
+		cityPartner, err = w.rds.FindCityPartnerByCityPartner(info.CityPartner)
+		if nil != err {
+			res.Error = &JsonRpcError{}
+			res.Error.Message = err.Error()
+		} else {
+			res.Result = cityPartner
+		}
+	}
+
+	if data, err1 := json.Marshal(res); nil != err1 {
+		writer.Write([]byte("{\"error\":{\"message\":\"" + err.Error() + "\"}}"))
+	} else {
+		writer.Write(data)
 	}
 }
 
 func (w *WalletServiceImpl) GetCityPartnerStatus(req *dao.CityPartner) (*CityPartnerStatus, error) {
 	var err error
 	var cityPartner *dao.CityPartner
-	invitationCode := req.InvitationCode
-	cityPartner, err = w.rds.FindCityPartnerByInvitationCode(invitationCode)
+	cityPartner, err = w.rds.FindCityPartnerByCityPartner(req.CityPartner)
 	if nil == cityPartner || nil != err {
 		return nil, err
 	}
 	status := &CityPartnerStatus{}
 	status.WalletAddress = cityPartner.WalletAddress
-	status.CustomerCount, err = w.rds.GetCityPartnerCustomerCount(invitationCode)
+	status.CustomerCount, err = w.rds.GetCityPartnerCustomerCount(req.CityPartner)
+	if nil != err {
+		return status, err
+	}
 	status.Received = make(map[string]string)
 	for _, token := range marketutil.AllTokens {
 		status.Received[token.Symbol] = "0"
@@ -133,7 +165,7 @@ func (w *WalletServiceImpl) GetCityPartnerStatus(req *dao.CityPartner) (*CityPar
 }
 
 func (w *WalletServiceImpl) Start() {
-	activateMtx = sync.Mutex{}
+	//activateMtx = sync.Mutex{}
 	orderFilledEventWatcher := &eventemitter.Watcher{Concurrent: false, Handle: w.HandleFilledEventForCityPartner}
 	eventemitter.On(eventemitter.OrderFilled, orderFilledEventWatcher)
 }

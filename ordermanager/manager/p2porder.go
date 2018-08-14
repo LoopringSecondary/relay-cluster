@@ -22,19 +22,24 @@ import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/types"
+	"math/big"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const DefaultP2POrderExpireTime = 3600 * 24 * 7
 const p2pOrderPreKey = "P2P_OWNER_"
 const p2pRelationPreKey = "P2P_RELATION_"
+const splitMark = "_"
+const p2pTakerPreKey = "P2P_TAKERS_"
 
 func init() {
 	p2pRingMinedWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2PRingMined}
 	eventemitter.On(eventemitter.OrderFilled, p2pRingMinedWatcher)
 }
 
-func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash string) error {
+func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingAmount, validUntil string) error {
 
 	takerOwner = strings.ToLower(takerOwner)
 	taker = strings.ToLower(taker)
@@ -46,6 +51,12 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash string) e
 	cache.SAdd(p2pOrderPreKey+makerOwner, DefaultP2POrderExpireTime, []byte(maker))
 	cache.Set(p2pRelationPreKey+taker, []byte(txHash), DefaultP2POrderExpireTime)
 	cache.Set(p2pRelationPreKey+maker, []byte(txHash), DefaultP2POrderExpireTime)
+
+	untilTime, _ := strconv.ParseInt(validUntil, 10, 64)
+	nowTime := time.Now().Unix()
+	takerExpiredTime := untilTime - nowTime
+	cache.ZAdd(p2pTakerPreKey+maker, takerExpiredTime, []byte(strconv.FormatInt(nowTime, 10)), []byte(txHash+splitMark+pendingAmount))
+
 	return nil
 }
 
@@ -64,4 +75,18 @@ func HandleP2PRingMined(input eventemitter.EventData) error {
 		cache.Del(p2pRelationPreKey + strings.ToLower(evt.NextOrderHash.Hex()))
 	}
 	return nil
+}
+
+func GetP2PPendingAmount(maker string) (pendingAmount *big.Rat, err error) {
+	pendingAmount = new(big.Rat)
+	maker = strings.ToLower(maker)
+	if data, err := cache.ZRange(p2pTakerPreKey+maker, 0, -1, false); nil != err {
+		return pendingAmount, err
+	} else {
+		for _, v := range data {
+			pendData, _ := new(big.Int).SetString(strings.Split(string(v), splitMark)[1], 0)
+			pendingAmount = pendingAmount.Add(pendingAmount, new(big.Rat).SetInt(pendData))
+		}
+		return pendingAmount, nil
+	}
 }
