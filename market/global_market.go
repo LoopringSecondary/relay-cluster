@@ -387,8 +387,8 @@ func (g *GlobalMarket) Start() {
 	go func() {
 		if zklock.TryLock(GMCLock) == nil {
 			syncGlobalTrend()
-			g.cron.AddFunc("@every 5s", syncGlobalTicker)
-			g.cron.AddFunc("@every 10s", syncGlobalMarketTicker)
+			g.cron.AddFunc("@every 5m", syncGlobalTicker)
+			g.cron.AddFunc("@every 10m", syncGlobalMarketTicker)
 			g.cron.AddFunc("@every 1h", syncGlobalTrend)
 			log.Info("start mytoken global market cron jobs......... ")
 			g.cron.Start()
