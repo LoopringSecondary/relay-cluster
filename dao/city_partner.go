@@ -62,21 +62,21 @@ type CityPartnerReceived struct {
 	CreateTime    int64  `gorm:"column:create_time;type:bigint" json:"-"`
 }
 
-func (s *RdsService) SaveCityPartner(cp *CityPartner) (bool, error) {
+func (s *RdsService) SaveCityPartner(cp *CityPartner) (*CityPartner, error) {
 	var count int
 	err := s.Db.Model(&CityPartner{}).Where("city_partner=?", cp.CityPartner).Count(&count).Error
 	if nil != err {
-		return false, err
+		return cp, err
 	} else {
 		if count <= 0 {
 			cp.CreateTime = time.Now().Unix()
 			err := s.Add(cp)
 			if nil != err {
-				return false, err
+				return cp, err
 			}
-			return true, nil
+			return cp, nil
 		} else {
-			return false, errors.New("duplicated invitation_code")
+			return cp, errors.New("duplicated invitation_code")
 		}
 	}
 }
@@ -95,6 +95,14 @@ func (s *RdsService) FindCityPartnerByCityPartner(cityPartner string) (*CityPart
 		Where("city_partner=?", cityPartner).Order("id desc").
 		First(cp).Error
 	return cp, err
+}
+
+func (s *RdsService) GetCityPartnerCount(cityPartner string) (int, error) {
+	count := 0
+	err := s.Db.Model(&CityPartner{}).
+		Where("city_partner=?", cityPartner).
+		Count(&count).Error
+	return count, err
 }
 
 type count struct {
