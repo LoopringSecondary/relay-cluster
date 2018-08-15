@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"encoding/json"
+	"github.com/Loopring/relay-lib/log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -100,6 +101,8 @@ func clientIp(req *http.Request) string {
 
 	if remoteAddr == "::1" {
 		remoteAddr = "127.0.0.1"
+	} else {
+		remoteAddr = strings.Split(remoteAddr, ",")[0]
 	}
 
 	return remoteAddr
@@ -120,6 +123,7 @@ func NewJsonRpcRes() JsonRpcRes {
 }
 
 func (w *WalletServiceImpl) CreateCustomerInvitationInfo(writer http.ResponseWriter, req *http.Request) {
+	log.Debugf("CustomerInvitationInfo, remoteAddr:%s, header.realip:%s, forward:%s ", req.RemoteAddr, req.Header.Get(XRealIP), req.Header.Get(XForwardedFor))
 	res := NewJsonRpcRes()
 	ip := clientIp(req)
 	res.Result = ip
