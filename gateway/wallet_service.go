@@ -729,15 +729,15 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 
 	if manager.IsDustyOrder(maker) {
 		//return res, errors.New("It's dusty order")
-		return res, errors.New(P2P_50003)
+		return res, errors.New(P2P_50004)
 	}
 
-	//remainedAmountS, _ := maker.RemainedAmount()
+	remainedAmountS, _ := maker.RemainedAmount()
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
 		return res, err
 	} else {
-		totalAmountS := new(big.Rat).SetInt64(maker.RawOrder.AmountS.Int64())
-		if pendingAmountB.Cmp(totalAmountS) >= 0 {
+		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
+			//return res, errors.New("maker's remainedAmount is not enough")
 			return res, errors.New(P2P_50004)
 		}
 	}

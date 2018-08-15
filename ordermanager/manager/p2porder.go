@@ -30,8 +30,6 @@ import (
 	"time"
 )
 
-const DefaultP2POrderExpireTime = 3600 * 24 * 7
-const p2pOrderPreKey = "P2P_OWNER_"
 const p2pRelationPreKey = "P2P_RELATION_"
 const splitMark = "_"
 const p2pTakerPreKey = "P2P_TAKERS_"
@@ -59,11 +57,6 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingA
 	maker = strings.ToLower(maker)
 	txHash = strings.ToLower(txHash)
 
-	cache.SAdd(p2pOrderPreKey+takerOwner, DefaultP2POrderExpireTime, []byte(taker))
-	cache.SAdd(p2pOrderPreKey+makerOwner, DefaultP2POrderExpireTime, []byte(maker))
-	cache.Set(p2pRelationPreKey+taker, []byte(txHash), DefaultP2POrderExpireTime)
-	cache.Set(p2pRelationPreKey+maker, []byte(txHash), DefaultP2POrderExpireTime)
-
 	untilTime, _ := strconv.ParseInt(validUntil, 10, 64)
 	nowTime := time.Now().Unix()
 	takerExpiredTime := untilTime - nowTime
@@ -76,24 +69,15 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingA
 	return nil
 }
 
-func IsP2PMakerLocked(maker string) bool {
-	exist, err := cache.Exists(p2pRelationPreKey + maker)
-	if err != nil || exist == true {
-		return true
-	}
-	return false
-}
-
 // status failed/pending
 func HandleP2PSubmitRing(input eventemitter.EventData) error {
 	//release taker's failed p2porder pengdingAmount
 	if evt, ok := input.(*types.SubmitRingMethodEvent); ok && evt != nil && evt.Status == types.TX_STATUS_FAILED {
-
 		txHash := strings.ToLower(evt.TxHash.Hex())
 		jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
 		p2pOrderRelation := P2pOrderRelation{}
 		if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
-			log.Errorf("p2pOrderRelation syncFromCache err:%s", err.Error())
+			log.Errorf("mehtod HandleP2PSubmitRing of p2pOrderRelation syncFromCache err:%s", err.Error())
 			return err
 		} else {
 			maker := p2pOrderRelation.Makerorderhash
@@ -107,15 +91,11 @@ func HandleP2PSubmitRing(input eventemitter.EventData) error {
 func HandleP2POrderFilled(input eventemitter.EventData) error {
 	//release taker's successed p2porder pengdingAmount
 	if evt, ok := input.(*types.OrderFilledEvent); ok && evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
-		cache.SRem(p2pOrderPreKey+strings.ToLower(evt.Owner.Hex()), []byte(strings.ToLower(evt.OrderHash.Hex())))
-		cache.Del(p2pRelationPreKey + strings.ToLower(evt.OrderHash.Hex()))
-		cache.Del(p2pRelationPreKey + strings.ToLower(evt.NextOrderHash.Hex()))
-
 		txHash := strings.ToLower(evt.TxHash.Hex())
 		jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
 		p2pOrderRelation := P2pOrderRelation{}
 		if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
-			log.Errorf("p2pOrderRelation syncFromCache err:%s", err.Error())
+			log.Errorf("metho of HandleP2POrderFilled p2pOrderRelation syncFromCache err:%s", err.Error())
 			return err
 		} else {
 			maker := p2pOrderRelation.Makerorderhash
