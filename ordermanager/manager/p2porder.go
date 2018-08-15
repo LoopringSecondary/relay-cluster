@@ -37,10 +37,10 @@ const splitMark = "_"
 const p2pTakerPreKey = "P2P_TAKERS_"
 
 type P2pOrderRelation struct {
-	txhash         string
-	makerorderhash string
-	takerorderhash string
-	pendingAmount  string
+	Txhash         string
+	Makerorderhash string
+	Takerorderhash string
+	PendingAmount  string
 }
 
 func init() {
@@ -72,6 +72,7 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingA
 	//save txhash,maker,taker relations
 	p2pOrderRelationStr, _ := GetP2pOrderRelation(maker, taker, txHash, pendingAmount)
 	cache.Set(p2pRelationPreKey+txHash, p2pOrderRelationStr, takerExpiredTime)
+
 	return nil
 }
 
@@ -95,8 +96,8 @@ func HandleP2PSubmitRing(input eventemitter.EventData) error {
 			log.Errorf("p2pOrderRelation syncFromCache err:%s", err.Error())
 			return err
 		} else {
-			maker := p2pOrderRelation.makerorderhash
-			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.pendingAmount))
+			maker := p2pOrderRelation.Makerorderhash
+			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
 		}
 	}
 	return nil
@@ -117,8 +118,8 @@ func HandleP2POrderFilled(input eventemitter.EventData) error {
 			log.Errorf("p2pOrderRelation syncFromCache err:%s", err.Error())
 			return err
 		} else {
-			maker := p2pOrderRelation.makerorderhash
-			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.pendingAmount))
+			maker := p2pOrderRelation.Makerorderhash
+			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
 		}
 	}
 	return nil
@@ -140,9 +141,9 @@ func GetP2PPendingAmount(maker string) (pendingAmount *big.Rat, err error) {
 
 func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, error) {
 	var p2pOrderRelation P2pOrderRelation
-	p2pOrderRelation.makerorderhash = maker
-	p2pOrderRelation.takerorderhash = taker
-	p2pOrderRelation.txhash = txHash
-	p2pOrderRelation.pendingAmount = pendingAmount
+	p2pOrderRelation.Makerorderhash = maker
+	p2pOrderRelation.Takerorderhash = taker
+	p2pOrderRelation.Txhash = txHash
+	p2pOrderRelation.PendingAmount = pendingAmount
 	return json.Marshal(p2pOrderRelation)
 }
