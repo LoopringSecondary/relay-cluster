@@ -126,10 +126,10 @@
 			"revisionTime": "2018-08-15T03:16:34Z"
 		},
 		{
-			"checksumSHA1": "XMij5Ne/f+B5xc1SU2oll/t500I=",
+			"checksumSHA1": "+D37t3sw/kmw8XwvHIcDCZzXOxs=",
 			"path": "github.com/Loopring/relay-lib/cache/redis",
-			"revision": "505032a0737bf9d1007ff782db67a4e41eac71f7",
-			"revisionTime": "2018-06-28T04:47:44Z"
+			"revision": "3bb64857594565667e936a1e1770f81f1f0ec607",
+			"revisionTime": "2018-08-15T03:16:34Z"
 		},
 		{
 			"checksumSHA1": "RM1gCSUrhZR0F+gidnh74RkSEo8=",
