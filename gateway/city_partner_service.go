@@ -29,6 +29,8 @@ import (
 	"time"
 
 	"encoding/json"
+	"github.com/Loopring/relay-lib/log"
+	"math/rand"
 	"net"
 	"net/http"
 	"strings"
@@ -40,10 +42,46 @@ type CityPartnerStatus struct {
 	WalletAddress string            `json:"walletAddress"`
 }
 
-func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (isSuccessed bool, err error) {
-	req.WalletAddress = common.HexToAddress(req.WalletAddress).Hex()
-	isSuccessed, err = w.rds.SaveCityPartner(req)
-	return
+func (w *WalletServiceImpl) CreateCityPartner(req *dao.CityPartner) (cityPartner *dao.CityPartner, err error) {
+	req.WalletAddress = strings.TrimSpace(req.WalletAddress)
+	if !common.IsHexAddress(req.WalletAddress) {
+		return nil, errors.New(req.WalletAddress + " isn't an ethereum address.")
+	}
+	req.WalletAddress = strings.ToLower(common.HexToAddress(req.WalletAddress).Hex())
+	if req.CityPartner, err = generateCityPartner(req.WalletAddress, w.rds); nil != err {
+		return nil, err
+	}
+	if cp, err := w.rds.SaveCityPartner(req); nil != err {
+		return nil, err
+	} else {
+		return cp, nil
+	}
+}
+
+func generateCityPartner(walletAddress string, rds *dao.RdsService) (string, error) {
+	res := walletAddress[34:]
+	if count, err := rds.GetCityPartnerCount(res); nil == err {
+		if count <= 0 {
+			return res, nil
+		} else {
+			return res + getRandomString(4), nil
+		}
+	} else {
+		return "", err
+	}
+
+}
+
+func getRandomString(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyz"
+	bytes := []byte(str)
+	bytesLen := len(bytes)
+	result := []byte{}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(bytesLen)])
+	}
+	return string(result)
 }
 
 const (
@@ -63,6 +101,8 @@ func clientIp(req *http.Request) string {
 
 	if remoteAddr == "::1" {
 		remoteAddr = "127.0.0.1"
+	} else {
+		remoteAddr = strings.Split(remoteAddr, ",")[0]
 	}
 
 	return remoteAddr
@@ -83,6 +123,7 @@ func NewJsonRpcRes() JsonRpcRes {
 }
 
 func (w *WalletServiceImpl) CreateCustomerInvitationInfo(writer http.ResponseWriter, req *http.Request) {
+	log.Debugf("CustomerInvitationInfo, remoteAddr:%s, header.realip:%s, forward:%s ", req.RemoteAddr, req.Header.Get(XRealIP), req.Header.Get(XForwardedFor))
 	res := NewJsonRpcRes()
 	ip := clientIp(req)
 	res.Result = ip
@@ -136,6 +177,7 @@ func (w *WalletServiceImpl) ActivateCustomerInvitation(writer http.ResponseWrite
 }
 
 func (w *WalletServiceImpl) GetCityPartnerStatus(req *dao.CityPartner) (*CityPartnerStatus, error) {
+	req.CityPartner = strings.TrimSpace(req.CityPartner)
 	var err error
 	var cityPartner *dao.CityPartner
 	cityPartner, err = w.rds.FindCityPartnerByCityPartner(req.CityPartner)
