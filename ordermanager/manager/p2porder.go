@@ -65,6 +65,7 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingA
 	//save txhash,maker,taker relations
 	p2pOrderRelationStr, _ := GetP2pOrderRelation(maker, taker, txHash, pendingAmount)
 	cache.Set(p2pRelationPreKey+txHash, p2pOrderRelationStr, takerExpiredTime)
+	cache.Set(p2pRelationPreKey+taker, []byte(txHash), takerExpiredTime)
 
 	return nil
 }
@@ -101,6 +102,7 @@ func HandleP2POrderFilled(input eventemitter.EventData) error {
 			maker := p2pOrderRelation.Makerorderhash
 			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
 		}
+		cache.Del(p2pRelationPreKey + p2pOrderRelation.Takerorderhash)
 	}
 	return nil
 }
@@ -126,4 +128,12 @@ func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, er
 	p2pOrderRelation.Txhash = txHash
 	p2pOrderRelation.PendingAmount = pendingAmount
 	return json.Marshal(p2pOrderRelation)
+}
+
+func IsP2PTakerLocked(taker string) bool {
+	exist, err := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
+	if err == nil || exist == true {
+		return true
+	}
+	return false
 }
