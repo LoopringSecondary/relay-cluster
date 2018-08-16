@@ -1333,7 +1333,7 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_EXPIRE"
 	}
 
-	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PTakerLocked(order.RawOrder.Hash.Hex()) {
+	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PTakerLocked(order.RawOrder.Hash.Hex()) && s != types.ORDER_FINISHED {
 		return "ORDER_P2P_LOCKED"
 	}
 
