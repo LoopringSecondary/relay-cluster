@@ -132,7 +132,7 @@ func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, er
 
 func IsP2PTakerLocked(taker string) bool {
 	exist, err := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
-	if err == nil || exist == true {
+	if err != nil || exist == true {
 		return true
 	}
 	return false
