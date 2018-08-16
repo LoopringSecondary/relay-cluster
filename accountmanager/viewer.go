@@ -52,7 +52,9 @@ func GetBalanceWithSymbolResult(owner common.Address) (map[string]*big.Int, erro
 			} else {
 				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
 			}
-			res[symbol] = balance.Balance.BigInt()
+			if symbol != "" {
+				res[symbol] = balance.Balance.BigInt()
+			}
 		}
 	}
 
@@ -75,10 +77,12 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 				res[symbol] = big.NewInt(int64(0))
 			} else {
 				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
-				if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
-					res[symbol] = big.NewInt(int64(0))
-				} else {
-					res[symbol] = allowances[spender].Allowance.BigInt()
+				if symbol != "" {
+					if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
+						res[symbol] = big.NewInt(int64(0))
+					} else {
+						res[symbol] = allowances[spender].Allowance.BigInt()
+					}
 				}
 			}
 		}
