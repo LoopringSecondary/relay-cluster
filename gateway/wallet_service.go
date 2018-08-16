@@ -712,36 +712,6 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50008)
 	}
 
-	if taker.RawOrder.OrderType != types.ORDER_TYPE_P2P || maker.RawOrder.OrderType != types.ORDER_TYPE_P2P {
-		//return res, errors.New("only p2p order can be submitted")
-		return res, errors.New(P2P_50002)
-	}
-
-	if !maker.IsEffective() {
-		//return res, errors.New("maker order has been finished, can't be match ring again")
-		return res, errors.New(P2P_50003)
-	}
-
-	if taker.RawOrder.Owner.Hex() == maker.RawOrder.Owner.Hex() {
-		//return res, errors.New("taker and maker's address can't be same")
-		return res, errors.New(P2P_50005)
-	}
-
-	if manager.IsDustyOrder(maker) {
-		//return res, errors.New("It's dusty order")
-		return res, errors.New(P2P_50004)
-	}
-
-	remainedAmountS, _ := maker.RemainedAmount()
-	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
-		return res, err
-	} else {
-		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
-			//return res, errors.New("maker's remainedAmount is not enough")
-			return res, errors.New(P2P_50004)
-		}
-	}
-
 	var txHashRst string
 	err = accessor.SendRawTransaction(&txHashRst, p2pRing.RawTx)
 	if err != nil {
@@ -1943,4 +1913,51 @@ func verifySign(sign SignInfo) (bool, error) {
 			return false, errors.New("sign address not matched")
 		}
 	}
+}
+
+/**
+ * P2POrder Taker扫码下单专用API（maker下单走SubmitOrder）
+ */
+func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, makerOrderHash string) (res string, err error) {
+
+	if order.OrderType != types.ORDER_TYPE_P2P {
+		return res, errors.New(P2P_50002)
+	}
+
+	maker, err := w.orderViewer.GetOrderByHash(common.HexToHash(makerOrderHash))
+	if err != nil {
+		return res, errors.New(P2P_50001)
+	}
+
+	if maker.RawOrder.OrderType != types.ORDER_TYPE_P2P {
+		//return res, errors.New("only p2p order can be submitted")
+		return res, errors.New(P2P_50002)
+	}
+
+	if order.Owner.Hex() == maker.RawOrder.Owner.Hex() {
+		//return res, errors.New("taker and maker's address can't be same")
+		return res, errors.New(P2P_50005)
+	}
+
+	if !maker.IsEffective() {
+		//return res, errors.New("maker order has been finished, can't be match ring again")
+		return res, errors.New(P2P_50003)
+	}
+
+	if manager.IsDustyOrder(maker) {
+		//return res, errors.New("It's dusty order")
+		return res, errors.New(P2P_50004)
+	}
+
+	remainedAmountS, _ := maker.RemainedAmount()
+	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
+		return res, err
+	} else {
+		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
+			//return res, errors.New("maker's remainedAmount is not enough")
+			return res, errors.New(P2P_50004)
+		}
+	}
+
+	return HandleInputOrder(types.ToOrder(order))
 }

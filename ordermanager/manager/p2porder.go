@@ -75,14 +75,17 @@ func HandleP2PSubmitRing(input eventemitter.EventData) error {
 	//release taker's failed p2porder pengdingAmount
 	if evt, ok := input.(*types.SubmitRingMethodEvent); ok && evt != nil && evt.Status == types.TX_STATUS_FAILED {
 		txHash := strings.ToLower(evt.TxHash.Hex())
-		jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
-		p2pOrderRelation := P2pOrderRelation{}
-		if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
-			log.Errorf("mehtod HandleP2PSubmitRing of p2pOrderRelation syncFromCache err:%s", err.Error())
-			return err
-		} else {
-			maker := p2pOrderRelation.Makerorderhash
-			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
+		if keyExist == true {
+			jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
+			p2pOrderRelation := P2pOrderRelation{}
+			if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
+				log.Errorf("mehtod HandleP2PSubmitRing of p2pOrderRelation syncFromCache err:%s", err.Error())
+				return err
+			} else {
+				maker := p2pOrderRelation.Makerorderhash
+				cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+			}
 		}
 	}
 	return nil
@@ -93,16 +96,19 @@ func HandleP2POrderFilled(input eventemitter.EventData) error {
 	//release taker's successed p2porder pengdingAmount
 	if evt, ok := input.(*types.OrderFilledEvent); ok && evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
 		txHash := strings.ToLower(evt.TxHash.Hex())
-		jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
-		p2pOrderRelation := P2pOrderRelation{}
-		if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
-			log.Errorf("metho of HandleP2POrderFilled p2pOrderRelation syncFromCache err:%s", err.Error())
-			return err
-		} else {
-			maker := p2pOrderRelation.Makerorderhash
-			cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
+		if keyExist == true {
+			jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
+			p2pOrderRelation := P2pOrderRelation{}
+			if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
+				log.Errorf("metho of HandleP2POrderFilled p2pOrderRelation syncFromCache err:%s", err.Error())
+				return err
+			} else {
+				maker := p2pOrderRelation.Makerorderhash
+				cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+			}
+			cache.Del(p2pRelationPreKey + p2pOrderRelation.Takerorderhash)
 		}
-		cache.Del(p2pRelationPreKey + p2pOrderRelation.Takerorderhash)
 	}
 	return nil
 }
@@ -131,8 +137,8 @@ func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, er
 }
 
 func IsP2PTakerLocked(taker string) bool {
-	exist, err := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
-	if err != nil || exist == true {
+	exist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
+	if exist == true {
 		return true
 	}
 	return false
