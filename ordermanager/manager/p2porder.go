@@ -21,7 +21,6 @@ package manager
 import (
 	"encoding/json"
 	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"math/big"
@@ -42,11 +41,11 @@ type P2pOrderRelation struct {
 }
 
 func init() {
-	submitRingMethodWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2PSubmitRing}
-	eventemitter.On(eventemitter.Miner_SubmitRing_Method, submitRingMethodWatcher)
+	//submitRingMethodWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2PSubmitRing}
+	//eventemitter.On(eventemitter.Miner_SubmitRing_Method, submitRingMethodWatcher)
 
-	p2pRingMinedWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2POrderFilled}
-	eventemitter.On(eventemitter.OrderFilled, p2pRingMinedWatcher)
+	//p2pRingMinedWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2POrderFilled}
+	//eventemitter.On(eventemitter.OrderFilled, p2pRingMinedWatcher)
 }
 
 func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingAmount, validUntil string) error {
@@ -71,9 +70,9 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingA
 }
 
 // status failed/pending
-func HandleP2PSubmitRing(input eventemitter.EventData) error {
+func HandleP2PSubmitRing(evt *types.SubmitRingMethodEvent) error {
 	//release taker's failed p2porder pengdingAmount
-	if evt, ok := input.(*types.SubmitRingMethodEvent); ok && evt != nil && evt.Status == types.TX_STATUS_FAILED {
+	if evt != nil && evt.Status == types.TX_STATUS_FAILED {
 		txHash := strings.ToLower(evt.TxHash.Hex())
 		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
 		if keyExist == true {
@@ -92,9 +91,9 @@ func HandleP2PSubmitRing(input eventemitter.EventData) error {
 }
 
 // status success
-func HandleP2POrderFilled(input eventemitter.EventData) error {
+func HandleP2POrderFilled(evt *types.OrderFilledEvent) error {
 	//release taker's successed p2porder pengdingAmount
-	if evt, ok := input.(*types.OrderFilledEvent); ok && evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
+	if evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
 		txHash := strings.ToLower(evt.TxHash.Hex())
 		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
 		if keyExist == true {
@@ -137,8 +136,8 @@ func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, er
 }
 
 func IsP2PTakerLocked(taker string) bool {
-	exist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
-	if exist == true {
+	exist, err := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
+	if nil != err || exist == true {
 		return true
 	}
 	return false
