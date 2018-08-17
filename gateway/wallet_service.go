@@ -1953,7 +1953,8 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, mak
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
 		return res, err
 	} else {
-		if pendingAmountB.Cmp(remainedAmountS) >= 0 {
+		takerAmountB := new(big.Rat).SetInt64(order.AmountB.Int64())
+		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
 			return res, errors.New(P2P_50004)
 		}
