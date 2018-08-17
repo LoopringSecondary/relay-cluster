@@ -701,7 +701,7 @@ func (w *WalletServiceImpl) GetOrdersByHashes(query OrderQuery) (order []OrderJs
 }
 
 func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
-
+	log.Info("SubmitRingForP2P request start")
 	maker, err := w.orderViewer.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
 	if err != nil {
 		return res, errors.New(P2P_50001)
@@ -713,19 +713,19 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	}
 
 	remainedAmountS, _ := maker.RemainedAmount()
-	log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+	log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
-		log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+		log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 		return res, errors.New(P2P_50001)
 	} else {
-		log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+		log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 		takerAmountB := new(big.Rat).SetInt64(taker.RawOrder.AmountB.Int64())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
-			log.Info("p2p order SubmitOrderForP2P don't match")
+			log.Info("p2p order SubmitRingForP2P don't match")
 			return res, errors.New(P2P_50004)
 		}
-		log.Info("p2p order SubmitOrderForP2P don't match")
+		log.Info("p2p order SubmitRingForP2P don't match")
 	}
 
 	var txHashRst string
@@ -1935,7 +1935,7 @@ func verifySign(sign SignInfo) (bool, error) {
  * P2POrder Taker扫码下单专用API（maker下单走SubmitOrder）
  */
 func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, makerOrderHash string) (res string, err error) {
-
+	log.Info("SubmitOrderForP2P request start")
 	if order.OrderType != types.ORDER_TYPE_P2P {
 		return res, errors.New(P2P_50002)
 	}
