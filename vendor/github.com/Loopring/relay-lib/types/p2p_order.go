@@ -24,7 +24,7 @@ import (
 	"math/big"
 )
 
-//go:generate gencodec -type P2POrderJsonRequest -field-override P2POrderJsonRequestMarshaling -out gen_P2POrder_request_json.go
+//go:generate gencodec -type P2POrderJsonRequest -field-override p2pOrderJsonRequestMarshaling -out gen_p2pOrder_request_json.go
 type P2POrderJsonRequest struct {
 	Protocol        common.Address             `json:"protocol" gencodec:"required"`        // 智能合约地址
 	DelegateAddress common.Address             `json:"delegateAddress" gencodec:"required"` // 智能合约地址
@@ -52,6 +52,14 @@ type P2POrderJsonRequest struct {
 	Side                  string         `json:"side"`
 	OrderType             string         `json:"orderType"`
 	MakerOrderHash        common.Hash    `json:"makerOrderHash"`
+}
+
+type p2pOrderJsonRequestMarshaling struct {
+	AmountS    *Big
+	AmountB    *Big
+	ValidSince *Big
+	ValidUntil *Big
+	LrcFee     *Big
 }
 
 func ToP2POrder(request *P2POrderJsonRequest) *Order {
