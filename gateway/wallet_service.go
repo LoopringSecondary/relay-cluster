@@ -1934,13 +1934,13 @@ func verifySign(sign SignInfo) (bool, error) {
 /**
  * P2POrder Taker扫码下单专用API（maker下单走SubmitOrder）
  */
-func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, makerOrderHash string) (res string, err error) {
+func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonRequest) (res string, err error) {
 	log.Info("SubmitOrderForP2P request start")
-	if order.OrderType != types.ORDER_TYPE_P2P {
+	if p2pOrder.OrderType != types.ORDER_TYPE_P2P {
 		return res, errors.New(P2P_50002)
 	}
 
-	maker, err := w.orderViewer.GetOrderByHash(common.HexToHash(makerOrderHash))
+	maker, err := w.orderViewer.GetOrderByHash(p2pOrder.MakerOrderHash)
 	if err != nil {
 		return res, errors.New(P2P_50001)
 	}
@@ -1950,7 +1950,7 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, mak
 		return res, errors.New(P2P_50002)
 	}
 
-	if order.Owner.Hex() == maker.RawOrder.Owner.Hex() {
+	if p2pOrder.Owner.Hex() == maker.RawOrder.Owner.Hex() {
 		//return res, errors.New("taker and maker's address can't be same")
 		return res, errors.New(P2P_50005)
 	}
@@ -1971,8 +1971,8 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, mak
 		log.Info("p2p order SubmitOrderForP2P getPendingAmountB:" + pendingAmountB.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 		return res, errors.New(P2P_50001)
 	} else {
-		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ",takerAmountB:" + order.AmountB.String())
-		takerAmountB := new(big.Rat).SetInt64(order.AmountB.Int64())
+		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ",takerAmountB:" + p2pOrder.AmountB.String())
+		takerAmountB := new(big.Rat).SetInt64(p2pOrder.AmountB.Int64())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
 			log.Info("p2p order SubmitOrderForP2P don't match")
@@ -1981,5 +1981,5 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(order *types.OrderJsonRequest, mak
 		log.Info("p2p order SubmitOrderForP2P match success")
 	}
 
-	return HandleInputOrder(types.ToOrder(order))
+	return HandleInputOrder(types.ToP2POrder(p2pOrder))
 }
