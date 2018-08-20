@@ -717,19 +717,17 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 	}
 
 	remainedAmountS, _ := maker.RemainedAmount()
-	log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+	log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ", takerAmountB:" + taker.RawOrder.AmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
-		log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 		return res, errors.New(P2P_50001)
 	} else {
-		log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+		log.Info("p2p order SubmitRingForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
 		takerAmountB := new(big.Rat).SetInt64(taker.RawOrder.AmountB.Int64())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
-			log.Info("p2p order SubmitRingForP2P don't match")
+			log.Info("p2p order SubmitRingForP2P don't match, makerHash" + maker.RawOrder.Hash.Hex())
 			return res, errors.New(P2P_50004)
 		}
-		log.Info("p2p order SubmitRingForP2P don't match")
 	}
 
 	var txHashRst string
@@ -1975,19 +1973,17 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonReques
 	}
 
 	remainedAmountS, _ := maker.RemainedAmount()
-	log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
+	log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ", takerAmountB:" + p2pOrder.AmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
-		log.Info("p2p order SubmitOrderForP2P getPendingAmountB:" + pendingAmountB.String() + ",makerHash:" + maker.RawOrder.Hash.Hex())
 		return res, errors.New(P2P_50001)
 	} else {
-		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ",takerAmountB:" + p2pOrder.AmountB.String())
+		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
 		takerAmountB := new(big.Rat).SetInt64(p2pOrder.AmountB.Int64())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
-			log.Info("p2p order SubmitOrderForP2P don't match")
+			log.Info("p2p order SubmitOrderForP2P don't match" + ", makerHash:" + maker.RawOrder.Hash.Hex())
 			return res, errors.New(P2P_50004)
 		}
-		log.Info("p2p order SubmitOrderForP2P match success")
 	}
 
 	return HandleInputOrder(types.ToP2POrder(p2pOrder))
