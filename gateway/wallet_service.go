@@ -622,6 +622,9 @@ func (w *WalletServiceImpl) SubmitOrder(order *types.OrderJsonRequest) (res stri
 		order.OrderType = types.ORDER_TYPE_MARKET
 	}
 
+	if order.OrderType == types.ORDER_TYPE_P2P {
+		order.P2PSide = types.P2P_SIDE_MAKER
+	}
 	return HandleInputOrder(types.ToOrder(order))
 }
 
@@ -1938,6 +1941,10 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonReques
 	log.Info("SubmitOrderForP2P request start")
 	if p2pOrder.OrderType != types.ORDER_TYPE_P2P {
 		return res, errors.New(P2P_50002)
+	}
+
+	if p2pOrder.OrderType == types.ORDER_TYPE_P2P {
+		p2pOrder.P2PSide = types.P2P_SIDE_TAKER
 	}
 
 	maker, err := w.orderViewer.GetOrderByHash(p2pOrder.MakerOrderHash)

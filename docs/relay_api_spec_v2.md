@@ -159,7 +159,6 @@ Submits an order. The order is submitted to the relay as a JSON object, which wi
   - `s` - ECDSA signature parameter s.
   - `powNonce` - Before an order is submitted, it must be verified by our pow check logic. If number of orders submitted is exceeded in a certain time frame, we will increase pow difficulty.
   - `orderType` - The order type, enum is (market_order|p2p_order), default is market_order.
-  - `p2pSide` - The order side, enum is (maker|taker).
 
 ```js
 params: [{
@@ -285,7 +284,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{se
                  "authPrivateKey":"0x94866e133eb0cc774ca09a9de59c4c671fee6f7e871104d5e14004ac46fcee2b",
                  "market":"LRC-WETH",
                  "side":"sell",
-                 "p2pSide":"maker",
+                 "p2pSide":"maker|taker",
                  "createTime":1525667919
              },
              "dealtAmountS":"0x0",

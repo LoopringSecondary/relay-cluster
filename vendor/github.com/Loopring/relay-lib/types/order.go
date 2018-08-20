@@ -47,6 +47,8 @@ const (
 const (
 	ORDER_TYPE_MARKET = "market_order"
 	ORDER_TYPE_P2P    = "p2p_order"
+	P2P_SIDE_MAKER    = "maker"
+	P2P_SIDE_TAKER    = "taker"
 )
 
 //go:generate gencodec -type Order -field-override orderMarshaling -out gen_order_json.go
