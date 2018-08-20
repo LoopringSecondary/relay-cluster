@@ -285,6 +285,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{se
                  "authPrivateKey":"0x94866e133eb0cc774ca09a9de59c4c671fee6f7e871104d5e14004ac46fcee2b",
                  "market":"LRC-WETH",
                  "side":"sell",
+                 "p2pSide":"sell",
                  "createTime":1525667919
              },
              "dealtAmountS":"0x0",
