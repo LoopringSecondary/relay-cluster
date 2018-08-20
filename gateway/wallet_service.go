@@ -284,6 +284,7 @@ type RawOrderJsonResult struct {
 	Side                  string `json:"side"`
 	CreateTime            int64  `json:"createTime"`
 	OrderType             string `json:"orderType"`
+	P2PSide               string `json:"p2pSide"`
 }
 
 type OrderJsonResult struct {
@@ -1811,6 +1812,7 @@ func orderStateToJson(src types.OrderState) OrderJsonResult {
 	rawOrder.CreateTime = src.RawOrder.CreateTime
 	rawOrder.Side = src.RawOrder.Side
 	rawOrder.OrderType = src.RawOrder.OrderType
+	rawOrder.P2PSide = src.RawOrder.P2PSide
 	rst.RawOrder = rawOrder
 	return rst
 }
