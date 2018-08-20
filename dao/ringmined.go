@@ -96,6 +96,7 @@ func (r *RingMinedEvent) FromSubmitRingMethod(event *types.SubmitRingMethodEvent
 	r.DelegateAddress = event.DelegateAddress.Hex()
 	r.TxHash = event.TxHash.Hex()
 	r.BlockNumber = event.BlockNumber.Int64()
+	r.Time = event.BlockTime
 	r.Status = uint8(event.Status)
 	r.GasLimit = event.GasLimit.String()
 	r.GasUsed = event.GasUsed.String()
