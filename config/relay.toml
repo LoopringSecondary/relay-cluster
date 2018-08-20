@@ -20,8 +20,8 @@ title = "miner"
     hostname = "127.0.0.1"
     port = "3306"
     user = "root"
-    password = "111111"
-    db_name = "miner_v3"
+    password = "root"
+    db_name = "loopring"
     table_prefix = "lpr_"
     max_open_connections = 0
     max_idle_connections = 0
@@ -78,7 +78,7 @@ title = "miner"
         "v1.5" = "0x8d8812b72d1e4ffCeC158D25f56748b7d67c1e78"
 
 [market]
-    token_file = "config/tokens.json"
+    token_file = "/Users/michelle/gopath/src/github.com/Loopring/relay-cluster/config/tokens.json"
     old_version_weth_address = "0x88699e7fee2da0462981a08a15a3b940304cc516"
 
 [market_cap]
@@ -120,7 +120,7 @@ title = "miner"
     brokers = ["127.0.0.1:9092"]
 
 [motan_server]
-    conf_file = "motan_server.yaml"
+    conf_file = "/Users/michelle/gopath/src/github.com/Loopring/relay-cluster/config/motan_server.yaml"
 
 [my_token]
     app_id = "13gd_-yxB_yUiGyL"

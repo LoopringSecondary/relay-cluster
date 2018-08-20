@@ -53,7 +53,7 @@ func NewRdsService(options *MysqlOptions) RdsServiceImpl {
 		return options.TablePrefix + defaultTableName
 	}
 
-	url := options.User + ":" + options.Password + "@tcp(" + options.Hostname + ":" + options.Port + ")/" + options.DbName + "?charset=utf8&parseTime=True"
+	url := options.User + ":" + options.Password + "@tcp(" + options.Hostname + ":" + options.Port + ")/" + options.DbName + "?charset=utf8&parseTime=True&allowNativePasswords=true"
 	db, err := gorm.Open("mysql", url)
 	if err != nil {
 		log.Fatalf("mysql connection error:%s", err.Error())

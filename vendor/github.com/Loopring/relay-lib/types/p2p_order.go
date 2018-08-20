@@ -52,6 +52,7 @@ type P2POrderJsonRequest struct {
 	Side                  string         `json:"side"`
 	OrderType             string         `json:"orderType"`
 	MakerOrderHash        common.Hash    `json:"makerOrderHash"`
+	P2PSide               string         `json:"p2pSide"`
 }
 
 type p2pOrderJsonRequestMarshaling struct {
@@ -84,5 +85,6 @@ func ToP2POrder(request *P2POrderJsonRequest) *Order {
 	order.WalletAddress = request.WalletAddress
 	order.PowNonce = request.PowNonce
 	order.OrderType = request.OrderType
+	order.P2PSide = request.P2PSide
 	return order
 }
