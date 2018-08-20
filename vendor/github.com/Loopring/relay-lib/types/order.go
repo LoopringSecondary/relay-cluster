@@ -76,6 +76,7 @@ type Order struct {
 	PowNonce              uint64                     `json:"powNonce"`
 	Side                  string                     `json:"side"`
 	OrderType             string                     `json:"orderType"`
+	P2PSide               string                     `json:"p2pSide"`
 }
 
 type orderMarshaling struct {
@@ -113,6 +114,7 @@ type OrderJsonRequest struct {
 	PowNonce              uint64         `json:"powNonce"`
 	Side                  string         `json:"side"`
 	OrderType             string         `json:"orderType"`
+	P2PSide               string         `json:"p2pSide"`
 }
 
 type orderJsonRequestMarshaling struct {
@@ -350,5 +352,6 @@ func ToOrder(request *OrderJsonRequest) *Order {
 	order.WalletAddress = request.WalletAddress
 	order.PowNonce = request.PowNonce
 	order.OrderType = request.OrderType
+	order.P2PSide = request.P2PSide
 	return order
 }

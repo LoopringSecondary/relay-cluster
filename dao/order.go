@@ -70,6 +70,7 @@ type Order struct {
 	Market                string  `gorm:"column:market;type:varchar(40)"`
 	Side                  string  `gorm:"column:side;type:varchar(40)"`
 	OrderType             string  `gorm:"column:order_type;type:varchar(40)"`
+	P2PSide               string  `gorm:"column:p2p_side;type:varchar(40)"`
 }
 
 // convert types/orderState to dao/order
@@ -117,7 +118,7 @@ func (o *Order) ConvertDown(state *types.OrderState) error {
 	o.Side = state.RawOrder.Side
 	o.OrderType = state.RawOrder.OrderType
 	o.Market = state.RawOrder.Market
-
+	o.P2PSide = state.RawOrder.P2PSide
 	return nil
 }
 
@@ -179,6 +180,7 @@ func (o *Order) ConvertUp(state *types.OrderState) error {
 		state.RawOrder.Side = o.Side
 	}
 	state.RawOrder.OrderType = o.OrderType
+	state.RawOrder.P2PSide = o.P2PSide
 	return nil
 }
 

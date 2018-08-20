@@ -159,6 +159,7 @@ Submits an order. The order is submitted to the relay as a JSON object, which wi
   - `s` - ECDSA signature parameter s.
   - `powNonce` - Before an order is submitted, it must be verified by our pow check logic. If number of orders submitted is exceeded in a certain time frame, we will increase pow difficulty.
   - `orderType` - The order type, enum is (market_order|p2p_order), default is market_order.
+  - `p2pSide` - The order side, enum is (buy|sell).
 
 ```js
 params: [{
