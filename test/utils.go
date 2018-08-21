@@ -65,7 +65,7 @@ type TestEntity struct {
 
 const (
 	Version      = "v1.5.1"
-	DebugFile    = "debug.toml"
+	DebugFile    = "relay.toml"
 	KeystorePath = "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/ks_dir"
 )
 
@@ -93,7 +93,7 @@ func init() {
 	txviewer.NewTxView(rds)
 	accessor.Initialize(cfg.Accessor)
 	loopringaccessor.Initialize(cfg.LoopringProtocol)
-	unlockAccounts()
+	//unlockAccounts()
 	protocol = common.HexToAddress(cfg.LoopringProtocol.Address[Version])
 	delegate = loopringaccessor.ProtocolAddresses()[protocol].DelegateAddress
 

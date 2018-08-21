@@ -19,18 +19,20 @@
 package gateway_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/crypto"
 	//dao2 "github.com/Loopring/relay-lib/dao"
+	"encoding/json"
 	"github.com/Loopring/relay-cluster/gateway"
+	"github.com/Loopring/relay-cluster/test"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
+	"math/big"
 	"strconv"
 	"strings"
 	"testing"
@@ -76,7 +78,7 @@ import (
 //}
 //
 
-func TestGetPow(t *testing.T) {
+func init() {
 	fmt.Println(">>>>>>>>>sssss")
 	logConfig := `{
 	  "level": "debug",
@@ -101,6 +103,9 @@ func TestGetPow(t *testing.T) {
 	}
 
 	log.Initialize(cfg)
+}
+
+func TestGetPow(t *testing.T) {
 
 	//cf := dao2.MysqlOptions{}
 	//cf.Password = "111111"
@@ -179,6 +184,21 @@ func TestGetPow(t *testing.T) {
 		fmt.Println(strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner))
 	}
 
+}
+
+func TestWalletServiceImpl_GetCityPartnerStatus(t *testing.T) {
+	//cfg := test.LoadConfig()
+	rds := test.Rds()
+	walletService := gateway.NewWalletServiceRds(rds)
+	filledEvent := &types.OrderFilledEvent{}
+	filledEvent.OrderHash = common.HexToHash("0x98a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
+	filledEvent.Ringhash = common.HexToHash("0x88a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
+	filledEvent.LrcFee = new(big.Int).SetInt64(1000000)
+	filledEvent.SplitB = new(big.Int).SetInt64(2000000)
+	filledEvent.SplitS = new(big.Int).SetInt64(3000000)
+	if err := walletService.HandleFilledEventForCityPartner(filledEvent); nil != err {
+		t.Error(err.Error())
+	}
 }
 
 //func (ab *AB) ABTest1(query ABReq1) (res1 ABRes1, err error) {
