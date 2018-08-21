@@ -43,18 +43,27 @@ func GetBalanceWithSymbolResult(owner common.Address) (map[string]*big.Int, erro
 	res := make(map[string]*big.Int)
 	//err := accountBalances.getOrSave(common.HexToAddress("0x1fa02762bd046abd30f5bf3513f9347d5e6b4257"), common.HexToAddress("0x"), common.HexToAddress("0x3cbcee9ff904ee0351b0ff2c05e08e860c94a5ea"))
 	err := accountBalances.getOrSave(accManager.tokenCacheDuration, accManager.ethCacheDuration)
-
-	if nil == err {
-		for tokenAddr, balance := range accountBalances.Balances {
-			symbol := ""
-			if types.IsZeroAddress(tokenAddr) {
-				symbol = "ETH"
-			} else {
-				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
-			}
-			if symbol != "" {
-				res[symbol] = balance.Balance.BigInt()
-			}
+	if nil != err {
+		return res, err
+	}
+	tokenSymbols := make(map[common.Address]string)
+	if tokens,err := marketutil.GetCustomTokenList(owner); nil != err {
+		return res,err
+	} else {
+		for _,token := range tokens {
+			tokenSymbols[token.Address] = token.Symbol
+		}
+	}
+	for tokenAddr, balance := range accountBalances.Balances {
+		symbol := ""
+		if types.IsZeroAddress(tokenAddr) {
+			symbol = "ETH"
+		} else {
+			symbol = tokenSymbols[tokenAddr]
+			//symbol = marketutil.AddressToAlias(tokenAddr.Hex())
+		}
+		if symbol != "" {
+			res[symbol] = balance.Balance.BigInt()
 		}
 	}
 
@@ -68,7 +77,14 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 
 	res := make(map[string]*big.Int)
 	err := accountAllowances.getOrSave(accManager.tokenCacheDuration, []common.Address{}, []common.Address{spender})
-
+	tokenSymbols := make(map[common.Address]string)
+	if tokens,err := marketutil.GetCustomTokenList(owner); nil != err {
+		return res,err
+	} else {
+		for _,token := range tokens {
+			tokenSymbols[token.Address] = token.Symbol
+		}
+	}
 	if nil == err {
 		for tokenAddr, allowances := range accountAllowances.Allowances {
 			symbol := ""
@@ -76,7 +92,7 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 				symbol = "ETH"
 				res[symbol] = big.NewInt(int64(0))
 			} else {
-				symbol = marketutil.AddressToAlias(tokenAddr.Hex())
+				symbol = tokenSymbols[tokenAddr]
 				if symbol != "" {
 					if _, exists := allowances[spender]; !exists || nil == allowances[spender].Allowance {
 						res[symbol] = big.NewInt(int64(0))

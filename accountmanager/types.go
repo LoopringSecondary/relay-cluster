@@ -91,7 +91,7 @@ func (b AccountBalances) supportedAllTokens() []common.Address {
 	return tokens
 }
 
-//todo:tokens
+//todo:test custom tokens
 func (b AccountBalances) batchReqs(tokens ...common.Address) loopringaccessor.BatchBalanceReqs {
 	if nil == tokens {
 		tokens = []common.Address{}
