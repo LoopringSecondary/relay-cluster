@@ -47,10 +47,10 @@ func GetBalanceWithSymbolResult(owner common.Address) (map[string]*big.Int, erro
 		return res, err
 	}
 	tokenSymbols := make(map[common.Address]string)
-	if tokens,err := marketutil.GetCustomTokenList(owner); nil != err {
-		return res,err
+	if tokens, err := marketutil.GetCustomTokenList(owner); nil != err {
+		return res, err
 	} else {
-		for _,token := range tokens {
+		for _, token := range tokens {
 			tokenSymbols[token.Address] = token.Symbol
 		}
 	}
@@ -78,10 +78,10 @@ func GetAllowanceWithSymbolResult(owner, spender common.Address) (map[string]*bi
 	res := make(map[string]*big.Int)
 	err := accountAllowances.getOrSave(accManager.tokenCacheDuration, []common.Address{}, []common.Address{spender})
 	tokenSymbols := make(map[common.Address]string)
-	if tokens,err := marketutil.GetCustomTokenList(owner); nil != err {
-		return res,err
+	if tokens, err := marketutil.GetCustomTokenList(owner); nil != err {
+		return res, err
 	} else {
-		for _,token := range tokens {
+		for _, token := range tokens {
 			tokenSymbols[token.Address] = token.Symbol
 		}
 	}

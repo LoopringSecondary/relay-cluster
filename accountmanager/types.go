@@ -33,10 +33,10 @@ import (
 )
 
 const (
-	UnlockedPrefix    = "unlock_"
-	BalancePrefix     = "balance_"
-	BalanceEthPrefix  = "balance_eth_"
-	AllowancePrefix   = "allowance_"
+	UnlockedPrefix   = "unlock_"
+	BalancePrefix    = "balance_"
+	BalanceEthPrefix = "balance_eth_"
+	AllowancePrefix  = "allowance_"
 )
 
 type AccountBase struct {
@@ -82,8 +82,8 @@ func parseBalanceCacheField(field []byte) common.Address {
 
 func (b AccountBalances) supportedAllTokens() []common.Address {
 	tokens := []common.Address{}
-	if tokenList,err := util.GetCustomTokenList(b.Owner); nil == err {
-		for _,addr := range tokenList {
+	if tokenList, err := util.GetCustomTokenList(b.Owner); nil == err {
+		for _, addr := range tokenList {
 			tokens = append(tokens, addr.Address)
 		}
 	}
