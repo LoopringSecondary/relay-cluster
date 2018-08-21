@@ -76,7 +76,7 @@ func StartMotanService(options motan.MotanServerOptions, accountManager accountm
 	service := &MotanService{}
 	service.accountManager = accountManager
 	options.ServerInstance = service
-	//go motan.RunServer(options)
+	go motan.RunServer(options)
 }
 
 func msecNow() int64 {
