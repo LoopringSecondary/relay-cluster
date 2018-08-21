@@ -2,10 +2,15 @@
 
 mysql是relay-cluster后端服务的主要存储
 
-## 创建MySQL实例
-可以选择aws的RDS或者自建mysql，推荐使用前者，因为RDS会包含更丰富的监控及管理功能，扩展也更加方便，对于测试场景，可以选择自建一个mysql单实例
+## 选择MySQL实例类型
 
-### 创建RDS实例
+测试场景下仅需自建mysql单实例即可，简便快捷
+
+生产场景下推荐采用aws的RDS，其包含丰富的监控及管理功能，扩展也更加方便，适合线上环境使用
+
+> relay和miner都会使用mysql数据库，生产环境下建议创建不同的数据库实例，避免相互影响
+
+### 创建RDS实例（生产场景）
 从服务列表查找`RDS`找到入口，然后选择【立即开始使用】
 
 步骤1，【选择引擎】，点选【MySql】，点击【下一步】
@@ -47,23 +52,51 @@ mysql是relay-cluster后端服务的主要存储
 
 禁用【自动次要版本升级】，和备份类似选择合适的维护窗口，选择启动数据库实例
 
-### 创建单机MySQL实例
-参考[启动aws EC2实例](new_ec2_cn.md)，启动实例，并且关联`mysql-securityGroup`安全组
+### 创建MySQL单实例（测试场景）
+申请1台EC2实例，参考启动aws [EC2实例](new_ec2_cn.md)，并且关联`mysql-securityGroup`安全组
 
-执行以下脚本以部署Mysql实例
-```
-sudo apt install mysql-server
-```
-根据界面提示输入root用户对应口令，并再次确认
+> 如果还没创建，请参考[aws安全组](security_group_cn.md)关于`mysql-securityGroup`部分的说明，创建后再关联
 
-创建relay db
+> 测试场景以简便快捷为主，因此mysql和redis可部署到同一台实例，再同时关联`mysql-securityGroup`和`redis-securityGroup`这两个安全组即可
+
+执行以下命令部署MySQL
+```
+sudo apt update
+sudo apt -y install mysql-server
+```
+根据界面提示输入口令
+
+创建relay db，开启root远程访问
 ```
 mysql --host=localhost --port=3306 --user=root -p
 CREATE DATABASE relay;
+use mysql;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '填该账号的密码' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 ```
+
+禁用mysql bind-address
+
+`sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf`
+
+`# bind-address= 127.0.0.1`
+
+最后重启mysql即可 `sudo systemctl restart mysql`
+
+#### 启停
+
+* ##### 启动
+
+`sudo systemctl start mysql`
+
+* ##### 终止
+
+`sudo systemctl stop mysql`
+
+* ##### 重启
+
+`sudo systemctl restart mysql`
 
 ## 连接数据库
 
-> relay和miner都会用到mysql数据库，建议创建不同的数据库实例，避免互相影响
-
-记录前面创建db时指定的用户名口令，在相关配置文件中配置即可，同时也可以通过千面的命令行工具访问数据库实例
+默认端口 3306

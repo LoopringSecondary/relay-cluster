@@ -205,6 +205,11 @@ type EstimatedAllocatedAllowanceQuery struct {
 	Token           string `json: "token"`
 }
 
+type EstimatedAllocatedAllowanceResult struct {
+	AllocatedResult map[string]string `json:"allocatedResult"`
+	FrozenLrcFee    string            `json: "frozenLrcFee"`
+}
+
 type TransactionQuery struct {
 	ThxHash   string   `json:"thxHash"`
 	Owner     string   `json:"owner"`
@@ -217,15 +222,16 @@ type TransactionQuery struct {
 }
 
 type OrderQuery struct {
-	Status          string `json:"status"`
-	PageIndex       int    `json:"pageIndex"`
-	PageSize        int    `json:"pageSize"`
-	DelegateAddress string `json:"delegateAddress"`
-	Owner           string `json:"owner"`
-	Market          string `json:"market"`
-	OrderHash       string `json:"orderHash"`
-	Side            string `json:"side"`
-	OrderType       string `json:"orderType"`
+	Status          string   `json:"status"`
+	PageIndex       int      `json:"pageIndex"`
+	PageSize        int      `json:"pageSize"`
+	DelegateAddress string   `json:"delegateAddress"`
+	Owner           string   `json:"owner"`
+	Market          string   `json:"market"`
+	OrderHash       string   `json:"orderHash"`
+	OrderHashes     []string `json:"orderHashes"`
+	Side            string   `json:"side"`
+	OrderType       string   `json:"orderType"`
 }
 
 type DepthQuery struct {
@@ -278,6 +284,7 @@ type RawOrderJsonResult struct {
 	Side                  string `json:"side"`
 	CreateTime            int64  `json:"createTime"`
 	OrderType             string `json:"orderType"`
+	P2PSide               string `json:"p2pSide"`
 }
 
 type OrderJsonResult struct {
@@ -334,14 +341,16 @@ type AccountJson struct {
 }
 
 type LatestFill struct {
-	CreateTime int64   `json:"createTime"`
-	Price      float64 `json:"price"`
-	Amount     float64 `json:"amount"`
-	Side       string  `json:"side"`
-	RingHash   string  `json:"ringHash"`
-	LrcFee     string  `json:"lrcFee"`
-	SplitS     string  `json:"splitS"`
-	SplitB     string  `json:"splitB"`
+	CreateTime   int64   `json:"createTime"`
+	Price        float64 `json:"price"`
+	Amount       float64 `json:"amount"`
+	Side         string  `json:"side"`
+	RingHash     string  `json:"ringHash"`
+	LrcFee       string  `json:"lrcFee"`
+	SplitS       string  `json:"splitS"`
+	SplitB       string  `json:"splitB"`
+	OrderHash    string  `json:"orderHash"`
+	PreOrderHash string  `json:"preOrderHash"`
 }
 
 type CancelOrderQuery struct {
@@ -554,12 +563,19 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 
 	err = txmanager.ValidateNonce(txNotify.From, nonce)
 	if err != nil {
+		log.Infof("nonce invalid in tx %s, %s", txNotify.Hash, err.Error())
 		return "", err
 	}
 
 	tx := &ethtyp.Transaction{}
 	tx.Hash = txNotify.Hash
-	tx.Input = txNotify.Input
+
+	if len(txNotify.Input) > 2 && !strings.HasPrefix(txNotify.Input, "0x") && !strings.HasPrefix(txNotify.Input, "0X") {
+		tx.Input = "0x" + txNotify.Input
+	} else {
+		tx.Input = txNotify.Input
+	}
+
 	tx.From = txNotify.From
 	tx.To = txNotify.To
 	tx.Gas = *types.NewBigPtr(types.HexToBigint(txNotify.Gas))
@@ -580,7 +596,6 @@ func (w *WalletServiceImpl) NotifyTransactionSubmitted(txNotify TxNotify) (resul
 	tx.TransactionIndex = *types.NewBigWithInt(0)
 
 	log.Debug("emit Pending tx >>>>>>>>>>>>>>>> " + tx.Hash)
-	//eventemitter.Emit(eventemitter.PendingTransaction, tx)
 	kafkaUtil.ProducerNormalMessage(kafka.Kafka_Topic_Extractor_PendingTransaction, tx)
 	txByte, err := json.Marshal(txNotify)
 	if err == nil {
@@ -608,6 +623,9 @@ func (w *WalletServiceImpl) SubmitOrder(order *types.OrderJsonRequest) (res stri
 		order.OrderType = types.ORDER_TYPE_MARKET
 	}
 
+	if order.OrderType == types.ORDER_TYPE_P2P {
+		order.P2PSide = types.P2P_SIDE_MAKER
+	}
 	return HandleInputOrder(types.ToOrder(order))
 }
 
@@ -662,8 +680,32 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 	}
 }
 
-func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
+func (w *WalletServiceImpl) GetOrdersByHashes(query OrderQuery) (order []OrderJsonResult, err error) {
+	if query.OrderHashes == nil || len(query.OrderHashes) == 0 {
+		return order, errors.New("param orderHashes can't be empty")
+	}
+	if len(query.OrderHashes) > 50 {
+		return order, errors.New("param orderHashes's length can't be over 50")
+	} else {
+		rst := make([]OrderJsonResult, 0)
+		orderHashHex := make([]common.Hash, len(query.OrderHashes))
+		for _, oh := range query.OrderHashes {
+			orderHashHex = append(orderHashHex, common.HexToHash(oh))
+		}
+		orderList, err := w.orderViewer.GetOrdersByHashes(orderHashHex)
+		if err != nil {
+			return order, err
+		} else {
+			for _, order := range orderList {
+				rst = append(rst, orderStateToJson(order))
+			}
+			return rst, err
+		}
+	}
+}
 
+func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string, err error) {
+	log.Info("SubmitRingForP2P request start")
 	maker, err := w.orderViewer.GetOrderByHash(common.HexToHash(p2pRing.MakerOrderHash))
 	if err != nil {
 		return res, errors.New(P2P_50001)
@@ -674,29 +716,18 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50008)
 	}
 
-	if taker.RawOrder.OrderType != types.ORDER_TYPE_P2P || maker.RawOrder.OrderType != types.ORDER_TYPE_P2P {
-		//return res, errors.New("only p2p order can be submitted")
-		return res, errors.New(P2P_50002)
-	}
-
-	if !maker.IsEffective() {
-		//return res, errors.New("maker order has been finished, can't be match ring again")
-		return res, errors.New(P2P_50003)
-	}
-
-	if taker.RawOrder.AmountS.Cmp(maker.RawOrder.AmountB) != 0 || taker.RawOrder.AmountB.Cmp(maker.RawOrder.AmountS) != 0 {
-		//return res, errors.New("the amount of maker and taker are not matched")
-		return res, errors.New(P2P_50004)
-	}
-
-	if taker.RawOrder.Owner.Hex() == maker.RawOrder.Owner.Hex() {
-		//return res, errors.New("taker and maker's address can't be same")
-		return res, errors.New(P2P_50005)
-	}
-
-	if manager.IsP2PMakerLocked(maker.RawOrder.Hash.Hex()) {
-		//return res, errors.New("maker order has been locked by other taker or expired")
-		return res, errors.New(P2P_50006)
+	remainedAmountS, _ := maker.RemainedAmount()
+	log.Info("p2p order SubmitRingForP2P remainedAmountS:" + remainedAmountS.String() + ", takerAmountB:" + taker.RawOrder.AmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
+	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
+		return res, errors.New(P2P_50001)
+	} else {
+		log.Info("p2p order SubmitRingForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
+		takerAmountB := new(big.Rat).SetInt64(taker.RawOrder.AmountB.Int64())
+		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
+			//return res, errors.New("maker's remainedAmount is not enough")
+			log.Info("p2p order SubmitRingForP2P don't match, makerHash" + maker.RawOrder.Hash.Hex())
+			return res, errors.New(P2P_50004)
+		}
 	}
 
 	var txHashRst string
@@ -705,7 +736,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, err
 	}
 
-	err = manager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst)
+	err = manager.SaveP2POrderRelation(taker.RawOrder.Owner.Hex(), taker.RawOrder.Hash.Hex(), maker.RawOrder.Owner.Hex(), maker.RawOrder.Hash.Hex(), txHashRst, taker.RawOrder.AmountB.String(), maker.RawOrder.ValidUntil.String())
 	if err != nil {
 		return res, errors.New(SYS_10001)
 	}
@@ -990,25 +1021,29 @@ func (w *WalletServiceImpl) GetFrozenLRCFee(query SingleOwner) (frozenAmount str
 	return types.BigintToHex(allLrcFee), err
 }
 
-func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (resultMap map[string]string, err error) {
+func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAllocatedAllowanceQuery) (result EstimatedAllocatedAllowanceResult, err error) {
 
 	if len(query.Owner) == 0 || len(query.DelegateAddress) == 0 {
-		return resultMap, errors.New("owner and delegateAddress must be applied")
+		return result, errors.New("owner and delegateAddress must be applied")
 	}
 
 	allOrders, err := w.getAllOrdersByOwner(query.Owner, query.DelegateAddress)
 	if err != nil {
-		return resultMap, err
+		return result, err
 	}
 
 	if len(allOrders) == 0 {
-		return resultMap, nil
+		return result, nil
 	}
 
 	tmpResult := make(map[string]*big.Int)
 
 	for _, v := range allOrders {
 		token := util.AddressToAlias(v.RawOrder.TokenS.Hex())
+		if len(token) == 0 {
+			continue
+		}
+
 		amountS, _ := v.RemainedAmount()
 		amount, ok := tmpResult[token]
 		if ok {
@@ -1018,13 +1053,18 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		}
 	}
 
-	resultMap = make(map[string]string)
+	resultMap := make(map[string]string)
 
 	for k, v := range tmpResult {
 		resultMap[k] = types.BigintToHex(v)
 	}
 
-	return resultMap, err
+	lrcFee, err := w.GetFrozenLRCFee(SingleOwner{query.Owner})
+	if err != nil {
+		return result, err
+	}
+
+	return EstimatedAllocatedAllowanceResult{resultMap, lrcFee}, err
 }
 
 func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (orders []types.OrderState, err error) {
@@ -1281,7 +1321,7 @@ func getStringStatus(order types.OrderState) string {
 		return "ORDER_EXPIRE"
 	}
 
-	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PMakerLocked(order.RawOrder.Hash.Hex()) {
+	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PTakerLocked(order.RawOrder.Hash.Hex()) && s != types.ORDER_FINISHED {
 		return "ORDER_P2P_LOCKED"
 	}
 
@@ -1509,8 +1549,20 @@ func (w *WalletServiceImpl) getAvailableMinAmount(depthAmount *big.Rat, owner, t
 	return
 }
 
-func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
-	return w.globalMarket.GetGlobalTrendCache(req.Token)
+func (w *WalletServiceImpl) GetGlobalTrend(req SingleToken) (trend []market.GlobalTrend, err error) {
+	if len(req.Token) == 0 {
+		return nil, errors.New("token required")
+	}
+
+	tokenMap, err := w.globalMarket.GetGlobalTrendCache(req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return tokenMap[req.Token], err
+}
+
+func (w *WalletServiceImpl) GetAllGlobalTrend(req SingleToken) (trend map[string][]market.GlobalTrend, err error) {
+	return w.globalMarket.GetGlobalTrendCache("")
 }
 
 func (w *WalletServiceImpl) GetGlobalTicker(req SingleToken) (ticker map[string]market.GlobalTicker, err error) {
@@ -1579,9 +1631,19 @@ func (w *WalletServiceImpl) FlexCancelOrder(req CancelOrderQuery) (rst string, e
 	err = manager.FlexCancelOrder(&cancelOrderEvent)
 	if err == nil {
 		go func() {
-			ot, err := w.orderViewer.GetOrderByHash(cancelOrderEvent.OrderHash)
-			if err != nil {
-				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot)
+
+			orderQuery := OrderQuery{Owner: req.Sign.Owner, OrderType: types.ORDER_TYPE_MARKET}
+			if cancelOrderEvent.Type == types.FLEX_CANCEL_BY_HASH {
+				orderQuery.OrderHash = cancelOrderEvent.OrderHash.Hex()
+			} else if cancelOrderEvent.Type == types.FLEX_CANCEL_BY_MARKET {
+				orderQuery.Market, _ = util.WrapMarketByAddress(req.TokenS, req.TokenB)
+			} else {
+				// other conditions will notify all market, not implement now
+			}
+			orderQueryMap, _, _, _ := convertFromQuery(&orderQuery)
+			ot, err := w.orderViewer.GetLatestOrders(orderQueryMap, 1)
+			if err == nil && len(ot) > 0 {
+				kafkaUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Order_Updated, ot[0])
 			}
 		}()
 	}
@@ -1748,6 +1810,7 @@ func orderStateToJson(src types.OrderState) OrderJsonResult {
 	rawOrder.CreateTime = src.RawOrder.CreateTime
 	rawOrder.Side = src.RawOrder.Side
 	rawOrder.OrderType = src.RawOrder.OrderType
+	rawOrder.P2PSide = src.RawOrder.P2PSide
 	rst.RawOrder = rawOrder
 	return rst
 }
@@ -1810,6 +1873,8 @@ func toLatestFill(f dao.FillEvent) (latestFill LatestFill, err error) {
 	rst.LrcFee = f.LrcFee
 	rst.SplitS = f.SplitS
 	rst.SplitB = f.SplitB
+	rst.OrderHash = f.OrderHash
+	rst.PreOrderHash = f.PreOrderHash
 	var amount float64
 	if util.GetSide(f.TokenS, f.TokenB) == util.SideBuy {
 		amountB, _ := new(big.Int).SetString(f.AmountB, 0)
@@ -1867,4 +1932,59 @@ func verifySign(sign SignInfo) (bool, error) {
 			return false, errors.New("sign address not matched")
 		}
 	}
+}
+
+/**
+ * P2POrder Taker扫码下单专用API（maker下单走SubmitOrder）
+ */
+func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonRequest) (res string, err error) {
+	log.Info("SubmitOrderForP2P request start")
+	if p2pOrder.OrderType != types.ORDER_TYPE_P2P {
+		return res, errors.New(P2P_50002)
+	}
+
+	if p2pOrder.OrderType == types.ORDER_TYPE_P2P {
+		p2pOrder.P2PSide = types.P2P_SIDE_TAKER
+	}
+
+	maker, err := w.orderViewer.GetOrderByHash(p2pOrder.MakerOrderHash)
+	if err != nil {
+		return res, errors.New(P2P_50001)
+	}
+
+	if maker.RawOrder.OrderType != types.ORDER_TYPE_P2P {
+		//return res, errors.New("only p2p order can be submitted")
+		return res, errors.New(P2P_50002)
+	}
+
+	if p2pOrder.Owner.Hex() == maker.RawOrder.Owner.Hex() {
+		//return res, errors.New("taker and maker's address can't be same")
+		return res, errors.New(P2P_50005)
+	}
+
+	if !maker.IsEffective() {
+		//return res, errors.New("maker order has been finished, can't be match ring again")
+		return res, errors.New(P2P_50003)
+	}
+
+	if manager.IsDustyOrder(maker) {
+		//return res, errors.New("It's dusty order")
+		return res, errors.New(P2P_50004)
+	}
+
+	remainedAmountS, _ := maker.RemainedAmount()
+	log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ", takerAmountB:" + p2pOrder.AmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
+	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
+		return res, errors.New(P2P_50001)
+	} else {
+		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
+		takerAmountB := new(big.Rat).SetInt64(p2pOrder.AmountB.Int64())
+		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
+			//return res, errors.New("maker's remainedAmount is not enough")
+			log.Info("p2p order SubmitOrderForP2P don't match" + ", makerHash:" + maker.RawOrder.Hash.Hex())
+			return res, errors.New(P2P_50004)
+		}
+	}
+
+	return HandleInputOrder(types.ToP2POrder(p2pOrder))
 }

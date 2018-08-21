@@ -70,6 +70,7 @@ type Order struct {
 	Market                string  `gorm:"column:market;type:varchar(40)"`
 	Side                  string  `gorm:"column:side;type:varchar(40)"`
 	OrderType             string  `gorm:"column:order_type;type:varchar(40)"`
+	P2PSide               string  `gorm:"column:p2p_side;type:varchar(40)"`
 }
 
 // convert types/orderState to dao/order
@@ -117,7 +118,7 @@ func (o *Order) ConvertDown(state *types.OrderState) error {
 	o.Side = state.RawOrder.Side
 	o.OrderType = state.RawOrder.OrderType
 	o.Market = state.RawOrder.Market
-
+	o.P2PSide = state.RawOrder.P2PSide
 	return nil
 }
 
@@ -179,6 +180,7 @@ func (o *Order) ConvertUp(state *types.OrderState) error {
 		state.RawOrder.Side = o.Side
 	}
 	state.RawOrder.OrderType = o.OrderType
+	state.RawOrder.P2PSide = o.P2PSide
 	return nil
 }
 
@@ -186,6 +188,19 @@ func (s *RdsService) GetOrderByHash(orderhash common.Hash) (*Order, error) {
 	order := &Order{}
 	err := s.Db.Where("order_hash = ?", orderhash.Hex()).First(order).Error
 	return order, err
+}
+
+func (s *RdsService) GetOrdersByHashes(orderHashes []common.Hash) ([]Order, error) {
+	var (
+		orders []Order
+		err    error
+	)
+	orderList := make([]string, len(orderHashes))
+	for _, orderHash := range orderHashes {
+		orderList = append(orderList, orderHash.Hex())
+	}
+	err = s.Db.Where("order_hash in (?)", orderList).Find(&orders).Error
+	return orders, err
 }
 
 func (s *RdsService) MarkMinerOrders(filterOrderhashs []string, blockNumber int64) error {
@@ -287,7 +302,7 @@ func (s *RdsService) GetOrderBook(delegate, tokenS, tokenB common.Address, lengt
 		err  error
 	)
 
-	filterStatus := []types.OrderStatus{types.ORDER_NEW, types.ORDER_PARTIAL}
+	filterStatus := []types.OrderStatus{types.ORDER_NEW, types.ORDER_PARTIAL, types.ORDER_PENDING}
 	nowtime := time.Now().Unix()
 	err = s.Db.Where("delegate_address = ?", delegate.Hex()).
 		Where("token_s = ? and token_b = ?", tokenS.Hex(), tokenB.Hex()).
@@ -536,7 +551,6 @@ func (s *RdsService) FlexCancelOrderByHash(owner common.Address, orderhash commo
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
 		Where("order_hash=?", orderhash.Hex()).
-		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -546,7 +560,6 @@ func (s *RdsService) FlexCancelOrderByOwner(owner common.Address, validStatus []
 	now := time.Now().Unix()
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
-		Where("valid_since < ?", now).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -561,7 +574,6 @@ func (s *RdsService) FlexCancelOrderByTime(owner common.Address, cutoff int64, v
 
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
-		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected
@@ -577,7 +589,6 @@ func (s *RdsService) FlexCancelOrderByMarket(owner common.Address, cutoff int64,
 	return s.Db.Model(&Order{}).
 		Where("owner=?", owner.Hex()).
 		Where("market=?", market).
-		Where("valid_since < ?", since).
 		Where("valid_until >= ? ", now).
 		Where("status in (?)", validStatus).
 		Update("status", status).RowsAffected

@@ -31,6 +31,8 @@ const (
 	DefaultCronSpec3Second  = "0/3 * * * * *"
 	DefaultCronSpec5Second  = "0/5 * * * * *"
 	DefaultCronSpec10Second = "0/10 * * * * *"
+	DefaultCronSpec30Second = "0/30 * * * * *"
+	DefaultCronSpec1Minute  = "0 */1 * * * *"
 	DefaultCronSpec5Minute  = "0 */5 * * * *"
 	DefaultCronSpec10Hour   = "0 0 */10 * * *"
 	DefaultCronSpec30Day    = "0 0 0 */30 * *"
@@ -83,20 +85,21 @@ type InvokeInfo struct {
 }
 
 const (
-	eventKeyTickers           = "tickers"
-	eventKeyLoopringTickers   = "loopringTickers"
-	eventKeyTrends            = "trends"
-	eventKeyMarketCap         = "marketcap"
-	eventKeyBalance           = "balance"
-	eventKeyTransaction       = "transaction"
-	eventKeyLatestTransaction = "latestTransaction"
-	eventKeyPendingTx         = "pendingTx"
-	eventKeyDepth             = "depth"
-	eventKeyOrderBook         = "orderBook"
-	eventKeyTrades            = "trades"
-	eventKeyOrders            = "orders"
-	eventKeyOrderTracing      = "orderTracing"
-	eventKeyEstimatedGasPrice = "estimatedGasPrice"
+	eventKeyTickers             = "tickers"
+	eventKeyLoopringTickers     = "loopringTickers"
+	eventKeyTrends              = "trends"
+	eventKeyMarketCap           = "marketcap"
+	eventKeyBalance             = "balance"
+	eventKeyTransaction         = "transaction"
+	eventKeyLatestTransaction   = "latestTransaction"
+	eventKeyPendingTx           = "pendingTx"
+	eventKeyDepth               = "depth"
+	eventKeyOrderBook           = "orderBook"
+	eventKeyTrades              = "trades"
+	eventKeyOrders              = "orders"
+	eventKeyOrderTracing        = "orderTracing"
+	eventKeyEstimatedGasPrice   = "estimatedGasPrice"
+	eventKeyOrderAllocateChange = "orderAllocateChange"
 
 	eventKeyGlobalTicker       = "globalTicker"
 	eventKeyGlobalTrend        = "globalTrend"
@@ -153,26 +156,27 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	}
 
 	so.eventTypeRoute = map[string]InvokeInfo{
-		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec5Second},
-		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec1Minute},
+		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
-		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderBook:         {"GetUnmergedOrderBook", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyTrades:            {"GetLatestFills", FillQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyEstimatedGasPrice: {"GetEstimateGasPrice", nil, true, emitTypeByEvent, DefaultCronSpec5Minute},
 
-		eventKeyBalance:           {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyTransaction:       {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyLatestTransaction: {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyPendingTx:         {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrders:            {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec10Second},
-		eventKeyOrderTracing:      {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec3Second},
+		eventKeyBalance:             {"GetBalance", CommonTokenRequest{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTransaction:         {"GetTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyLatestTransaction:   {"GetLatestTransactions", TransactionQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyPendingTx:           {"GetPendingTransactions", SingleOwner{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyOrders:              {"GetLatestOrders", LatestOrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderTracing:        {"GetOrderByHash", OrderQuery{}, false, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyOrderAllocateChange: {"GetAllEstimatedAllocatedAmount", EstimatedAllocatedAllowanceQuery{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 
-		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Second},
-		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Second},
+		eventKeyGlobalTicker:       {"GetGlobalTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
+		eventKeyGlobalTrend:        {"GetGlobalTrend", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyGlobalMarketTicker: {"GetGlobalMarketTicker", SingleToken{}, true, emitTypeByEvent, DefaultCronSpec10Hour},
-		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Second},
+		eventKeyOrderTransfer:      {"GetOrderTransfer", OrderTransferQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyScanLogin:          {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 		eventKeyCirculrNotify:      {"", nil, true, emitTypeByEvent, DefaultCronSpec30Day},
 	}
@@ -368,7 +372,7 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 
 	mkts, _ := so.walletService.GetSupportedMarket()
 
-	tickerMap := make(map[string]SocketIOJsonResp)
+	tickerMap := make(map[string]string)
 
 	for _, mkt := range mkts {
 		ticker, err := so.walletService.GetTickers(SingleMarket{mkt})
@@ -379,14 +383,15 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 		} else {
 			resp.Data = ticker
 		}
-		tickerMap[mkt] = resp
+		respJson, _ := json.Marshal(resp)
+		tickerMap[mkt] = string(respJson[:])
 	}
 
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			ctx, ok := businesses[eventKeyLoopringTickers]
+			ctx, ok := businesses[eventKeyTickers]
 			if ok {
 				var singleMarket SingleMarket
 				err = json.Unmarshal([]byte(ctx), &singleMarket)
@@ -628,16 +633,14 @@ func (so *SocketIOServiceImpl) broadcastGlobalTicker(input interface{}) (err err
 func (so *SocketIOServiceImpl) broadcastGlobalTrend(input interface{}) (err error) {
 
 	resp := SocketIOJsonResp{}
-	trendMap, err := so.walletService.GetGlobalTrend(SingleToken{})
+	trendMap, err := so.walletService.GetAllGlobalTrend(SingleToken{})
 
 	respMap := make(map[string]string)
 	for k, v := range trendMap {
 		if err != nil {
 			resp = SocketIOJsonResp{Error: err.Error()}
 		} else {
-			vMap := make(map[string][]market.GlobalTrend)
-			vMap[k] = v
-			resp.Data = vMap
+			resp.Data = v
 		}
 
 		respJson, _ := json.Marshal(resp)
@@ -869,17 +872,17 @@ func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error)
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyTransaction]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &TransactionQuery{}
-				log.Info("txQuery owner is " + txQuery.Owner)
+				//log.Info("txQuery owner is " + txQuery.Owner)
 				err = json.Unmarshal([]byte(ctx), txQuery)
 				if err != nil {
 					log.Error("tx query unmarshal error, " + err.Error())
@@ -911,17 +914,17 @@ func (so *SocketIOServiceImpl) handleLatestTransactions(input interface{}) (err 
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyLatestTransaction]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &TransactionQuery{}
-				log.Info("txQuery owner is " + txQuery.Owner)
+				//log.Info("txQuery owner is " + txQuery.Owner)
 				err = json.Unmarshal([]byte(ctx), txQuery)
 				if err != nil {
 					log.Error("tx query unmarshal error, " + err.Error())
@@ -960,13 +963,13 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyPendingTx]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				txQuery := &SingleOwner{}
@@ -1001,28 +1004,71 @@ func (so *SocketIOServiceImpl) handleOrdersUpdate(input interface{}) (err error)
 
 	req := input.(*types.OrderState)
 	owner := req.RawOrder.Owner.Hex()
-	log.Infof("received owner is %s ", owner)
+	//log.Infof("received owner is %s ", owner)
+
+	orderQuery := LatestOrderQuery{Owner: owner, Market: req.RawOrder.Market, OrderType: req.RawOrder.OrderType}
+	orderList, err := so.walletService.GetLatestOrders(orderQuery)
+
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrders]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &LatestOrderQuery{}
 				err = json.Unmarshal([]byte(ctx), query)
-				log.Info("single owner is: " + query.Owner)
+				//log.Info("single owner is: " + query.Owner)
 				if err != nil {
-					log.Error("query unmarshal error, " + err.Error())
+					//log.Error("query unmarshal error, " + err.Error())
 				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) &&
 					strings.ToLower(req.RawOrder.Market) == strings.ToLower(query.Market) &&
 					strings.ToLower(req.RawOrder.OrderType) == strings.ToLower(query.OrderType) {
-					log.Info("emit " + ctx)
+					//log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
-					resp.Data = orderStateToJson(*req)
+					resp.Data = orderList
 					respJson, _ := json.Marshal(resp)
 					v.Emit(eventKeyOrders+EventPostfixRes, string(respJson[:]))
+				}
+			}
+		}
+		return true
+	})
+
+	return nil
+}
+
+func (so *SocketIOServiceImpl) handleOrderAllocateChange(input interface{}) (err error) {
+
+	req := input.(*types.OrderState)
+	owner := req.RawOrder.Owner.Hex()
+	delegateAddress := req.RawOrder.DelegateAddress.Hex()
+	//log.Infof("received order allocated owner  is %s ", owner)
+
+	allocatedQuery := EstimatedAllocatedAllowanceQuery{Owner: owner, DelegateAddress: delegateAddress}
+	allocateMap, err := so.walletService.GetAllEstimatedAllocatedAmount(allocatedQuery)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			ctx, ok := businesses[eventKeyOrderAllocateChange]
+
+			if ok {
+				query := &EstimatedAllocatedAllowanceQuery{}
+				err = json.Unmarshal([]byte(ctx), query)
+				//log.Info("single owner is: " + query.Owner)
+				if err != nil {
+					log.Error("query unmarshal error, " + err.Error())
+				} else if strings.ToUpper(owner) == strings.ToUpper(query.Owner) &&
+					strings.ToLower(req.RawOrder.DelegateAddress.Hex()) == strings.ToLower(delegateAddress) {
+					log.Info("emit ctx " + ctx)
+					resp := SocketIOJsonResp{}
+					resp.Data = allocateMap
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyOrderAllocateChange+EventPostfixRes, string(respJson[:]))
+					log.Info("emit data " + string(respJson))
 				}
 			}
 		}
@@ -1044,7 +1090,7 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrderTracing]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &OrderQuery{}
@@ -1068,10 +1114,13 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 }
 
 func (so *SocketIOServiceImpl) handleOrderUpdate(input interface{}) (err error) {
-	//log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
+	log.Infof("[SOCKETIO-RECEIVE-EVENT] order update.")
 	order := input.(*types.OrderState)
 	so.handleOrdersUpdate(order)
-	so.handleOrderTracing(order)
+	//so.handleOrderTracing(order)
+
+	log.Info("received order " + order.RawOrder.Hash.Hex())
+	so.handleOrderAllocateChange(input)
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
 		return nil
@@ -1118,7 +1167,7 @@ func (so *SocketIOServiceImpl) handleOrderTransfer(input interface{}) (err error
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyOrderTransfer]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &OrderTransferQuery{}
@@ -1182,7 +1231,7 @@ func (so *SocketIOServiceImpl) handleCirculrNotify(input interface{}) (err error
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyCirculrNotify]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &SingleOwner{}

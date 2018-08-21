@@ -153,7 +153,7 @@ func (accountBalances AccountBalances) syncFromCacheWithTokens(tokens ...common.
 	for _, token := range tokens {
 		if types.NilAddress == token {
 			if err := accountBalances.syncEthFromCache(); nil != err {
-				log.Errorf("err:%s", err.Error())
+				log.Warnf("occurs err:%s when get eth balance from cached, it will be get from ethnode.", err.Error())
 			} else {
 				syncedToken[types.NilAddress] = true
 			}
@@ -203,7 +203,7 @@ func (accountBalances AccountBalances) syncFromCacheAll() (uncachedTokens []comm
 	syncedToken := make(map[common.Address]bool)
 
 	if err := accountBalances.syncEthFromCache(); nil != err {
-		log.Errorf("err:%s", err.Error())
+		log.Warnf("err:%s", err.Error())
 	} else {
 		syncedToken[types.NilAddress] = true
 	}

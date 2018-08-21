@@ -170,10 +170,12 @@ func (om *OrderManagerImpl) HandlerOrderRelatedEvent(input eventemitter.EventDat
 		err = HandleGatewayOrder(event)
 	case *types.SubmitRingMethodEvent:
 		err = HandleSubmitRingMethodEvent(event)
+		err = HandleP2PSubmitRing(event)
 	case *types.RingMinedEvent:
 		err = HandleRingMinedEvent(event)
 	case *types.OrderFilledEvent:
 		err = HandleOrderFilledEvent(event)
+		err = HandleP2POrderFilled(event)
 	case *types.OrderCancelledEvent:
 		err = HandleOrderCancelledEvent(event)
 	case *types.CutoffEvent:

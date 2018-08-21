@@ -119,9 +119,9 @@ type CoinMarketCapResult struct {
 	} `json:"metadata"`
 }
 
-type noSupportTokens []common.Address
+type icoTokens []common.Address
 
-func (tokens noSupportTokens) contains(addr common.Address) bool {
+func (tokens icoTokens) contains(addr common.Address) bool {
 	for _, token := range tokens {
 		if token == addr {
 			return true
@@ -131,14 +131,16 @@ func (tokens noSupportTokens) contains(addr common.Address) bool {
 }
 
 type CapProvider_CoinMarketCap struct {
-	baseUrl          string
-	tokenMarketCaps  map[common.Address]*CoinMarketCap
-	notSupportTokens noSupportTokens
-	slugToAddress    map[string]common.Address
-	currency         string
-	duration         int
-	dustValue        *big.Rat
-	stopFuncs        []func()
+	baseUrl         string
+	tokenMarketCaps map[common.Address]*CoinMarketCap
+	icoTokens       icoTokens
+	notSupportTokens map[common.Address]bool
+	//icoTokens	noSupportTokens
+	slugToAddress   map[string]common.Address
+	currency        string
+	duration        int
+	dustValue       *big.Rat
+	stopFuncs       []func()
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValue(tokenAddress common.Address, amount *big.Rat) (*big.Rat, error) {
@@ -151,7 +153,9 @@ func (p *CapProvider_CoinMarketCap) LegalCurrencyValueOfEth(amount *big.Rat) (*b
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValueByCurrency(tokenAddress common.Address, amount *big.Rat, currencyStr string) (*big.Rat, error) {
-	if c, exists := p.tokenMarketCaps[tokenAddress]; !exists {
+	if _,exists := p.notSupportTokens[tokenAddress]; exists {
+		return big.NewRat(int64(0), int64(1)), nil
+	} else if c, exists := p.tokenMarketCaps[tokenAddress]; !exists {
 		return nil, errors.New("not found tokenCap:" + tokenAddress.Hex())
 	} else {
 		v := new(big.Rat).SetInt(c.Decimals)
@@ -191,12 +195,14 @@ func (p *CapProvider_CoinMarketCap) getMarketCapFromRedis(websiteSlug string, cu
 }
 
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
-	if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
+	if _,exists := p.notSupportTokens[tokenAddress]; exists {
+		return big.NewRat(int64(0), int64(1)), nil
+	} else if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
 		var v *big.Rat
 		if quote, exists := c.Quotes[currencyStr]; exists {
 			v = quote.Price
 		} else {
-			if p.notSupportTokens.contains(tokenAddress) {
+			if p.icoTokens.contains(tokenAddress) {
 				wethCap, err := p.getMarketCapFromRedis(util.AllTokens["WETH"].Source, currencyStr)
 				if nil == err {
 					if quote, exists := wethCap.Quotes[currencyStr]; exists {
@@ -367,9 +373,9 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	//todo:use zk to keep
 	//tokenMarketCaps := make(map[common.Address]*CoinMarketCap)
 	syncedFromApi := false
-
+	notSupportTokens := make(map[common.Address]bool)
 	for tokenAddr, c1 := range p.tokenMarketCaps {
-		if p.notSupportTokens.contains(tokenAddr) {
+		if p.icoTokens.contains(tokenAddr) {
 			continue
 		}
 		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
@@ -381,11 +387,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 			data, err = cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
 		}
 		if nil != err {
-			log.Errorf("can't get marketcap of token:%s", tokenAddr.Hex())
+			notSupportTokens[tokenAddr] = true
+			log.Warnf("can't get marketcap of token:%s", tokenAddr.Hex())
 		} else {
 			c := &CoinMarketCap{}
 			if err := json.Unmarshal(data, c); nil != err {
-				log.Errorf("get marketcap of token err:%s", err.Error())
+				notSupportTokens[tokenAddr] = true
+				log.Warnf("get marketcap of token err:%s", err.Error())
 			} else {
 				p.tokenMarketCaps[tokenAddr].Quotes = c.Quotes
 				p.tokenMarketCaps[tokenAddr].CirculatingSupply = c.CirculatingSupply
@@ -396,11 +404,11 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 			}
 		}
 	}
-
+	p.notSupportTokens = notSupportTokens
 	wethAddress := util.AllTokens["WETH"].Protocol
 
 	for currency, wethCap := range p.tokenMarketCaps[wethAddress].Quotes {
-		for _, tokenAddr := range p.notSupportTokens {
+		for _, tokenAddr := range p.icoTokens {
 			if c, exists := p.tokenMarketCaps[tokenAddr]; exists {
 				if nil == c.Quotes {
 					c.Quotes = make(map[string]*MarketCap)
@@ -414,6 +422,11 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	}
 
 	return nil
+}
+
+func (p *CapProvider_CoinMarketCap) IsSupport(token common.Address) bool {
+	_,exists := p.notSupportTokens[token]
+	return !exists
 }
 
 func (p *CapProvider_CoinMarketCap) icoPriceTokens() []common.Address {
@@ -440,7 +453,8 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	provider.baseUrl = options.BaseUrl
 	provider.currency = options.Currency
 	provider.tokenMarketCaps = make(map[common.Address]*CoinMarketCap)
-	provider.notSupportTokens = provider.icoPriceTokens()
+	provider.notSupportTokens = make(map[common.Address]bool)
+	provider.icoTokens = provider.icoPriceTokens()
 	provider.slugToAddress = make(map[string]common.Address)
 	provider.duration = options.Duration
 	provider.dustValue = options.DustValue
@@ -492,8 +506,14 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 }
 
 func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bool {
-	remainedAmountS, _ := state.RemainedAmount()
-	remainedValue, _ := p.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
+	remainedAmountS, remainedAmountB := state.RemainedAmount()
+
+	remainedValue := new(big.Rat)
+	if p.IsSupport(state.RawOrder.TokenS) {
+		remainedValue, _ = p.LegalCurrencyValue(state.RawOrder.TokenS, remainedAmountS)
+	} else {
+		remainedValue, _ = p.LegalCurrencyValue(state.RawOrder.TokenB, remainedAmountB)
+	}
 
 	return p.IsValueDusted(remainedValue)
 }
@@ -501,3 +521,9 @@ func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bo
 func (p *CapProvider_CoinMarketCap) IsValueDusted(value *big.Rat) bool {
 	return p.dustValue.Cmp(value) > 0
 }
+
+
+
+
+
+

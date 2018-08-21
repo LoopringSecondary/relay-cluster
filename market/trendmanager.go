@@ -370,14 +370,7 @@ func calculateTicker(market string, fills []dao.FillEvent, trends []Trend, now t
 			data.Side = util.GetSide(data.TokenS, data.TokenB)
 		}
 
-		if data.Side == util.SideBuy {
-			vol += util.StringToFloat(data.TokenS, data.AmountS)
-			amount += util.StringToFloat(data.TokenB, data.AmountB)
-		} else {
-			vol += util.StringToFloat(data.TokenB, data.AmountB)
-			amount += util.StringToFloat(data.TokenS, data.AmountS)
-		}
-
+		vol, amount = addAmount(vol, amount, data)
 		price := util.CalculatePrice(data.AmountS, data.AmountB, data.TokenS, data.TokenB)
 
 		if result.Open == 0 && price != 0 {
@@ -550,14 +543,7 @@ func (t *TrendManager) insertMinIntervalTrend(interval string, start int64, mkt 
 			data.Side = util.GetSide(data.TokenS, data.TokenB)
 		}
 
-		if data.Side == util.SideBuy {
-			vol += util.StringToFloat(data.TokenS, data.AmountS)
-			amount += util.StringToFloat(data.TokenB, data.AmountB)
-		} else {
-			vol += util.StringToFloat(data.TokenB, data.AmountB)
-			amount += util.StringToFloat(data.TokenS, data.AmountS)
-		}
-
+		vol, amount = addAmount(vol, amount, data)
 		price := util.CalculatePrice(data.AmountS, data.AmountB, data.TokenS, data.TokenB)
 
 		if toInsert.Open == 0 && price != 0 {
@@ -757,14 +743,7 @@ func (t *TrendManager) ScheduleUpdate() {
 							data.Side = util.GetSide(data.TokenS, data.TokenB)
 						}
 
-						if data.Side == util.SideBuy {
-							vol += util.StringToFloat(data.TokenS, data.AmountS)
-							amount += util.StringToFloat(data.TokenB, data.AmountB)
-						} else {
-							vol += util.StringToFloat(data.TokenB, data.AmountB)
-							amount += util.StringToFloat(data.TokenS, data.AmountS)
-						}
-
+						vol, amount = addAmount(vol, amount, data)
 						price := util.CalculatePrice(data.AmountS, data.AmountB, data.TokenS, data.TokenB)
 
 						if open == 0 && price != 0 {
@@ -862,14 +841,7 @@ func (t *TrendManager) aggregate(fills []dao.FillEvent, trends []Trend) (trend T
 			data.Side = util.GetSide(data.TokenS, data.TokenB)
 		}
 
-		if data.Side == util.SideBuy {
-			vol += util.StringToFloat(data.TokenS, data.AmountS)
-			amount += util.StringToFloat(data.TokenB, data.AmountB)
-		} else {
-			vol += util.StringToFloat(data.TokenB, data.AmountB)
-			amount += util.StringToFloat(data.TokenS, data.AmountS)
-		}
-
+		vol, amount = addAmount(vol, amount, data)
 		price := util.CalculatePrice(data.AmountS, data.AmountB, data.TokenS, data.TokenB)
 
 		if high == 0 || high < price {
@@ -1039,12 +1011,12 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 
 		event := input.(*types.OrderFilledEvent)
 		if event.Status != types.TX_STATUS_SUCCESS {
-			return
+			return err
 		}
 
 		newFillModel := &dao.FillEvent{}
 		if err = newFillModel.ConvertDown(event); err != nil {
-			return
+			return err
 		}
 
 		if newFillModel.Side == "" {
@@ -1053,26 +1025,36 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 
 		if newFillModel.Side == util.SideBuy {
 			log.Debug("only calculate sell fill for ticker when ring length is 2")
-			return
+			return err
 		}
 
-		amountSFloat := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS)
+		amountSFloat, err := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS)
+		if err != nil {
+			log.Debug(err.Error())
+			return err
+		}
+
 		if amountSFloat < 10e-8 {
 			log.Debug("amount s less than 10e-8")
-			return
+			return err
 		}
 
-		amountBFloat := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB)
+		amountBFloat, err := util.StringToFloat(newFillModel.TokenB, newFillModel.AmountB)
+		if err != nil {
+			log.Debug(err.Error())
+			return err
+		}
+
 		if amountBFloat < 10e-8 {
 			log.Debug("amount b less than 10e-8")
-			return
+			return err
 		}
 
 		market, wrapErr := util.WrapMarketByAddress(newFillModel.TokenS, newFillModel.TokenB)
 
 		if wrapErr != nil {
 			err = wrapErr
-			return
+			return err
 		}
 
 		if trendInCache, err := redisCache.Get(buildTrendKey(OneHour, market)); err == nil {
@@ -1148,4 +1130,29 @@ func setLprTickerCache(tickers map[string]Ticker, ttl int64) {
 
 func buildTrendKey(interval, mkt string) string {
 	return trendKeyPre + strings.ToUpper(interval) + "_" + strings.ToUpper(mkt)
+}
+
+func addAmount(srcVol, srcAmount float64, data dao.FillEvent) (vol, amount float64) {
+
+	var amountS, amountB float64 = 0, 0
+
+	amountS, err := util.StringToFloat(data.TokenS, data.AmountS)
+	if err != nil {
+		amountS = 0
+	}
+
+	amountB, err = util.StringToFloat(data.TokenB, data.AmountB)
+	if err != nil {
+		amountB = 0
+	}
+
+	if data.Side == util.SideBuy {
+		vol = amountS + srcVol
+		amount += amountB + srcAmount
+	} else {
+		vol += amountB + srcVol
+		amount += amountS + srcAmount
+	}
+
+	return vol, amount
 }

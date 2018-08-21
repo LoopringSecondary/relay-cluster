@@ -18,10 +18,11 @@ This document contains the following sections:
 ## Endport
 ```
 JSON-RPC : http://{hostname}:{port}/rpc/v2/
-JSON-RPC(mainnet) : https://relay1.loopring.io/rpc/v2/
-Ethereum standard JSON-RPC : https://relay1.loopring.io/eth
-SocketIO(local|test) : https://{hostname}:{port}/socket.io/
-SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
+JSON-RPC(mainnet) : https://relay1.loopring.io/rpc/v2/ or https://relay1.loopr.io/rpc/v2/ (better for china 4G network)
+Ethereum standard JSON-RPC : https://relay1.loopring.io/eth or https://relay1.loopr.io/eth (better for china 4G network)
+SocketIO(local|test) : https://{hostname}:{port}/socket.io
+SocketIO(mainnet) : https://relay1.loopring.io/socket.io or https://relay1.loopr.io/socket.io (better for china 4G network)
+*** Some socketio client make append '/socket.io' path in the end of the URL automatically. 
 ```
 
 ## JSON-RPC Methods 
@@ -46,7 +47,6 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io/
 * [loopring_getContracts](#loopring_getcontracts)
 * [loopring_getLooprSupportedMarket](#loopring_getlooprsupportedmarket)
 * [loopring_getLooprSupportedTokens](#loopring_getlooprsupportedtokens)
-* [loopring_getPortfolio](#loopring_getportfolio)
 * [loopring_getTransactions](#loopring_gettransactions)
 * [loopring_unlockWallet](#loopring_unlockwallet)
 * [loopring_notifyTransactionSubmitted](#loopring_notifytransactionsubmitted)
@@ -284,6 +284,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getOrders","params":{se
                  "authPrivateKey":"0x94866e133eb0cc774ca09a9de59c4c671fee6f7e871104d5e14004ac46fcee2b",
                  "market":"LRC-WETH",
                  "side":"sell",
+                 "p2pSide":"maker|taker",
                  "createTime":1525667919
              },
              "dealtAmountS":"0x0",
@@ -1052,52 +1053,6 @@ Get Loopr wallet supported market pairs. Exactly the same as loopring_getSupport
 
 Get Loopr wallet supported tokens. Exactly the same as loopring_getSupportedTokens but the name is different.
 
-### loopring_getPortfolio
-
-Get user's portfolio info.
-
-#### Parameters
-
-- `owner` - The owner address.
-
-```js
-params: [{
-  "owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"
-}]
-```
-
-#### Returns
-
-`Account` - Portfolio info object.
-
-1. `tokens` - All token portfolio array info.
-
-#### Example
-```js
-// Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getPortfolio","params":{see above},"id":64}'
-
-// Result
-{
-  "id":64,
-  "jsonrpc": "2.0",
-  "result": [
-      {
-          "token": "LRC",
-          "amount": "0x000001234d",
-          "percentage": "2.35"
-      },
-      {
-          "token": "WETH",
-          "amount": "0x00000012dae734",
-          "percentage": "80.23"
-      }
-    ]
-}
-```
-
-***
-
 ### loopring_getTransactions
 
 Get user's latest transactions by owner.
@@ -1621,55 +1576,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getEstimateGasPrice","p
 ***
 
 ## SocketIO Methods Reference
-
-### portfolio
-
-Subscribe user's portfolio info by address.
-
-#### subscribe events
-- portfolio_req : emit this event to receive push message.
-- portfolio_res : subscribe this event to receive push message.
-- portfolio_end : emit this event to stop receive push message.
-
-#### Parameters
-
-- `owner` - The owner address.
-
-```js
-socketio.emit("portfolio_req", '{"owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"}', function(data) {
-  // your business code
-});
-socketio.on("portfolio_res", function(data) {
-  // your business code
-});
-```
-
-#### Returns
-
-`portfolios` - Portfolio info object.
-
-1. `tokens` - All token portfolio info array.
-
-#### Example
-```js
-// Request
-
-'{"owner" : "0x847983c3a34afa192cfee860698584c030f4c9db1"}'
-
-// Result
-[
-  {
-    "token": "LRC",
-    "amount": "0x000001234d",
-    "percentage": 2.35
-  },{
-    "token": "WETH",
-    "amount": "0x00000012dae734",
-    "percentage": 80.23
-  }
-]
-```
-***
 
 ### balance
 

@@ -19,22 +19,36 @@
 package manager
 
 import (
+	"encoding/json"
 	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
+	"math/big"
+	"strconv"
 	"strings"
+	"time"
 )
 
-const DefaultP2POrderExpireTime = 3600 * 24 * 7
-const p2pOrderPreKey = "P2P_OWNER_"
 const p2pRelationPreKey = "P2P_RELATION_"
+const splitMark = "_"
+const p2pTakerPreKey = "P2P_TAKERS_"
 
-func init() {
-	p2pRingMinedWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2PRingMined}
-	eventemitter.On(eventemitter.OrderFilled, p2pRingMinedWatcher)
+type P2pOrderRelation struct {
+	Txhash         string
+	Makerorderhash string
+	Takerorderhash string
+	PendingAmount  string
 }
 
-func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash string) error {
+func init() {
+	//submitRingMethodWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2PSubmitRing}
+	//eventemitter.On(eventemitter.Miner_SubmitRing_Method, submitRingMethodWatcher)
+
+	//p2pRingMinedWatcher := &eventemitter.Watcher{Concurrent: false, Handle: HandleP2POrderFilled}
+	//eventemitter.On(eventemitter.OrderFilled, p2pRingMinedWatcher)
+}
+
+func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash, pendingAmount, validUntil string) error {
 
 	takerOwner = strings.ToLower(takerOwner)
 	taker = strings.ToLower(taker)
@@ -42,26 +56,89 @@ func SaveP2POrderRelation(takerOwner, taker, makerOwner, maker, txHash string) e
 	maker = strings.ToLower(maker)
 	txHash = strings.ToLower(txHash)
 
-	cache.SAdd(p2pOrderPreKey+takerOwner, DefaultP2POrderExpireTime, []byte(taker))
-	cache.SAdd(p2pOrderPreKey+makerOwner, DefaultP2POrderExpireTime, []byte(maker))
-	cache.Set(p2pRelationPreKey+taker, []byte(txHash), DefaultP2POrderExpireTime)
-	cache.Set(p2pRelationPreKey+maker, []byte(txHash), DefaultP2POrderExpireTime)
+	untilTime, _ := strconv.ParseInt(validUntil, 10, 64)
+	nowTime := time.Now().Unix()
+	takerExpiredTime := untilTime - nowTime
+	cache.ZAdd(p2pTakerPreKey+maker, takerExpiredTime, []byte(strconv.FormatInt(nowTime, 10)), []byte(txHash+splitMark+pendingAmount))
+
+	//save txhash,maker,taker relations
+	p2pOrderRelationStr, _ := GetP2pOrderRelation(maker, taker, txHash, pendingAmount)
+	cache.Set(p2pRelationPreKey+txHash, p2pOrderRelationStr, takerExpiredTime)
+	cache.Set(p2pRelationPreKey+taker, []byte(txHash), takerExpiredTime)
+
 	return nil
 }
 
-func IsP2PMakerLocked(maker string) bool {
-	exist, err := cache.Exists(p2pRelationPreKey + maker)
-	if err != nil || exist == true {
+// status failed/pending
+func HandleP2PSubmitRing(evt *types.SubmitRingMethodEvent) error {
+	//release taker's failed p2porder pengdingAmount
+	if evt != nil && evt.Status == types.TX_STATUS_FAILED {
+		txHash := strings.ToLower(evt.TxHash.Hex())
+		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
+		if keyExist == true {
+			jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
+			p2pOrderRelation := P2pOrderRelation{}
+			if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
+				log.Errorf("mehtod HandleP2PSubmitRing of p2pOrderRelation syncFromCache err:%s", err.Error())
+				return err
+			} else {
+				maker := p2pOrderRelation.Makerorderhash
+				cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+			}
+		}
+	}
+	return nil
+}
+
+// status success
+func HandleP2POrderFilled(evt *types.OrderFilledEvent) error {
+	//release taker's successed p2porder pengdingAmount
+	if evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
+		txHash := strings.ToLower(evt.TxHash.Hex())
+		keyExist, _ := cache.Exists(p2pRelationPreKey + strings.ToLower(txHash))
+		if keyExist == true {
+			jsonStr, _ := cache.Get(p2pRelationPreKey + txHash)
+			p2pOrderRelation := P2pOrderRelation{}
+			if err := json.Unmarshal(jsonStr, &p2pOrderRelation); nil != err {
+				log.Errorf("metho of HandleP2POrderFilled p2pOrderRelation syncFromCache err:%s", err.Error())
+				return err
+			} else {
+				maker := p2pOrderRelation.Makerorderhash
+				cache.ZRem(p2pTakerPreKey+maker, []byte(txHash+splitMark+p2pOrderRelation.PendingAmount))
+			}
+			cache.Del(p2pRelationPreKey + p2pOrderRelation.Takerorderhash)
+		}
+	}
+	return nil
+}
+
+func GetP2PPendingAmount(maker string) (pendingAmount *big.Rat, err error) {
+	pendingAmount = new(big.Rat)
+	maker = strings.ToLower(maker)
+	if data, err := cache.ZRange(p2pTakerPreKey+maker, 0, -1, false); nil != err {
+		return pendingAmount, err
+	} else {
+		for _, v := range data {
+			pendData, _ := new(big.Int).SetString(strings.Split(string(v), splitMark)[1], 0)
+			pendingAmount = pendingAmount.Add(pendingAmount, new(big.Rat).SetInt(pendData))
+		}
+		return pendingAmount, nil
+	}
+}
+
+func GetP2pOrderRelation(maker, taker, txHash, pendingAmount string) ([]byte, error) {
+	var p2pOrderRelation P2pOrderRelation
+	p2pOrderRelation.Makerorderhash = maker
+	p2pOrderRelation.Takerorderhash = taker
+	p2pOrderRelation.Txhash = txHash
+	p2pOrderRelation.PendingAmount = pendingAmount
+	return json.Marshal(p2pOrderRelation)
+}
+
+func IsP2PTakerLocked(taker string) bool {
+	exist, err := cache.Exists(p2pRelationPreKey + strings.ToLower(taker))
+	if nil != err || exist == true {
 		return true
 	}
 	return false
-}
-
-func HandleP2PRingMined(input eventemitter.EventData) error {
-	if evt, ok := input.(*types.OrderFilledEvent); ok && evt != nil && evt.Status == types.TX_STATUS_SUCCESS {
-		cache.SRem(p2pOrderPreKey+strings.ToLower(evt.Owner.Hex()), []byte(strings.ToLower(evt.OrderHash.Hex())))
-		cache.Del(p2pRelationPreKey + strings.ToLower(evt.OrderHash.Hex()))
-		cache.Del(p2pRelationPreKey + strings.ToLower(evt.NextOrderHash.Hex()))
-	}
-	return nil
 }

@@ -12,13 +12,13 @@ Apply the `motanManger-SecurityGroup` security group. If the security group is n
 #Deploy mysql and write down the username and password
 sudo apt install mysql-server -y
 sudo apt install maven -y
-sudo apt install openjdk-9-jre-headless -y
+sudo apt install openjdk-8-jdk-headless -y
 sudo mkdir -p /opt/loopring/
 sudo chown -R ubuntu:ubuntu /opt/loopring/
 cd /opt/loopring/
 git clone https://github.com/weibocom/motan.git
 cd motan
-mvn install
+mvn install -DskipTests
 cd motan-manager
 ```
 

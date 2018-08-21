@@ -221,11 +221,11 @@ SocketIO将底层通信封装成事件编程模型，提供基于事件的长连
 3. 钱包要使用中继，需要一些中继和以太坊节点相关配置，这些配置项在主网和我们测试环境中不同，这里介绍各个配置项，并给出测试环境配置：
 
 ```
-DelegateAddress 请参考词汇表，测试环境地址：0xa0af16edd397d9e826295df9e564b10d57e3c457
-ProtocolImplAddress，请参考词汇表，测试环境地址：0x456044789a41b277f033e4d79fab2139d69cd154
-walletAddress，钱包分润地址，钱包自己设置
-chainId，以太坊EIP155引入，为了防止重放攻击，测试环境值：7107171
-tokens列表，钱包配置的token列表，包含token详细信息，也可以通过loopring_getLooprSupportedTokens获取中继支持的token列表
+DelegateAddress     - 请参考词汇表，测试环境地址：0xa0af16edd397d9e826295df9e564b10d57e3c457
+ProtocolImplAddress - 请参考词汇表，测试环境地址：0x456044789a41b277f033e4d79fab2139d69cd154
+walletAddress       - 钱包分润地址，钱包自己设置
+chainId             - 以太坊EIP155引入，为了防止重放攻击，测试环境值：7107171
+tokens List         - 钱包配置的token列表，包含token详细信息，也可以通过loopring_getLooprSupportedTokens获取中继支持的token列表
 
 ```
 4. 中继线上版本只支持https, 测试环境只支持http

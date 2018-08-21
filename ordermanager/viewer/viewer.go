@@ -34,6 +34,7 @@ type OrderViewer interface {
 	GetOrders(query map[string]interface{}, statusList []types.OrderStatus, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestOrders(query map[string]interface{}, length int) ([]types.OrderState, error)
 	GetOrderByHash(hash common.Hash) (*types.OrderState, error)
+	GetOrdersByHashes(hash []common.Hash) ([]types.OrderState, error)
 	FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (dao.PageResult, error)
 	GetLatestFills(query map[string]interface{}, limit int) ([]dao.FillEvent, error)
 	FindFillsByRingHash(ringHash common.Hash) (result []dao.FillEvent, err error)
@@ -143,6 +144,23 @@ func (om *OrderViewerImpl) GetOrderByHash(hash common.Hash) (orderState *types.O
 	}
 
 	return &result, nil
+}
+
+func (om *OrderViewerImpl) GetOrdersByHashes(orders []common.Hash) (orderState []types.OrderState, err error) {
+	var result types.OrderState
+	orderList, err := om.rds.GetOrdersByHashes(orders)
+	if err != nil {
+		return nil, err
+	}
+	rst := make([]types.OrderState, 0)
+	for _, order := range orderList {
+		if err := order.ConvertUp(&result); err != nil {
+			return nil, err
+		}
+		rst = append(rst, result)
+	}
+
+	return rst, nil
 }
 
 func (om *OrderViewerImpl) FillsPageQuery(query map[string]interface{}, pageIndex, pageSize int) (result dao.PageResult, err error) {

@@ -22,10 +22,8 @@ import (
 	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-cluster/txmanager/cache"
 	txtyp "github.com/Loopring/relay-cluster/txmanager/types"
-	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
-	"strconv"
 	"strings"
 )
 
@@ -226,24 +224,3 @@ func safeOwner(ownerStr string) string           { return common.HexToAddress(ow
 func safeStatus(statusStr string) types.TxStatus { return types.StrToTxStatus(statusStr) }
 func safeType(typStr string) txtyp.TxType        { return txtyp.StrToTxType(typStr) }
 func safeSymbol(symbol string) string            { return strings.ToUpper(symbol) }
-
-func protocolToSymbol(address common.Address) string {
-	if address == types.NilAddress {
-		return txtyp.SYMBOL_ETH
-	}
-	symbol := util.AddressToAlias(address.Hex())
-	return safeSymbol(symbol)
-}
-
-func symbolToProtocol(symbol string) common.Address {
-	symbol = safeSymbol(symbol)
-	if symbol == txtyp.SYMBOL_ETH {
-		return types.NilAddress
-	}
-	return util.AliasToAddress(symbol)
-}
-
-func txLogIndexStr(txhash string, logindex int64) string {
-	logindexstr := strconv.Itoa(int(logindex))
-	return txhash + "-" + logindexstr
-}

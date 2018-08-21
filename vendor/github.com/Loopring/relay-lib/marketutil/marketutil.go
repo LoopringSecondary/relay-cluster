@@ -41,17 +41,19 @@ type TokenPair struct {
 	TokenB common.Address
 }
 
-var MarketBaseOrder = map[string]uint8{"BAR": 5, "LRC": 10, "WETH": 20, "DAI": 30}
+var MarketBaseOrder = map[string]uint8{"BAR": 5, "LRC": 10, "WETH": 20, "USDT": 30}
 
 type TokenStandard uint8
 
-func StringToFloat(token string, amount string) float64 {
+func StringToFloat(token string, amount string) (result float64, err error) {
 	rst, _ := new(big.Rat).SetString(amount)
-	ts, _ := AddressToToken(common.HexToAddress(token))
+	ts, err := AddressToToken(common.HexToAddress(token)); if err != nil {
+		return result, err
+	}
 	weiRat := new(big.Rat).SetInt64(ts.Decimals.Int64())
 	rst.Quo(rst, weiRat)
-	result, _ := rst.Float64()
-	return result
+	result, _ = rst.Float64()
+	return result, nil
 }
 
 var (

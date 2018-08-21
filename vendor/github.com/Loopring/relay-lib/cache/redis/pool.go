@@ -550,3 +550,28 @@ func (impl *RedisCacheImpl) SMembers(key string) ([][]byte, error) {
 	}
 	return res, err
 }
+
+func (impl *RedisCacheImpl) ZRem(key string, members ...[]byte) (int64, error) {
+	if len(members) == 0 {
+		return 0, fmt.Errorf("redis zrem members empty")
+	}
+	//log.Info("[REDIS-SRem] key : " + key)
+
+	conn := impl.pool.Get()
+	defer conn.Close()
+
+	vs := []interface{}{}
+	vs = append(vs, key)
+	for _, v := range members {
+		vs = append(vs, v)
+	}
+	reply, err := conn.Do("zrem", vs...)
+
+	if err != nil {
+		log.Errorf(" key:%s, err:%s", key, err.Error())
+		return 0, err
+	} else {
+		res := reply.(int64)
+		return res, err
+	}
+}
