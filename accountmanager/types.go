@@ -37,7 +37,6 @@ const (
 	BalancePrefix     = "balance_"
 	BalanceEthPrefix  = "balance_eth_"
 	AllowancePrefix   = "allowance_"
-	CustomTokenPrefix = "customtoken_"
 )
 
 type AccountBase struct {
@@ -83,11 +82,10 @@ func parseBalanceCacheField(field []byte) common.Address {
 
 func (b AccountBalances) supportedAllTokens() []common.Address {
 	tokens := []common.Address{}
-	for _, token := range util.AllTokens {
-		tokens = append(tokens, token.Protocol)
-	}
-	for _, token := range b.CustomTokens {
-		tokens = append(tokens, token.Protocol)
+	if tokenList,err := util.GetCustomTokenList(b.Owner); nil == err {
+		for _,addr := range tokenList {
+			tokens = append(tokens, addr.Address)
+		}
 	}
 	tokens = append(tokens, types.NilAddress)
 	return tokens
@@ -519,6 +517,7 @@ func (b *ChangedOfBlock) cacheBalanceKey() string {
 func (b *ChangedOfBlock) cacheBalanceField(owner, token common.Address) []byte {
 	return append(owner.Bytes(), token.Bytes()...)
 }
+
 func (b *ChangedOfBlock) parseCacheBalanceField(data []byte) (owner, token common.Address) {
 	return common.BytesToAddress(data[0:20]), common.BytesToAddress(data[20:])
 }
@@ -605,6 +604,14 @@ func (b *ChangedOfBlock) batchBalanceReqs() loopringaccessor.BatchBalanceReqs {
 					reqs = append(reqs, req)
 				}
 			}
+			//if util.HadRegistedByAddress(accountAddr, token) {
+			//	log.Debugf("3---batchBalanceReqs:%s,%s", accountAddr.Hex(), token.Hex())
+			//	req := &loopringaccessor.BatchBalanceReq{}
+			//	req.Owner = accountAddr
+			//	req.Token = token
+			//	req.BlockParameter = "latest"
+			//	reqs = append(reqs, req)
+			//}
 		}
 	}
 	return reqs

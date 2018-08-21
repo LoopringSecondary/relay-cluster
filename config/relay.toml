@@ -15,7 +15,6 @@ title = "miner"
         encode_level = "lowercase"
         encode_time = "iso8601"
 
-
 [mysql]
     hostname = "127.0.0.1"
     port = "3306"
