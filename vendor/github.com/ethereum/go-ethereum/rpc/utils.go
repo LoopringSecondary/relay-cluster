@@ -143,9 +143,6 @@ METHODS:
 
 		firstArg := 1
 		numIn := mtype.NumIn()
-		if numIn >= 2 {
-			println("suitableCallbackssuitableCallbackssuitableCallbacks", mname, h.hasCtx, contextType.String(), mtype.In(1).String())
-		}
 		if numIn >= 2 && mtype.In(1) == contextType {
 			h.hasCtx = true
 			firstArg = 2
@@ -205,6 +202,7 @@ METHODS:
 			callbacks[mname] = &h
 		}
 	}
+
 	return callbacks, subscriptions
 }
 

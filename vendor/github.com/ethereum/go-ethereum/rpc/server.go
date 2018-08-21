@@ -24,7 +24,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"encoding/json"
+
 	"github.com/ethereum/go-ethereum/log"
 	"gopkg.in/fatih/set.v0"
 )
@@ -139,6 +139,7 @@ func (s *Server) serveRequest(codec ServerCodec, singleShot bool, options CodecO
 		s.codecs.Remove(codec)
 		s.codecsMu.Unlock()
 	}()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -190,8 +191,6 @@ func (s *Server) serveRequest(codec ServerCodec, singleShot bool, options CodecO
 			if batch {
 				s.execBatch(ctx, codec, reqs)
 			} else {
-				data,_ := json.Marshal(reqs[0].svcname)
-				println("##################WithCancel:", string(data))
 				s.exec(ctx, codec, reqs[0])
 			}
 			return nil
@@ -301,8 +300,6 @@ func (s *Server) handle(ctx context.Context, codec ServerCodec, req *serverReque
 	}
 
 	arguments := []reflect.Value{req.callb.rcvr}
-	data,_ := json.Marshal(ctx)
-	println("##################", string(data))
 	if req.callb.hasCtx {
 		arguments = append(arguments, reflect.ValueOf(ctx))
 	}
@@ -389,7 +386,7 @@ func (s *Server) readRequest(codec ServerCodec) ([]*serverRequest, bool, Error) 
 	for i, r := range reqs {
 		var ok bool
 		var svc *service
-		
+
 		if r.err != nil {
 			requests[i] = &serverRequest{id: r.id, err: r.err}
 			continue
