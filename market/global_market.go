@@ -261,7 +261,7 @@ func (g *GlobalMarket) GetGlobalTrend(token string) (trend []GlobalTrend, err er
 	if err != nil {
 		return trend, err
 	}
-	request := GlobalTrendReq{TrendAnchor: "usd", NameId: strings.ToLower(nameId), Limit: int64(90), Period: "1d"}
+	request := GlobalTrendReq{TrendAnchor: "usd", NameId: strings.ToLower(nameId), Limit: int64(180), Period: "1d"}
 	urlParam, err := g.Sign(request)
 	if err != nil {
 		return trend, err
