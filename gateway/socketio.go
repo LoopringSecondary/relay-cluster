@@ -223,9 +223,6 @@ func (so *SocketIOServiceImpl) Start() {
 
 		server.OnEvent("/", aliasOfV+EventPostfixReq, func(s socketio.Conn, msg string) {
 
-			log.Info("====> received event " + aliasOfV)
-			log.Info("====> received message " + msg)
-
 			context := make(map[string]string)
 			if s != nil && s.Context() != nil {
 				context = s.Context().(map[string]string)
@@ -1235,7 +1232,7 @@ func (so *SocketIOServiceImpl) handleCirculrNotify(input interface{}) (err error
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
 			ctx, ok := businesses[eventKeyCirculrNotify]
-			log.Infof("cxt contains event key %b", ok)
+			//log.Infof("cxt contains event key %b", ok)
 
 			if ok {
 				query := &SingleOwner{}
