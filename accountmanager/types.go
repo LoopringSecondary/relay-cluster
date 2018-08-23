@@ -487,7 +487,7 @@ func (accountAllowances *AccountAllowances) syncFromEthNode(fields [][]byte) err
 }
 
 func (accountAllowances *AccountAllowances) getOrSave(ttl int64, tokens, spenders []common.Address) error {
-	if uncachedFields, err := accountAllowances.syncFromCache(tokens, spenders); nil != err {
+	if uncachedFields, err := accountAllowances.syncFromCache(tokens, spenders); nil != err || len(uncachedFields) > 0 {
 		if err := accountAllowances.syncFromEthNode(uncachedFields); nil != err {
 			return err
 		} else {

@@ -120,7 +120,7 @@ func getAndSetCustomToken(key string, token CustomToken) (err error) {
 
 func AddToken(address common.Address, token CustomToken) error {
 
-	tokens, err := GetCustomTokenList(address)
+	tokens, err := GetAllCustomTokenList()
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,8 @@ func hadRegistedInner(tokenMap map[string]CustomToken, address common.Address) b
 
 func AddressToSymbol(address, token common.Address) (symbol string, err error) {
 
-	tokens, err := GetCustomTokenList(address); if err != nil {
+	tokens, err := GetCustomTokenList(address)
+	if err != nil {
 		return symbol, err
 	}
 
