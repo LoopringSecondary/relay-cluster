@@ -722,7 +722,7 @@ func (w *WalletServiceImpl) SubmitRingForP2P(p2pRing P2PRingRequest) (res string
 		return res, errors.New(P2P_50001)
 	} else {
 		log.Info("p2p order SubmitRingForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
-		takerAmountB := new(big.Rat).SetInt64(taker.RawOrder.AmountB.Int64())
+		takerAmountB, _ := new(big.Rat).SetString(taker.RawOrder.AmountB.String())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
 			log.Info("p2p order SubmitRingForP2P don't match, makerHash" + maker.RawOrder.Hash.Hex())
