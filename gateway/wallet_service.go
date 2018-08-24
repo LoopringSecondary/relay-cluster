@@ -1989,7 +1989,7 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonReques
 		return res, errors.New(P2P_50001)
 	} else {
 		log.Info("p2p order SubmitOrderForP2P pendingAmountB:" + pendingAmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
-		takerAmountB := new(big.Rat).SetInt64(p2pOrder.AmountB.Int64())
+		takerAmountB, _ := new(big.Rat).SetString(p2pOrder.AmountB.String())
 		if takerAmountB.Cmp(remainedAmountS.Sub(remainedAmountS, pendingAmountB)) > 0 {
 			//return res, errors.New("maker's remainedAmount is not enough")
 			log.Info("p2p order SubmitOrderForP2P don't match" + ", makerHash:" + maker.RawOrder.Hash.Hex())
