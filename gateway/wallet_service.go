@@ -1980,7 +1980,7 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonReques
 
 	if manager.IsDustyOrder(maker) {
 		//return res, errors.New("It's dusty order")
-		return res, errors.New(P2P_50004)
+		return res, errors.New(P2P_50007)
 	}
 
 	remainedAmountS, _ := maker.RemainedAmount()
