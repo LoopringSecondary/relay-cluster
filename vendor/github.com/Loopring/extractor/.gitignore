@@ -1,0 +1,9 @@
+# Created by .ignore support plugin (hsz.mobi)
+
+.idea
+extractor.iml
+config/debug.toml
+config/debug_tokens.json
+vendor.sh
+zap.log
+err.log

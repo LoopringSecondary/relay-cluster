@@ -193,3 +193,8 @@ func (s *RdsService) GetMaxSuccessNonce(owner common.Address) (*big.Int, error) 
 func (s *RdsService) RollBackTxEntity(from, to int64) error {
 	return s.Db.Model(&TransactionEntity{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
+
+func (s *RdsService) GetGas(txHash string) (res TransactionEntity) {
+	s.Db.Raw("select * from lpr_transaction_entities where tx_hash = '" + txHash + "' limit 1").Find(&res)
+	return
+}

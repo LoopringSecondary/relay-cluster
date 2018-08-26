@@ -173,3 +173,13 @@ func (s *RdsService) IsMiner(miner common.Address) bool {
 	}
 	return true
 }
+
+func (s *RdsService) GetAllRings() (res []RingMinedEvent) {
+	s.Db.Raw("select * from lpr_ring_mined_events " +
+		"where fork = 0 " +
+		"and miner != '' " +
+		"and (ring_hash, tx_hash) not in (select ring_hash, tx_hash from lpr_full_fill_events) " +
+		"and tx_hash not in (select tx_hash from lpr_fail_fills) " +
+		"and tx_hash not in (select a.tx_hash from lpr_fill_events a where a.fork != 0 or a.market like '%FOO%')").Scan(&res)
+	return
+}

@@ -28,6 +28,8 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
+	"github.com/Loopring/extractor/extractor"
 )
 
 // 所有来自gateway的订单都是新订单
@@ -71,6 +73,8 @@ func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
 		return err
 	}
 
+	go SetFullFills(model)
+
 	log.Debugf("order manager, submitRingHandler, tx:%s, txstatus:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
 
 	for _, v := range event.OrderList {
@@ -94,13 +98,18 @@ func HandleRingMinedEvent(event *types.RingMinedEvent) error {
 	)
 	if model, err = rds.FindRingMined(event.TxHash.Hex()); err != nil {
 		model.ConvertDown(event)
-		return rds.Add(model)
+		err = rds.Add(model)
 	} else if IsEventDuplicate(event.Status, model.Status) {
-		return fmt.Errorf("order manager, ringMinedHandler, tx:%s, txstatus:%s event duplicate", event.TxHash.Hex(), types.StatusStr(event.Status))
+		err = fmt.Errorf("order manager, ringMinedHandler, tx:%s, txstatus:%s event duplicate", event.TxHash.Hex(), types.StatusStr(event.Status))
 	} else {
 		model.ConvertDown(event)
-		return rds.Save(model)
+		err = rds.Save(model)
 	}
+	if err != nil {
+		return err
+	}
+	go SetFullFills(model)
+	return nil
 }
 
 func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
@@ -341,4 +350,22 @@ func HandleCutoffPair(event *types.CutoffPairEvent) error {
 	}
 
 	return nil
+}
+
+func SetFullFills(ring *dao.RingMinedEvent) {
+	var event extractor.EventData
+	viewer.GetEvent(&event)
+	fills := rds.GetAllFills(ring.Miner, ring.TxHash)
+	if len(fills) < 2 {
+		fills = viewer.GetFills(ring, &event)
+		if len(fills) == 0 {
+			rds.Add(&dao.FailFill{TxHash: ring.TxHash})
+			return
+		}
+	}
+	viewer.FormatFullFills(ring, fills)
+	if len(fills) > 0 {
+		viewer.ClearRingTrackerCache()
+	}
+	rds.AddFullFills(fills)
 }
