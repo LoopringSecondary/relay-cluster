@@ -1133,16 +1133,22 @@ func (w *WalletServiceImpl) GetSupportedTokens() (markets []types.Token, err err
 	for _, v := range util.AllTokens {
 		markets = append(markets, v)
 	}
+	return markets, err
+}
 
-	customTokens, err := util.GetAllCustomTokenList()
+func (w *WalletServiceImpl) GetCustomTokens(req SingleOwner) (markets []types.Token, err error) {
+	markets = make([]types.Token, 0)
+	if !util.IsAddress(req.Owner) {
+		return markets, errors.New("illegal address format in request")
+	}
+
+	customTokens, err := util.GetCustomTokenList(common.HexToAddress(req.Owner))
 	if nil != err {
 		return markets, err
 	}
 
 	for _, ct := range customTokens {
-		if _, ok := util.AllTokens[ct.Symbol]; !ok {
-			markets = append(markets, types.Token{Protocol: ct.Address, Symbol: ct.Symbol, Decimals: ct.Decimals})
-		}
+		markets = append(markets, types.Token{Protocol: ct.Address, Symbol: ct.Symbol, Decimals: ct.Decimals})
 	}
 	return markets, err
 }
