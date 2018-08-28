@@ -163,7 +163,7 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 	tx1.Owner = src.Sender
 	tx1.Type = TX_TYPE_SEND
 	if symbol, err := util.AddressToSymbol(tx1.Owner, src.Protocol); err != nil {
-		return list, fmt.Errorf("transaction manager,transfer view error:%s", err.Error())
+		return list, fmt.Errorf("transaction manager,tx:%s, transfer view error:%s", tx1.TxHash.Hex(), err.Error())
 	} else {
 		tx1.Symbol = symbol
 	}
@@ -176,7 +176,7 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 	tx2.Owner = src.Receiver
 	tx2.Type = TX_TYPE_RECEIVE
 	if symbol, err := util.AddressToSymbol(tx2.Owner, src.Protocol); err != nil {
-		return list, fmt.Errorf("transaction manager,transfer view error:%s", err.Error())
+		return list, fmt.Errorf("transaction manager,tx:%s, transfer view error:%s", tx2.TxHash.Hex(), err.Error())
 	} else {
 		tx2.Symbol = symbol
 		list = append(list, tx2)
@@ -309,7 +309,7 @@ func OrderFilledView(src *types.OrderFilledEvent) ([]TransactionView, error) {
 
 func (tx *TransactionView) fullFilled(src types.TxInfo) error {
 	if src.Nonce == nil || src.GasLimit == nil || src.GasPrice == nil {
-		return fmt.Errorf("transaction manager, full fill tx view error: nonce/gas/gasPrice cann't be nill")
+		return fmt.Errorf("transaction manager, tx:%s, full fill tx view error: nonce/gas/gasPrice cann't be nill", src.TxHash.Hex())
 	}
 
 	tx.TxHash = src.TxHash

@@ -280,7 +280,7 @@ func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) e
 
 func (tx *TransactionEntity) fullFilled(src types.TxInfo) error {
 	if src.Nonce == nil || src.GasPrice == nil || src.GasLimit == nil || src.Value == nil {
-		return fmt.Errorf("transaction manager, full fill tx entity error: nonce/gas/gasPrice/value cann't be nill")
+		return fmt.Errorf("transaction manager, tx:%s full fill tx entity error: nonce/gas/gasPrice/value cann't be nill", src.TxHash.Hex())
 	}
 
 	tx.Hash = src.TxHash
