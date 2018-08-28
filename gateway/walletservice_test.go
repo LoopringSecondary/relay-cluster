@@ -25,8 +25,8 @@ import (
 	//dao2 "github.com/Loopring/relay-lib/dao"
 	"encoding/json"
 	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-cluster/test"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -188,15 +188,29 @@ func TestGetPow(t *testing.T) {
 
 func TestWalletServiceImpl_GetCityPartnerStatus(t *testing.T) {
 	//cfg := test.LoadConfig()
-	rds := test.Rds()
-	walletService := gateway.NewWalletServiceRds(rds)
+	//rds := test.Rds()
+	//walletService := gateway.NewWalletServiceRds(rds)
 	filledEvent := &types.OrderFilledEvent{}
 	filledEvent.OrderHash = common.HexToHash("0x98a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
 	filledEvent.Ringhash = common.HexToHash("0x88a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
 	filledEvent.LrcFee = new(big.Int).SetInt64(1000000)
 	filledEvent.SplitB = new(big.Int).SetInt64(2000000)
 	filledEvent.SplitS = new(big.Int).SetInt64(3000000)
-	if err := walletService.HandleFilledEventForCityPartner(filledEvent); nil != err {
+	//if err := walletService.HandleFilledEventForCityPartner(filledEvent); nil != err {
+	//t.Error(err.Error())
+	//}
+}
+
+func TestAddCustomToken(t *testing.T) {
+	addTokenReq := &gateway.AddTokenReq{}
+	addTokenReq.Owner = "0x415D736752AC1Ec080acb655fF5eadc0610b0317"
+	addTokenReq.Decimals = 18
+	addTokenReq.TokenContractAddress = "0xab95e915c123fded5bdfb6325e35ef5515f1ea69"
+	addTokenReq.Symbol = "XNN"
+
+	err := marketutil.AddToken(common.HexToAddress(addTokenReq.Owner),
+		marketutil.CustomToken{Address: common.HexToAddress(addTokenReq.TokenContractAddress), Symbol: addTokenReq.Symbol, Decimals: new(big.Int).SetInt64(addTokenReq.Decimals)})
+	if nil != err {
 		t.Error(err.Error())
 	}
 }
