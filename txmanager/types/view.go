@@ -24,6 +24,7 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"github.com/Loopring/relay-lib/log"
 )
 
 type TransactionView struct {
@@ -46,7 +47,7 @@ func ApproveView(src *types.ApprovalEvent) (TransactionView, error) {
 		err error
 	)
 
-	if tx.Symbol, err = util.GetSymbolWithAddress(src.Protocol); err != nil {
+	if tx.Symbol, err = util.AddressToSymbol(src.Owner, src.Protocol); err != nil {
 		return tx, err
 	}
 	if err = tx.fullFilled(src.TxInfo); err != nil {
@@ -154,35 +155,46 @@ func WethWithdrawalView(src *types.WethWithdrawalEvent) ([]TransactionView, erro
 }
 
 func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
-	var (
-		list     []TransactionView
-		tx1, tx2 TransactionView
-	)
+	var list     []TransactionView
 
-	tx1.Amount = src.Amount
-	tx1.Owner = src.Sender
-	tx1.Type = TX_TYPE_SEND
-	if symbol, err := util.AddressToSymbol(tx1.Owner, src.Protocol); err != nil {
-		return list, fmt.Errorf("transaction manager,tx:%s, transfer view error:%s", tx1.TxHash.Hex(), err.Error())
+	if tx, err := singleTransferView(src, true); err == nil {
+		list = append(list, tx)
 	} else {
-		tx1.Symbol = symbol
+		log.Debugf("transaction manager,tx:%s, transfer sender view error:%s", src.TxHash.Hex(), err.Error())
 	}
-	if err := tx1.fullFilled(src.TxInfo); err != nil {
-		return list, err
-	}
-	list = append(list, tx1)
 
-	tx2 = tx1
-	tx2.Owner = src.Receiver
-	tx2.Type = TX_TYPE_RECEIVE
-	if symbol, err := util.AddressToSymbol(tx2.Owner, src.Protocol); err != nil {
-		return list, fmt.Errorf("transaction manager,tx:%s, transfer view error:%s", tx2.TxHash.Hex(), err.Error())
+	if tx, err := singleTransferView(src, false); err == nil {
+		list = append(list, tx)
 	} else {
-		tx2.Symbol = symbol
-		list = append(list, tx2)
+		log.Debugf("transaction manager,tx:%s, transfer receiver view error:%s", src.TxHash.Hex(), err.Error())
 	}
 
 	return list, nil
+}
+
+func singleTransferView(src *types.TransferEvent, isSender bool) (TransactionView, error) {
+	tx  := TransactionView{}
+	tx.Amount = src.Amount
+
+	if isSender {
+		tx.Owner = src.Sender
+		tx.Type = TX_TYPE_SEND
+	} else {
+		tx.Owner = src.Receiver
+		tx.Type = TX_TYPE_RECEIVE
+	}
+
+	if symbol, err := util.AddressToSymbol(tx.Owner, src.Protocol); err != nil {
+		return tx, err
+	} else {
+		tx.Symbol = symbol
+	}
+
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return tx, err
+	}
+
+	return tx, nil
 }
 
 func EthTransferView(src *types.EthTransferEvent) ([]TransactionView, error) {

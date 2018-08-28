@@ -130,12 +130,12 @@ func TestEthNodeAccessor_EthBalance(t *testing.T) {
 }
 
 func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
-	from := account1
-	to := account2
-	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(150))
+	from := test.Entity().Creator.Address
+	to := test.Entity().Accounts[0].Address
+	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10))
 
 	erc20abi := loopringaccessor.Erc20Abi()
-	tokenAddress := lrcTokenAddress
+	tokenAddress := common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
 	callMethod := accessor.ContractSendTransactionMethod("latest", erc20abi, tokenAddress)
 
 	hash, _, err := callMethod(from, "transfer", gas, gasPrice, nil, to, amount)
@@ -150,8 +150,8 @@ func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
 }
 
 func TestEthNodeAccessor_ERC20Balance(t *testing.T) {
-	accounts := []common.Address{common.HexToAddress("0x750ad4351bb728cec7d639a9511f9d6488f1e259"), common.HexToAddress("0x251f3bd45b06a8b29cb6d171131e192c1254fec1")}
-	tokens := []common.Address{common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), common.HexToAddress("0xe1C541BA900cbf212Bc830a5aaF88aB499931751")}
+	accounts := []common.Address{test.Entity().Creator.Address, test.Entity().Accounts[0].Address}
+	tokens := []common.Address{common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")}
 
 	for _, tokenAddress := range tokens {
 		for _, account := range accounts {

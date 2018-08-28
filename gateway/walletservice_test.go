@@ -32,6 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
+	"github.com/Loopring/relay-cluster/test"
 	"math/big"
 	"strconv"
 	"strings"
@@ -202,14 +203,14 @@ func TestWalletServiceImpl_GetCityPartnerStatus(t *testing.T) {
 }
 
 func TestAddCustomToken(t *testing.T) {
-	addTokenReq := &gateway.AddTokenReq{}
-	addTokenReq.Owner = "0x415D736752AC1Ec080acb655fF5eadc0610b0317"
-	addTokenReq.Decimals = 18
-	addTokenReq.TokenContractAddress = "0xab95e915c123fded5bdfb6325e35ef5515f1ea69"
-	addTokenReq.Symbol = "XNN"
+	owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
 
-	err := marketutil.AddToken(common.HexToAddress(addTokenReq.Owner),
-		marketutil.CustomToken{Address: common.HexToAddress(addTokenReq.TokenContractAddress), Symbol: addTokenReq.Symbol, Decimals: new(big.Int).SetInt64(addTokenReq.Decimals)})
+	customToken := marketutil.CustomToken{}
+	customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
+	customToken.Symbol = "XNN"
+	customToken.Decimals = new(big.Int).SetInt64(18)
+
+	err := marketutil.AddToken(owner, customToken)
 	if nil != err {
 		t.Error(err.Error())
 	}
