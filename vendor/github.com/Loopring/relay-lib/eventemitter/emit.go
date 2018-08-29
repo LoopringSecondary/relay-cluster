@@ -99,6 +99,12 @@ type Watcher struct {
 	Handle     func(eventData EventData) error
 }
 
+func (w Watcher) debugHandle(eventData EventData) {
+	if err := w.Handle(eventData); err != nil {
+		log.Debugf(err.Error())
+	}
+}
+
 func Un(topic string, watcher *Watcher) {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -125,7 +131,7 @@ func Emit(topic string, eventData EventData) {
 	var wg sync.WaitGroup
 	for _, ob := range watchers[topic] {
 		if ob.Concurrent {
-			go ob.Handle(eventData)
+			go ob.debugHandle(eventData)
 		} else {
 			wg.Add(1)
 			go func(ob *Watcher) {
@@ -133,9 +139,7 @@ func Emit(topic string, eventData EventData) {
 				defer func() {
 					wg.Add(-1)
 				}()
-				if err := ob.Handle(eventData); err != nil {
-					log.Errorf(err.Error())
-				}
+				ob.debugHandle(eventData)
 			}(ob)
 		}
 	}

@@ -380,7 +380,7 @@ Get depth and accuracy by token pair
 #### Parameters
 
 1. `market` - The market pair.
-2 `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
+2. `delegateAddress` - The loopring [TokenTransferDelegate Protocol](https://github.com/Loopring/token-listing/blob/master/ethereum/deployment.md).
 3. `length` - The length of the depth data. default is 20.
 
 

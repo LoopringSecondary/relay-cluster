@@ -120,7 +120,7 @@ func getAndSetCustomToken(key string, token CustomToken) (err error) {
 
 func AddToken(address common.Address, token CustomToken) error {
 
-	tokens, err := GetAllCustomTokenList()
+	tokens, err := GetCustomTokenList(address)
 	if err != nil {
 		return err
 	}
