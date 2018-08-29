@@ -326,6 +326,7 @@ type RingMinedInfo struct {
 	TotalSplitFee      map[string]*big.Int `json:"totalSplitFee"`
 	TradeAmount        int                 `json:"tradeAmount"`
 	Time               int64               `json:"timestamp"`
+	Status             uint8               `json:"status"`
 }
 
 type Token struct {
@@ -1843,6 +1844,7 @@ func fillDetail(ring dao.RingMinedEvent, fills []dao.FillEvent) (rst RingMinedDe
 	ringInfo.TradeAmount = ring.TradeAmount
 	ringInfo.TotalLrcFee = ring.TotalLrcFee
 	ringInfo.TotalSplitFee = make(map[string]*big.Int)
+	ringInfo.Status = ring.Status
 
 	for _, f := range fills {
 		if len(f.SplitS) > 0 && f.SplitS != "0" {
