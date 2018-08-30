@@ -401,7 +401,7 @@ type AddTokenReq struct {
 	Owner                string `json:"owner"`
 	TokenContractAddress string `json:"tokenContractAddress"`
 	Symbol               string `json:"symbol"`
-	Decimals             int64  `json:"decimals"`
+	Decimals             string `json:"decimals"`
 }
 
 type WalletServiceImpl struct {
@@ -512,6 +512,26 @@ func (w *WalletServiceImpl) GetPriceQuote(query PriceQuoteQuery) (result PriceQu
 			}
 		}
 	}
+
+	//get all Customer's tokens priceQuote
+	if customTokensQuote, err := cache.SMembers(marketcap.CUSTOM_TOKENS_MARKETCAP + query.Currency); nil != err {
+		log.Debug(">>>>>>>> get custom tokens marketcap error " + err.Error())
+	} else {
+		if len(customTokensQuote) > 0 {
+			for _, customTokenQuote := range customTokensQuote {
+				cap := &marketcap.CoinMarketCap{}
+				if err := json.Unmarshal(customTokenQuote, cap); nil != err {
+					log.Errorf("get marketcap of custom tokens err:%s", err.Error())
+				} else {
+					if quote, exists := cap.Quotes[query.Currency]; exists {
+						priceQuote, _ := quote.Price.Float64()
+						rst.Tokens = append(rst.Tokens, TokenPrice{cap.Symbol, priceQuote})
+					}
+				}
+			}
+		}
+	}
+
 	return rst, nil
 }
 
@@ -1265,8 +1285,7 @@ func (w *WalletServiceImpl) AddCustomToken(req AddTokenReq) (result string, err 
 		return "", errors.New("illegal address format in request")
 	}
 
-	decimals := new(big.Int)
-	decimals.SetInt64(req.Decimals)
+	decimals, _ := new(big.Int).SetString(req.Decimals, 0)
 	return req.TokenContractAddress, util.AddToken(
 		common.HexToAddress(req.Owner),
 		util.CustomToken{Address: common.HexToAddress(req.TokenContractAddress), Symbol: req.Symbol, Decimals: decimals})

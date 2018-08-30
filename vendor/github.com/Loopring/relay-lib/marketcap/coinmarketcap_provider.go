@@ -42,6 +42,7 @@ const (
 	CACHEKEY_COIN_MARKETCAP  = "coin_marketcap_"
 	ZKNAME_COIN_MARKETCAP    = "coin_marketcap_"
 	HEARTBEAT_COIN_MARKETCAP = "coin_marketcap"
+	CUSTOM_TOKENS_MARKETCAP  = "custom_tokens_marketcap_"
 )
 
 type MarketCap struct {
@@ -131,16 +132,16 @@ func (tokens icoTokens) contains(addr common.Address) bool {
 }
 
 type CapProvider_CoinMarketCap struct {
-	baseUrl         string
-	tokenMarketCaps map[common.Address]*CoinMarketCap
-	icoTokens       icoTokens
+	baseUrl          string
+	tokenMarketCaps  map[common.Address]*CoinMarketCap
+	icoTokens        icoTokens
 	notSupportTokens map[common.Address]bool
 	//icoTokens	noSupportTokens
-	slugToAddress   map[string]common.Address
-	currency        string
-	duration        int
-	dustValue       *big.Rat
-	stopFuncs       []func()
+	slugToAddress map[string]common.Address
+	currency      string
+	duration      int
+	dustValue     *big.Rat
+	stopFuncs     []func()
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValue(tokenAddress common.Address, amount *big.Rat) (*big.Rat, error) {
@@ -153,7 +154,7 @@ func (p *CapProvider_CoinMarketCap) LegalCurrencyValueOfEth(amount *big.Rat) (*b
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValueByCurrency(tokenAddress common.Address, amount *big.Rat, currencyStr string) (*big.Rat, error) {
-	if _,exists := p.notSupportTokens[tokenAddress]; exists {
+	if _, exists := p.notSupportTokens[tokenAddress]; exists {
 		return big.NewRat(int64(0), int64(1)), nil
 	} else if c, exists := p.tokenMarketCaps[tokenAddress]; !exists {
 		return nil, errors.New("not found tokenCap:" + tokenAddress.Hex())
@@ -195,7 +196,7 @@ func (p *CapProvider_CoinMarketCap) getMarketCapFromRedis(websiteSlug string, cu
 }
 
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
-	if _,exists := p.notSupportTokens[tokenAddress]; exists {
+	if _, exists := p.notSupportTokens[tokenAddress]; exists {
 		return big.NewRat(int64(0), int64(1)), nil
 	} else if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
 		var v *big.Rat
@@ -273,6 +274,14 @@ func (p *CapProvider_CoinMarketCap) heartBeatName() string {
 	return HEARTBEAT_COIN_MARKETCAP + p.currency
 }
 
+func (p *CapProvider_CoinMarketCap) customTokensCacheKey(currency string) string {
+	if "" != currency {
+		return CUSTOM_TOKENS_MARKETCAP + currency
+	} else {
+		return CUSTOM_TOKENS_MARKETCAP + p.currency
+	}
+}
+
 func (p *CapProvider_CoinMarketCap) cacheKey(websiteSlug string, currency string) string {
 	if "" != currency {
 		return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug) + "_" + currency
@@ -338,12 +347,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 			return err
 		} else {
 			result := &CoinMarketCapResult{}
+			customTokens, _ := util.GetAllCustomTokenList()
 			if err1 := json.Unmarshal(body, result); nil != err1 {
 				log.Errorf("err1:%s", err1.Error())
 				return err1
 			} else {
-
 				if "" == result.Metadata.Error {
+					customTokensQuote := [][]byte{}
 					for _, cap1 := range result.Data {
 						if data, err2 := json.Marshal(cap1); nil != err2 {
 							log.Errorf("err:%s", err2.Error())
@@ -354,8 +364,22 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 								log.Errorf("err:%s", err.Error())
 								return err
 							}
+							//loading customer tokens quote
+							if _, exists := customTokens[cap1.Symbol]; exists {
+								customTokensQuote = append(customTokensQuote, data)
+							}
 						}
 					}
+
+					//batch set customer's tokens quoteData
+					if len(customTokensQuote) > 0 {
+						err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
+						if nil != err {
+							log.Errorf("err:%s", err.Error())
+							return err
+						}
+					}
+
 					start = start + len(result.Data)
 					numCryptocurrencies = result.Metadata.NumCryptocurrencies - start
 				} else {
@@ -425,7 +449,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 }
 
 func (p *CapProvider_CoinMarketCap) IsSupport(token common.Address) bool {
-	_,exists := p.notSupportTokens[token]
+	_, exists := p.notSupportTokens[token]
 	return !exists
 }
 
@@ -521,9 +545,3 @@ func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bo
 func (p *CapProvider_CoinMarketCap) IsValueDusted(value *big.Rat) bool {
 	return p.dustValue.Cmp(value) > 0
 }
-
-
-
-
-
-

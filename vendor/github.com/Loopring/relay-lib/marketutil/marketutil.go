@@ -47,7 +47,8 @@ type TokenStandard uint8
 
 func StringToFloat(token string, amount string) (result float64, err error) {
 	rst, _ := new(big.Rat).SetString(amount)
-	ts, err := AddressToToken(common.HexToAddress(token)); if err != nil {
+	ts, err := AddressToToken(common.HexToAddress(token))
+	if err != nil {
 		return result, err
 	}
 	weiRat := new(big.Rat).SetInt64(ts.Decimals.Int64())
@@ -293,7 +294,7 @@ func UnWrap(market string) (s, b string) {
 
 func UnWrapToAddress(market string) (s, b common.Address) {
 	sa, sb := UnWrap(market)
-	return common.HexToAddress(sa), common.HexToAddress(sb)
+	return AliasToAddress(sa), AliasToAddress(sb)
 }
 
 func IsSupportedMarket(market string) bool {
