@@ -72,7 +72,7 @@ func TestTransactionViewImpl_GetAllTransactions(t *testing.T) {
 
 func TestTransactionViewerImpl_GetNonce(t *testing.T) {
 	viewer.NewTxView(test.Rds())
-	owner := "0xb1018949b241D76A1AB2094f473E9bEfeAbB5Ead"
+	owner := "0x4bad3053d574cd54513babe21db3f09bea1d387d"
 
 	if nonce, err := viewer.GetNonce(owner); err != nil {
 		t.Fatalf(err.Error())
