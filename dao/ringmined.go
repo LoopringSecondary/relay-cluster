@@ -32,7 +32,7 @@ type RingMinedEvent struct {
 	RingIndex          string `gorm:"column:ring_index;type:varchar(40)" json:"ringIndex"`
 	RingHash           string `gorm:"column:ring_hash;type:varchar(82)" json:"ringHash"`
 	TxHash             string `gorm:"column:tx_hash;type:varchar(82)" json:"txHash"`
-	OrderHashList      string `gorm:"column:order_hash_list;type:text"`
+	OrderHashList      string `gorm:"column:order_hash_list;type:text" json:"orderhashList"`
 	Miner              string `gorm:"column:miner;type:varchar(42);" json:"miner"`
 	FeeRecipient       string `gorm:"column:fee_recipient;type:varchar(42)" json:"feeRecipient"`
 	IsRinghashReserved bool   `gorm:"column:is_ring_hash_reserved;" json:"isRinghashReserved"`
@@ -40,11 +40,11 @@ type RingMinedEvent struct {
 	TotalLrcFee        string `gorm:"column:total_lrc_fee;type:varchar(40)" json:"totalLrcFee"`
 	TradeAmount        int    `gorm:"column:trade_amount" json:"tradeAmount"`
 	Time               int64  `gorm:"column:time;type:bigint" json:"timestamp"`
-	Status             uint8  `gorm:"column:status;type:tinyint(4)"`
-	Fork               bool   `gorm:"column:fork"`
-	GasLimit           string `gorm:"column:gas_limit;type:varchar(50)"`
-	GasUsed            string `gorm:"column:gas_used;type:varchar(50)"`
-	GasPrice           string `gorm:"column:gas_price;type:varchar(50)"`
+	Status             uint8  `gorm:"column:status;type:tinyint(4)" json:"status"`
+	Fork               bool   `gorm:"column:fork" json:"fork"`
+	GasLimit           string `gorm:"column:gas_limit;type:varchar(50)" json:"gasLimit"`
+	GasUsed            string `gorm:"column:gas_used;type:varchar(50)" json:"gasUsed"`
+	GasPrice           string `gorm:"column:gas_price;type:varchar(50)" json:"gasPrice"`
 	Err                string `gorm:"column:err;type:text" json:"err"`
 }
 
