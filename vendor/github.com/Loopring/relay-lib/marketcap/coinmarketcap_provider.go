@@ -372,13 +372,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 					}
 
 					//batch set customer's tokens quoteData
-					if len(customTokensQuote) > 0 {
-						err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
-						if nil != err {
-							log.Errorf("err:%s", err.Error())
-							return err
-						}
-					}
+					//if len(customTokensQuote) > 0 {
+					//	err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
+					//	if nil != err {
+					//		log.Errorf("err:%s", err.Error())
+					//		return err
+					//	}
+					//}
 
 					start = start + len(result.Data)
 					numCryptocurrencies = result.Metadata.NumCryptocurrencies - start
