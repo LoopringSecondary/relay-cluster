@@ -43,6 +43,7 @@ const (
 	ZKNAME_COIN_MARKETCAP    = "coin_marketcap_"
 	HEARTBEAT_COIN_MARKETCAP = "coin_marketcap"
 	CUSTOM_TOKENS_MARKETCAP  = "custom_tokens_marketcap_"
+	allCustomTokens          = "ALLCT"
 )
 
 type MarketCap struct {
@@ -327,6 +328,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 	numCryptocurrencies := 105
 	start := 0
 	limit := 100
+	customTokens, _ := util.GetCustomTokensFromRedis(allCustomTokens)
 	for numCryptocurrencies > 0 {
 		url := fmt.Sprintf(p.baseUrl, p.currency, start, limit)
 		println(url)
@@ -347,7 +349,6 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 			return err
 		} else {
 			result := &CoinMarketCapResult{}
-			customTokens, _ := util.GetAllCustomTokenList()
 			if err1 := json.Unmarshal(body, result); nil != err1 {
 				log.Errorf("err1:%s", err1.Error())
 				return err1
@@ -372,13 +373,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 					}
 
 					//batch set customer's tokens quoteData
-					//if len(customTokensQuote) > 0 {
-					//	err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
-					//	if nil != err {
-					//		log.Errorf("err:%s", err.Error())
-					//		return err
-					//	}
-					//}
+					if len(customTokensQuote) > 0 {
+						err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
+						if nil != err {
+							log.Errorf("get custom tokens priceQuto err:%s", err.Error())
+							return err
+						}
+					}
 
 					start = start + len(result.Data)
 					numCryptocurrencies = result.Metadata.NumCryptocurrencies - start
