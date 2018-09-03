@@ -210,16 +210,16 @@
 			"revisionTime": "2018-06-28T04:47:44Z"
 		},
 		{
-			"checksumSHA1": "9qo3hMj2qk1cniaSO8okgY4zkck=",
+			"checksumSHA1": "0xQi3bIgiTEOWv5MQYQ6Ru1Guu4=",
 			"path": "github.com/Loopring/relay-lib/marketcap",
-			"revision": "3063d813ce02c43c430e24433f8cbe7dfd4f88bd",
-			"revisionTime": "2018-08-30T07:11:25Z"
+			"revision": "6f790226c333fa77ddbd9ae60c1c300eed8e7eb8",
+			"revisionTime": "2018-09-03T05:34:11Z"
 		},
 		{
 			"checksumSHA1": "rjeFabb8Q9E/AVUipNYeAOTAnPk=",
 			"path": "github.com/Loopring/relay-lib/marketutil",
-			"revision": "3063d813ce02c43c430e24433f8cbe7dfd4f88bd",
-			"revisionTime": "2018-08-30T07:11:25Z"
+			"revision": "6f790226c333fa77ddbd9ae60c1c300eed8e7eb8",
+			"revisionTime": "2018-09-03T05:34:11Z"
 		},
 		{
 			"checksumSHA1": "ToScnYa3M8T9Ip74E96TjqYSVQg=",

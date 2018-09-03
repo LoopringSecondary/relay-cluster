@@ -1,5 +1,4 @@
 /*
-
   Copyright 2017 Loopring Project Ltd (Loopring Foundation).
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -367,14 +366,14 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 							}
 							//loading customer tokens quote
 							if _, exists := customTokens[cap1.Symbol]; exists {
-								customTokensQuote = append(customTokensQuote, data)
+								customTokensQuote = append(customTokensQuote, []byte(cap1.Symbol), data)
 							}
 						}
 					}
 
 					//batch set customer's tokens quoteData
 					if len(customTokensQuote) > 0 {
-						err := cache.SAdd(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
+						err := cache.HMSet(p.customTokensCacheKey(p.currency), int64(43200), customTokensQuote...)
 						if nil != err {
 							log.Errorf("get custom tokens priceQuto err:%s", err.Error())
 							return err
