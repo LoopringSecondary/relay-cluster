@@ -22,6 +22,7 @@ import (
 	"github.com/Loopring/relay-cluster/ringtrackermanager/types"
 	types2 "github.com/Loopring/relay-lib/types"
 	"strconv"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 type FullFillEvent struct {
@@ -307,5 +308,6 @@ func (s *RdsService) AddFullFills(fills []*FullFillEvent) {
 			i++
 		}
 	}
+	log.Debug(sql)
 	s.Db.Exec(sql)
 }

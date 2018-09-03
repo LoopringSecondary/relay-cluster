@@ -56,8 +56,8 @@ func (r *RingTrackerServiceImpl) GetTokensByRelay(req types.QueryReq) ([]types.T
 }
 
 func (r *RingTrackerServiceImpl) SetLegalTender() {
-	//r.ringTrackerViewer.SetEthTokenPrice()
-	//r.ringTrackerViewer.SetFullFills()
+	r.ringTrackerViewer.SetEthTokenPrice()
+	r.ringTrackerViewer.SetFullFills()
 	//r.ringTrackerViewer.SetTokenPrices()
 	viewer.ClearRingTrackerCache()
 }

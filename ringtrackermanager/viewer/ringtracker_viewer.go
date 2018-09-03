@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	START_TIME          = int64(1524153600)
+	START_TIME          = int64(1524096000)
 	TIME_INTERVAL       = 86400
 	RING_TRACKER_PREFIX = "ringtracker_"
 	RING_TRACKER_DATA   = "data_"
@@ -65,7 +65,8 @@ func NewRingTrackerViewer(rds *dao.RdsService, mc marketcap.MarketCapProvider) *
 	//viewer.cron.AddFunc("0 0 */1 * * *", viewer.SetFullFills)
 	viewer.cron.AddFunc("0 */30 * * * *", viewer.SetTokenPrices)
 	viewer.cron.Start()
-	//viewer.SetFullFills()
+	//go viewer.SetFullFills()
+	//viewer.SetEthTokenPrice()
 	ClearRingTrackerCache()
 	viewer.SetTokenPrices()
 	return &viewer
@@ -383,17 +384,17 @@ func getDuration(duration types.Duration, len int) (sql string, start time.Time,
 	switch duration {
 	case types.DURATION_1H:
 		mm, _ := time.ParseDuration("-1" + strconv.Itoa(len) + "h")
-		end, _ = time.ParseInLocation("2006-01-02 15", now.Format("2006-01-02 15"), time.FixedZone("CST", 3600*8))
+		end, _ = time.ParseInLocation("2006-01-02 15", now.Format("2006-01-02 15"), time.UTC)
 		return "UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(create_time), '%Y-%m-%d %H'))", end.Add(mm), end
 	case types.DURATION_7D:
-		end, _ := time.ParseInLocation("2006-01-02", now.AddDate(0, 0, -1*(int(time.Now().Weekday())-1)).Format("2006-01-02"), time.FixedZone("CST", 3600*8))
+		end, _ := time.ParseInLocation("2006-01-02", now.AddDate(0, 0, -1*(int(time.Now().Weekday())-1)).Format("2006-01-02"), time.UTC)
 		return "UNIX_TIMESTAMP(str_to_date(concat(yearweek(FROM_UNIXTIME(create_time)), 'Monday'), '%X%V %W'))", end.AddDate(0, 0, -7*len), end
 	case types.DURATION_1M:
-		currentYear, currentMonth, _ := time.Now().Date()
-		end = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.FixedZone("CST", 3600*8))
+		currentYear, currentMonth, _ := now.Date()
+		end = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)
 		return "UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(create_time), '%Y-%m-01'))", end.AddDate(0, -1*len, 0), end
 	case types.DURATION_24H:
-		end, _ = time.ParseInLocation("2006-01-02", time.Now().Format("2006-01-02"), time.FixedZone("CST", 3600*8))
+		end, _ = time.ParseInLocation("2006-01-02", now.Format("2006-01-02"), time.UTC)
 		return "UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(create_time), '%Y-%m-%d'))", end.AddDate(0, 0, -1*len), end
 	}
 	return
