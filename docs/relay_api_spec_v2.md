@@ -536,7 +536,6 @@ params: [{
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 8. `label` - The market enum string.(label collection is: whitelist, blacklist, defaultlist)
- - ticker source enum string.(source collection is : loopring, coinmarketcap)
 
 #### Example
 ```js
