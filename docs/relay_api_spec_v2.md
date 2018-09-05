@@ -521,7 +521,7 @@ Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com/.
 
 ```js
 params: [{
-  "tickerSource" : "loopring",
+  "tickerSource" : "loopring"
 }]
 ```
 
