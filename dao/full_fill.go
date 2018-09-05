@@ -22,7 +22,6 @@ import (
 	"github.com/Loopring/relay-cluster/ringtrackermanager/types"
 	types2 "github.com/Loopring/relay-lib/types"
 	"strconv"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 type FullFillEvent struct {
@@ -50,7 +49,6 @@ type FullFillEvent struct {
 	LrcCal          float64 `gorm:"column:lrc_cal;type:float"`
 	TokenAmountCal  float64 `gorm:"column:token_amount_cal;type:float"`
 	AmountBCal      float64 `gorm:"column:amount_s_cal;type:float"`
-	Relay           string  `gorm:"-" json:"relay"`
 	OrderType       string  `gorm:"column:order_type;type:varchar(50)" json:"orderType"`
 }
 
@@ -117,11 +115,11 @@ func (s *RdsService) GetTrend(duration types.Duration, trendType types.TrendType
 	case types.TOKEN:
 		sql += "and (a.token_s = '" + keyword + "' or a.token_b = '" + keyword + "') "
 	case types.DEX:
-		sql += "and a.wallet_address = '" + keyword + "' "
+		sql += "and a.wallet_address = (select wallet_address from lpr_dexes where dex = '" + keyword + "') "
 	case types.RING:
 		sql += "and a.miner = '" + keyword + "' "
 	case types.RELAY:
-		sql += "and a.miner in (select c.miner from lpr_relays c where c.relay = '" + keyword + "') "
+		sql += "and a.miner in (select miner from lpr_relays where relay = '" + keyword + "') "
 	}
 	s.Db.Raw(sql + "group by date order by date desc").Scan(&res)
 	return
@@ -173,24 +171,24 @@ func (s *RdsService) GetAllFills(miner, txHash string) (res []*FullFillEvent) {
 func (s *RdsService) GetAllFullFills(currency types.Currency, trendType types.TrendType, keyword, search string, pageIndex, pageSize int) (res []FullFillEvent) {
 	sql := "select b.id, " +
 		"b.contract_address, b.delegate_address, b.owner, b.ring_index, b.fill_index, b.create_time, b.ring_hash, b.tx_hash, b.order_hash, " +
-		"b.symbol_s token_s, b.symbol_b token_b, concat('0x', conv(b.amount_s, 10, 16)) amount_s, concat('0x', conv(b.amount_b, 10, 16)) amount_b, concat('0x', conv(b.lrc_fee, 10, 16)) lrc_fee, b.market, b.side, b.miner, b.order_type, b.wallet_address, c.relay, " +
+		"b.symbol_s token_s, b.symbol_b token_b, concat('0x', conv(b.amount_s, 10, 16)) amount_s, concat('0x', conv(b.amount_b, 10, 16)) amount_b, concat('0x', conv(b.lrc_fee, 10, 16)) lrc_fee, b.market, b.side, b.miner, b.order_type, b.wallet_address, " +
 		"b.lrc_cal*a.coin_amount lrc_cal, b.token_amount_cal*a.coin_amount token_amount_cal " +
-		"from lpr_token_price_trends a right join lpr_full_fill_events b on UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(b.create_time), '%Y-%m-%d')) = a.time left join lpr_relays c on b.miner = c.miner " +
+		"from lpr_token_price_trends a right join lpr_full_fill_events b on UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(b.create_time), '%Y-%m-%d')) = a.time " +
 		"where a.coin_name = '" + string(currency) + "' " +
 		"and b.order_type = 'market_order' "
 	switch trendType {
 	case types.TOKEN:
 		sql += "and (b.token_s = '" + keyword + "' or b.token_b = '" + keyword + "') "
 	case types.RELAY:
-		sql += "and c.relay = '" + keyword + "' "
+		sql += "and b.miner in (select miner from lpr_relays where relay = '" + keyword + "') "
 	case types.DEX:
-		sql += "and b.wallet_address = '" + keyword + "' "
+		sql += "and b.wallet_address = (select wallet_address from lpr_dexes where dex = '" + keyword + "') "
 	case types.RING:
 		sql += "and b.miner = '" + keyword + "' "
 	}
 	if len(search) > 0 {
 		sql += "and (b.order_hash like '%" + search + "%' or b.tx_hash like '%" + search + "%' or b.ring_hash like '%" + search + "%' " +
-			"or b.owner like '%" + search + "%' or b.wallet_address like '%" + search + "%' or b.miner like '%" + search + "%' or c.relay like '%" + search + "%') "
+			"or b.owner like '%" + search + "%' or b.wallet_address like '%" + search + "%' or b.miner like '%" + search + "%' or b.miner in (select miner from lpr_relays where relay like '%" + search + "%')) "
 	}
 	sql += "order by b.create_time desc"
 	s.Db.Raw(sql).Offset((pageIndex - 1) * pageSize).Limit(pageSize).Scan(&res)
@@ -202,19 +200,23 @@ func (s *RdsService) GetFullFill(id int64) (res FullFillEvent) {
 	return
 }
 
-func (s *RdsService) CountFullFills(trendType types.TrendType, keyword string) (res int) {
-	sql := ""
+func (s *RdsService) CountFullFills(trendType types.TrendType, keyword, search string) (res int) {
+	sql := "order_type = 'market_order' "
 	switch trendType {
 	case types.TOKEN:
-		sql += "token_s = '" + keyword + "' or token_b = '" + keyword + "' "
+		sql += "and (token_s = '" + keyword + "' or token_b = '" + keyword + "') "
 	case types.RELAY:
-		sql += "relay = '" + keyword + "' "
+		sql += "and miner in (select miner from lpr_relays where relay = '" + keyword + "') "
 	case types.DEX:
-		sql += "wallet_address = '" + keyword + "' "
+		sql += "and wallet_address = (select wallet_address from lpr_dexes where dex = '" + keyword + "') "
 	case types.RING:
-		sql += "b.miner = '" + keyword + "' "
+		sql += "and miner = '" + keyword + "' "
 	}
-	s.Db.Model(&FullFillEvent{}).Joins("left join lpr_relays b on lpr_full_fill_events.miner = b.miner").Where(sql).Count(&res)
+	if len(search) > 0 {
+		sql += "and (order_hash like '%" + search + "%' or tx_hash like '%" + search + "%' or ring_hash like '%" + search + "%' " +
+			"or owner like '%" + search + "%' or wallet_address like '%" + search + "%' or miner like '%" + search + "%' or miner in (select miner from lpr_relays where relay like '%" + search + "%')) "
+	}
+	s.Db.Model(&FullFillEvent{}).Where(sql).Count(&res)
 	return
 }
 
@@ -273,9 +275,9 @@ func (s *RdsService) GetTokensByRelay(currency types.Currency, relay string) (re
 		"(select token_b token, symbol_b symbol, count(*) trade, " +
 		"sum(a.token_amount_cal*b.coin_amount) volume, " +
 		"sum(a.lrc_cal*b.coin_amount) fee " +
-		"from lpr_full_fill_events a left join lpr_token_price_trends b on UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(a.create_time), '%Y-%m-%d')) = b.time right join lpr_relays c on a.miner = c.miner " +
+		"from lpr_full_fill_events a left join lpr_token_price_trends b on UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(a.create_time), '%Y-%m-%d')) = b.time " +
 		"where a.order_type = 'market_order' " +
-		"and c.relay = '" + relay + "' " +
+		"and a.miner in (select miner from lpr_relays where relay = '" + relay + "') " +
 		"and b.coin_name = '" + string(currency) + "' " +
 		"group by token, symbol order by volume desc) d, (select @r:=0) e) f " +
 		"group by f.token, f.symbol  order by case when f.token != 'others' then 0 else 1 end, volume desc"
@@ -284,11 +286,11 @@ func (s *RdsService) GetTokensByRelay(currency types.Currency, relay string) (re
 }
 
 func (s *RdsService) GetTradeDetails(delegateAddress string, ringIndex, fillIndex int64) (res []FullFillEvent) {
-	sql := "select b.id, " +
-		"b.contract_address, b.delegate_address, b.owner, b.ring_index, b.fill_index, b.create_time, b.ring_hash, b.tx_hash, b.order_hash, " +
-		"b.symbol_s token_s, b.symbol_b token_b, concat('0x', conv(b.amount_s, 10, 16)) amount_s, concat('0x', conv(b.amount_b, 10, 16)) amount_b,  concat('0x', conv(b.lrc_fee, 10, 16)) lrc_fee, b.market, b.side, b.miner, b.wallet_address, a.relay " +
-		"from lpr_full_fill_events b left join lpr_relays a on b.miner = a.miner " +
-		"where b.ring_index = " + strconv.FormatInt(ringIndex, 10) + " and fill_index = " + strconv.FormatInt(fillIndex, 10) + " "
+	sql := "select id, " +
+		"contract_address, delegate_address, owner, ring_index, fill_index, create_time, ring_hash, tx_hash, order_hash, " +
+		"symbol_s token_s, symbol_b token_b, concat('0x', conv(amount_s, 10, 16)) amount_s, concat('0x', conv(amount_b, 10, 16)) amount_b,  concat('0x', conv(lrc_fee, 10, 16)) lrc_fee, market, side, miner, wallet_address " +
+		"from lpr_full_fill_events " +
+		"where ring_index = " + strconv.FormatInt(ringIndex, 10) + " and fill_index = " + strconv.FormatInt(fillIndex, 10) + " "
 	if len(delegateAddress) > 0 {
 		sql += "and delegate_address = '" + delegateAddress + "'"
 	}
@@ -308,6 +310,5 @@ func (s *RdsService) AddFullFills(fills []*FullFillEvent) {
 			i++
 		}
 	}
-	log.Debug(sql)
 	s.Db.Exec(sql)
 }

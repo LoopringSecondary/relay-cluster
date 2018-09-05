@@ -50,7 +50,7 @@ type QueryReq struct {
 	PageIndex       int    `json:"pageIndex"`
 	PageSize        int    `json:"pageSize"`
 	Currency        string `json:"currency"`
-	TrendType       string `json:"trendType"`
+	Type            string `json:"type"`
 	Keyword         string `json:"keyword"`
 	Search          string `json:"search"`
 	Sort            string `json:"sort"`

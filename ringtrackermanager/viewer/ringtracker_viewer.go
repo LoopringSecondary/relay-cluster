@@ -225,7 +225,7 @@ func (r *RingTrackerViewerImpl) GetTrades(currency types.Currency, trendType typ
 	if len(search) == 0 && cache2.GetFromCache(key, &res) {
 		return res
 	}
-	res = dao.PageResult{PageIndex: pageIndex, PageSize: pageSize, Total: r.rds.CountFullFills(trendType, keyword)}
+	res = dao.PageResult{PageIndex: pageIndex, PageSize: pageSize, Total: r.rds.CountFullFills(trendType, keyword, search)}
 	for _, fill := range r.rds.GetAllFullFills(currency, trendType, keyword, search, pageIndex, pageSize) {
 		data = append(data, fill)
 	}
@@ -254,11 +254,6 @@ func (r *RingTrackerViewerImpl) GetAllTokens(currency types.Currency, sort types
 	if pageSize == 0 {
 		pageSize = 10
 	}
-
-	key := RING_TRACKER_PREFIX + RING_TRACKER_DATA + "tokens_" + strings.Join([]string{"currency:" + string(currency), "sort:" + string(sort), "page:" + strconv.Itoa(pageIndex), "size:" + strconv.Itoa(pageSize)}, ",")
-	if cache2.GetFromCache(key, &res) {
-		return res
-	}
 	tokens := r.rds.GetTokenSymbols()
 	res = dao.PageResult{Total: len(tokens), PageIndex: pageIndex, PageSize: pageSize}
 	data := make([]interface{}, 0)
@@ -271,7 +266,6 @@ func (r *RingTrackerViewerImpl) GetAllTokens(currency types.Currency, sort types
 		data = append(data, fill)
 	}
 	res.Data = data
-	cache2.SaveCache(key, res)
 	return res
 }
 

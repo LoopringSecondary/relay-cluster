@@ -32,7 +32,7 @@ func (r *RingTrackerServiceImpl) GetEcosystemTrend(req types.EcoTrendReq) []type
 }
 
 func (r *RingTrackerServiceImpl) GetTrades(req types.QueryReq) dao.PageResult {
-	return r.ringTrackerViewer.GetTrades(types.StrToCurrency(req.Currency), types.StrToTrendType(req.TrendType), req.Keyword, req.Search, req.PageIndex, req.PageSize)
+	return r.ringTrackerViewer.GetTrades(types.StrToCurrency(req.Currency), types.StrToTrendType(req.Type), req.Keyword, req.Search, req.PageIndex, req.PageSize)
 }
 
 func (r *RingTrackerServiceImpl) GetTradeDetails(req types.QueryReq) []dao.FullFillEvent {
