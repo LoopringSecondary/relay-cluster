@@ -535,7 +535,7 @@ params: [{
 5. `buy` - The highest buy price in the depth.
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
-8. `label` - The market enum string.(label collection is: whitelist, blacklist, defaultlist)
+8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
 
 #### Example
 ```js
@@ -583,7 +583,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "defaultlist"
+    "label" : "hidelist"
   },
   {
     "exchange" : "",
@@ -596,7 +596,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "defaultlist"
+    "label" : "hidelist"
   }]
 }
 ```
