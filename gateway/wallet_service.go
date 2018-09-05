@@ -165,6 +165,10 @@ type SimpleKey struct {
 	Key string `json:"key"`
 }
 
+type TickerRequest struct {
+	TickerSource string `json:"tickerSource"`
+}
+
 type TempStore struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -925,6 +929,10 @@ func (w *WalletServiceImpl) GetLatestFills(query FillQuery) ([]LatestFill, error
 
 func (w *WalletServiceImpl) GetTicker() (res []market.Ticker, err error) {
 	return w.trendManager.GetTicker()
+}
+
+func (w *WalletServiceImpl) GetTickerBySource(req TickerRequest) (res []market.TickerResp, err error) {
+	return nil, err
 }
 
 func (w *WalletServiceImpl) GetTrend(query TrendQuery) (res []market.Trend, err error) {
