@@ -516,12 +516,12 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTicker","params":[{s
 Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com/.
 
 #### Parameters
-1. `tickerSource` - ticker source enum string.(source collection is : loopring, coinmarketcap)
+1. `tickerSource` - ticker source enum string.(source collection is : loopr, coinmarketcap)
 
 
 ```js
 params: [{
-  "tickerSource" : "loopring"
+  "tickerSource" : "loopr"
 }]
 ```
 
@@ -540,7 +540,7 @@ params: [{
 #### Example
 ```js
 // Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","params":[{"tickerSource":"loopring"}],"id":64}'
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","params":[{"tickerSource":"loopr"}],"id":64}'
 
 // Result
 {
