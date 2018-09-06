@@ -23,7 +23,7 @@ func (r *RingTrackerServiceImpl) GetAmount() types.AmountResp {
 	return r.ringTrackerViewer.GetAmount()
 }
 
-func (r *RingTrackerServiceImpl) GetTrend(req types.TrendReq) types.TrendRsp {
+func (r *RingTrackerServiceImpl) GetRingTrackerTrend(req types.TrendReq) types.TrendRsp {
 	return r.ringTrackerViewer.GetTrend(types.StrToTrendDuration(req.Duration), types.StrToTrendType(req.Type), req.Keyword, req.Len, types.StrToCurrency(req.Currency))
 }
 
