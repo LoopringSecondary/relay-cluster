@@ -308,7 +308,10 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap(key:%s) from api...", p.zklockName())
-				p.syncMarketCapFromAPI()
+				p.AddSyncFunc(
+					func() error {
+						return p.syncMarketCapFromAPI()
+					})
 				if err := cloudwatch.PutHeartBeatMetric(p.heartBeatName()); nil != err {
 					log.Errorf("err:%s", err.Error())
 				}
@@ -406,6 +409,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
 		if nil != err && !syncedFromApi {
 			if err1 := p.syncMarketCapFromAPI(); nil != err1 {
+				log.Errorf("can't sync marketcap, error :%s", err1.Error())
 				return err1
 			}
 			syncedFromApi = true
