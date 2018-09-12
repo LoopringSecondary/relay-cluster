@@ -44,12 +44,14 @@ type JsonrpcService interface {
 type JsonrpcServiceImpl struct {
 	port          string
 	walletService *WalletServiceImpl
+	ringTrackerService *RingTrackerServiceImpl
 }
 
-func NewJsonrpcService(port string, walletService *WalletServiceImpl) *JsonrpcServiceImpl {
+func NewJsonrpcService(port string, walletService *WalletServiceImpl, ringTrackerService *RingTrackerServiceImpl) *JsonrpcServiceImpl {
 	l := &JsonrpcServiceImpl{}
 	l.port = port
 	l.walletService = walletService
+	l.ringTrackerService = ringTrackerService
 	return l
 }
 
@@ -57,6 +59,11 @@ func (j *JsonrpcServiceImpl) Start() {
 
 	handler := rpc.NewServer()
 	if err := handler.RegisterName("loopring", j.walletService); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := handler.RegisterName("loopring", j.ringTrackerService); err!=nil {
 		fmt.Println(err)
 		return
 	}

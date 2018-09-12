@@ -46,6 +46,7 @@ import (
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
+	ringtrackerviewer "github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
 )
 
 type Node struct {
@@ -70,6 +71,9 @@ type Node struct {
 
 	wg     *sync.WaitGroup
 	logger *zap.Logger
+
+	ringTrackerViewer  ringtrackerviewer.RingTrackerViewer
+	ringTrackerService gateway.RingTrackerServiceImpl
 }
 
 func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
@@ -112,6 +116,8 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerExtractor()
 	n.registerCloudWatch()
 
+	n.registerRingTrackerViewer()
+	n.registerRingTrackerService()
 	return n
 }
 
@@ -211,7 +217,7 @@ func (n *Node) registerWalletService() {
 }
 
 func (n *Node) registerJsonRpcService() {
-	n.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.walletService)
+	n.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.walletService, &n.ringTrackerService)
 }
 
 func (n *Node) registerWebsocketService() {
@@ -260,4 +266,12 @@ func (n *Node) registerExtractor() {
 
 func (n *Node) registerCloudWatch() {
 	cloudwatch.Initialize(n.globalConfig.CloudWatch)
+}
+
+func (n *Node) registerRingTrackerViewer() {
+	n.ringTrackerViewer = ringtrackerviewer.NewRingTrackerViewer(n.rdsService, n.marketCapProvider)
+}
+
+func (n *Node) registerRingTrackerService() {
+	n.ringTrackerService = *gateway.NewRingTrackerService(n.ringTrackerViewer, n.globalMarket)
 }

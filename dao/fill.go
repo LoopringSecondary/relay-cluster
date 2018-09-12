@@ -206,3 +206,4 @@ func (s *RdsService) GetFillForkEvents(from, to int64) ([]FillEvent, error) {
 func (s *RdsService) RollBackFill(from, to int64) error {
 	return s.Db.Model(&FillEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
+

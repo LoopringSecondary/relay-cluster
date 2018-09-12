@@ -259,6 +259,7 @@ type RingMinedQuery struct {
 	DelegateAddress string `json:"delegateAddress"`
 	ProtocolAddress string `json:"protocolAddress"`
 	RingIndex       string `json:"ringIndex"`
+	Status          int    `json:"status"`
 	PageIndex       int    `json:"pageIndex"`
 	PageSize        int    `json:"pageSize"`
 }
@@ -369,7 +370,7 @@ type CancelOrderQuery struct {
 
 type SignInfo struct {
 	Timestamp string `json:"timestamp"`
-	V         uint8  `json:"v"'`
+	V         uint8  `json:"v"`
 	R         string `json:"r"`
 	S         string `json:"s"`
 	Owner     string `json:"owner"`
@@ -1817,6 +1818,9 @@ func ringMinedQueryToMap(q RingMinedQuery) (map[string]interface{}, int, int) {
 	}
 	if common.IsHexAddress(q.ProtocolAddress) {
 		rst["contract_address"] = q.ProtocolAddress
+	}
+	if q.Status > 0 {
+		rst["status"] = q.Status
 	}
 
 	if q.RingIndex != "" {

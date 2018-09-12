@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "starting extractor"
+export PATH=${PATH}:/usr/local/bin:/usr/bin:/usr/sbin
+export WORK_DIR=/opt/loopring/extractor
+export AWS_SHARED_CREDENTIALS_FILE=/home/ubuntu/.aws/credentials
+exec setuidgid ubuntu $WORK_DIR/bin/extractor --config $WORK_DIR/config/extractor.toml 2>&1
