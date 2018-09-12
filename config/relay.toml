@@ -78,6 +78,7 @@ title = "miner"
 
 [market]
     token_file = "config/tokens.json"
+    market_file = "config/markets.json"
     old_version_weth_address = "0x88699e7fee2da0462981a08a15a3b940304cc516"
 
 [market_cap]

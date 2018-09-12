@@ -34,6 +34,7 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io or https://relay1.loopr
 * [loopring_getOrderByHash](#loopring_getorderbyhash)
 * [loopring_getDepth](#loopring_getdepth)
 * [loopring_getTicker](#loopring_getticker)
+* [loopring_getTickerBySource](#loopring_gettickerbysource)
 * [loopring_getTickers](#loopring_gettickers)
 * [loopring_getFills](#loopring_getfills)
 * [loopring_getTrend](#loopring_gettrend)
@@ -504,6 +505,98 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTicker","params":[{s
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%"
+  }]
+}
+```
+
+***
+
+### loopring_getTickerBySource
+
+Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com/.
+
+#### Parameters
+1. `tickerSource` - ticker source enum string.(source collection is : loopr, coinmarketcap)
+
+
+```js
+params: [{
+  "tickerSource" : "loopr"
+}]
+```
+
+#### Returns
+
+1. `high` - The 24hr highest price.
+2. `low`  - The 24hr lowest price.
+3. `last` - The newest dealt price.
+4. `vol` - The 24hr exchange volume.
+5. `amount` - The 24hr exchange amount.
+5. `buy` - The highest buy price in the depth.
+6. `sell` - The lowest sell price in the depth.
+7. `change` - The 24hr change percent of price.
+8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
+
+#### Example
+```js
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","params":[{"tickerSource":"loopr"}],"id":64}'
+
+// Result
+{
+  "id":64,
+  "jsonrpc": "2.0"
+  "result": [{
+    "exchange" : "",
+    "market":"EOS-WETH",
+    "high" : 0,
+    "low" : 0,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 0,
+    "buy" : 0,
+    "sell" : 0,
+    "change" : "-50.12%",
+    "label" : "whitelist"
+  },
+  {
+    "exchange" : "",
+    "market":"LRC-WETH",
+    "high" : 0,
+    "low" : 0,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 0,
+    "buy" : 0,
+    "sell" : 0,
+    "change" : "-50.12%",
+    "label" : "whitelist"
+  },
+  {
+    "exchange" : "",
+    "market":"RDN-WETH",
+    "high" : 0,
+    "low" : 0,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 0,
+    "buy" : 0,
+    "sell" : 0,
+    "change" : "-50.12%",
+    "label" : "hidelist"
+  },
+  {
+    "exchange" : "",
+    "market":"SAN-WETH",
+    "high" : 0,
+    "low" : 0,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 0,
+    "buy" : 0,
+    "sell" : 0,
+    "change" : "-50.12%",
+    "label" : "hidelist"
   }]
 }
 ```
