@@ -415,19 +415,21 @@ type WalletServiceImpl struct {
 	accountManager  accountmanager.AccountManager
 	marketCap       marketcap.MarketCapProvider
 	tickerCollector market.CollectorImpl
+	tickerManager   market.GetTickerImpl
 	globalMarket    market.GlobalMarket
 	rds             *dao.RdsService
 	oldWethAddress  string
 }
 
 func NewWalletService(trendManager market.TrendManager, orderViewer viewer.OrderViewer, accountManager accountmanager.AccountManager,
-	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, rds *dao.RdsService, oldWethAddress string, globalMarket market.GlobalMarket) *WalletServiceImpl {
+	capProvider marketcap.MarketCapProvider, collector market.CollectorImpl, tickerManager market.GetTickerImpl, rds *dao.RdsService, oldWethAddress string, globalMarket market.GlobalMarket) *WalletServiceImpl {
 	w := &WalletServiceImpl{}
 	w.trendManager = trendManager
 	w.orderViewer = orderViewer
 	w.accountManager = accountManager
 	w.marketCap = capProvider
 	w.tickerCollector = collector
+	w.tickerManager = tickerManager
 	w.rds = rds
 	w.oldWethAddress = oldWethAddress
 	w.globalMarket = globalMarket
@@ -932,7 +934,7 @@ func (w *WalletServiceImpl) GetTicker() (res []market.Ticker, err error) {
 }
 
 func (w *WalletServiceImpl) GetTickerBySource(req TickerRequest) (res []market.TickerResp, err error) {
-	return nil, err
+	return w.tickerManager.GetTickerBySource(req.TickerSource)
 }
 
 func (w *WalletServiceImpl) GetTrend(query TrendQuery) (res []market.Trend, err error) {
