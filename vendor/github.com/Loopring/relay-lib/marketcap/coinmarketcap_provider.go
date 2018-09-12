@@ -18,12 +18,6 @@
 package marketcap
 
 import (
-	"github.com/Loopring/relay-lib/zklock"
-	"io/ioutil"
-	"math/big"
-	"strings"
-	"time"
-
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,8 +27,13 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
+	"io/ioutil"
+	"math/big"
 	"net/http"
+	"strings"
+	"time"
 )
 
 const (
@@ -142,6 +141,7 @@ type CapProvider_CoinMarketCap struct {
 	duration      int
 	dustValue     *big.Rat
 	stopFuncs     []func()
+	syncTicker    chan func() error
 }
 
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValue(tokenAddress common.Address, amount *big.Rat) (*big.Rat, error) {
@@ -263,6 +263,7 @@ func (p *CapProvider_CoinMarketCap) Start() {
 		}
 	}()
 
+	p.startSync()
 	go p.syncMarketCapFromAPIWithZk()
 }
 
@@ -474,6 +475,7 @@ type MarketCapOptions struct {
 
 func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap {
 	provider := &CapProvider_CoinMarketCap{}
+	provider.syncTicker = make(chan func() error, 100)
 	provider.baseUrl = options.BaseUrl
 	provider.currency = options.Currency
 	provider.tokenMarketCaps = make(map[common.Address]*CoinMarketCap)
@@ -544,4 +546,26 @@ func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bo
 
 func (p *CapProvider_CoinMarketCap) IsValueDusted(value *big.Rat) bool {
 	return p.dustValue.Cmp(value) > 0
+}
+
+func (p *CapProvider_CoinMarketCap) AddSyncFunc(f func() error) {
+	p.syncTicker <- f
+}
+
+func (p *CapProvider_CoinMarketCap) startSync() {
+	go func() {
+		for {
+			select {
+			case f := <-p.syncTicker:
+				startTime := time.Now().Unix() + 60
+				f()
+				endtime := time.Now().Unix()
+				t := startTime - endtime
+				if t > 0 {
+					time.Sleep(time.Duration(t) * time.Second)
+				}
+
+			}
+		}
+	}()
 }
