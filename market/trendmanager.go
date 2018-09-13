@@ -79,23 +79,6 @@ type Ticker struct {
 	Change    string  `json:"change"`
 }
 
-type TickerResp struct {
-	Market    string  `json:"market"`
-	Exchange  string  `json:"exchange"`
-	Intervals string  `json:"interval"`
-	Amount    float64 `json:"amount"`
-	Vol       float64 `json:"vol"`
-	Open      float64 `json:"open"`
-	Close     float64 `json:"close"`
-	High      float64 `json:"high"`
-	Low       float64 `json:"low"`
-	Last      float64 `json:"last"`
-	Buy       float64 `json:"buy"`
-	Sell      float64 `json:"sell"`
-	Change    string  `json:"change"`
-	Label     string  `json:"label"`
-}
-
 type Cache struct {
 	Trends []Trend
 	Fills  []dao.FillEvent

@@ -517,11 +517,12 @@ Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com/.
 
 #### Parameters
 1. `tickerSource` - ticker source enum string.(source collection is : loopr, coinmarketcap)
-
+2. `mode` - maket pairs display mode enum string.(source collection is : default, rank)
 
 ```js
 params: [{
-  "tickerSource" : "loopr"
+  "tickerSource" : "loopr",
+  "mode" : "rank",
 }]
 ```
 
@@ -540,7 +541,7 @@ params: [{
 #### Example
 ```js
 // Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","params":[{"tickerSource":"loopr"}],"id":64}'
+curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","params":[{"tickerSource":"loopr","mode":"rank"}],"id":64}'
 
 // Result
 {

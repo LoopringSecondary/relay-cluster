@@ -56,7 +56,7 @@ type MarketCap struct {
 func (cap *MarketCap) UnmarshalJSON(input []byte) error {
 	type Cap struct {
 		Price            float64 `json:"price"`
-		Volume24H        float64 `json:"24h_volume"`
+		Volume24H        float64 `json:"volume_24h"`
 		MarketCap        float64 `json:"market_cap"`
 		PercentChange1H  float64 `json:"percent_change_1h"`
 		PercentChange24H float64 `json:"percent_change_24h"`
@@ -79,7 +79,7 @@ func (cap *MarketCap) UnmarshalJSON(input []byte) error {
 func (cap *MarketCap) MarshalJSON() ([]byte, error) {
 	type Cap struct {
 		Price            float64 `json:"price"`
-		Volume24H        float64 `json:"24h_volume"`
+		Volume24H        float64 `json:"volume_24h"`
 		MarketCap        float64 `json:"market_cap"`
 		PercentChange1H  float64 `json:"percent_change_1h"`
 		PercentChange24H float64 `json:"percent_change_24h"`

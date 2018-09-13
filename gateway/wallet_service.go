@@ -167,6 +167,7 @@ type SimpleKey struct {
 
 type TickerRequest struct {
 	TickerSource string `json:"tickerSource"`
+	Mode         string `json:"mode"`
 }
 
 type TempStore struct {
@@ -935,7 +936,7 @@ func (w *WalletServiceImpl) GetTicker() (res []market.Ticker, err error) {
 }
 
 func (w *WalletServiceImpl) GetTickerBySource(req TickerRequest) (res []market.TickerResp, err error) {
-	return w.tickerManager.GetTickerBySource(req.TickerSource)
+	return w.tickerManager.GetTickerBySource(req.TickerSource, req.Mode)
 }
 
 func (w *WalletServiceImpl) GetTrend(query TrendQuery) (res []market.Trend, err error) {

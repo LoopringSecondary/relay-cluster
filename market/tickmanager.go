@@ -30,6 +30,8 @@ const (
 	MARKET_OF_BLACKLIST = "blacklist"
 	MARKET_OF_HIDELIST  = "hidelist"
 
+	VOL_RANK100_MODE = "rank"
+
 	SPLIT_MARK                = "-"
 	marketTickerCachePreKey   = "COINMARKETCAP_TICKER_"
 	marketTickerLocalCacheKey = "COINMARKETCAP_TICKER_LOCAL"
@@ -48,6 +50,23 @@ var tickerUrls = map[string]string{
 	ETH:  "https://api.coinmarketcap.com/v2/ticker/?convert=ETH&start=%d&limit=%d",
 	LRC:  "https://api.coinmarketcap.com/v2/ticker/?convert=LRC&start=%d&limit=%d",
 	USDT: "https://api.coinmarketcap.com/v2/ticker/?convert=USDT&start=%d&limit=%d",
+}
+
+type TickerResp struct {
+	Market    string  `json:"market"`
+	Exchange  string  `json:"exchange"`
+	Intervals string  `json:"interval"`
+	Amount    float64 `json:"amount"`
+	Vol       float64 `json:"vol"`
+	Open      float64 `json:"open"`
+	Close     float64 `json:"close"`
+	High      float64 `json:"high"`
+	Low       float64 `json:"low"`
+	Last      float64 `json:"last"`
+	Buy       float64 `json:"buy"`
+	Sell      float64 `json:"sell"`
+	Change    string  `json:"change"`
+	Label     string  `json:"label"`
 }
 
 type TickerManager interface {
@@ -157,6 +176,7 @@ func syncMarketTickerFromAPI(currency string) error {
 				return err1
 			} else {
 				if "" == result.Metadata.Error {
+					fmt.Println(result.Data)
 					tickerData := [][]byte{}
 					for _, cap1 := range result.Data {
 						if data, err2 := json.Marshal(cap1); nil != err2 {
@@ -187,7 +207,8 @@ func syncMarketTickerFromAPI(currency string) error {
 	return nil
 }
 
-func (c *GetTickerImpl) GetTickerBySource(tickerSource string) (tickerResp []TickerResp, err error) {
+func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tickerResp []TickerResp, err error) {
+	//select by tickerSource
 	marketTicker := make([]TickerResp, 0)
 	if tickerSource == TICKER_SOURCE_COINMARKETCAP {
 		marketTicker, err = c.getCMCMarketTicker()
@@ -197,10 +218,12 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string) (tickerResp []Tic
 		marketTicker = getDefaultTicker(tickers)
 	}
 
+	//select by mode
 	mkts := make([]TickerResp, 0)
-	for _, resp := range marketTicker {
-		resp.setDisplay()
-		mkts = append(mkts, resp)
+	if VOL_RANK100_MODE == mode {
+		mkts = RankMode(marketTicker)
+	} else {
+		mkts = DefaultMode(marketTicker)
 	}
 
 	// sort by market
@@ -219,12 +242,62 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string) (tickerResp []Tic
 	return tickerResp, err
 }
 
-func (t *TickerResp) setDisplay() {
-	if listType, exists := displayMarkets[t.Market]; exists {
-		t.Label = listType
-	} else {
-		t.Label = MARKET_OF_HIDELIST
+func RankMode(tickers []TickerResp) []TickerResp {
+	// slice up  by weth/lrc/usdt
+	mkts := make([]TickerResp, 0)
+	wethmkt := make([]TickerResp, 0)
+	lrcmkt := make([]TickerResp, 0)
+	usdtmkt := make([]TickerResp, 0)
+	for _, v := range tickers {
+		market := strings.Split(v.Market, SPLIT_MARK)
+		if market[1] == WETH {
+			wethmkt = append(wethmkt, v)
+		} else if market[1] == LRC {
+			lrcmkt = append(lrcmkt, v)
+		} else if market[1] == USDT {
+			usdtmkt = append(usdtmkt, v)
+		}
 	}
+	if len(wethmkt) > 0 {
+		mkts = append(mkts, rankByVol(wethmkt)...)
+	}
+	if len(lrcmkt) > 0 {
+		mkts = append(mkts, rankByVol(lrcmkt)...)
+	}
+	if len(usdtmkt) > 0 {
+		mkts = append(mkts, rankByVol(usdtmkt)...)
+	}
+	return mkts
+}
+
+func rankByVol(tickers []TickerResp) []TickerResp {
+	mkts := make([]TickerResp, 0)
+	SortMarketTicker(tickers, func(p, q *TickerResp) bool {
+		return q.Vol < p.Vol //  desc sort
+	})
+
+	for k, v := range tickers {
+		if k < 100 {
+			v.Label = MARKET_OF_WHITELIST
+		} else {
+			v.Label = MARKET_OF_HIDELIST
+		}
+		mkts = append(mkts, v)
+	}
+	return mkts
+}
+
+func DefaultMode(tickers []TickerResp) []TickerResp {
+	mkts := make([]TickerResp, 0)
+	for _, resp := range tickers {
+		if listType, exists := displayMarkets[resp.Market]; exists {
+			resp.Label = listType
+		} else {
+			resp.Label = MARKET_OF_HIDELIST
+		}
+		mkts = append(mkts, resp)
+	}
+	return mkts
 }
 
 func getDefaultTicker(tickers []Ticker) []TickerResp {
@@ -308,7 +381,6 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 			price, _ := priceQuote.Price.Float64()
 			vol, _ := priceQuote.Volume24H.Float64()
 			change24H, _ := priceQuote.PercentChange24H.Float64()
-
 			ticker.Last, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
 			ticker.Vol, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", vol), 64)
 			ticker.Change = fmt.Sprintf("%.2f%%", change24H*100)
