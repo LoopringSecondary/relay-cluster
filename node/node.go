@@ -184,7 +184,7 @@ func (n *Node) registerOrderViewer() {
 }
 
 func (n *Node) registerTrendManager() {
-	n.trendManager = market.NewTrendManager(n.rdsService)
+	n.trendManager = market.NewTrendManager(n.rdsService, n.orderViewer)
 }
 
 func (n *Node) registerAccountManager() {

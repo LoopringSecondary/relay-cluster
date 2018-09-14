@@ -39,6 +39,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 const (
@@ -104,6 +106,7 @@ type TrendManager struct {
 	rds        *dao.RdsService
 	cron       *cron.Cron
 	localCache *gocache.Cache
+	orderViewer viewer.OrderViewer
 }
 
 type TrendUpdateMsg struct {
@@ -119,10 +122,10 @@ const tickerKey = "lpr_ticker_view_"
 const trendCronJobZkLock = "trendZkLock"
 const snsNotifyMsg = "trendmanager try lock failed"
 
-func NewTrendManager(dao *dao.RdsService) TrendManager {
+func NewTrendManager(dao *dao.RdsService, orderViewer viewer.OrderViewer) TrendManager {
 
 	once.Do(func() {
-		trendManager = TrendManager{rds: dao, cron: cron.New()}
+		trendManager = TrendManager{rds: dao, cron: cron.New(), orderViewer:orderViewer}
 		trendManager.localCache = gocache.New(5*time.Second, 5*time.Minute)
 		trendManager.LoadCache()
 
@@ -1026,6 +1029,16 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 		if newFillModel.Side == util.SideBuy {
 			log.Debug("only calculate sell fill for ticker when ring length is 2")
 			return err
+		}
+
+		order, err := t.orderViewer.GetOrderByHash(common.StringToHash(newFillModel.OrderHash)); if err != nil {
+			log.Error("get order failed by hash " + newFillModel.OrderHash)
+			return err
+		}
+
+		if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
+			log.Info("only calculate market order")
+			return nil
 		}
 
 		amountSFloat, err := util.StringToFloat(newFillModel.TokenS, newFillModel.AmountS)
