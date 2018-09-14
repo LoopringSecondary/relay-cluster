@@ -33,6 +33,7 @@ const (
 
 	// socket io messages
 	Kafka_Topic_SocketIO_Loopring_Ticker_Updated = "Kafka_Topic_SocketIO_Loopring_Ticker_Updated"
+	Kafka_Topic_SocketIO_SourceOf_Ticker_Updated = "Kafka_Topic_SocketIO_SourceOf_Ticker_Updated"
 	Kafka_Topic_SocketIO_Tickers_Updated         = "Kafka_Topic_SocketIO_Tickers_Updated"
 	Kafka_Topic_SocketIO_Trades_Updated          = "Kafka_Topic_SocketIO_Trades_Updated"
 	Kafka_Topic_SocketIO_Trends_Updated          = "Kafka_Topic_SocketIO_Trends_Updated"

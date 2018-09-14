@@ -87,6 +87,7 @@ type InvokeInfo struct {
 const (
 	eventKeyTickers             = "tickers"
 	eventKeyLoopringTickers     = "loopringTickers"
+	eventKeyTickersOfSource     = "tickersOfSource"
 	eventKeyTrends              = "trends"
 	eventKeyMarketCap           = "marketcap"
 	eventKeyBalance             = "balance"
@@ -140,6 +141,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 
 	var topicList = map[string]SocketMsgHandler{
 		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
+		kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated: {market.TickerUpdateMsg{}, so.broadcastSourceOfTicker},
 		//kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
 		kafka.Kafka_Topic_SocketIO_Trades_Updated: {dao.FillEvent{}, so.broadcastTrades},
 		kafka.Kafka_Topic_SocketIO_Trends_Updated: {market.TrendUpdateMsg{}, so.broadcastTrends},
@@ -158,6 +160,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.eventTypeRoute = map[string]InvokeInfo{
 		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec1Minute},
 		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTickersOfSource:   {"GetTickerBySource", TickerRequest{}, true, emitTypeByEvent, DefaultCronSpec1Minute},
 		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
 		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
@@ -254,6 +257,8 @@ func (so *SocketIOServiceImpl) Start() {
 			so.cron.AddFunc(spec, func() { so.broadcastTpTickers(nil) })
 		case eventKeyLoopringTickers:
 			so.cron.AddFunc(spec, func() { so.broadcastLoopringTicker(nil) })
+		case eventKeyTickersOfSource:
+			so.cron.AddFunc(spec, func() { so.broadcastSourceOfTicker(nil) })
 		case eventKeyDepth:
 			so.cron.AddFunc(spec, func() { so.broadcastDepth(nil) })
 		case eventKeyOrderBook:
@@ -431,6 +436,36 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err e
 			if ok {
 				//log.Info("emit loopring ticker info")
 				v.Emit(eventKeyLoopringTickers+EventPostfixRes, string(respJson[:]))
+			}
+		}
+		return true
+	})
+	return nil
+}
+
+func (so *SocketIOServiceImpl) broadcastSourceOfTicker(input interface{}) (err error) {
+
+	req := input.(*market.TickerUpdateMsg)
+	tickerRequest := TickerRequest{TickerSource: req.TickerSource, Mode: req.Mode}
+	resp := SocketIOJsonResp{}
+	tickers, err := so.walletService.GetTickerBySource(tickerRequest)
+
+	if err != nil {
+		resp = SocketIOJsonResp{Error: err.Error()}
+	} else {
+		resp.Data = tickers
+	}
+
+	respJson, _ := json.Marshal(resp)
+
+	so.connIdMap.Range(func(key, value interface{}) bool {
+		v := value.(socketio.Conn)
+		if v.Context() != nil {
+			businesses := v.Context().(map[string]string)
+			_, ok := businesses[eventKeyTickersOfSource]
+			if ok {
+				//log.Info("emit loopring ticker info")
+				v.Emit(eventKeyTickersOfSource+EventPostfixRes, string(respJson[:]))
 			}
 		}
 		return true

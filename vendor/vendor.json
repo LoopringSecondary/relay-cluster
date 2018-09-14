@@ -198,10 +198,10 @@
 			"revisionTime": "2018-06-28T04:47:44Z"
 		},
 		{
-			"checksumSHA1": "HZAg/0UWpZxOueINRW+cvARgFc0=",
+			"checksumSHA1": "zjH33BaSSa106KinhZvisJSpdgo=",
 			"path": "github.com/Loopring/relay-lib/kafka",
-			"revision": "505032a0737bf9d1007ff782db67a4e41eac71f7",
-			"revisionTime": "2018-06-28T04:47:44Z"
+			"revision": "f8ec518e6bc0d06299c49657b015e6bd0d9aadc7",
+			"revisionTime": "2018-09-13T08:43:10Z"
 		},
 		{
 			"checksumSHA1": "JjFEjU8YY4HP+oaGiGI9O8xg+3k=",

@@ -69,6 +69,11 @@ type TickerResp struct {
 	Label     string  `json:"label"`
 }
 
+type TickerUpdateMsg struct {
+	TickerSource string `json:"tickerSource"`
+	Mode         string `json:"mode"`
+}
+
 type TickerManager interface {
 	GetTickerBySource(tickerSource string) ([]TickerResp, error)
 	getCMCMarketTicker() ([]TickerResp, error)
@@ -383,7 +388,7 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 			change24H, _ := priceQuote.PercentChange24H.Float64()
 			ticker.Last, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
 			ticker.Vol, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", vol), 64)
-			ticker.Change = fmt.Sprintf("%.2f%%", change24H*100)
+			ticker.Change = fmt.Sprintf("%.2f%%", change24H)
 		}
 		tickers = append(tickers, ticker)
 	}
