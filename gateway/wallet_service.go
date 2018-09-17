@@ -563,6 +563,13 @@ func (w *WalletServiceImpl) GetTickers(mkt SingleMarket) (result map[string]mark
 	} else {
 		log.Info("get other exchanges ticker error" + err.Error())
 	}
+
+	cmcTicker, err := w.tickerManager.GetTickerByMarket(mkt.Market)
+	if err == nil {
+		result["coinmarketcap"] = cmcTicker
+	} else {
+		log.Info("get coinmarketcap ticker error" + err.Error())
+	}
 	return result, nil
 }
 
@@ -936,6 +943,7 @@ func (w *WalletServiceImpl) GetTicker() (res []market.Ticker, err error) {
 }
 
 func (w *WalletServiceImpl) GetTickerBySource(req TickerRequest) (res []market.TickerResp, err error) {
+	fmt.Println("GetTickerBySource start:" + req.TickerSource + "," + req.Mode)
 	return w.tickerManager.GetTickerBySource(req.TickerSource, req.Mode)
 }
 

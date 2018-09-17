@@ -2,6 +2,7 @@ package market
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
@@ -77,6 +78,7 @@ type TickerUpdateMsg struct {
 type TickerManager interface {
 	GetTickerBySource(tickerSource string) ([]TickerResp, error)
 	getCMCMarketTicker() ([]TickerResp, error)
+	GetTickerByMarket(market string) (Ticker, error)
 	Start()
 }
 
@@ -244,7 +246,44 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tic
 		tickerResp = append(tickerResp, tickerMap[m])
 	}
 
+	log.Info("tickerResp:")
+	fmt.Println(tickerResp)
 	return tickerResp, err
+}
+
+func (c *GetTickerImpl) GetTickerByMarket(market string) (Ticker, error) {
+	ticker := Ticker{}
+	if "" == market {
+		return ticker, errors.New("market is not null.")
+	}
+
+	localData, ok := c.localCache.Get(marketTickerLocalCacheKey)
+	if ok {
+		tickerResp := localData.([]TickerResp)
+		for _, v := range tickerResp {
+			if market == v.Market {
+				ticker.Market = market
+				ticker.Vol = v.Vol
+				ticker.Last = v.Last
+				ticker.Change = v.Change
+				return ticker, nil
+			}
+		}
+	}
+
+	tickers, _ := getTickersFromRedis(wethMarkets, strings.Split(market, SPLIT_MARK)[1])
+	if len(tickers) > 0 {
+		for _, v := range tickers {
+			if market == v.Market {
+				ticker.Market = market
+				ticker.Vol = v.Vol
+				ticker.Last = v.Last
+				ticker.Change = v.Change
+				return ticker, nil
+			}
+		}
+	}
+	return ticker, nil
 }
 
 func RankMode(tickers []TickerResp) []TickerResp {
