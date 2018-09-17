@@ -246,8 +246,9 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tic
 		tickerResp = append(tickerResp, tickerMap[m])
 	}
 
-	log.Info("tickerResp:")
-	fmt.Println(tickerResp)
+	str, _ := json.Marshal(tickerResp)
+	log.Info("tickerResp:" + string(str))
+
 	return tickerResp, err
 }
 
