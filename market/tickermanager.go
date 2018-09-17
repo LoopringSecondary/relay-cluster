@@ -372,7 +372,9 @@ func getDefaultTicker(tickers []Ticker) []TickerResp {
 func (c *GetTickerImpl) getCMCMarketTicker() (tickers []TickerResp, err error) {
 	localData, ok := c.localCache.Get(marketTickerLocalCacheKey)
 	if ok {
-		return localData.([]TickerResp), nil
+		str, _ := json.Marshal(localData)
+		log.Infof("###getCMCMarketTicker %s", string(str))
+		//return localData.([]TickerResp), nil
 	}
 	tickers = make([]TickerResp, 0)
 	wethTicker, _ := getTickersFromRedis(wethMarkets, ETH)
