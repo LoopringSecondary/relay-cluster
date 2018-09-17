@@ -943,7 +943,6 @@ func (w *WalletServiceImpl) GetTicker() (res []market.Ticker, err error) {
 }
 
 func (w *WalletServiceImpl) GetTickerBySource(req TickerRequest) (res []market.TickerResp, err error) {
-	fmt.Println("GetTickerBySource start:" + req.TickerSource + "," + req.Mode)
 	return w.tickerManager.GetTickerBySource(req.TickerSource, req.Mode)
 }
 

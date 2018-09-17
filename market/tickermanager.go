@@ -97,8 +97,8 @@ func NewTickManager(trendManager TrendManager, marketCapProvider marketcap.Marke
 
 func (c *GetTickerImpl) Start() {
 	go func() {
+		refreshMarkets()
 		if zklock.TryLock(tickerManagerCronJobZkLock) == nil {
-			refreshMarkets()
 			c.cron.AddFunc("1 0/10 * * * *", refreshMarkets)
 			c.cron.AddFunc("@every 5m", c.updateWETHMarketCache)
 			c.cron.AddFunc("@every 5m", c.updateLRCMarketCache)
@@ -246,9 +246,6 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tic
 		tickerResp = append(tickerResp, tickerMap[m])
 	}
 
-	str, _ := json.Marshal(tickerResp)
-	log.Info("tickerResp:" + string(str))
-
 	return tickerResp, err
 }
 
@@ -372,9 +369,7 @@ func getDefaultTicker(tickers []Ticker) []TickerResp {
 func (c *GetTickerImpl) getCMCMarketTicker() (tickers []TickerResp, err error) {
 	localData, ok := c.localCache.Get(marketTickerLocalCacheKey)
 	if ok {
-		str, _ := json.Marshal(localData)
-		log.Infof("###getCMCMarketTicker %s", string(str))
-		//return localData.([]TickerResp), nil
+		return localData.([]TickerResp), nil
 	}
 	tickers = make([]TickerResp, 0)
 	wethTicker, _ := getTickersFromRedis(wethMarkets, ETH)
