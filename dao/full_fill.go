@@ -50,6 +50,7 @@ type FullFillEvent struct {
 	TokenAmountCal  float64 `gorm:"column:token_amount_cal;type:float"`
 	AmountBCal      float64 `gorm:"column:amount_s_cal;type:float"`
 	OrderType       string  `gorm:"column:order_type;type:varchar(50)" json:"orderType"`
+	Relay           string  `gorm:"column:relay;type:varchar(100)" json:"relay"`
 }
 
 type Relay struct {
@@ -170,7 +171,7 @@ func (s *RdsService) GetAllFills(miner, txHash string) (res []*FullFillEvent) {
 
 func (s *RdsService) GetAllFullFills(currency types.Currency, trendType types.TrendType, keyword, search string, pageIndex, pageSize int) (res []FullFillEvent) {
 	sql := "select b.id, " +
-		"b.contract_address, b.delegate_address, b.owner, b.ring_index, b.fill_index, b.create_time, b.ring_hash, b.tx_hash, b.order_hash, " +
+		"(select d.relay from lpr_relays d where d.miner = b.miner) relay, b.contract_address, b.delegate_address, b.owner, b.ring_index, b.fill_index, b.create_time, b.ring_hash, b.tx_hash, b.order_hash, " +
 		"b.symbol_s token_s, b.symbol_b token_b, concat('0x', conv(b.amount_s, 10, 16)) amount_s, concat('0x', conv(b.amount_b, 10, 16)) amount_b, concat('0x', conv(b.lrc_fee, 10, 16)) lrc_fee, b.market, b.side, b.miner, b.order_type, b.wallet_address, " +
 		"b.lrc_cal*a.coin_amount lrc_cal, b.token_amount_cal*a.coin_amount token_amount_cal " +
 		"from lpr_token_price_trends a right join lpr_full_fill_events b on UNIX_TIMESTAMP(date_format(FROM_UNIXTIME(b.create_time), '%Y-%m-%d')) = a.time " +
