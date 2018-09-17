@@ -98,8 +98,8 @@ func NewTickManager(trendManager TrendManager, marketCapProvider marketcap.Marke
 func (c *GetTickerImpl) Start() {
 	go func() {
 		refreshMarkets()
+		c.cron.AddFunc("1 0/10 * * * *", refreshMarkets)
 		if zklock.TryLock(tickerManagerCronJobZkLock) == nil {
-			c.cron.AddFunc("1 0/10 * * * *", refreshMarkets)
 			c.cron.AddFunc("@every 5m", c.updateWETHMarketCache)
 			c.cron.AddFunc("@every 5m", c.updateLRCMarketCache)
 			c.cron.AddFunc("@every 5m", c.updateUSDTMarketCache)
@@ -269,7 +269,18 @@ func (c *GetTickerImpl) GetTickerByMarket(market string) (Ticker, error) {
 		}
 	}
 
-	tickers, _ := getTickersFromRedis(wethMarkets, strings.Split(market, SPLIT_MARK)[1])
+	mkt := strings.Split(market, SPLIT_MARK)[1]
+	marketPairs := make(map[string]string)
+	if mkt == WETH {
+		mkt = ETH
+		marketPairs = wethMarkets
+	} else if mkt == LRC {
+		marketPairs = lrcMarkets
+	} else if mkt == USDT {
+		marketPairs = usdtMarkets
+	}
+
+	tickers, _ := getTickersFromRedis(marketPairs, mkt)
 	if len(tickers) > 0 {
 		for _, v := range tickers {
 			if market == v.Market {

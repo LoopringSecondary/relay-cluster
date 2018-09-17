@@ -681,6 +681,17 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getTickers","params":{se
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%"
+  }},
+  "huobi" : {
+    "exchange" : "coinmarketcap",
+    "high" : 0,
+    "low" : 0,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 0,
+    "buy" : 0,
+    "sell" : 0,
+    "change" : "-50.12%"
   }}
 }
 ```
