@@ -288,7 +288,7 @@ func (s *RdsService) GetTokensByRelay(currency types.Currency, relay string) (re
 
 func (s *RdsService) GetTradeDetails(delegateAddress string, ringIndex, fillIndex int64) (res []FullFillEvent) {
 	sql := "select id, " +
-		"contract_address, delegate_address, owner, ring_index, fill_index, create_time, ring_hash, tx_hash, order_hash, " +
+		"(select b.relay from lpr_relays b where b.miner = lpr_full_fill_events.miner) relay, contract_address, delegate_address, owner, ring_index, fill_index, create_time, ring_hash, tx_hash, order_hash, " +
 		"symbol_s token_s, symbol_b token_b, concat('0x', conv(amount_s, 10, 16)) amount_s, concat('0x', conv(amount_b, 10, 16)) amount_b,  concat('0x', conv(lrc_fee, 10, 16)) lrc_fee, market, side, miner, wallet_address " +
 		"from lpr_full_fill_events " +
 		"where ring_index = " + strconv.FormatInt(ringIndex, 10) + " and fill_index = " + strconv.FormatInt(fillIndex, 10) + " "
