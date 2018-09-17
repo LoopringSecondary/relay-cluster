@@ -264,6 +264,7 @@ func (c *GetTickerImpl) GetTickerByMarket(market string) (Ticker, error) {
 				ticker.Vol = v.Vol
 				ticker.Last = v.Last
 				ticker.Change = v.Change
+				ticker.Exchange = TICKER_SOURCE_COINMARKETCAP
 				return ticker, nil
 			}
 		}
@@ -288,6 +289,7 @@ func (c *GetTickerImpl) GetTickerByMarket(market string) (Ticker, error) {
 				ticker.Vol = v.Vol
 				ticker.Last = v.Last
 				ticker.Change = v.Change
+				ticker.Exchange = TICKER_SOURCE_COINMARKETCAP
 				return ticker, nil
 			}
 		}
