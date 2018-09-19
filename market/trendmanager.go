@@ -1036,7 +1036,7 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			return err
 		}
 
-		if order.RawOrder.OrderType == types.ORDER_TYPE_P2P {
+		if strings.ToLower(order.RawOrder.OrderType) == types.ORDER_TYPE_P2P {
 			log.Info("only calculate market order")
 			return nil
 		}

@@ -171,9 +171,9 @@ func (s *RdsService) QueryRecentFills(market, owner string, start int64, end int
 	timeQuery := buildTimeQueryString(start, end)
 
 	if timeQuery != "" {
-		err = s.Db.Where(query).Where(timeQuery).Where("fork=?", false).Order("create_time desc").Limit(100).Find(&fills).Error
+		err = s.Db.Where(query).Where(timeQuery).Where("fork=?", false).Where("order_type=?", types.ORDER_TYPE_MARKET).Order("create_time desc").Limit(100).Find(&fills).Error
 	} else {
-		err = s.Db.Where(query).Where("fork=?", false).Order("create_time desc").Limit(100).Find(&fills).Error
+		err = s.Db.Where(query).Where("fork=?", false).Where("order_type=?", types.ORDER_TYPE_MARKET).Order("create_time desc").Limit(100).Find(&fills).Error
 	}
 	return
 }
