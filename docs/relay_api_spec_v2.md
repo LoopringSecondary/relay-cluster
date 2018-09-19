@@ -67,6 +67,7 @@ SocketIO(mainnet) : https://relay1.loopring.io/socket.io or https://relay1.loopr
 * [balance](#balance)
 * [tickers](#tickers)
 * [loopringTickers](#loopringtickers)
+* [tickersOfSource](#tickersOfSource)
 * [transactions](#transactions)
 * [marketcap](#marketcap)
 * [depth](#depth)
@@ -942,6 +943,7 @@ curl -X GET --data '{"jsonrpc":"2.0","method":"loopring_getCutoff","params":{see
   "id":64,
   "jsonrpc": "2.0",
   "result": "1501232222"
+}
 ```
 ***
 
@@ -1737,6 +1739,96 @@ socketio.on("balance_res", function(data) {
     ]
 }
 ```
+
+***
+
+### tickers
+
+Get 24hr merged tickers reference info from other exchange like binance, huobi.
+
+#### subscribe events
+- tickers_req : emit this event to receive push message.
+- tickers_res : subscribe this event to receive push message.
+- tickers_end : emit this event to stop receive push message.
+
+#### Parameters
+1. `market` - The market selected.
+
+```js
+socketio.emit("tickers_req", '{"market" : "LRC-WETH"}', function(data) {
+  // your business code
+});
+socketio.on("tickers_res", function(data) {
+  // your business code
+});
+```
+
+#### Returns
+
+1. `high` - The 24hr highest price.
+2. `low`  - The 24hr lowest price.
+3. `last` - The newest dealt price.
+4. `vol` - The 24hr exchange volume.
+5. `amount` - The 24hr exchange amount.
+5. `buy` - The highest buy price in the depth.
+6. `sell` - The lowest sell price in the depth.
+7. `change` - The 24hr change percent of price.
+
+#### Example
+```js
+// Request
+
+{"market" : "LRC-WETH"}
+
+// Result
+{
+  "loopr" : {
+    "exchange" : "loopr",
+    "high" : 30384.2,
+    "low" : 19283.2,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 1003839.32,
+    "buy" : 122321,
+    "sell" : 12388,
+    "change" : "-50.12%"
+  },
+  "binance" : {
+    "exchange" : "binance",
+    "high" : 30384.2,
+    "low" : 19283.2,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 1003839.32,
+    "buy" : 122321,
+    "sell" : 12388,
+    "change" : "-50.12%"
+  },
+  "okEx" : {
+    "exchange" : "okEx",
+    "high" : 30384.2,
+    "low" : 19283.2,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 1003839.32,
+    "buy" : 122321,
+    "sell" : 12388,
+    "change" : "-50.12%"
+  },
+  "huobi" : {
+    "exchange" : "huobi",
+    "high" : 30384.2,
+    "low" : 19283.2,
+    "last" : 28002.2,
+    "vol" : 1038,
+    "amount" : 1003839.32,
+    "buy" : 122321,
+    "sell" : 12388,
+    "change" : "-50.12%"
+  }
+}
+```
+
 ***
 
 ### loopringTickers
@@ -1830,23 +1922,27 @@ socketio.on("loopringTickers_res", function(data) {
 ]
 ```
 
-### tickers
+***
 
-Get 24hr merged tickers reference info from other exchange like binance, huobi.
+### tickersOfSource
+
+Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com.
 
 #### subscribe events
-- tickers_req : emit this event to receive push message.
-- tickers_res : subscribe this event to receive push message.
-- tickers_end : emit this event to stop receive push message.
+- tickersOfSource_req : emit this event to receive push message.
+- tickersOfSource_res : subscribe this event to receive push message.
+- tickersOfSource_end : emit this event to stop receive push message.
 
 #### Parameters
-1. `market` - The market selected.
+
+- `tickerSource` - ticker source enum string.(source collection is : loopr, coinmarketcap)
+- `mode` - maket pairs display mode enum string.(source collection is : default, rank)
 
 ```js
-socketio.emit("tickers_req", '{"market" : "LRC-WETH"}', function(data) {
+socketio.emit("tickersOfSource_req", '{"tickerSource":"coinmarketcap", "mode":"rank"}', function(data) {
   // your business code
 });
-socketio.on("tickers_res", function(data) {
+socketio.on("tickersOfSource_res", function(data) {
   // your business code
 });
 ```
@@ -1861,17 +1957,22 @@ socketio.on("tickers_res", function(data) {
 5. `buy` - The highest buy price in the depth.
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
+8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
 
 #### Example
 ```js
 // Request
 
-{"market" : "LRC-WETH"}
+{
+  "tickerSource":"coinmarketcap",
+  "mode":"rank"
+}
 
 // Result
-{
-  "loopr" : {
-    "exchange" : "loopr",
+[
+  {
+    "exchange" : "",
+    "market" : "LRC-WETH",
     "high" : 30384.2,
     "low" : 19283.2,
     "last" : 28002.2,
@@ -1879,10 +1980,12 @@ socketio.on("tickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist"
   },
-  "binance" : {
-    "exchange" : "binance",
+  {
+    "exchange" : "",
+    "market" : "RDN-WETH",
     "high" : 30384.2,
     "low" : 19283.2,
     "last" : 28002.2,
@@ -1890,10 +1993,12 @@ socketio.on("tickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist"
   },
-  "okEx" : {
-    "exchange" : "okEx",
+  {
+    "market" : "ZRX-WETH",
+    "exchange" : "",
     "high" : 30384.2,
     "low" : 19283.2,
     "last" : 28002.2,
@@ -1901,10 +2006,12 @@ socketio.on("tickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist"
   },
-  "huobi" : {
-    "exchange" : "huobi",
+  {
+    "exchange" : "",
+    "market" : "AUX-WETH"
     "high" : 30384.2,
     "low" : 19283.2,
     "last" : 28002.2,
@@ -1912,9 +2019,10 @@ socketio.on("tickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist"
   }
-}
+]
 ```
 
 ***
