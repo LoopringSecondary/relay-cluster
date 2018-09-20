@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
+	"strings"
 )
 
 type Gateway struct {
@@ -64,6 +65,7 @@ type GatewayFiltersOptions struct {
 		MinTokeSAmount        map[string]string
 		MinTokenSUsdAmount    float64
 		MaxValidSinceInterval int64
+		OwnerBlackList        []string
 	}
 	PowFilter struct {
 		Difficulty string
@@ -95,6 +97,7 @@ func Initialize(filterOptions *GatewayFiltersOptions, options *GateWayOptions, o
 		MinTokeSAmount:        make(map[string]*big.Int),
 		MinTokenSUsdAmount:    filterOptions.BaseFilter.MinTokenSUsdAmount,
 		MaxValidSinceInterval: filterOptions.BaseFilter.MaxValidSinceInterval,
+		OwnerBlackList:        filterOptions.BaseFilter.OwnerBlackList,
 	}
 	for k, v := range filterOptions.BaseFilter.MinTokeSAmount {
 		minAmount := big.NewInt(0)
@@ -230,6 +233,7 @@ type BaseFilter struct {
 	MinTokeSAmount        map[string]*big.Int
 	MinTokenSUsdAmount    float64
 	MaxValidSinceInterval int64
+	OwnerBlackList        []string
 }
 
 func (f *BaseFilter) filter(o *types.Order) (bool, error) {
@@ -237,6 +241,12 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		addrLength = 20
 		hashLength = 32
 	)
+
+	for _, v := range f.OwnerBlackList {
+		if strings.ToLower(v) == strings.ToLower(o.Owner.Hex()) {
+			return false, fmt.Errorf("owner is in the black list")
+		}
+	}
 
 	if !loopringaccessor.IsRelateProtocol(o.Protocol, o.DelegateAddress) {
 		return false, fmt.Errorf("protocol and Delegate are not matched")
