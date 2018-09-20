@@ -169,7 +169,7 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		for _, v := range gateway.filters {
 			valid, err := v.filter(order)
 			if !valid {
-				log.Errorf(err.Error())
+				log.Error(err.Error())
 				return orderHash, err
 			}
 		}
@@ -244,7 +244,7 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 
 	for _, v := range f.OwnerBlackList {
 		if strings.ToLower(v) == strings.ToLower(o.Owner.Hex()) {
-			return false, fmt.Errorf("owner is in the black list")
+			return false, fmt.Errorf("owner is in the black list : " + v)
 		}
 	}
 
