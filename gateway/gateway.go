@@ -169,7 +169,7 @@ func HandleInputOrder(input eventemitter.EventData) (orderHash string, err error
 		for _, v := range gateway.filters {
 			valid, err := v.filter(order)
 			if !valid {
-				log.Error(err.Error())
+				log.Info(err.Error())
 				return orderHash, err
 			}
 		}
