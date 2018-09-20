@@ -68,6 +68,7 @@ type TickerResp struct {
 	Sell      float64 `json:"sell"`
 	Change    string  `json:"change"`
 	Label     string  `json:"label"`
+	Decimals  int     `json:"decimals"`
 }
 
 type TickerUpdateMsg struct {
@@ -373,6 +374,7 @@ func getDefaultTicker(tickers []Ticker) []TickerResp {
 			marketTicker.Buy = data.Buy
 			marketTicker.Sell = data.Sell
 			marketTicker.Change = data.Change
+			marketTicker.Decimals = 8
 			tickerResp = append(tickerResp, marketTicker)
 		}
 	}
@@ -439,7 +441,9 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 			ticker.Last, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
 			ticker.Vol, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", vol), 64)
 			ticker.Change = fmt.Sprintf("%.2f%%", change24H)
+
 		}
+		ticker.Decimals = 8
 		tickers = append(tickers, ticker)
 	}
 

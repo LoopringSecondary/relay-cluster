@@ -538,6 +538,7 @@ params: [{
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
+9. `decimals` - The price's decimals
 
 #### Example
 ```js
@@ -559,7 +560,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -572,7 +574,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -585,7 +588,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "hidelist"
+    "label" : "hidelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -598,7 +602,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"loopring_getTickerBySource","par
     "buy" : 0,
     "sell" : 0,
     "change" : "-50.12%",
-    "label" : "hidelist"
+    "label" : "hidelist",
+    "decimals" : 8
   }]
 }
 ```
@@ -1958,6 +1963,7 @@ socketio.on("tickersOfSource_res", function(data) {
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
 8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
+9. `decimals` - The price's decimals
 
 #### Example
 ```js
@@ -1981,7 +1987,8 @@ socketio.on("tickersOfSource_res", function(data) {
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -1994,7 +2001,8 @@ socketio.on("tickersOfSource_res", function(data) {
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "market" : "ZRX-WETH",
@@ -2007,7 +2015,8 @@ socketio.on("tickersOfSource_res", function(data) {
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -2020,7 +2029,8 @@ socketio.on("tickersOfSource_res", function(data) {
     "buy" : 122321,
     "sell" : 12388,
     "change" : "-50.12%",
-    "label" : "whitelist"
+    "label" : "whitelist",
+    "decimals" : 8
   }
 ]
 ```
