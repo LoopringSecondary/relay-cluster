@@ -412,9 +412,6 @@ type AddTokenReq struct {
 	Decimals             string `json:"decimals"`
 }
 
-type OrderDifficultyReq struct {
-}
-
 type OrderDifficultyRes struct {
 	Difficulty common.Hash `json:"difficulty"`
 }
@@ -554,7 +551,7 @@ func (w *WalletServiceImpl) GetPriceQuote(query PriceQuoteQuery) (result PriceQu
 	return rst, nil
 }
 
-func (w *WalletServiceImpl) GetOrderDifficulty(req OrderDifficultyReq) (result OrderDifficultyRes, err error) {
+func (w *WalletServiceImpl) GetOrderDifficulty() (result OrderDifficultyRes, err error) {
 	diff, err1 := order_difficulty.GetDifficulty()
 	return OrderDifficultyRes{Difficulty: diff}, err1
 }
