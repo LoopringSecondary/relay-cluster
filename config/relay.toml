@@ -96,6 +96,7 @@ title = "miner"
         max_split_percentage = 1.0
         min_tokenS_usd_amount = 5.0
         max_valid_since_interval = 3600
+        owner_black_list = ["0x9eC7ce2C709933cBB871F4E7361521E1B0BE0D7F"]
         [gateway_filters.base_filter.min_tokeS_amount]
             "RDN" = "10000000"
     [gateway_filters.pow_filter]
