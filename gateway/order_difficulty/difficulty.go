@@ -68,6 +68,18 @@ func (evaluator *OrderDifficultyEvaluator) getDiffCacheKey(createTime int64) (ke
 }
 
 func NewOrderDifficultyEvaluator(config OrderDifficultyConfig) *OrderDifficultyEvaluator {
+	if nil == config.BaseDifficulty {
+		config.BaseDifficulty = big.NewInt(0)
+	}
+	if 0 == config.CalCount {
+		config.CalCount = 1000
+	}
+	if 0 == config.Duration {
+		config.Duration = 2
+	}
+	if 0 == config.Threshold {
+		config.Threshold = 10
+	}
 	evaluator := &OrderDifficultyEvaluator{calCount: config.CalCount, duration: config.Duration}
 	evaluator.evaluator = &LinearEvaluator{baseDifficulty: config.BaseDifficulty, threshold: config.Threshold}
 	return evaluator
@@ -86,17 +98,22 @@ func (evaluator *OrderDifficultyEvaluator) Start() {
 		if err := zklock.TryLock(ZklockDifficulty); nil != err {
 			log.Errorf("erro:%s", err.Error())
 		} else {
-			now := time.Now().Unix()
-			orderCntList := []*OrderDifficulty{}
-			for i := evaluator.calCount; i > 0; i-- {
-				t := now - i*evaluator.duration
-				cacheKey, _ := evaluator.getDiffCacheKey(t)
-				orderDifficulty := &OrderDifficulty{}
-				if data, err := cache.Get(cacheKey); nil == err {
-					json.Unmarshal(data, orderDifficulty)
-				}
-				orderCntList = append(orderCntList, orderDifficulty)
+			if _, err1 := GetDifficulty(); nil != err1 {
+				println("##########")
+				diff := common.BytesToHash(evaluator.evaluator.getBaseDifficulty().Bytes())
+				cache.Set(OrderDifficultyKey, []byte(diff.Hex()), int64(10000))
 			}
+			//now := time.Now().Unix()
+			//orderCntList := []*OrderDifficulty{}
+			//for i := evaluator.calCount; i > 0; i-- {
+			//	t := now - i*evaluator.duration
+			//	cacheKey, _ := evaluator.getDiffCacheKey(t)
+			//	orderDifficulty := &OrderDifficulty{}
+			//	if data, err := cache.Get(cacheKey); nil == err {
+			//		json.Unmarshal(data, orderDifficulty)
+			//	}
+			//	orderCntList = append(orderCntList, orderDifficulty)
+			//}
 			for {
 				select {
 				case <-time.After(time.Duration(evaluator.duration) * time.Second):
@@ -105,7 +122,7 @@ func (evaluator *OrderDifficultyEvaluator) Start() {
 						currentDiff := diffHash
 						orderDiff := &OrderDifficulty{}
 						cacheKey, _ := evaluator.getOrderCacheKey(now)
-						orderDiff.OrdersNum = 60
+						orderDiff.OrdersNum = 0
 						if data, err1 := cache.Get(cacheKey); nil == err1 {
 							if orderNum, err3 := strconv.Atoi(string(data)); nil == err3 {
 								orderDiff.OrdersNum = int64(orderNum)

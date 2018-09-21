@@ -61,7 +61,7 @@ func init() {
 }
 
 func TestEvaluator(t *testing.T) {
-	config := order_difficulty.OrderDifficultyConfig{BaseDifficulty: big.NewInt(1000), Threshold: 100, Duration: 2, CalCount: 100}
+	config := order_difficulty.OrderDifficultyConfig{}
 	evaluator := order_difficulty.NewOrderDifficultyEvaluator(config)
 	evaluator.Start()
 	time.Sleep(1000000 * time.Second)
