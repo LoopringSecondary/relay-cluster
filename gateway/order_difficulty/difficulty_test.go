@@ -24,8 +24,8 @@ import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
-	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"math/big"
 	"testing"
@@ -70,14 +70,10 @@ func TestEvaluator(t *testing.T) {
 func TestLinearEvaluator_CalcAndSaveDifficulty(t *testing.T) {
 	evaluator := order_difficulty.NewLinearEvaluator(big.NewInt(100), 200)
 	cntList := make([]*order_difficulty.OrderDifficulty, 0)
-	cntList = append(cntList, order_difficulty.NewOrderDiff(100, common.BytesToHash(big.NewInt(100).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(900, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(900, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(400, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(400, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(400, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(400, common.BytesToHash(big.NewInt(200).Bytes())))
-	cntList = append(cntList, order_difficulty.NewOrderDiff(600, common.BytesToHash(big.NewInt(200).Bytes())))
+	cntList = append(cntList, order_difficulty.NewOrderDiff(100, types.BigintToHex(big.NewInt(100))))
+	cntList = append(cntList, order_difficulty.NewOrderDiff(900, types.BigintToHex(big.NewInt(200))))
+	cntList = append(cntList, order_difficulty.NewOrderDiff(900, types.BigintToHex(big.NewInt(200))))
+	cntList = append(cntList, order_difficulty.NewOrderDiff(400, types.BigintToHex(big.NewInt(200))))
 	//cntList = append(cntList, order_difficulty.NewOrderDiff(700, common.BytesToHash(big.NewInt(200).Bytes())))
 	//cntList = append(cntList, order_difficulty.NewOrderDiff(700, common.BytesToHash(big.NewInt(200).Bytes())))
 	println(evaluator.CalcAndSaveDifficulty(cntList, 10).String())

@@ -48,7 +48,7 @@ type OrderDifficultyEvaluator struct {
 }
 
 type OrderDifficulty struct {
-	Difficulty common.Hash
+	Difficulty string
 	OrdersNum  int64
 	TimeStamp  int64
 }
@@ -68,8 +68,8 @@ func (evaluator *OrderDifficultyEvaluator) getDiffCacheKey(createTime int64) (ke
 }
 
 func NewOrderDifficultyEvaluator(config OrderDifficultyConfig) *OrderDifficultyEvaluator {
-	if nil == config.BaseDifficulty {
-		config.BaseDifficulty = big.NewInt(0)
+	if "" == config.BaseDifficulty {
+		config.BaseDifficulty = "0x10"
 	}
 	if 0 == config.CalCount {
 		config.CalCount = 1000
@@ -81,12 +81,13 @@ func NewOrderDifficultyEvaluator(config OrderDifficultyConfig) *OrderDifficultyE
 		config.Threshold = 10
 	}
 	evaluator := &OrderDifficultyEvaluator{calCount: config.CalCount, duration: config.Duration}
-	evaluator.evaluator = &LinearEvaluator{baseDifficulty: config.BaseDifficulty, threshold: config.Threshold}
+	baseDifficulty := types.HexToBigint(config.BaseDifficulty)
+	evaluator.evaluator = &LinearEvaluator{baseDifficulty: baseDifficulty, threshold: config.Threshold}
 	return evaluator
 }
 
 type OrderDifficultyConfig struct {
-	BaseDifficulty *big.Int
+	BaseDifficulty string
 	Threshold      int64
 	CalCount       int64
 	Duration       int64
@@ -99,9 +100,8 @@ func (evaluator *OrderDifficultyEvaluator) Start() {
 			log.Errorf("erro:%s", err.Error())
 		} else {
 			if _, err1 := GetDifficulty(); nil != err1 {
-				println("##########")
-				diff := common.BytesToHash(evaluator.evaluator.getBaseDifficulty().Bytes())
-				cache.Set(OrderDifficultyKey, []byte(diff.Hex()), int64(10000))
+				diffHex := types.BigintToHex(evaluator.evaluator.getBaseDifficulty())
+				cache.Set(OrderDifficultyKey, []byte(diffHex), int64(10000))
 			}
 			//now := time.Now().Unix()
 			//orderCntList := []*OrderDifficulty{}
@@ -118,8 +118,8 @@ func (evaluator *OrderDifficultyEvaluator) Start() {
 				select {
 				case <-time.After(time.Duration(evaluator.duration) * time.Second):
 					now := time.Now().Unix()
-					if diffHash, err := GetDifficulty(); nil == err {
-						currentDiff := diffHash
+					if diffHex, err := GetDifficulty(); nil == err {
+						currentDiff := diffHex
 						orderDiff := &OrderDifficulty{}
 						cacheKey, _ := evaluator.getOrderCacheKey(now)
 						orderDiff.OrdersNum = 0
@@ -215,7 +215,7 @@ func (evaluator *LinearEvaluator) CalcAndSaveDifficulty(orderCntList []*OrderDif
 	return evaluator.nextDifficulty(orderList)
 }
 
-func NewOrderDiff(ordersNum int64, diff common.Hash) *OrderDifficulty {
+func NewOrderDiff(ordersNum int64, diff string) *OrderDifficulty {
 	return &OrderDifficulty{OrdersNum: ordersNum, Difficulty: diff}
 }
 
@@ -229,8 +229,8 @@ func (evaluator *LinearEvaluator) nextDifficulty(orderCntList []*OrderDifficulty
 		return evaluator.baseDifficulty
 	} else {
 		currentDiff := new(big.Int).Set(evaluator.baseDifficulty)
-		if currentDiffBytes, err := GetDifficulty(); nil == err {
-			currentDiff = new(big.Int).SetBytes(currentDiffBytes.Bytes())
+		if currentDiffHex, err := GetDifficulty(); nil == err {
+			currentDiff = types.HexToBigint(currentDiffHex)
 		}
 		addRatio := big.NewInt(3)
 		if nextOrderDiff.OrdersNum > int64(float64(evaluator.threshold)*1.5) {
@@ -242,10 +242,10 @@ func (evaluator *LinearEvaluator) nextDifficulty(orderCntList []*OrderDifficulty
 	}
 }
 
-func GetDifficulty() (common.Hash, error) {
+func GetDifficulty() (string, error) {
 	if data, err := cache.Get(OrderDifficultyKey); nil == err {
-		return common.HexToHash(string(data)), nil
+		return string(data), nil
 	} else {
-		return common.Hash{}, err
+		return "0x0", err
 	}
 }
