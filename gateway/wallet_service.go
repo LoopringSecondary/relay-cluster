@@ -413,7 +413,7 @@ type AddTokenReq struct {
 }
 
 type OrderDifficultyRes struct {
-	Difficulty common.Hash `json:"difficulty"`
+	Difficulty string `json:"difficulty"`
 }
 
 type WalletServiceImpl struct {
