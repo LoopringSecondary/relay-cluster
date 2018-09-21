@@ -22,12 +22,12 @@ import (
 	"encoding/json"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
 	"gonum.org/v1/gonum/stat"
 	"math/big"
-	"qiniupkg.com/x/log.v7"
 	"strconv"
 	"time"
 )
