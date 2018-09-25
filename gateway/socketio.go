@@ -444,9 +444,16 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err e
 }
 
 func (so *SocketIOServiceImpl) broadcastSourceOfTicker(input interface{}) (err error) {
+	tickerRequest := TickerRequest{}
+	if nil != input {
+		req := input.(*market.TickerUpdateMsg)
+		tickerRequest.TickerSource = req.TickerSource
+		tickerRequest.Mode = req.Mode
+	} else {
+		tickerRequest.TickerSource = "loopr"
+		tickerRequest.Mode = "default"
+	}
 
-	req := input.(*market.TickerUpdateMsg)
-	tickerRequest := TickerRequest{TickerSource: req.TickerSource, Mode: req.Mode}
 	resp := SocketIOJsonResp{}
 	tickers, err := so.walletService.GetTickerBySource(tickerRequest)
 
