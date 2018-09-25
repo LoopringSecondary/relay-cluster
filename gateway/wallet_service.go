@@ -1546,6 +1546,11 @@ func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isA
 		return nil, nil, errors.New("amount b is zero")
 	}
 
+	if manager.IsDustyOrder(&state) {
+		log.Debug("this orderbook is dusty order, skipped")
+		return nil, nil, errors.New("It's dusty order")
+	}
+
 	minAmountB := amountB
 	minAmountS := amountS
 
