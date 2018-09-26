@@ -87,11 +87,3 @@ func NotifyRingMined(event *libTypes.RingMinedEvent) error {
 	}
 	return err
 }
-
-func NotifyTickerUpdate(ticker *market.TickerUpdateMsg) error {
-	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, ticker)
-	if err != nil {
-		log.Error("notify TickerUpdate failed. " + ticker.TickerSource)
-	}
-	return err
-}
