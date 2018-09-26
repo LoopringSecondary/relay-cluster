@@ -23,6 +23,7 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"strconv"
 )
 
 type FillEvent struct {
@@ -52,6 +53,14 @@ type FillEvent struct {
 	Fork            bool   `gorm:"column:fork"`
 	Side            string `gorm:"column:side" json:"side"`
 	OrderType       string `gorm:"column:order_type" json:"orderType"`
+}
+
+type ContestRankDO struct {
+	Owner string `gorm:"column:owner" json: "owner"`
+	TradeCount int `gorm:"column:trade_count" json: "tradeCount"`
+	TradeAmount string `gorm:"column:trade_amount" json: "tradeAmount"`
+	idSum int64 `gorm:"column:id_sum" json: "idSum"`
+
 }
 
 // convert chainclient/orderFilledEvent to dao/fill
@@ -207,3 +216,13 @@ func (s *RdsService) RollBackFill(from, to int64) error {
 	return s.Db.Model(&FillEvent{}).Where("block_number > ? and block_number <= ?", from, to).Update("fork", true).Error
 }
 
+func (s *RdsService) GetAllTradeByRank(start int64, end int64) (res []ContestRankDO) {
+	sql := "select " +
+		"owner, count(owner) as trade_count, sum(fill_amount_s) as trade_amount sum(id) as id_sum" +
+		"from lpr_fill_events" +
+		"where create_time >= " + strconv.FormatInt(start, 10) + " "  +
+		"and create_time < " + strconv.FormatInt(end, 10) + " "  +
+		"group by owner order by count(owner) desc, sum(amount_s) desc, sum(id) asc"
+	s.Db.Raw(sql).Scan(&res)
+	return
+}

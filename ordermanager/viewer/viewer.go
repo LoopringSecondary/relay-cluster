@@ -42,6 +42,7 @@ type OrderViewer interface {
 	IsOrderCutoff(protocol, owner, token1, token2 common.Address, validsince *big.Int) bool
 	GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) (*big.Int, error)
 	GetFrozenLRCFee(owner common.Address, statusSet []types.OrderStatus) (*big.Int, error)
+	GetAllTradeByRank(start int64, end int64) (res []dao.ContestRankDO)
 }
 
 type OrderViewerImpl struct {
@@ -181,6 +182,10 @@ func (om *OrderViewerImpl) RingMinedPageQuery(query map[string]interface{}, page
 
 func (om *OrderViewerImpl) IsOrderCutoff(protocol, owner, token1, token2 common.Address, validsince *big.Int) bool {
 	return om.cutoffCache.IsOrderCutoff(protocol, owner, token1, token2, validsince)
+}
+
+func (om *OrderViewerImpl) GetAllTradeByRank(start int64, end int64) (res []dao.ContestRankDO) {
+	return om.rds.GetAllTradeByRank(start, end)
 }
 
 func (om *OrderViewerImpl) GetFrozenAmount(owner common.Address, token common.Address, statusSet []types.OrderStatus, delegateAddress common.Address) (*big.Int, error) {

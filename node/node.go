@@ -74,6 +74,7 @@ type Node struct {
 
 	ringTrackerViewer  ringtrackerviewer.RingTrackerViewer
 	ringTrackerService gateway.RingTrackerServiceImpl
+	contestRankService gateway.ContestRankServiceImpl
 }
 
 func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
@@ -118,6 +119,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	n.registerRingTrackerViewer()
 	n.registerRingTrackerService()
+	n.registerContestRankService()
 	return n
 }
 
@@ -217,7 +219,7 @@ func (n *Node) registerWalletService() {
 }
 
 func (n *Node) registerJsonRpcService() {
-	n.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.walletService, &n.ringTrackerService)
+	n.jsonRpcService = *gateway.NewJsonrpcService(n.globalConfig.Jsonrpc.Port, &n.walletService, &n.ringTrackerService, &n.contestRankService)
 }
 
 func (n *Node) registerWebsocketService() {
@@ -274,4 +276,8 @@ func (n *Node) registerRingTrackerViewer() {
 
 func (n *Node) registerRingTrackerService() {
 	n.ringTrackerService = *gateway.NewRingTrackerService(n.ringTrackerViewer, n.globalMarket)
+}
+
+func (n *Node) registerContestRankService() {
+	n.contestRankService = *gateway.NewContestRankService(n.orderViewer)
 }

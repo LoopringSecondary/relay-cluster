@@ -45,13 +45,15 @@ type JsonrpcServiceImpl struct {
 	port          string
 	walletService *WalletServiceImpl
 	ringTrackerService *RingTrackerServiceImpl
+	contestRankService *ContestRankServiceImpl
 }
 
-func NewJsonrpcService(port string, walletService *WalletServiceImpl, ringTrackerService *RingTrackerServiceImpl) *JsonrpcServiceImpl {
+func NewJsonrpcService(port string, walletService *WalletServiceImpl, ringTrackerService *RingTrackerServiceImpl, contestRankService *ContestRankServiceImpl) *JsonrpcServiceImpl {
 	l := &JsonrpcServiceImpl{}
 	l.port = port
 	l.walletService = walletService
 	l.ringTrackerService = ringTrackerService
+	l.contestRankService = contestRankService
 	return l
 }
 
@@ -64,6 +66,11 @@ func (j *JsonrpcServiceImpl) Start() {
 	}
 
 	if err := handler.RegisterName("loopring", j.ringTrackerService); err!=nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := handler.RegisterName("loopring", j.contestRankService); err!=nil {
 		fmt.Println(err)
 		return
 	}
