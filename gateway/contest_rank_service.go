@@ -46,7 +46,7 @@ type ContestRankServiceImpl struct {
 
 func NewContestRankService(orderViewer viewer.OrderViewer) *ContestRankServiceImpl {
 	roundRange := make(map[ContestRoundType]ContestRoundRange)
-	roundRange[Round1] = ContestRoundRange{1538323200, 1538755200}
+	roundRange[Round1] = ContestRoundRange{1533052800, 1538755200}
 	r := &ContestRankServiceImpl{orderViewer:orderViewer, roundRange:roundRange, local: cache.New(1*time.Minute, 5*time.Minute)}
 	return r
 }
@@ -92,7 +92,7 @@ func (c *ContestRankServiceImpl) GetHeadContestRanks(req ContestRankReq) (items 
 		head = req.Head
 	}
 
-	return items[0:head], errors.New("can't found rank information by owner " + req.Owner)
+	return items[0:head], nil
 }
 
 func (c *ContestRankServiceImpl) GetPagedContestRanks(req ContestRankReq) (rst PageResult, err error) {
@@ -133,8 +133,11 @@ func (c *ContestRankServiceImpl) GetPagedContestRanks(req ContestRankReq) (rst P
 }
 
 func(c *ContestRankServiceImpl) GetItemsFromCache(round ContestRoundType) (items []ContestRankItem, ok bool) {
-	itemsFromCache, ok := c.local.Get(getCacheKeyByRound(round))
-	return itemsFromCache.([]ContestRankItem), ok
+	itemsFromCache, ok := c.local.Get(getCacheKeyByRound(round)); if ok {
+		return itemsFromCache.([]ContestRankItem), ok
+	} else {
+		return items, ok
+	}
 }
 
 func(c *ContestRankServiceImpl) SetItemsCache(round ContestRoundType, items []ContestRankItem) {
@@ -153,7 +156,7 @@ func (c *ContestRankServiceImpl) GetAllItemsFromDB(round ContestRoundType) (item
 	rankDOList := c.orderViewer.GetAllTradeByRank(c.roundRange[round].Start, c.roundRange[round].End)
 	items = make([]ContestRankItem, 0)
 	for k, v := range rankDOList {
-		items = append(items, ContestRankItem{Rank:k, Owner:v.Owner, TradeCount:v.TradeCount})
+		items = append(items, ContestRankItem{Rank:k + 1, Owner:v.Owner, TradeCount:v.TradeCount})
 	}
 	return items, err
 }
