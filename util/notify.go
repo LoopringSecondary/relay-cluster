@@ -20,6 +20,7 @@ package util
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
@@ -83,6 +84,14 @@ func NotifyRingMined(event *libTypes.RingMinedEvent) error {
 	err := ProducerNormalMessage(kafka.Kafka_Topic_orderManager_RingminedUpdated, event)
 	if err != nil {
 		log.Errorf("notify ringmined tx:%s failed", event.TxHash.Hex())
+	}
+	return err
+}
+
+func NotifyTickerUpdate(ticker *market.TickerUpdateMsg) error {
+	err := ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, ticker)
+	if err != nil {
+		log.Error("notify TickerUpdate failed. " + ticker.TickerSource)
 	}
 	return err
 }

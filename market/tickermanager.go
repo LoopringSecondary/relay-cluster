@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
@@ -247,6 +248,10 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tic
 		tickerResp = append(tickerResp, tickerMap[m])
 	}
 
+	err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: tickerSource, Mode: mode})
+	if err != nil {
+		log.Error("send ticker update message failed")
+	}
 	return tickerResp, err
 }
 
