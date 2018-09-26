@@ -221,6 +221,7 @@ func (s *RdsService) GetAllTradeByRank(start int64, end int64) (res []ContestRan
 		"owner, count(owner) as trade_count, sum(amount_s) as trade_amount, sum(id) as id_sum from lpr_fill_events where create_time >= " + strconv.FormatInt(start, 10) + " "  +
 		"and create_time < " + strconv.FormatInt(end, 10) + " "  +
 		"and market in ('lrc-weth', 'vite-weth')" + " " +
+		"and order_type = 'market_order'" + " " +
 		" group by owner order by count(owner) desc, sum(amount_s) desc, sum(id) asc"
 	s.Db.Raw(sql).Scan(&res)
 	return
