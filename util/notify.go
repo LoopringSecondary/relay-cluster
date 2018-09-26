@@ -20,7 +20,6 @@ package util
 
 import (
 	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/txmanager/types"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
