@@ -6,6 +6,7 @@ import (
 	"fmt"
 	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
