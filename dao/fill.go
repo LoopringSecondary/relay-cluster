@@ -217,6 +217,7 @@ func (s *RdsService) RollBackFill(from, to int64) error {
 }
 
 func (s *RdsService) GetAllTradeByRank(start int64, end int64) (res []ContestRankDO) {
+	println("=====> step in db query")
 	sql := "select " +
 		"owner, count(owner) as trade_count, sum(fill_amount_s) as trade_amount sum(id) as id_sum" +
 		"from lpr_fill_events" +
