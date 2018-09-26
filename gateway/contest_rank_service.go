@@ -121,7 +121,7 @@ func (c *ContestRankServiceImpl) GetPagedContestRanks(req ContestRankReq) (rst P
 	}
 
 	if end > len(items) {
-		end = len(items) - 1
+		end = len(items)
 	}
 
 	data := make([]interface{}, 0)
