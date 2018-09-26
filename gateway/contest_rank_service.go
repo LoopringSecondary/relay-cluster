@@ -51,9 +51,8 @@ func NewContestRankService(orderViewer viewer.OrderViewer) *ContestRankServiceIm
 	return r
 }
 
-func (c *ContestRankServiceImpl) GetContestRankByOwner(req ContestRankReq) (item ContestRankItem, err error) {
 
-	println("=========> step in method owner")
+func (c *ContestRankServiceImpl) GetContestRankByOwner(req ContestRankReq) (item ContestRankItem, err error) {
 
 	if len(req.Owner) == 0 {
 		return item, errors.New("owner can't be null")
@@ -63,7 +62,6 @@ func (c *ContestRankServiceImpl) GetContestRankByOwner(req ContestRankReq) (item
 		return item, errors.New("round must be 1~3")
 	}
 
-	println("=========> step in after check")
 	items, err := c.GetAllItems(ContestRoundType(req.Round)); if err != nil {
 		return item, err
 	}
@@ -135,7 +133,6 @@ func (c *ContestRankServiceImpl) GetPagedContestRanks(req ContestRankReq) (rst P
 }
 
 func(c *ContestRankServiceImpl) GetItemsFromCache(round ContestRoundType) (items []ContestRankItem, ok bool) {
-	println("=========> get all items from cache")
 	itemsFromCache, ok := c.local.Get(getCacheKeyByRound(round))
 	return itemsFromCache.([]ContestRankItem), ok
 }
@@ -145,7 +142,6 @@ func(c *ContestRankServiceImpl) SetItemsCache(round ContestRoundType, items []Co
 }
 
 func (c *ContestRankServiceImpl) GetAllItems(round ContestRoundType) (items []ContestRankItem, err error) {
-	println("=========> get all items ")
 	items, ok := c.GetItemsFromCache(round); if !ok {
 		items, err = c.GetAllItemsFromDB(round)
 		c.SetItemsCache(round, items)
@@ -154,7 +150,6 @@ func (c *ContestRankServiceImpl) GetAllItems(round ContestRoundType) (items []Co
 }
 
 func (c *ContestRankServiceImpl) GetAllItemsFromDB(round ContestRoundType) (items []ContestRankItem, err error) {
-	println("=========> get all items from db")
 	rankDOList := c.orderViewer.GetAllTradeByRank(c.roundRange[round].Start, c.roundRange[round].End)
 	items = make([]ContestRankItem, 0)
 	for k, v := range rankDOList {
