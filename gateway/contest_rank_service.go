@@ -161,15 +161,3 @@ func (c *ContestRankServiceImpl) GetAllItemsFromDB(round ContestRoundType) (item
 func getCacheKeyByRound(round ContestRoundType) string {
 	return contestRankCacheKey + strconv.FormatInt(int64(round), 10)
 }
-
-//func (w *ContestRankServiceImpl) GetHeadContestRank(req ContestRankReq) (items []ContestRankItem, err error) {
-//	return ContestRankItem{}, err
-//}
-//
-//func (w *ContestRankServiceImpl) GetContestRanks(req ContestRankReq) (rst PageResult, err error) {
-//	return nil, err
-//}
-//
-//func (w *ContestRankServiceImpl) GetExContestRank(req ContestRankReq) (n int64, err error) {
-//	return nonce.Int64(), err
-//}
