@@ -160,7 +160,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 	so.eventTypeRoute = map[string]InvokeInfo{
 		eventKeyTickers:           {"GetTickers", SingleMarket{}, true, emitTypeByCron, DefaultCronSpec1Minute},
 		eventKeyLoopringTickers:   {"GetTicker", nil, true, emitTypeByEvent, DefaultCronSpec1Minute},
-		eventKeyTickersOfSource:   {"GetTickerBySource", TickerRequest{}, true, emitTypeByEvent, DefaultCronSpec1Minute},
+		eventKeyTickersOfSource:   {"GetTickerBySource", TickerRequest{}, false, emitTypeByEvent, DefaultCronSpec1Minute},
 		eventKeyTrends:            {"GetTrend", TrendQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
 		eventKeyMarketCap:         {"GetPriceQuote", PriceQuoteQuery{}, true, emitTypeByCron, DefaultCronSpec5Minute},
 		eventKeyDepth:             {"GetDepth", DepthQuery{}, true, emitTypeByEvent, DefaultCronSpec5Minute},
@@ -257,8 +257,6 @@ func (so *SocketIOServiceImpl) Start() {
 			so.cron.AddFunc(spec, func() { so.broadcastTpTickers(nil) })
 		case eventKeyLoopringTickers:
 			so.cron.AddFunc(spec, func() { so.broadcastLoopringTicker(nil) })
-		case eventKeyTickersOfSource:
-			so.cron.AddFunc(spec, func() { so.broadcastSourceOfTicker(nil) })
 		case eventKeyDepth:
 			so.cron.AddFunc(spec, func() { so.broadcastDepth(nil) })
 		case eventKeyOrderBook:
@@ -416,7 +414,6 @@ func (so *SocketIOServiceImpl) broadcastTpTickers(input interface{}) (err error)
 }
 
 func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err error) {
-
 	resp := SocketIOJsonResp{}
 	tickers, err := so.walletService.GetTicker()
 
@@ -444,39 +441,35 @@ func (so *SocketIOServiceImpl) broadcastLoopringTicker(input interface{}) (err e
 }
 
 func (so *SocketIOServiceImpl) broadcastSourceOfTicker(input interface{}) (err error) {
-	tickerRequest := TickerRequest{}
-	if nil != input {
-		req := input.(*market.TickerUpdateMsg)
-		tickerRequest.TickerSource = req.TickerSource
-		tickerRequest.Mode = req.Mode
-	} else {
-		tickerRequest.TickerSource = "loopr"
-		tickerRequest.Mode = "default"
-	}
-
-	resp := SocketIOJsonResp{}
-	tickers, err := so.walletService.GetTickerBySource(tickerRequest)
-
-	if err != nil {
-		resp = SocketIOJsonResp{Error: err.Error()}
-	} else {
-		resp.Data = tickers
-	}
-
-	respJson, _ := json.Marshal(resp)
-
+	req := input.(*market.TickerUpdateMsg)
 	so.connIdMap.Range(func(key, value interface{}) bool {
 		v := value.(socketio.Conn)
 		if v.Context() != nil {
 			businesses := v.Context().(map[string]string)
-			_, ok := businesses[eventKeyTickersOfSource]
+			ctx, ok := businesses[eventKeyTickersOfSource]
 			if ok {
-				//log.Info("emit loopring ticker info")
-				v.Emit(eventKeyTickersOfSource+EventPostfixRes, string(respJson[:]))
+				tickerReq := &TickerRequest{}
+				err = json.Unmarshal([]byte(ctx), tickerReq)
+				if err != nil {
+					log.Error("SourceOfTicker request unmarshal error, " + err.Error())
+				} else if tickerReq.TickerSource == req.TickerSource {
+					log.Info("emit SourceOfTicker " + ctx)
+					tickers, err := so.walletService.GetTickerBySource(*tickerReq)
+					resp := SocketIOJsonResp{}
+
+					if err != nil {
+						resp = SocketIOJsonResp{Error: err.Error()}
+					} else {
+						resp.Data = tickers
+					}
+					respJson, _ := json.Marshal(resp)
+					v.Emit(eventKeyTickersOfSource+EventPostfixRes, string(respJson[:]))
+				}
 			}
 		}
 		return true
 	})
+
 	return nil
 }
 
@@ -912,7 +905,6 @@ func (so *SocketIOServiceImpl) notifyBalanceUpdateByDelegateAddress(owner, deleg
 func (so *SocketIOServiceImpl) handleTransactions(input interface{}) (err error) {
 
 	//log.Infof("[SOCKETIO-RECEIVE-EVENT] transactions input.")
-
 	req := input.(*txtyp.TransactionView)
 	owner := req.Owner.Hex()
 	//log.Infof("received owner is %s ", owner)

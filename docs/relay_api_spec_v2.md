@@ -1867,6 +1867,8 @@ socketio.on("loopringTickers_res", function(data) {
 5. `buy` - The highest buy price in the depth.
 6. `sell` - The lowest sell price in the depth.
 7. `change` - The 24hr change percent of price.
+8. `label` - The market enum string.(label collection is: whitelist, blacklist, hidelist)
+9. `decimals` - The price's decimals
 
 #### Example
 ```js
@@ -1886,7 +1888,9 @@ socketio.on("loopringTickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -1898,7 +1902,9 @@ socketio.on("loopringTickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "market" : "ZRX-WETH",
@@ -1910,7 +1916,9 @@ socketio.on("loopringTickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist",
+    "decimals" : 8
   },
   {
     "exchange" : "",
@@ -1922,7 +1930,9 @@ socketio.on("loopringTickers_res", function(data) {
     "amount" : 1003839.32,
     "buy" : 122321,
     "sell" : 12388,
-    "change" : "-50.12%"
+    "change" : "-50.12%",
+    "label" : "whitelist",
+    "decimals" : 8
   }
 ]
 ```
@@ -1931,7 +1941,7 @@ socketio.on("loopringTickers_res", function(data) {
 
 ### tickersOfSource
 
-Get info on CoinMarketCap's 24hr tickers from https://coinmarketcap.com.
+Get 24hr tickers from https://coinmarketcap.com or Get 24hr merged tickers info from loopring relay.
 
 #### subscribe events
 - tickersOfSource_req : emit this event to receive push message.

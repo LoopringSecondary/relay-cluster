@@ -75,7 +75,6 @@ type TickerResp struct {
 
 type TickerUpdateMsg struct {
 	TickerSource string `json:"tickerSource"`
-	Mode         string `json:"mode"`
 }
 
 type TickerManager interface {
@@ -186,7 +185,6 @@ func syncMarketTickerFromAPI(currency string) error {
 				return err1
 			} else {
 				if "" == result.Metadata.Error {
-					fmt.Println(result.Data)
 					tickerData := [][]byte{}
 					for _, cap1 := range result.Data {
 						if data, err2 := json.Marshal(cap1); nil != err2 {
@@ -212,6 +210,11 @@ func syncMarketTickerFromAPI(currency string) error {
 				}
 			}
 		}
+	}
+
+	err := socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: TICKER_SOURCE_COINMARKETCAP})
+	if err != nil {
+		log.Error("send ticker update message failed")
 	}
 
 	return nil
@@ -249,10 +252,6 @@ func (c *GetTickerImpl) GetTickerBySource(tickerSource string, mode string) (tic
 		tickerResp = append(tickerResp, tickerMap[m])
 	}
 
-	err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: tickerSource, Mode: mode})
-	if err != nil {
-		log.Error("send ticker update message failed")
-	}
 	return tickerResp, err
 }
 

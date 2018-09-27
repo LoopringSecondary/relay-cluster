@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/ordermanager/viewer"
 	socketioUtil "github.com/Loopring/relay-cluster/util"
 	redisCache "github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/eventemitter"
@@ -32,6 +33,7 @@ import (
 	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
+	"github.com/ethereum/go-ethereum/common"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/robfig/cron"
 	"sort"
@@ -39,8 +41,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 const (
@@ -101,11 +101,11 @@ type Trend struct {
 }
 
 type TrendManager struct {
-	cacheReady bool
-	proofReady bool
-	rds        *dao.RdsService
-	cron       *cron.Cron
-	localCache *gocache.Cache
+	cacheReady  bool
+	proofReady  bool
+	rds         *dao.RdsService
+	cron        *cron.Cron
+	localCache  *gocache.Cache
 	orderViewer viewer.OrderViewer
 }
 
@@ -125,7 +125,7 @@ const snsNotifyMsg = "trendmanager try lock failed"
 func NewTrendManager(dao *dao.RdsService, orderViewer viewer.OrderViewer) TrendManager {
 
 	once.Do(func() {
-		trendManager = TrendManager{rds: dao, cron: cron.New(), orderViewer:orderViewer}
+		trendManager = TrendManager{rds: dao, cron: cron.New(), orderViewer: orderViewer}
 		trendManager.localCache = gocache.New(5*time.Second, 5*time.Minute)
 		trendManager.LoadCache()
 
@@ -1031,7 +1031,8 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			return err
 		}
 
-		order, err := t.orderViewer.GetOrderByHash(common.StringToHash(newFillModel.OrderHash)); if err != nil {
+		order, err := t.orderViewer.GetOrderByHash(common.StringToHash(newFillModel.OrderHash))
+		if err != nil {
 			log.Error("get order failed by hash " + newFillModel.OrderHash)
 			return err
 		}
@@ -1089,6 +1090,12 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 		if err != nil {
 			log.Error("send ticker update message failed")
 		}
+
+		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: "loopr"})
+		if err != nil {
+			log.Error("send ticker update message failed")
+		}
+
 		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, &TrendUpdateMsg{Market: market, Interval: OneHour})
 		if err != nil {
 			log.Error("send trends update message failed")
