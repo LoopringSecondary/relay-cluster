@@ -42,6 +42,7 @@ func (p P2POrderJsonRequest) MarshalJSON() ([]byte, error) {
 		OrderType             string                     `json:"orderType"`
 		MakerOrderHash        common.Hash                `json:"makerOrderHash"`
 		P2PSide               string                     `json:"p2pSide"`
+		SourceId              string                     `json:"sourceId"`
 	}
 	var enc P2POrderJsonRequest
 	enc.Protocol = p.Protocol
@@ -70,6 +71,7 @@ func (p P2POrderJsonRequest) MarshalJSON() ([]byte, error) {
 	enc.OrderType = p.OrderType
 	enc.MakerOrderHash = p.MakerOrderHash
 	enc.P2PSide = p.P2PSide
+	enc.SourceId = p.SourceId
 	return json.Marshal(&enc)
 }
 
@@ -102,6 +104,7 @@ func (p *P2POrderJsonRequest) UnmarshalJSON(input []byte) error {
 		OrderType             *string                     `json:"orderType"`
 		MakerOrderHash        *common.Hash                `json:"makerOrderHash"`
 		P2PSide               *string                     `json:"p2pSide"`
+		SourceId              *string                     `json:"sourceId"`
 	}
 	var dec P2POrderJsonRequest
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -199,6 +202,9 @@ func (p *P2POrderJsonRequest) UnmarshalJSON(input []byte) error {
 	}
 	if dec.P2PSide != nil {
 		p.P2PSide = *dec.P2PSide
+	}
+	if dec.SourceId != nil {
+		p.SourceId = *dec.SourceId
 	}
 	return nil
 }
