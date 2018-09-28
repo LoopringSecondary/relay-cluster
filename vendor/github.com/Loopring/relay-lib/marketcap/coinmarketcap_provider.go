@@ -400,21 +400,21 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	//todo:use zk to keep
 	//tokenMarketCaps := make(map[common.Address]*CoinMarketCap)
-	syncedFromApi := false
+	//syncedFromApi := false
 	notSupportTokens := make(map[common.Address]bool)
 	for tokenAddr, c1 := range p.tokenMarketCaps {
 		if p.icoTokens.contains(tokenAddr) {
 			continue
 		}
 		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
-		if nil != err && !syncedFromApi {
-			if err1 := p.syncMarketCapFromAPI(); nil != err1 {
-				log.Errorf("can't sync marketcap, error :%s", err1.Error())
-				return err1
-			}
-			syncedFromApi = true
-			data, err = cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
-		}
+		//if nil != err && !syncedFromApi {
+		//	if err1 := p.syncMarketCapFromAPI(); nil != err1 {
+		//		log.Errorf("can't sync marketcap, error :%s", err1.Error())
+		//		return err1
+		//	}
+		//	syncedFromApi = true
+		//	data, err = cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
+		//}
 		if nil != err {
 			notSupportTokens[tokenAddr] = true
 			log.Warnf("can't get marketcap of token:%s", tokenAddr.Hex())
