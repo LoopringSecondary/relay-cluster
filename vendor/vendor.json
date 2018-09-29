@@ -240,10 +240,10 @@
 			"revisionTime": "2018-06-28T04:47:44Z"
 		},
 		{
-			"checksumSHA1": "a6A36uy+tVICItqlgb534wgfreY=",
+			"checksumSHA1": "svDg4X626uYlFoN28Xx2OYZTiHE=",
 			"path": "github.com/Loopring/relay-lib/types",
-			"revision": "ee5e55b5960721be033997afc36738656f2b2979",
-			"revisionTime": "2018-09-27T06:35:49Z"
+			"revision": "597b5846fe29558576448af267c1106471be7344",
+			"revisionTime": "2018-09-29T03:05:56Z"
 		},
 		{
 			"checksumSHA1": "kP14pwbOsJlPAwJAh4TYBCeYrlo=",

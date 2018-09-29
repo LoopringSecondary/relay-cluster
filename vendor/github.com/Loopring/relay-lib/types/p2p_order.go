@@ -87,11 +87,10 @@ func ToP2POrder(request *P2POrderJsonRequest) *Order {
 	order.PowNonce = request.PowNonce
 	order.OrderType = request.OrderType
 	order.P2PSide = request.P2PSide
-	if nil == request.SourceId || "" == request.SourceId {
+	if "" == request.SourceId {
 		order.SourceId = "unknown"
 	} else {
 		order.SourceId = request.SourceId
 	}
-
 	return order
 }

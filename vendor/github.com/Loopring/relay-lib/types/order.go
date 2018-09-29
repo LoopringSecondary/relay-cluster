@@ -357,11 +357,10 @@ func ToOrder(request *OrderJsonRequest) *Order {
 	order.PowNonce = request.PowNonce
 	order.OrderType = request.OrderType
 	order.P2PSide = request.P2PSide
-	if nil == request.SourceId || "" == request.SourceId {
+	if "" == request.SourceId {
 		order.SourceId = "unknown"
 	} else {
 		order.SourceId = request.SourceId
 	}
-
 	return order
 }
