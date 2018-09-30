@@ -256,13 +256,12 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		return false, fmt.Errorf("market order auth private key not correct")
 	}
 
+	balances, err := accountmanager.GetBalanceWithSymbolResult(o.Owner)
+	if err != nil {
+		return false, fmt.Errorf("gateway,base filter,owner holds lrc less than %d ", f.MinLrcHold)
+	}
+
 	if o.TokenB != util.AliasToAddress("LRC") {
-		balances, err := accountmanager.GetBalanceWithSymbolResult(o.Owner)
-
-		if err != nil {
-			return false, fmt.Errorf("gateway,base filter,owner holds lrc less than %d ", f.MinLrcHold)
-		}
-
 		if b, ok := balances["LRC"]; ok {
 			lrcHold := big.NewInt(f.MinLrcHold)
 			lrcHold = lrcHold.Mul(lrcHold, util.AllTokens["LRC"].Decimals)
@@ -274,6 +273,10 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 			return false, fmt.Errorf("gateway,base filter,owner holds lrc less than %d ", f.MinLrcHold)
 		}
 
+	}
+
+	if isExceedBalance(o, balances) {
+		return false, fmt.Errorf("balance is not enough to submit order, 用户余额不足或者下单总量已经超过余额上限")
 	}
 
 	if len(o.Hash) != hashLength {
@@ -324,6 +327,7 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 	if minAmount, ok := f.MinTokeSAmount[tokenS.Symbol]; ok && o.AmountS.Cmp(minAmount) < 0 {
 		return false, fmt.Errorf("tokenS amount is too small")
 	}
+
 
 	// USD min amount check
 	//tokenSPrice, err := gateway.marketCap.GetMarketCapByCurrency(o.TokenS, "USD")
@@ -441,4 +445,18 @@ func Uint64ToByteArray(src uint64) []byte {
 	rst := make([]byte, 8)
 	binary.LittleEndian.PutUint64(rst, src)
 	return rst
+}
+
+func isExceedBalance(order *types.Order, balances map[string]*big.Int) bool {
+	tokenS := order.TokenS
+	balance := balances[util.SymbolTokenMap[tokenS]]
+	statusSet := make([]types.OrderStatus, 0)
+	statusSet = append(statusSet, types.ORDER_NEW)
+	statusSet = append(statusSet, types.ORDER_PARTIAL)
+	amount, err := gateway.om.GetFrozenAmount(order.Owner, order.TokenS, statusSet, order.DelegateAddress)
+	if err != nil {
+		return true
+	}
+	currentFrozen := amount.Add(amount, order.AmountS)
+	return currentFrozen.Cmp(balance) > 0
 }
