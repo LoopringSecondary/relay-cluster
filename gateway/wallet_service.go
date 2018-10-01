@@ -1179,9 +1179,9 @@ func (w *WalletServiceImpl) GetAllEstimatedAllocatedAmount(query EstimatedAlloca
 		amountS, _ := v.RemainedAmount()
 		amount, ok := tmpResult[token]
 		if ok {
-			amount = amount.Add(amount, amountS.Num())
+			amount = amount.Add(amount, amountS.Num().Quo(amountS.Num(), amountS.Denom()))
 		} else {
-			tmpResult[token] = amountS.Num()
+			tmpResult[token] = amountS.Num().Quo(amountS.Num(), amountS.Denom())
 		}
 	}
 

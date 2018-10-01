@@ -45,6 +45,8 @@ import (
 	"time"
 	"strings"
 	"github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/types"
+	"math/big"
 )
 
 //import (
@@ -286,6 +288,24 @@ func TestCrossDepth(t *testing.T) {
 	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 
 
+	o := types.OrderState{}
+	o.RawOrder = types.Order{}
+	o.RawOrder.BuyNoMoreThanAmountB = true
+	o.DealtAmountS = new(big.Int).SetInt64(26462925008396183)
+	o.DealtAmountB, _ = new(big.Int).SetString("60000000000000000000", 10)
+	o.CancelledAmountS = new(big.Int).SetInt64(0)
+	o.CancelledAmountB = new(big.Int).SetInt64(0)
+	o.SplitAmountS = new(big.Int).SetInt64(0)
+	o.SplitAmountB = new(big.Int).SetInt64(1856101511879049873)
+	o.RawOrder.AmountS = new(big.Int).SetInt64(88420000000000000)
+	o.RawOrder.AmountB, _ = new(big.Int).SetString("200000000000000000000", 10)
+	s, b := o.RemainedAmount()
+	fmt.Println(s.String())
+	fmt.Println(b.String())
+	fmt.Println(s.Num())
+	fmt.Println(s.Denom())
+	xxx := s.Denom()
+	fmt.Println(s.Num().Quo(s.Num(), xxx))
 
 
 

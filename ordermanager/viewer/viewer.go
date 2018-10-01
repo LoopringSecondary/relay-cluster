@@ -206,7 +206,8 @@ func (om *OrderViewerImpl) GetFrozenAmount(owner common.Address, token common.Ad
 			continue
 		}
 		rs, _ := state.RemainedAmount()
-		totalAmount.Add(totalAmount, rs.Num())
+		subAmount := rs.Num().Quo(rs.Num(), rs.Denom())
+		totalAmount.Add(totalAmount, subAmount)
 	}
 
 	return totalAmount, nil
