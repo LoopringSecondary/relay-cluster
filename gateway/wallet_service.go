@@ -1452,6 +1452,12 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
 
+		fmt.Println("**********************")
+		fmt.Println(maxBuy)
+		fmt.Println(minSell)
+		fmt.Println(order.RawOrder.Price.Float64())
+		fmt.Println("**********************")
+
 		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
 			return "ORDER_WAIT_SUBMIT_RING"
 		}
