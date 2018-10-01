@@ -1453,6 +1453,7 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		minSellRat := new(big.Rat).SetFloat64(minSell)
 
 		fmt.Println("**********************")
+		fmt.Println(order.RawOrder.Hash.Hex())
 		fmt.Println(maxBuy)
 		fmt.Println(minSell)
 		fmt.Println(order.RawOrder.Price.Float64())
