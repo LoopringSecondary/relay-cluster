@@ -258,13 +258,8 @@ func TestCrossDepth(t *testing.T) {
 	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 	xc.Set(gateway.DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
 	xc.Set(gateway.DEPTH_MIN_SELL, minSell, 1*time.Hour)
-
-
-	time.Sleep(3*time.Second)
-
 	mb,_ := xc.Get(gateway.DEPTH_MAX_BUY)
 	ms,_ := xc.Get(gateway.DEPTH_MIN_SELL)
-
 	fmt.Printf(strconv.FormatFloat(mb.(float64), 'G', -1, 64))
 	fmt.Printf(strconv.FormatFloat(ms.(float64), 'G', -1, 64))
 

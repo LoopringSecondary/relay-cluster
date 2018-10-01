@@ -841,8 +841,14 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 		w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
 		w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
+		fmt.Println("------------------------------")
+		fmt.Println(maxBuy)
+		fmt.Println(minSell)
+		fmt.Println(depth)
+		fmt.Println(crossRemoved)
+		fmt.Println("2------------------------------")
 
-		return crossRemoved, err
+		return depth, err
 	} else {
 		return depth, err
 	}
@@ -856,6 +862,8 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
 	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 
+	fmt.Println(maxBuy)
+	fmt.Println(minSell)
 
 	newBuy := make([][]string, 0)
 	for i := range newBuy {
@@ -868,6 +876,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 	for _, v := range depth.Depth.Buy {
 		buy, _ := strconv.ParseFloat(v[0], 64)
+		fmt.Println("buy ++++++++" + strconv.FormatFloat(buy, 'G', 10, 64))
 		if buy < minSell {
 			newBuy = append(newBuy, v)
 		}
@@ -875,6 +884,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 	for _, vv := range depth.Depth.Sell {
 		sell, _ := strconv.ParseFloat(vv[0], 64)
+		fmt.Println("sell ++++++++" + strconv.FormatFloat(sell, 'G', 10, 64))
 		if sell > maxBuy {
 			newSell = append(newSell, vv)
 		}
