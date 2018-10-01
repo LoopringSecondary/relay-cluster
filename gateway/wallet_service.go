@@ -848,7 +848,7 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 		fmt.Println(crossRemoved)
 		fmt.Println("2------------------------------")
 
-		return depth, err
+		return crossRemoved, err
 	} else {
 		return depth, err
 	}
@@ -904,6 +904,13 @@ func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float6
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 	minSell = minSellRelectable.(float64)
+
+	fmt.Println("***************")
+	fmt.Println(maxBuy)
+	fmt.Println(minSell)
+	fmt.Println(err)
+	fmt.Println("2***************")
+
 	return maxBuy, minSell, nil
 }
 
@@ -1316,7 +1323,7 @@ func pagination(pageIndex, pageSize int) (int, int, int, int) {
 	return pageIndex, pageSize, limit, offset
 }
 
-func (w *WalletServiceImpl) GetTransactionsByHash(query TransactionQuery) (result []txtyp.TransactionJsonResult, err error) {
+func (w *WalletServiceImpl) GetTransactioetnsByHash(query TransactionQuery) (result []txtyp.TransactionJsonResult, err error) {
 	return txmanager.GetTransactionsByHash(query.Owner, query.TrxHashes)
 }
 
@@ -1463,6 +1470,8 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
+		fmt.Println("*__________________")
+		fmt.Println(order.RawOrder.Price.Float64())
 		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
 			return "ORDER_WAIT_SUBMIT_RING"
 		}
