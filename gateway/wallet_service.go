@@ -859,8 +859,8 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 		return depth
 	}
 	rst := Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
-	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 
 	newBuy := make([][]string, 0)
 	for i := range newBuy {
@@ -872,15 +872,17 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	}
 
 	for _, v := range depth.Depth.Buy {
-		buy, _ := strconv.ParseFloat(v[0], 64)
-		if buy < minSell && checkDepthThreshHold(depth.Market, v[0], v[1]) {
+		//buy, _ := strconv.ParseFloat(v[0], 64)
+		//if buy < minSell && checkDepthThreshHold(depth.Market, v[0], v[1]) {
+		if checkDepthThreshHold(depth.Market, v[0], v[1]) {
 			newBuy = append(newBuy, v)
 		}
 	}
 
 	for _, vv := range depth.Depth.Sell {
-		sell, _ := strconv.ParseFloat(vv[0], 64)
-		if sell > maxBuy && checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
+		//sell, _ := strconv.ParseFloat(vv[0], 64)
+		//if sell > maxBuy && checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
+		if checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
 			newSell = append(newSell, vv)
 		}
 	}
