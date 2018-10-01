@@ -71,8 +71,8 @@ const OT_REDIS_PRE_KEY = "otrpk_"
 const SL_REDIS_PRE_KEY = "slrpk_"
 const TS_REDIS_PRE_KEY = "tsrpk_"
 
-const DEPTH_MAX_BUY = "depth_max_buy"
-const DEPTH_MIN_SELL = "depth_min_sell"
+const DEPTH_MAX_BUY = "depth_max_buy_"
+const DEPTH_MIN_SELL = "depth_min_sell_"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -838,8 +838,8 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
 		maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
 		minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell)-1][0], 64)
-		w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
-		w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
+		w.localCache.Set(DEPTH_MAX_BUY + strings.ToUpper(depth.Market), maxBuy, 1*time.Hour)
+		w.localCache.Set(DEPTH_MIN_SELL + strings.ToUpper(depth.Market), minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
 		return crossRemoved, err
 	} else {
@@ -882,13 +882,13 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	return rst
 }
 
-func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float64, err error) {
-	maxBuyRelectable,ok  := w.localCache.Get(DEPTH_MAX_BUY); if !ok {
+func (w *WalletServiceImpl) getDepthCrossPrice(market string) (maxBuy float64, minSell float64, err error) {
+	maxBuyRelectable,ok  := w.localCache.Get(DEPTH_MAX_BUY + strings.ToUpper(market)); if !ok {
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 
 	maxBuy = maxBuyRelectable.(float64)
-	minSellRelectable, ok := w.localCache.Get(DEPTH_MIN_SELL); if !ok {
+	minSellRelectable, ok := w.localCache.Get(DEPTH_MIN_SELL + strings.ToUpper(market)); if !ok {
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 	minSell = minSellRelectable.(float64)
@@ -1448,7 +1448,7 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		return "ORDER_P2P_LOCKED"
 	}
 
-	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil && (s == types.ORDER_NEW || s == types.ORDER_PARTIAL) {
+	maxBuy, minSell, err := w.getDepthCrossPrice(order.RawOrder.Market); if err == nil && (s == types.ORDER_NEW || s == types.ORDER_PARTIAL) {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
 
