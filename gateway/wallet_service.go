@@ -31,6 +31,7 @@ import (
 	txmanager "github.com/Loopring/relay-cluster/txmanager/viewer"
 	kafkaUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
+	localcache "github.com/patrickmn/go-cache"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
@@ -69,6 +70,9 @@ const OT_STATUS_REJECT = "reject"
 const OT_REDIS_PRE_KEY = "otrpk_"
 const SL_REDIS_PRE_KEY = "slrpk_"
 const TS_REDIS_PRE_KEY = "tsrpk_"
+
+const DEPTH_MAX_BUY = "depth_max_buy"
+const DEPTH_MIN_SELL = "depth_min_sell"
 
 type Portfolio struct {
 	Token      string `json:"token"`
@@ -421,6 +425,7 @@ type WalletServiceImpl struct {
 	globalMarket    market.GlobalMarket
 	rds             *dao.RdsService
 	oldWethAddress  string
+	localCache      *localcache.Cache
 }
 
 func NewWalletService(trendManager market.TrendManager, orderViewer viewer.OrderViewer, accountManager accountmanager.AccountManager,
@@ -435,6 +440,7 @@ func NewWalletService(trendManager market.TrendManager, orderViewer viewer.Order
 	w.rds = rds
 	w.oldWethAddress = oldWethAddress
 	w.globalMarket = globalMarket
+	w.localCache = localcache.New(1*time.Hour, 1*time.Hour)
 	return w
 }
 func (w *WalletServiceImpl) TestPing(input int) (resp []byte, err error) {
@@ -678,7 +684,7 @@ func (w *WalletServiceImpl) GetOrders(query *OrderQuery) (res PageResult, err er
 
 	for _, d := range src.Data {
 		o := d.(types.OrderState)
-		rst.Data = append(rst.Data, orderStateToJson(o))
+		rst.Data = append(rst.Data, w.orderStateToJson(o))
 	}
 	return rst, err
 }
@@ -713,7 +719,7 @@ func (w *WalletServiceImpl) GetOrderByHash(query OrderQuery) (order OrderJsonRes
 		if err != nil {
 			return order, err
 		} else {
-			return orderStateToJson(*state), err
+			return w.orderStateToJson(*state), err
 		}
 	}
 }
@@ -735,7 +741,7 @@ func (w *WalletServiceImpl) GetOrdersByHashes(query OrderQuery) (order []OrderJs
 			return order, err
 		} else {
 			for _, order := range orderList {
-				rst = append(rst, orderStateToJson(order))
+				rst = append(rst, w.orderStateToJson(order))
 			}
 			return rst, err
 		}
@@ -791,7 +797,7 @@ func (w *WalletServiceImpl) GetLatestOrders(query LatestOrderQuery) (res []Order
 
 	res = make([]OrderJsonResult, 0)
 	for _, d := range queryRst {
-		res = append(res, orderStateToJson(d))
+		res = append(res, w.orderStateToJson(d))
 	}
 	return res, err
 }
@@ -827,7 +833,58 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	depth := Depth{DelegateAddress: delegateAddress, Market: mkt, Depth: askBid}
 	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
 	depth.Depth.Buy = w.calculateDepth(bids, defaultDepthLength, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
-	return depth, err
+
+	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+	w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
+	w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
+	crossRemoved := w.removeCross(depth)
+
+	return crossRemoved, err
+}
+
+func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
+	if len(depth.Depth.Buy) == 0 || len(depth.Depth.Sell) == 0 {
+		return depth
+	}
+	rst := Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
+	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+
+
+	newBuy := make([][]string, 0)
+	for i := range newBuy {
+		newBuy[i] = make([]string, 0)
+	}
+	newSell := make([][]string, 0)
+	for j := range newSell {
+		newSell[j] = make([]string, 0)
+	}
+
+	for _, v := range rst.Depth.Buy {
+		buy, _ := strconv.ParseFloat(v[0], 64)
+		if buy < minSell {
+			newBuy = append(newBuy, v)
+		}
+	}
+
+	for _, vv := range rst.Depth.Sell {
+		sell, _ := strconv.ParseFloat(vv[0], 64)
+		if sell > maxBuy {
+			newSell = append(newSell, vv)
+		}
+	}
+
+	rst.Depth = AskBid{Buy : newBuy, Sell : newSell}
+	return rst
+}
+
+func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float64) {
+	maxBuyRelectable, _ := w.localCache.Get(DEPTH_MAX_BUY)
+	maxBuy = maxBuyRelectable.(float64)
+	minSellRelectable, _ := w.localCache.Get(DEPTH_MIN_SELL)
+	minSell = minSellRelectable.(float64)
+	return maxBuy, minSell
 }
 
 func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBook, err error) {
@@ -1372,7 +1429,7 @@ func convertStatus(s string) []types.OrderStatus {
 	return []types.OrderStatus{}
 }
 
-func getStringStatus(order types.OrderState) string {
+func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 	s := order.Status
 
 	if order.IsExpired() {
@@ -1381,6 +1438,17 @@ func getStringStatus(order types.OrderState) string {
 
 	if order.RawOrder.OrderType == types.ORDER_TYPE_P2P && manager.IsP2PTakerLocked(order.RawOrder.Hash.Hex()) && s != types.ORDER_FINISHED {
 		return "ORDER_P2P_LOCKED"
+	}
+
+	maxBuy, minSell := w.getDepthCrossPrice()
+	maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
+	minSellRat := new(big.Rat).SetFloat64(minSell)
+	if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
+		return "ORDER_WAIT_SUBMIT_RING"
+	}
+
+	if order.RawOrder.Side == util.SideSell && order.RawOrder.Price.Cmp(maxBuyRat) < 0 {
+		return "ORDER_WAIT_SUBMIT_RING"
 	}
 
 	switch s {
@@ -1843,14 +1911,14 @@ func ringMinedQueryToMap(q RingMinedQuery) (map[string]interface{}, int, int) {
 	return rst, pi, ps
 }
 
-func orderStateToJson(src types.OrderState) OrderJsonResult {
+func (w *WalletServiceImpl) orderStateToJson(src types.OrderState) OrderJsonResult {
 
 	rst := OrderJsonResult{}
 	rst.DealtAmountB = types.BigintToHex(src.DealtAmountB)
 	rst.DealtAmountS = types.BigintToHex(src.DealtAmountS)
 	rst.CancelledAmountB = types.BigintToHex(src.CancelledAmountB)
 	rst.CancelledAmountS = types.BigintToHex(src.CancelledAmountS)
-	rst.Status = getStringStatus(src)
+	rst.Status = w.getStringStatus(src)
 	rawOrder := RawOrderJsonResult{}
 	rawOrder.Protocol = src.RawOrder.Protocol.Hex()
 	rawOrder.DelegateAddress = src.RawOrder.DelegateAddress.Hex()
