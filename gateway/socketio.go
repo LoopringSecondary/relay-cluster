@@ -1136,7 +1136,7 @@ func (so *SocketIOServiceImpl) handleOrderTracing(input interface{}) (err error)
 				} else if strings.ToUpper(orderHash) == strings.ToUpper(query.OrderHash) {
 					log.Info("emit " + ctx)
 					resp := SocketIOJsonResp{}
-					resp.Data = orderStateToJson(*req)
+					resp.Data = so.walletService.orderStateToJson(*req)
 					respJson, _ := json.Marshal(resp)
 					v.Emit(eventKeyOrderTracing+EventPostfixRes, string(respJson[:]))
 				}
