@@ -874,7 +874,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	for _, v := range depth.Depth.Buy {
 		//buy, _ := strconv.ParseFloat(v[0], 64)
 		//if buy < minSell && checkDepthThreshHold(depth.Market, v[0], v[1]) {
-		if checkDepthThreshHold(depth.Market, v[0], v[1]) {
+		if checkDepthThreshHold(depth.Market, v[1], v[2]) {
 			newBuy = append(newBuy, v)
 		}
 	}
@@ -882,7 +882,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	for _, vv := range depth.Depth.Sell {
 		//sell, _ := strconv.ParseFloat(vv[0], 64)
 		//if sell > maxBuy && checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
-		if checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
+		if checkDepthThreshHold(depth.Market, vv[1], vv[2]) {
 			newSell = append(newSell, vv)
 		}
 	}
