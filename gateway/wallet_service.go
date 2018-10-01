@@ -74,6 +74,13 @@ const TS_REDIS_PRE_KEY = "tsrpk_"
 const DEPTH_MAX_BUY = "depth_max_buy_"
 const DEPTH_MIN_SELL = "depth_min_sell_"
 
+var depthTheshHold = map[string]float64 {
+	"LRC" : 100.0,
+	"VITE" : 200.0,
+	"WETH" : 0.05,
+
+}
+
 type Portfolio struct {
 	Token      string `json:"token"`
 	Amount     string `json:"amount"`
@@ -866,20 +873,36 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 	for _, v := range depth.Depth.Buy {
 		buy, _ := strconv.ParseFloat(v[0], 64)
-		if buy < minSell {
+		if buy < minSell && checkDepthThreshHold(depth.Market, v[0], v[1]) {
 			newBuy = append(newBuy, v)
 		}
 	}
 
 	for _, vv := range depth.Depth.Sell {
 		sell, _ := strconv.ParseFloat(vv[0], 64)
-		if sell > maxBuy {
+		if sell > maxBuy && checkDepthThreshHold(depth.Market, vv[0], vv[1]) {
 			newSell = append(newSell, vv)
 		}
 	}
 
 	rst.Depth = AskBid{Buy : newBuy, Sell : newSell}
 	return rst
+}
+
+func checkDepthThreshHold(market string, amount string, size string) bool {
+	s, b := util.UnWrap(market)
+	return checkDepthAmountThreshHold(s, amount) && checkDepthAmountThreshHold(b, size)
+}
+
+func checkDepthAmountThreshHold(token string, amount string) bool {
+	amountIsOK := false
+	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
+		amountF, _ := strconv.ParseFloat(amount, 64)
+		amountIsOK = amountF >= st
+	} else {
+		amountIsOK = true
+	}
+	return amountIsOK
 }
 
 func (w *WalletServiceImpl) getDepthCrossPrice(market string) (maxBuy float64, minSell float64, err error) {

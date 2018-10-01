@@ -43,6 +43,8 @@ import (
 	"strconv"
 	"fmt"
 	"time"
+	"strings"
+	"github.com/Loopring/relay-lib/marketutil"
 )
 
 //import (
@@ -266,6 +268,17 @@ func TestCrossDepth(t *testing.T) {
 
 	fmt.Println(removeCross(depth))
 
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.1"))
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.1"))
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.05"))
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.049"))
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "101.0", "0.051"))
+	fmt.Println(checkDepthThreshHold("VITE-WETH", "199.0", "0.1"))
+	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
+	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.05"))
+	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
+	fmt.Println(checkDepthThreshHold("VITE-WETH", "201.0", "0.051"))
+
 
 	//rst := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
 	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
@@ -287,6 +300,29 @@ func TestCrossDepth(t *testing.T) {
 	//if nil != err {
 	//	t.Error(err.Error())
 	//}
+}
+
+func checkDepthThreshHold(market string, amount string, size string) bool {
+	s, b := marketutil.UnWrap(market)
+	return checkDepthAmountThreshHold(s, amount) && checkDepthAmountThreshHold(b, size)
+}
+
+func checkDepthAmountThreshHold(token string, amount string) bool {
+
+	var depthTheshHold = map[string]float64 {
+		"LRC" : 100.0,
+		"VITE" : 200.0,
+		"WETH" : 0.05,
+	}
+
+	amountIsOK := false
+	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
+		amountF, _ := strconv.ParseFloat(amount, 64)
+		amountIsOK = amountF >= st
+	} else {
+		amountIsOK = true
+	}
+	return amountIsOK
 }
 
 func removeCross(depth gateway.Depth) gateway.Depth {
