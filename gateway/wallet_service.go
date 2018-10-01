@@ -841,13 +841,6 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 		w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
 		w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
-		fmt.Println("------------------------------")
-		fmt.Println(maxBuy)
-		fmt.Println(minSell)
-		fmt.Println(depth)
-		fmt.Println(crossRemoved)
-		fmt.Println("2------------------------------")
-
 		return crossRemoved, err
 	} else {
 		return depth, err
@@ -862,9 +855,6 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
 	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 
-	fmt.Println(maxBuy)
-	fmt.Println(minSell)
-
 	newBuy := make([][]string, 0)
 	for i := range newBuy {
 		newBuy[i] = make([]string, 0)
@@ -876,7 +866,6 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 	for _, v := range depth.Depth.Buy {
 		buy, _ := strconv.ParseFloat(v[0], 64)
-		fmt.Println("buy ++++++++" + strconv.FormatFloat(buy, 'G', 10, 64))
 		if buy < minSell {
 			newBuy = append(newBuy, v)
 		}
@@ -884,7 +873,6 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 	for _, vv := range depth.Depth.Sell {
 		sell, _ := strconv.ParseFloat(vv[0], 64)
-		fmt.Println("sell ++++++++" + strconv.FormatFloat(sell, 'G', 10, 64))
 		if sell > maxBuy {
 			newSell = append(newSell, vv)
 		}
@@ -904,13 +892,6 @@ func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float6
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 	minSell = minSellRelectable.(float64)
-
-	fmt.Println("***************")
-	fmt.Println(maxBuy)
-	fmt.Println(minSell)
-	fmt.Println(err)
-	fmt.Println("2***************")
-
 	return maxBuy, minSell, nil
 }
 
@@ -1470,8 +1451,6 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
-		fmt.Println("*__________________")
-		fmt.Println(order.RawOrder.Price.Float64())
 		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
 			return "ORDER_WAIT_SUBMIT_RING"
 		}
