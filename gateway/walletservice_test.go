@@ -268,6 +268,7 @@ func TestCrossDepth(t *testing.T) {
 
 	fmt.Println(removeCross(depth))
 
+	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.049"))
 	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.1"))
 	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.1"))
 	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.05"))
@@ -304,7 +305,7 @@ func TestCrossDepth(t *testing.T) {
 
 func checkDepthThreshHold(market string, amount string, size string) bool {
 	s, b := marketutil.UnWrap(market)
-	return checkDepthAmountThreshHold(s, amount) && checkDepthAmountThreshHold(b, size)
+	return checkDepthAmountThreshHold(s, amount) || checkDepthAmountThreshHold(b, size)
 }
 
 func checkDepthAmountThreshHold(token string, amount string) bool {

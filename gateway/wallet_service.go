@@ -891,7 +891,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 
 func checkDepthThreshHold(market string, amount string, size string) bool {
 	s, b := util.UnWrap(market)
-	return checkDepthAmountThreshHold(s, amount) && checkDepthAmountThreshHold(b, size)
+	return checkDepthAmountThreshHold(s, amount) || checkDepthAmountThreshHold(b, size)
 }
 
 func checkDepthAmountThreshHold(token string, amount string) bool {
