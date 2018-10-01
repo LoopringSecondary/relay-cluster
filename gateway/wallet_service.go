@@ -1448,9 +1448,10 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		return "ORDER_P2P_LOCKED"
 	}
 
-	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil {
+	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil && (s == types.ORDER_NEW || s == types.ORDER_PARTIAL) {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
+
 		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
 			return "ORDER_WAIT_SUBMIT_RING"
 		}
