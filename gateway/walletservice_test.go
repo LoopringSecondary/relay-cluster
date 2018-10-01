@@ -19,24 +19,30 @@
 package gateway_test
 
 import (
-	"fmt"
-	"github.com/Loopring/relay-cluster/dao"
-	"github.com/Loopring/relay-lib/crypto"
-	//dao2 "github.com/Loopring/relay-lib/dao"
-	"encoding/json"
-	"github.com/Loopring/relay-cluster/gateway"
-	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"go.uber.org/zap"
-	"github.com/Loopring/relay-cluster/test"
-	"math/big"
-	"strconv"
-	"strings"
+	//"fmt"
+	//"github.com/Loopring/relay-cluster/dao"
+	//"github.com/Loopring/relay-lib/crypto"
+	////dao2 "github.com/Loopring/relay-lib/dao"
+	//"encoding/json"
+	//"github.com/Loopring/relay-lib/log"
+	//"github.com/Loopring/relay-lib/marketutil"
+	//"github.com/Loopring/relay-lib/types"
+	//"github.com/ethereum/go-ethereum/accounts"
+	//"github.com/ethereum/go-ethereum/accounts/keystore"
+	//"github.com/ethereum/go-ethereum/common"
+	//"go.uber.org/zap"
+	//"github.com/Loopring/relay-cluster/test"
+	//"math/big"
+	//"strconv"
+	//"strings"
 	"testing"
+	//"github.com/Loopring/relay-lib/marketutil"
+	//"math/big"
+	"github.com/patrickmn/go-cache"
+	"github.com/Loopring/relay-cluster/gateway"
+	"strconv"
+	"fmt"
+	"time"
 )
 
 //import (
@@ -78,142 +84,250 @@ import (
 //	C string
 //}
 //
+//
+//func init() {
+//	fmt.Println(">>>>>>>>>sssss")
+//	logConfig := `{
+//	  "level": "debug",
+//	  "development": false,
+//	  "encoding": "json",
+//	  "outputPaths": ["stdout"],
+//	  "errorOutputPaths": ["stderr"],
+//	  "encoderConfig": {
+//	    "messageKey": "message",
+//	    "levelKey": "level",
+//	    "levelEncoder": "lowercase"
+//	  }
+//	}`
+//	rawJSON := []byte(logConfig)
+//
+//	var (
+//		cfg zap.Config
+//		err error
+//	)
+//	if err = json.Unmarshal(rawJSON, &cfg); err != nil {
+//		panic(err)
+//	}
+//
+//	log.Initialize(cfg)
+//}
 
-func init() {
-	fmt.Println(">>>>>>>>>sssss")
-	logConfig := `{
-	  "level": "debug",
-	  "development": false,
-	  "encoding": "json",
-	  "outputPaths": ["stdout"],
-	  "errorOutputPaths": ["stderr"],
-	  "encoderConfig": {
-	    "messageKey": "message",
-	    "levelKey": "level",
-	    "levelEncoder": "lowercase"
-	  }
-	}`
-	rawJSON := []byte(logConfig)
+//func TestGetPow(t *testing.T) {
+//
+//	//cf := dao2.MysqlOptions{}
+//	//cf.Password = "111111"
+//	//cf.Hostname = "13.112.62.24"
+//	//cf.Port = "3306"
+//	//cf.User = "root"
+//	//cf.DbName = "loopring_relay_v1_5"
+//	//cf.TablePrefix = "lpr_"
+//	//cf.MaxOpenConnections = 0
+//	//cf.MaxIdleConnections = 0
+//	//cf.ConnMaxLifetime = 0
+//	//cf.Debug = true
+//	//fmt.Println(">>>>>>>>>c")
+//	//rds := dao.NewDb(&cf)
+//	//fmt.Println(">>>>>>>>>d")
+//
+//	h := &common.Hash{}
+//	address := &common.Address{}
+//	ks := keystore.NewKeyStore("/Users/jaice/aws_ak", keystore.StandardScryptN, keystore.StandardScryptP)
+//	c := crypto.NewKSCrypto(false, ks)
+//	crypto.Initialize(c)
+//
+//	addr := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+//
+//	creator := accounts.Account{Address: addr}
+//	if err := ks.Unlock(creator, "11111111"); err != nil {
+//		fmt.Printf(err.Error())
+//	}
+//
+//	var timstampInt int64 = 1528778116
+//	timestamp := strconv.FormatInt(timstampInt, 10)
+//	tsHash := crypto.GenerateHash([]byte(timestamp))
+//	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+//
+//	testh, err := crypto.Sign(tsHash, owner)
+//	//fmt.Println(common.BytesToHash(testh).Hex())
+//	vv, rr, ss := crypto.SigToVRS(testh)
+//	fmt.Println(uint8(vv))
+//	fmt.Println(common.BytesToHash(rr).Hex())
+//	fmt.Println(common.BytesToHash(ss).Hex())
+//	fmt.Println("----------------------")
+//
+//	tt := dao.TicketReceiver{}
+//	tt.Phone = "13312341234"
+//	tt.Email = "test@126.com"
+//	tt.Address = "0x2ef680f87989bce2a9f458e450cffd6589b549fa"
+//	tt.Name = "张三"
+//
+//	applyt := gateway.Ticket{}
+//	applyt.Ticket = tt
+//
+//	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 28,
+//		R:         "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
+//		S:         "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
+//		Timestamp: timestamp,
+//	}
+//
+//	//tt.V = 28
+//	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
+//	//tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
+//	fmt.Println(">>>>1234")
+//	//err = rds.Add(tt)
+//	fmt.Println(err)
+//
+//	sign := applyt.Sign
+//	h.SetBytes(tsHash)
+//	fmt.Println(sign.V)
+//	fmt.Println(sign.R)
+//	fmt.Println(sign.S)
+//	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
+//	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
+//		log.Errorf("signer address error:%s", err.Error())
+//	} else {
+//		address.SetBytes(addressBytes)
+//		fmt.Println(address.Hex())
+//		fmt.Println(strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner))
+//	}
+//
+//}
+//
+//func TestWalletServiceImpl_GetCityPartnerStatus(t *testing.T) {
+//	//cfg := test.LoadConfig()
+//	//rds := test.Rds()
+//	//walletService := gateway.NewWalletServiceRds(rds)
+//	filledEvent := &types.OrderFilledEvent{}
+//	filledEvent.OrderHash = common.HexToHash("0x98a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
+//	filledEvent.Ringhash = common.HexToHash("0x88a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
+//	filledEvent.LrcFee = new(big.Int).SetInt64(1000000)
+//	filledEvent.SplitB = new(big.Int).SetInt64(2000000)
+//	filledEvent.SplitS = new(big.Int).SetInt64(3000000)
+//	//if err := walletService.HandleFilledEventForCityPartner(filledEvent); nil != err {
+//	//t.Error(err.Error())
+//	//}
+//}
 
-	var (
-		cfg zap.Config
-		err error
-	)
-	if err = json.Unmarshal(rawJSON, &cfg); err != nil {
-		panic(err)
+//func TestAddCustomToken(t *testing.T) {
+//	owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
+//
+//	customToken := marketutil.CustomToken{}
+//	customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
+//	customToken.Symbol = "XNN"
+//	customToken.Decimals = new(big.Int).SetInt64(18)
+//
+//	err := marketutil.AddToken(owner, customToken)
+//	if nil != err {
+//		t.Error(err.Error())
+//	}
+//}
+
+func TestCrossDepth(t *testing.T) {
+	println("slkdjflksjdfjk")
+
+	depth := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
+	newBuy := make([][]string, 0)
+	for i := range newBuy {
+		newBuy[i] = make([]string, 0)
+	}
+	newSell := make([][]string, 0)
+	for j := range newSell {
+		newSell[j] = make([]string, 0)
 	}
 
-	log.Initialize(cfg)
-}
+	newBuy = append(newBuy, []string{"0.72", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.6", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.5", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.4", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.3", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.2", "0.1", "10"})
+	newBuy = append(newBuy, []string{"0.1", "0.1", "10"})
 
-func TestGetPow(t *testing.T) {
+	newSell = append(newSell, []string{"0.9", "0.1", "10"})
+	newSell = append(newSell, []string{"0.8", "0.1", "10"})
+	newSell = append(newSell, []string{"0.7", "0.1", "10"})
+	newSell = append(newSell, []string{"0.6", "0.1", "10"})
+	newSell = append(newSell, []string{"0.51", "0.1", "10"})
+	depth.Depth.Buy = newBuy
+	depth.Depth.Sell = newSell
 
-	//cf := dao2.MysqlOptions{}
-	//cf.Password = "111111"
-	//cf.Hostname = "13.112.62.24"
-	//cf.Port = "3306"
-	//cf.User = "root"
-	//cf.DbName = "loopring_relay_v1_5"
-	//cf.TablePrefix = "lpr_"
-	//cf.MaxOpenConnections = 0
-	//cf.MaxIdleConnections = 0
-	//cf.ConnMaxLifetime = 0
-	//cf.Debug = true
-	//fmt.Println(">>>>>>>>>c")
-	//rds := dao.NewDb(&cf)
-	//fmt.Println(">>>>>>>>>d")
 
-	h := &common.Hash{}
-	address := &common.Address{}
-	ks := keystore.NewKeyStore("/Users/jaice/aws_ak", keystore.StandardScryptN, keystore.StandardScryptP)
-	c := crypto.NewKSCrypto(false, ks)
-	crypto.Initialize(c)
+	xc := cache.New(10*time.Minute, 10*time.Minute)
 
-	addr := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+	xc.Set(gateway.DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
+	xc.Set(gateway.DEPTH_MIN_SELL, minSell, 1*time.Hour)
 
-	creator := accounts.Account{Address: addr}
-	if err := ks.Unlock(creator, "11111111"); err != nil {
-		fmt.Printf(err.Error())
-	}
 
-	var timstampInt int64 = 1528778116
-	timestamp := strconv.FormatInt(timstampInt, 10)
-	tsHash := crypto.GenerateHash([]byte(timestamp))
-	owner := common.HexToAddress("0x2ef680f87989bce2a9f458e450cffd6589b549fa")
+	time.Sleep(3*time.Second)
 
-	testh, err := crypto.Sign(tsHash, owner)
-	//fmt.Println(common.BytesToHash(testh).Hex())
-	vv, rr, ss := crypto.SigToVRS(testh)
-	fmt.Println(uint8(vv))
-	fmt.Println(common.BytesToHash(rr).Hex())
-	fmt.Println(common.BytesToHash(ss).Hex())
-	fmt.Println("----------------------")
+	mb,_ := xc.Get(gateway.DEPTH_MAX_BUY)
+	ms,_ := xc.Get(gateway.DEPTH_MIN_SELL)
 
-	tt := dao.TicketReceiver{}
-	tt.Phone = "13312341234"
-	tt.Email = "test@126.com"
-	tt.Address = "0x2ef680f87989bce2a9f458e450cffd6589b549fa"
-	tt.Name = "张三"
+	fmt.Printf(strconv.FormatFloat(mb.(float64), 'G', -1, 64))
+	fmt.Printf(strconv.FormatFloat(ms.(float64), 'G', -1, 64))
 
-	applyt := gateway.Ticket{}
-	applyt.Ticket = tt
 
-	applyt.Sign = gateway.SignInfo{Owner: "0x2ef680f87989bce2a9f458e450cffd6589b549fa", V: 28,
-		R:         "0xfc476be69f175c18f16cf72738cec0b810716a8e564914e8d6eb2f61e33ad454",
-		S:         "0x3570a561cb85cc65c969411dabfd470a436d3af2d04694a410f500f2a6238127",
-		Timestamp: timestamp,
-	}
+	fmt.Println(removeCross(depth))
 
-	//tt.V = 28
-	//tt.R = "0xee70ba1e207d2580cf397c33c704179d8bf8f337906bffa64297c5acdacb3726"
-	//tt.S = "0x0fa8317933f65910d5b68ef9d3f9fe8894b44b778cef433c370059e9d2a0954c"
-	fmt.Println(">>>>1234")
-	//err = rds.Add(tt)
-	fmt.Println(err)
 
-	sign := applyt.Sign
-	h.SetBytes(tsHash)
-	fmt.Println(sign.V)
-	fmt.Println(sign.R)
-	fmt.Println(sign.S)
-	sig, _ := crypto.VRSToSig(sign.V, types.HexToBytes32(sign.R).Bytes(), types.HexToBytes32(sign.S).Bytes())
-	if addressBytes, err := crypto.SigToAddress(h.Bytes(), sig); nil != err {
-		log.Errorf("signer address error:%s", err.Error())
-	} else {
-		address.SetBytes(addressBytes)
-		fmt.Println(address.Hex())
-		fmt.Println(strings.ToLower(address.Hex()) == strings.ToLower(sign.Owner))
-	}
+	//rst := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
+	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
 
-}
 
-func TestWalletServiceImpl_GetCityPartnerStatus(t *testing.T) {
-	//cfg := test.LoadConfig()
-	//rds := test.Rds()
-	//walletService := gateway.NewWalletServiceRds(rds)
-	filledEvent := &types.OrderFilledEvent{}
-	filledEvent.OrderHash = common.HexToHash("0x98a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
-	filledEvent.Ringhash = common.HexToHash("0x88a7f2cb1f56b11d475e4b030f750fd6e8ca689cce7649385766f0b53d155eb5")
-	filledEvent.LrcFee = new(big.Int).SetInt64(1000000)
-	filledEvent.SplitB = new(big.Int).SetInt64(2000000)
-	filledEvent.SplitS = new(big.Int).SetInt64(3000000)
-	//if err := walletService.HandleFilledEventForCityPartner(filledEvent); nil != err {
-	//t.Error(err.Error())
+
+
+
+
+	//owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
+	//
+	//customToken := marketutil.CustomToken{}
+	//customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
+	//customToken.Symbol = "XNN"
+	//customToken.Decimals = new(big.Int).SetInt64(18)
+	//
+	//err := marketutil.AddToken(owner, customToken)
+	//if nil != err {
+	//	t.Error(err.Error())
 	//}
 }
 
-func TestAddCustomToken(t *testing.T) {
-	owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
-
-	customToken := marketutil.CustomToken{}
-	customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
-	customToken.Symbol = "XNN"
-	customToken.Decimals = new(big.Int).SetInt64(18)
-
-	err := marketutil.AddToken(owner, customToken)
-	if nil != err {
-		t.Error(err.Error())
+func removeCross(depth gateway.Depth) gateway.Depth {
+	if len(depth.Depth.Buy) == 0 || len(depth.Depth.Sell) == 0 {
+		return depth
 	}
+	rst := gateway.Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
+	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+
+
+	newBuy := make([][]string, 0)
+	for i := range newBuy {
+		newBuy[i] = make([]string, 0)
+	}
+	newSell := make([][]string, 0)
+	for j := range newSell {
+		newSell[j] = make([]string, 0)
+	}
+
+	for _, v := range depth.Depth.Buy {
+		buy, _ := strconv.ParseFloat(v[0], 64)
+		if buy < minSell {
+			newBuy = append(newBuy, v)
+		}
+	}
+
+	for _, vv := range depth.Depth.Sell {
+		sell, _ := strconv.ParseFloat(vv[0], 64)
+		if sell > maxBuy {
+			newSell = append(newSell, vv)
+		}
+	}
+
+	rst.Depth = gateway.AskBid{Buy : newBuy, Sell : newSell}
+	return rst
 }
 
 //func (ab *AB) ABTest1(query ABReq1) (res1 ABRes1, err error) {

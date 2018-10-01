@@ -834,13 +834,18 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	depth.Depth.Sell = w.calculateDepth(asks, defaultDepthLength, true, util.AllTokens[a].Decimals, util.AllTokens[b].Decimals)
 	depth.Depth.Buy = w.calculateDepth(bids, defaultDepthLength, false, util.AllTokens[b].Decimals, util.AllTokens[a].Decimals)
 
-	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-	w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
-	w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
-	crossRemoved := w.removeCross(depth)
+	if len(depth.Depth.Sell) > 0 && len(depth.Depth.Buy) > 0 {
 
-	return crossRemoved, err
+		maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+		minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell)-1][0], 64)
+		w.localCache.Set(DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
+		w.localCache.Set(DEPTH_MIN_SELL, minSell, 1*time.Hour)
+		crossRemoved := w.removeCross(depth)
+
+		return crossRemoved, err
+	} else {
+		return depth, err
+	}
 }
 
 func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
@@ -861,14 +866,14 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 		newSell[j] = make([]string, 0)
 	}
 
-	for _, v := range rst.Depth.Buy {
+	for _, v := range depth.Depth.Buy {
 		buy, _ := strconv.ParseFloat(v[0], 64)
 		if buy < minSell {
 			newBuy = append(newBuy, v)
 		}
 	}
 
-	for _, vv := range rst.Depth.Sell {
+	for _, vv := range depth.Depth.Sell {
 		sell, _ := strconv.ParseFloat(vv[0], 64)
 		if sell > maxBuy {
 			newSell = append(newSell, vv)
@@ -879,12 +884,17 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 	return rst
 }
 
-func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float64) {
-	maxBuyRelectable, _ := w.localCache.Get(DEPTH_MAX_BUY)
+func (w *WalletServiceImpl) getDepthCrossPrice() (maxBuy float64, minSell float64, err error) {
+	maxBuyRelectable,ok  := w.localCache.Get(DEPTH_MAX_BUY); if !ok {
+		return maxBuy, minSell, errors.New("not cross price found")
+	}
+
 	maxBuy = maxBuyRelectable.(float64)
-	minSellRelectable, _ := w.localCache.Get(DEPTH_MIN_SELL)
+	minSellRelectable, ok := w.localCache.Get(DEPTH_MIN_SELL); if !ok {
+		return maxBuy, minSell, errors.New("not cross price found")
+	}
 	minSell = minSellRelectable.(float64)
-	return maxBuy, minSell
+	return maxBuy, minSell, nil
 }
 
 func (w *WalletServiceImpl) GetUnmergedOrderBook(query DepthQuery) (res OrderBook, err error) {
@@ -1440,15 +1450,16 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		return "ORDER_P2P_LOCKED"
 	}
 
-	maxBuy, minSell := w.getDepthCrossPrice()
-	maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
-	minSellRat := new(big.Rat).SetFloat64(minSell)
-	if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
-		return "ORDER_WAIT_SUBMIT_RING"
-	}
+	maxBuy, minSell, err := w.getDepthCrossPrice(); if err == nil {
+		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
+		minSellRat := new(big.Rat).SetFloat64(minSell)
+		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
+			return "ORDER_WAIT_SUBMIT_RING"
+		}
 
-	if order.RawOrder.Side == util.SideSell && order.RawOrder.Price.Cmp(maxBuyRat) < 0 {
-		return "ORDER_WAIT_SUBMIT_RING"
+		if order.RawOrder.Side == util.SideSell && order.RawOrder.Price.Cmp(maxBuyRat) < 0 {
+			return "ORDER_WAIT_SUBMIT_RING"
+		}
 	}
 
 	switch s {
