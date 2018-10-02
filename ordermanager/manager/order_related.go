@@ -20,16 +20,16 @@ package manager
 
 import (
 	"fmt"
+	"github.com/Loopring/extractor/extractor"
 	"github.com/Loopring/relay-cluster/dao"
 	omcm "github.com/Loopring/relay-cluster/ordermanager/common"
+	"github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
 	notify "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
-	"github.com/Loopring/extractor/extractor"
 )
 
 // 所有来自gateway的订单都是新订单
@@ -86,6 +86,11 @@ func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
 }
 
 func HandleRingMinedEvent(event *types.RingMinedEvent) error {
+	// notify miner
+	if event.Status == types.TX_STATUS_SUCCESS || event.Status == types.TX_STATUS_FAILED {
+		notify.NotifyRingMined(event)
+	}
+
 	if event.Status != types.TX_STATUS_SUCCESS {
 		return fmt.Errorf("order manager, ringMinedHandler, tx:%s, txstatus:%s invalid", event.TxHash.Hex(), types.StatusStr(event.Status))
 	}
@@ -168,15 +173,6 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 	log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
 	notify.NotifyOrderFilled(newFillModel)
-
-	// 只需发送一次
-	if event.FillIndex.Int64() == 0 {
-		var ringminedEvent types.RingMinedEvent
-		ringminedEvent.TxInfo = event.TxInfo
-		ringminedEvent.Ringhash = event.Ringhash
-		ringminedEvent.RingIndex = event.RingIndex
-		notify.NotifyRingMined(&ringminedEvent)
-	}
 
 	return nil
 }
