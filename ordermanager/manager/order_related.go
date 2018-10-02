@@ -119,6 +119,7 @@ func HandleRingMinedEvent(event *types.RingMinedEvent) error {
 
 func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 	if _, err := rds.FindFillEvent(event.TxHash.Hex(), event.FillIndex.Int64()); err == nil {
+		log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s event duplicate", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
 		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s event duplicate", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex())
 	}
 
@@ -126,9 +127,11 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 	state := &types.OrderState{UpdatedBlock: event.BlockNumber}
 	model, err := rds.GetOrderByHash(event.OrderHash)
 	if err != nil {
+		log.Errorf(err.Error())
 		return err
 	}
 	if err := model.ConvertUp(state); err != nil {
+		log.Errorf(err.Error())
 		return err
 	}
 
@@ -140,11 +143,13 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 	newFillModel.Market, _ = util.WrapMarketByAddress(event.TokenB.Hex(), event.TokenS.Hex())
 
 	if err := rds.Add(newFillModel); err != nil {
+		log.Errorf(err.Error())
 		return err
 	}
 
 	// judge order status
 	if omcm.IsInvalidFillStatus(state.Status) {
+		log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, err:order status(%d) invalid", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
 		return fmt.Errorf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, err:order status(%d) invalid", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.Status)
 	}
 
@@ -160,9 +165,11 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 
 	// update rds.Order
 	if err := model.ConvertDown(state); err != nil {
+		log.Errorf(err.Error())
 		return err
 	}
 	if err := rds.UpdateOrderWhileFill(state.RawOrder.Hash, state.Status, state.DealtAmountS, state.DealtAmountB, state.SplitAmountS, state.SplitAmountB, state.UpdatedBlock); err != nil {
+		log.Errorf(err.Error())
 		return err
 	}
 
