@@ -20,11 +20,11 @@ package viewer_test
 
 import (
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
-	"github.com/Loopring/relay-cluster/test"
 	"github.com/Loopring/relay-lib/motan"
-	"github.com/Loopring/relay-lib/types"
-	"github.com/ethereum/go-ethereum/common"
 	"testing"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/relay-cluster/dao"
+	libdao "github.com/Loopring/relay-lib/dao"
 )
 
 func TestOrderViewerImpl_MotanRpcServer(t *testing.T) {
@@ -35,18 +35,25 @@ func TestOrderViewerImpl_MotanRpcServer(t *testing.T) {
 	motan.RunServer(options)
 }
 
-func TestOrderViewerImpl_FlexCancelOrder(t *testing.T) {
-	data := &types.FlexCancelOrderEvent{
-		Owner:      common.HexToAddress("0x1B978a1D302335a6F2Ebe4B8823B5E17c3C84135"),
-		OrderHash:  common.HexToHash("0xceb13a7678b7a24ab1ab54cfd429dbe4bf31bbf647ff6c01b781b72c058ab9c9"),
-		CutoffTime: 0,
-		TokenS:     types.NilAddress,
-		TokenB:     types.NilAddress,
-		Type:       types.FLEX_CANCEL_BY_HASH,
-	}
+func TestOrderViewerImpl_GetOrderByHash(t *testing.T) {
+	//path := "/Users/fukun/projects/gohome/src/github.com/Loopring/relay-cluster/config/relay.toml"
+	//cfg := node.LoadConfig(path)
+	//log.Initialize(cfg.Log)
 
-	v := test.GenerateOrderView()
-	if err := v.FlexCancelOrder(data); err != nil {
-		t.Logf(err.Error())
+	opt := libdao.MysqlOptions{}
+	opt.Hostname = "loopring-relay.cfsiqsz1ae0c.ap-northeast-1.rds.amazonaws.com"
+	opt.Port = "3306"
+	opt.User = "root"
+	opt.Password = "s4sfo1q}W+$^%]E8"
+	opt.DbName = "loopring_relay_v1_5"
+	opt.TablePrefix = "lpr_"
+	opt.Debug = false
+	rds := dao.NewDb(&opt)
+
+	order, err := rds.GetOrderByHash(common.HexToHash("0x827945f687d4105f179e371e3be12f6729058ed5bf481d53a561175cb3259da6"))
+	if err != nil {
+		t.Fatalf(err.Error())
+	} else {
+		t.Log(order.OrderHash)
 	}
 }

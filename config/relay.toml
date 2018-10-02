@@ -16,16 +16,17 @@ title = "miner"
         encode_time = "iso8601"
 
 [mysql]
-    hostname = "127.0.0.1"
+    hostname = "loopring-relay.cfsiqsz1ae0c.ap-northeast-1.rds.amazonaws.com"
     port = "3306"
     user = "root"
-    password = "111111"
-    db_name = "loopring_miner_v1.1"
+    password = "s4sfo1q}W+$^%]E8"
+    db_name = "loopring_relay_v1_5"
     table_prefix = "lpr_"
-    max_open_connections = 0
+    max_open_connections = 70
     max_idle_connections = 0
     conn_max_lifetime = 0
     debug = false
+
 
 [websocket]
     port = "8087"
