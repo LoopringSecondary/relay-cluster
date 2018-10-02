@@ -150,8 +150,13 @@ func TestEthNodeAccessor_ERC20Transfer(t *testing.T) {
 }
 
 func TestEthNodeAccessor_ERC20Balance(t *testing.T) {
-	accounts := []common.Address{test.Entity().Creator.Address, test.Entity().Accounts[0].Address}
-	tokens := []common.Address{common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")}
+	accounts := []common.Address{
+		common.HexToAddress("0xBa59643c138F8e38f3e9d775Da298b4CCEab0Fd9"),
+		common.HexToAddress("0x7a33e58ae69c0c2aA90E6dE93C1A1b3285495cC9"),
+		common.HexToAddress("0x4D2De501e44546db4c46Ad97C0AC58e551d89B84"),
+		common.HexToAddress("0x0489bb24e50073BCF5fa64B046e9c391B89182F6"),
+	}
+	tokens := []common.Address{common.HexToAddress("0xa52c8371d379d7036A862673B08Bd73fAF4660Fd")}
 
 	for _, tokenAddress := range tokens {
 		for _, account := range accounts {
@@ -188,9 +193,13 @@ func TestEthNodeAccessor_Approval(t *testing.T) {
 func TestEthNodeAccessor_Allowance(t *testing.T) {
 	/*accounts := []common.Address{account1, account2}
 	tokens := []common.Address{lrcTokenAddress, wethTokenAddress}*/
-	accounts := []common.Address{common.HexToAddress("0x750ad4351bb728cec7d639a9511f9d6488f1e259"), common.HexToAddress("0x251f3bd45b06a8b29cb6d171131e192c1254fec1")}
-	tokens := []common.Address{common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), common.HexToAddress("0xe1C541BA900cbf212Bc830a5aaF88aB499931751")}
-
+	accounts := []common.Address{
+		common.HexToAddress("0xBa59643c138F8e38f3e9d775Da298b4CCEab0Fd9"),
+		common.HexToAddress("0x7a33e58ae69c0c2aA90E6dE93C1A1b3285495cC9"),
+		common.HexToAddress("0x4D2De501e44546db4c46Ad97C0AC58e551d89B84"),
+		common.HexToAddress("0x0489bb24e50073BCF5fa64B046e9c391B89182F6"),
+	}
+	tokens := []common.Address{common.HexToAddress("0xa52c8371d379d7036A862673B08Bd73fAF4660Fd")}
 	spender := delegateAddress
 
 	for _, tokenAddress := range tokens {
@@ -198,9 +207,9 @@ func TestEthNodeAccessor_Allowance(t *testing.T) {
 			if allowance, err := loopringaccessor.Erc20Allowance(tokenAddress, account, spender, "latest"); err != nil {
 				t.Fatalf("accessor get erc20 approval error:%s", err.Error())
 			} else {
-				amount := new(big.Rat).SetFrac(allowance, big.NewInt(1e18)).FloatString(2)
+				//amount := new(big.Rat).SetFrac(allowance, big.NewInt(1e18)).FloatString(2)
 				symbol, _ := util.GetSymbolWithAddress(tokenAddress)
-				t.Logf("token:%s, account:%s, amount:%s", symbol, account.Hex(), amount)
+				t.Logf("token:%s, account:%s, amount:%s", symbol, account.Hex(), allowance.String())
 			}
 		}
 	}
