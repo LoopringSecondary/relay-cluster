@@ -1674,8 +1674,11 @@ func (w *WalletServiceImpl) calculateOrderBookAmount(state types.OrderState, isA
 		return nil, nil, err
 	}
 
-	sellPrice := new(big.Rat).SetFrac(state.RawOrder.AmountS, state.RawOrder.AmountB)
-	buyPrice := new(big.Rat).SetFrac(state.RawOrder.AmountB, state.RawOrder.AmountS)
+	sellPrice := new(big.Rat).SetFrac(state.RawOrder.AmountS, tokenSDecimal)
+	sellPrice = sellPrice.Quo(sellPrice, new(big.Rat).SetFrac(state.RawOrder.AmountB, tokenBDecimal))
+
+	buyPrice := new(big.Rat).SetFrac(state.RawOrder.AmountB, tokenBDecimal)
+	buyPrice = buyPrice.Quo(buyPrice, new(big.Rat).SetFrac(state.RawOrder.AmountS, tokenSDecimal))
 	if state.RawOrder.BuyNoMoreThanAmountB {
 		limitedAmountS := new(big.Rat).Mul(minAmountB, sellPrice)
 		if limitedAmountS.Cmp(minAmountS) < 0 {
