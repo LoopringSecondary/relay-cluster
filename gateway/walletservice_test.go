@@ -229,6 +229,9 @@ import (
 func TestCrossDepth(t *testing.T) {
 	println("slkdjflksjdfjk")
 
+	tr := new(big.Rat).SetFloat64(3.1414555)
+	fmt.Println(tr.Float64())
+
 	depth := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
 	newBuy := make([][]string, 0)
 	for i := range newBuy {

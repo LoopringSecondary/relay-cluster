@@ -325,7 +325,9 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 	}
 
 	if minAmount, ok := f.MinTokeSAmount[tokenS.Symbol]; ok && o.AmountS.Cmp(minAmount) < 0 {
-		return false, fmt.Errorf("tokenS amount is too small")
+		minAmountRat := new(big.Rat).SetFrac(minAmount, tokenS.Decimals)
+		minAmountFloat, _ := minAmountRat.Float64()
+		return false, fmt.Errorf("%s amount is too small and less than %f", tokenS.Symbol, minAmountFloat)
 	}
 
 
