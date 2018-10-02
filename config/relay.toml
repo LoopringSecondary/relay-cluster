@@ -84,7 +84,7 @@ title = "miner"
 
 [market_cap]
         base_url = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
-        currency = "USD"
+        currency = "CNY"
         duration = 5
         dust_value = 10.0
 

@@ -167,7 +167,7 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 
 	log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
-	notify.NotifyOrderFilled(newFillModel)
+	//notify.NotifyOrderFilled(newFillModel)
 
 	// 只需发送一次
 	if event.FillIndex.Int64() == 0 {
@@ -175,7 +175,7 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 		ringminedEvent.TxInfo = event.TxInfo
 		ringminedEvent.Ringhash = event.Ringhash
 		ringminedEvent.RingIndex = event.RingIndex
-		notify.NotifyRingMined(&ringminedEvent)
+		//notify.NotifyRingMined(&ringminedEvent)
 	}
 
 	return nil
