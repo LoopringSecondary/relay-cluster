@@ -83,6 +83,8 @@ func NotifyRingMined(event *libTypes.RingMinedEvent) error {
 	err := ProducerNormalMessage(kafka.Kafka_Topic_orderManager_RingminedUpdated, event)
 	if err != nil {
 		log.Errorf("notify ringmined tx:%s failed", event.TxHash.Hex())
+	} else {
+		log.Debugf("nodify ringmined tx:%s,ring_hash:%s,ring_index:%s,status:%d", event.TxHash.Hex(), event.Ringhash.Hex(), event.RingIndex.String(), uint8(event.Status))
 	}
 	return err
 }
