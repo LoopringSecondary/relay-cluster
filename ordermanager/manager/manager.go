@@ -26,6 +26,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	"github.com/Loopring/relay-lib/types"
+	"time"
 )
 
 type OrderManager interface {
@@ -196,6 +197,7 @@ func (om *OrderManagerImpl) HandlerOrderRelatedEvent(input eventemitter.EventDat
 func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventData) error {
 	var txinfo types.TxInfo
 
+	start := time.Now().UnixNano()
 	switch event := input.(type) {
 	case *types.ApprovalEvent:
 		txinfo = event.TxInfo
@@ -218,5 +220,8 @@ func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventD
 		log.Errorf(err.Error())
 	}
 
+	stop := time.Now().UnixNano()
+
+	log.Debugf("order manager handle order correlated event time:%d(msec)", (stop-start)/1e6)
 	return nil
 }
