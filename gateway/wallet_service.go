@@ -858,8 +858,8 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 		w.localCache.Set(DEPTH_MAX_BUY + strings.ToUpper(depth.Market), maxBuy, 1*time.Hour)
 		w.localCache.Set(DEPTH_MIN_SELL + strings.ToUpper(depth.Market), minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
-		return crossRemoved, err
 		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), crossRemoved, 5 * time.Second)
+		return crossRemoved, err
 	} else {
 		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), depth, 5 * time.Second)
 		return depth, err
