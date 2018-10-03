@@ -22,6 +22,7 @@ import (
 	"github.com/Loopring/relay-cluster/accountmanager"
 	"github.com/Loopring/relay-cluster/ordermanager/manager"
 	"github.com/Loopring/relay-cluster/ordermanager/viewer"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/motan"
 	"math/big"
 	"time"
@@ -61,13 +62,13 @@ func (s *MotanService) GetBalanceAndAllowance(req *motan.AccountBalanceAndAllowa
 }
 
 func (s *MotanService) GetMinerOrders(req *motan.MinerOrdersReq) *motan.MinerOrdersRes {
-	//start := msecNow()
+	start := msecNow()
 
 	res := &motan.MinerOrdersRes{}
 	res.List = manager.MinerOrders(req.Delegate, req.TokenS, req.TokenB, req.Length, req.ReservedTime, req.StartBlockNumber, req.EndBlockNumber, req.FilterOrderHashLists...)
 
-	//stop := msecNow()
-	//log.Debugf("motan service, GetMinerOrders list length:%d, execute time:%d(msec)", len(res.List), stop-start)
+	stop := msecNow()
+	log.Debugf("motan service, GetMinerOrders list length:%d, execute time:%d(msec)", len(res.List), stop-start)
 
 	return res
 }
