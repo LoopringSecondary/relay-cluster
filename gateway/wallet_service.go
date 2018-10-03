@@ -821,6 +821,16 @@ func (w *WalletServiceImpl) GetLatestP2POrders(query LatestOrderQuery) (res []Or
 
 func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
+	if len(query.Market) == 0 {
+		return res, errors.New("depth market is nil")
+	}
+
+	cacheKey := "depth_rst_cache_" + strings.ToLower(query.Market)
+	depthByte, ok := w.localCache.Get(cacheKey); if ok {
+		depthRst := depthByte.(Depth)
+		return depthRst, err
+	}
+
 	defaultDepthLength := 500
 	asks, bids, err := w.getInnerOrderBook(query, defaultDepthLength)
 	if err != nil {
@@ -849,7 +859,9 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 		w.localCache.Set(DEPTH_MIN_SELL + strings.ToUpper(depth.Market), minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
 		return crossRemoved, err
+		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), crossRemoved, 5 * time.Second)
 	} else {
+		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), depth, 5 * time.Second)
 		return depth, err
 	}
 }
