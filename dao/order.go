@@ -224,17 +224,18 @@ func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length i
 		err  error
 	)
 
-	market, err := util.WrapMarketByAddress(tokenS, tokenB)
-	if err != nil {
-		return list, fmt.Errorf("get orders for miner error:%s ", err.Error())
-	}
+	//market, err := util.WrapMarketByAddress(tokenS, tokenB)
+	//if err != nil {
+	//	return list, fmt.Errorf("get orders for miner error:%s ", err.Error())
+	//}
 
 	nowtime := time.Now().Unix()
 	sinceTime := nowtime
 	untilTime := nowtime + reservedTime
 	err = s.Db.Where("valid_until >= ? ", untilTime).
 		Where("valid_since < ?", sinceTime).
-		Where("market = ?", market).
+		Where("token_s = ?", tokenS).
+		Where("token_b = ?", tokenB).
 		Where("order_type = ? ", types.ORDER_TYPE_MARKET).
 		Where("status in (?) ", validStatus).
 		Where("miner_block_mark between ? and ?", startBlockNumber, endBlockNumber).
