@@ -234,12 +234,10 @@ func (s *RdsService) GetOrdersForMiner(protocol, tokenS, tokenB string, length i
 	untilTime := nowtime + reservedTime
 	err = s.Db.Where("valid_until >= ? ", untilTime).
 		Where("valid_since < ?", sinceTime).
-		Where("token_s = ?", tokenS).
-		Where("token_b = ?", tokenB).
+		Where("delegate_address = ? and token_s = ? and token_b = ?", protocol, tokenS, tokenB).
 		Where("order_type = ? ", types.ORDER_TYPE_MARKET).
 		Where("status in (?) ", validStatus).
 		Where("miner_block_mark between ? and ?", startBlockNumber, endBlockNumber).
-		Where("delegate_address = ?", protocol).
 		Order("price desc").
 		Limit(length).
 		Find(&list).
