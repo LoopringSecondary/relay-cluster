@@ -133,12 +133,12 @@ func (om *OrderManagerImpl) Stop() {
 	eventemitter.Un(eventemitter.CutoffAll, om.cutoffOrderWatcher)
 	eventemitter.Un(eventemitter.CutoffPair, om.cutoffPairWatcher)
 
-	eventemitter.On(eventemitter.Approve, om.approveWatcher)
-	eventemitter.On(eventemitter.WethDeposit, om.depositWatcher)
-	eventemitter.On(eventemitter.WethWithdrawal, om.withdrawalWatcher)
-	eventemitter.On(eventemitter.Transfer, om.transferWatcher)
-	eventemitter.On(eventemitter.EthTransfer, om.ethTransferWatcher)
-	eventemitter.On(eventemitter.UnsupportedContract, om.unsupportedContractWatcher)
+	eventemitter.Un(eventemitter.Approve, om.approveWatcher)
+	eventemitter.Un(eventemitter.WethDeposit, om.depositWatcher)
+	eventemitter.Un(eventemitter.WethWithdrawal, om.withdrawalWatcher)
+	eventemitter.Un(eventemitter.Transfer, om.transferWatcher)
+	eventemitter.Un(eventemitter.EthTransfer, om.ethTransferWatcher)
+	eventemitter.Un(eventemitter.UnsupportedContract, om.unsupportedContractWatcher)
 
 	eventemitter.Un(eventemitter.ChainForkDetected, om.forkWatcher)
 	eventemitter.Un(eventemitter.ExtractorWarning, om.warningWatcher)
