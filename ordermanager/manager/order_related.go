@@ -174,8 +174,8 @@ func HandleOrderFilledEvent(event *types.OrderFilledEvent) error {
 	}
 
 	// update orderTx
-	txhandler := FullOrderTxHandler(event.TxInfo, state.RawOrder.Hash, types.ORDER_PENDING)
-	txhandler.HandlerOrderRelatedTx()
+	//txhandler := FullOrderTxHandler(event.TxInfo, state.RawOrder.Hash, types.ORDER_PENDING)
+	//txhandler.HandlerOrderRelatedTx()
 
 	log.Debugf("order manager fillHandler, tx:%s, fillIndex:%s, orderhash:%s, dealAmountS:%s, dealtAmountB:%s", event.TxHash.Hex(), event.FillIndex.String(), event.OrderHash.Hex(), state.DealtAmountS.String(), state.DealtAmountB.String())
 
