@@ -221,7 +221,9 @@ func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventD
 	}
 
 	stop := time.Now().UnixNano()
-
-	log.Debugf("order manager handle order correlated event time:%d(msec)", (stop-start)/1e6)
+	execmsec := (stop - start) / 1e6
+	if execmsec > 0 {
+		log.Debugf("order manager handle order correlated event time:%d(msec)", execmsec)
+	}
 	return nil
 }
