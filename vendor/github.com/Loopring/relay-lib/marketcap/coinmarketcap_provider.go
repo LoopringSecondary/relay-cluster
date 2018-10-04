@@ -165,7 +165,7 @@ func (p *CapProvider_CoinMarketCap) LegalCurrencyValueByCurrency(tokenAddress co
 			log.Errorf("err:%s", err.Error())
 			return nil, err
 		} else {
-			log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), c.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
+			// log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), c.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
 			v.Mul(price, v)
 			return v, nil
 		}

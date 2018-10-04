@@ -1009,11 +1009,11 @@ func (so *SocketIOServiceImpl) handlePendingTransaction(input interface{}) (err 
 			if ok {
 				txQuery := &SingleOwner{}
 				err = json.Unmarshal([]byte(ctx), txQuery)
-				log.Info("single owner is: " + txQuery.Owner)
+				// log.Info("single owner is: " + txQuery.Owner)
 				if err != nil {
 					log.Error("tx query unmarshal error, " + err.Error())
 				} else if strings.ToUpper(owner) == strings.ToUpper(txQuery.Owner) {
-					log.Info("emit tx pending " + ctx)
+					log.Debugf("emit tx pending, owner:%s, ctx:%s", txQuery.Owner, ctx)
 					txs, err := so.walletService.GetPendingTransactions(SingleOwner{owner})
 					resp := SocketIOJsonResp{}
 
