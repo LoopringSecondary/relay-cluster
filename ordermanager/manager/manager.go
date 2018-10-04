@@ -197,6 +197,8 @@ func (om *OrderManagerImpl) HandlerOrderRelatedEvent(input eventemitter.EventDat
 func (om *OrderManagerImpl) HandleOrderCorrelatedEvent(input eventemitter.EventData) error {
 	var txinfo types.TxInfo
 
+	return nil
+
 	start := time.Now().UnixNano()
 	switch event := input.(type) {
 	case *types.ApprovalEvent:

@@ -77,10 +77,10 @@ func HandleSubmitRingMethodEvent(event *types.SubmitRingMethodEvent) error {
 
 	log.Debugf("order manager, submitRingHandler, tx:%s, txstatus:%s", event.TxHash.Hex(), types.StatusStr(event.Status))
 
-	for _, v := range event.OrderList {
-		txhandler := FullOrderTxHandler(event.TxInfo, v.Hash, types.ORDER_PENDING)
-		txhandler.HandlerOrderRelatedTx()
-	}
+	//for _, v := range event.OrderList {
+	//	txhandler := FullOrderTxHandler(event.TxInfo, v.Hash, types.ORDER_PENDING)
+	//	txhandler.HandlerOrderRelatedTx()
+	//}
 
 	return nil
 }
@@ -244,9 +244,9 @@ func HandleOrderCancelledEvent(event *types.OrderCancelledEvent) error {
 	}
 
 	// process pending order status
-	if err := txhandler.HandlerOrderRelatedTx(); err != nil {
-		return err
-	}
+	//if err := txhandler.HandlerOrderRelatedTx(); err != nil {
+	//	return err
+	//}
 
 	return notify.NotifyOrderUpdate(state)
 }
@@ -294,10 +294,10 @@ func HandleCutoffEvent(event *types.CutoffEvent) error {
 		notify.NotifyCutoff(event)
 	}
 
-	for _, orderhash := range orderhashList {
-		txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
-		txhandler.HandlerOrderRelatedTx()
-	}
+	//for _, orderhash := range orderhashList {
+	//	txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
+	//	txhandler.HandlerOrderRelatedTx()
+	//}
 
 	return nil
 }
@@ -347,10 +347,10 @@ func HandleCutoffPair(event *types.CutoffPairEvent) error {
 		notify.NotifyCutoffPair(event)
 	}
 
-	for _, orderhash := range orderhashlist {
-		txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
-		txhandler.HandlerOrderRelatedTx()
-	}
+	//for _, orderhash := range orderhashlist {
+	//	txhandler := FullOrderTxHandler(event.TxInfo, orderhash, types.ORDER_CUTOFFING)
+	//	txhandler.HandlerOrderRelatedTx()
+	//}
 
 	return nil
 }
