@@ -36,6 +36,7 @@ type CustomToken struct {
 	Address  common.Address `json:"address"`
 	Symbol   string         `json:"symbol"`
 	Decimals *big.Int       `json:"decimals"`
+	Source   string         `json:"source"`
 }
 
 var localCache *gocache.Cache
@@ -71,7 +72,7 @@ func getCustomTokenList(key string) (tokens map[string]CustomToken, err error) {
 	}
 
 	for _, v := range AllTokens {
-		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol, Decimals: v.Decimals}
+		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol, Decimals: v.Decimals, Source: v.Source}
 		tokens[v.Symbol] = c
 	}
 

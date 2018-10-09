@@ -31,7 +31,6 @@ import (
 	txmanager "github.com/Loopring/relay-cluster/txmanager/viewer"
 	kafkaUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
-	localcache "github.com/patrickmn/go-cache"
 	"github.com/Loopring/relay-lib/crypto"
 	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/gasprice_evaluator"
@@ -43,6 +42,7 @@ import (
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
+	localcache "github.com/patrickmn/go-cache"
 	"math"
 	"math/big"
 	"sort"
@@ -74,11 +74,10 @@ const TS_REDIS_PRE_KEY = "tsrpk_"
 const DEPTH_MAX_BUY = "depth_max_buy_"
 const DEPTH_MIN_SELL = "depth_min_sell_"
 
-var depthTheshHold = map[string]float64 {
-	"LRC" : 100.0,
-	"VITE" : 200.0,
-	"WETH" : 0.05,
-
+var depthTheshHold = map[string]float64{
+	"LRC":  100.0,
+	"VITE": 200.0,
+	"WETH": 0.05,
 }
 
 type Portfolio struct {
@@ -826,7 +825,8 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 	}
 
 	cacheKey := "depth_rst_cache_" + strings.ToLower(query.Market)
-	depthByte, ok := w.localCache.Get(cacheKey); if ok {
+	depthByte, ok := w.localCache.Get(cacheKey)
+	if ok {
 		depthRst := depthByte.(Depth)
 		return depthRst, err
 	}
@@ -855,13 +855,13 @@ func (w *WalletServiceImpl) GetDepth(query DepthQuery) (res Depth, err error) {
 
 		maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
 		minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell)-1][0], 64)
-		w.localCache.Set(DEPTH_MAX_BUY + strings.ToUpper(depth.Market), maxBuy, 1*time.Hour)
-		w.localCache.Set(DEPTH_MIN_SELL + strings.ToUpper(depth.Market), minSell, 1*time.Hour)
+		w.localCache.Set(DEPTH_MAX_BUY+strings.ToUpper(depth.Market), maxBuy, 1*time.Hour)
+		w.localCache.Set(DEPTH_MIN_SELL+strings.ToUpper(depth.Market), minSell, 1*time.Hour)
 		crossRemoved := w.removeCross(depth)
-		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), crossRemoved, 5 * time.Second)
+		w.localCache.Set("depth_rst_cache_"+strings.ToLower(query.Market), crossRemoved, 5*time.Second)
 		return crossRemoved, err
 	} else {
-		w.localCache.Set("depth_rst_cache_" + strings.ToLower(query.Market), depth, 5 * time.Second)
+		w.localCache.Set("depth_rst_cache_"+strings.ToLower(query.Market), depth, 5*time.Second)
 		return depth, err
 	}
 }
@@ -899,7 +899,7 @@ func (w *WalletServiceImpl) removeCross(depth Depth) Depth {
 		}
 	}
 
-	rst.Depth = AskBid{Buy : newBuy, Sell : newSell}
+	rst.Depth = AskBid{Buy: newBuy, Sell: newSell}
 	return rst
 }
 
@@ -910,7 +910,8 @@ func checkDepthThreshHold(market string, amount string, size string) bool {
 
 func checkDepthAmountThreshHold(token string, amount string) bool {
 	amountIsOK := false
-	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
+	st, ok := depthTheshHold[strings.ToUpper(token)]
+	if ok {
 		amountF, _ := strconv.ParseFloat(amount, 64)
 		amountIsOK = amountF >= st
 	} else {
@@ -920,12 +921,14 @@ func checkDepthAmountThreshHold(token string, amount string) bool {
 }
 
 func (w *WalletServiceImpl) getDepthCrossPrice(market string) (maxBuy float64, minSell float64, err error) {
-	maxBuyRelectable,ok  := w.localCache.Get(DEPTH_MAX_BUY + strings.ToUpper(market)); if !ok {
+	maxBuyRelectable, ok := w.localCache.Get(DEPTH_MAX_BUY + strings.ToUpper(market))
+	if !ok {
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 
 	maxBuy = maxBuyRelectable.(float64)
-	minSellRelectable, ok := w.localCache.Get(DEPTH_MIN_SELL + strings.ToUpper(market)); if !ok {
+	minSellRelectable, ok := w.localCache.Get(DEPTH_MIN_SELL + strings.ToUpper(market))
+	if !ok {
 		return maxBuy, minSell, errors.New("not cross price found")
 	}
 	minSell = minSellRelectable.(float64)
@@ -1292,7 +1295,10 @@ func (w *WalletServiceImpl) GetCustomTokens(req SingleOwner) (markets []types.To
 	}
 
 	for _, ct := range customTokens {
-		markets = append(markets, types.Token{Protocol: ct.Address, Symbol: ct.Symbol, Decimals: ct.Decimals})
+		if "" == ct.Source {
+			ct.Source = strings.ToLower(ct.Symbol)
+		}
+		markets = append(markets, types.Token{Protocol: ct.Address, Symbol: ct.Symbol, Decimals: ct.Decimals, Source: ct.Source})
 	}
 	return markets, err
 }
@@ -1485,7 +1491,8 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		return "ORDER_P2P_LOCKED"
 	}
 
-	maxBuy, minSell, err := w.getDepthCrossPrice(order.RawOrder.Market); if err == nil && (s == types.ORDER_NEW || s == types.ORDER_PARTIAL) {
+	maxBuy, minSell, err := w.getDepthCrossPrice(order.RawOrder.Market)
+	if err == nil && (s == types.ORDER_NEW || s == types.ORDER_PARTIAL) {
 		maxBuyRat := new(big.Rat).SetFloat64(maxBuy)
 		minSellRat := new(big.Rat).SetFloat64(minSell)
 
@@ -1499,7 +1506,6 @@ func (w *WalletServiceImpl) getStringStatus(order types.OrderState) string {
 		if order.RawOrder.Side == util.SideBuy && order.RawOrder.Price.Cmp(minSellRat) > 0 {
 			return "ORDER_WAIT_SUBMIT_RING"
 		}
-
 
 		if order.RawOrder.Side == util.SideSell {
 			onePrice := new(big.Rat).SetFloat64(1.0)
