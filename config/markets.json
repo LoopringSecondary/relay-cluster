@@ -399,9 +399,10 @@
     "EDO-TUSD",
     "AMB-TUSD",
     "RTE-TUSD",
-    "MOT-TUSD"
+    "MOT-TUSD",
+    "BRD-TUSD"
   ]
 }, {
   "ListType": "blacklist",
-  "MarketPairs": ["BRD-TUSD"]
+  "MarketPairs": null
 }]
