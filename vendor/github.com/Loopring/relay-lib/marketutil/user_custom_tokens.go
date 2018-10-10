@@ -72,7 +72,7 @@ func getCustomTokenList(key string) (tokens map[string]CustomToken, err error) {
 	}
 
 	for _, v := range AllTokens {
-		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol, Decimals: v.Decimals, Source: v.Source}
+		c := CustomToken{Address: v.Protocol, Symbol: v.Symbol, Decimals: v.Decimals}
 		tokens[v.Symbol] = c
 	}
 

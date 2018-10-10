@@ -141,7 +141,7 @@ func NewSocketIOService(port string, walletService WalletServiceImpl, brokers []
 
 	var topicList = map[string]SocketMsgHandler{
 		kafka.Kafka_Topic_SocketIO_Loopring_Ticker_Updated: {market.TrendUpdateMsg{}, so.broadcastLoopringTicker},
-		kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated: {market.TickerUpdateMsg{}, so.broadcastSourceOfTicker},
+		//kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated: {market.TickerUpdateMsg{}, so.broadcastSourceOfTicker},
 		//kafka.Kafka_Topic_SocketIO_Tickers_Updated:         {nil, so.broadcastTpTickers},
 		kafka.Kafka_Topic_SocketIO_Trades_Updated: {dao.FillEvent{}, so.broadcastTrades},
 		kafka.Kafka_Topic_SocketIO_Trends_Updated: {market.TrendUpdateMsg{}, so.broadcastTrends},

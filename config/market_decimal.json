@@ -1,0 +1,2233 @@
+[
+  {
+  "Market": "1ST-LRC",
+  "Decimals": 6
+  },
+  {
+    "Market": "1ST-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "1ST-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "1ST-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "ABA-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ABA-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "ABA-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "ABA-WETH",
+    "Decimals": 7
+  },
+  {
+    "Market": "ADX-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ADX-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "ADX-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "ADX-WETH",
+    "Decimals": 7
+  },
+  {
+    "Market": "AE-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "AE-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "AE-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "AE-WETH",
+    "Decimals": 6
+  },
+  {
+    "Market": "AGI-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "AGI-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "AGI-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "AGI-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "AION-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "AION-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "AION-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "AION-WETH",
+    "Decimals": 6
+  },
+  {
+    "Market": "ALI-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ALI-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "ALI-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "ALI-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "AMB-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "AMB-TUSD",
+    "Decimals": 5
+  },
+  {
+    "Market": "AMB-USDT",
+    "Decimals": 5
+  },
+  {
+    "Market": "AMB-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "ANT-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ANT-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "ANT-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "ANT-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "APPC-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "APPC-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "APPC-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "APPC-WETH",
+    "Decimals": 7
+  },
+  {
+    "Market": "ARP-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ARP-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "ARP-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "ARP-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "AST-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "AST-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "AST-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "AST-WETH",
+    "Decimals": 7
+  },
+  {
+    "Market": "ATM-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ATM-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "ATM-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "ATM-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "ATN-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "ATN-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "ATN-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "ATN-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "BAT-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "BAT-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "BAT-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "BAT-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "BBN-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "BBN-TUSD",
+    "Decimals": 6
+  },
+  {
+    "Market": "BBN-USDT",
+    "Decimals": 6
+  },
+  {
+    "Market": "BBN-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "BCPT-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "BCPT-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "BCPT-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "BCPT-WETH",
+    "Decimals": 8
+  },
+  {
+    "Market": "BETR-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "BETR-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "BETR-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "BETR-WETH",
+    "Decimals": 7
+  },
+  {
+    "Market": "BFT-LRC",
+    "Decimals": 6
+  },
+  {
+    "Market": "BFT-TUSD",
+    "Decimals": 4
+  },
+  {
+    "Market": "BFT-USDT",
+    "Decimals": 4
+  },
+  {
+    "Market": "BFT-WETH",
+    "Decimals": 8
+  },
+{
+  "Market": "BITS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BITS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BITS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BITS-WETH",
+  "Decimals": 7
+}, {
+  "Market": "BIZ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BIZ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BIZ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BIZ-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BKBT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BKBT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BKBT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BKBT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BKX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BKX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BKX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BKX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BLZ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BLZ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BLZ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BLZ-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BNB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BNB-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "BNB-USDT",
+  "Decimals": 4
+}, {
+  "Market": "BNB-WETH",
+  "Decimals": 6
+}, {
+  "Market": "BNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BOE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BOE-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "BOE-USDT",
+  "Decimals": 4
+}, {
+  "Market": "BOE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BOS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BOS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BOS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BOS-WETH",
+  "Decimals": 7
+}, {
+  "Market": "BP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BP-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BRD-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BRD-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "BRD-USDT",
+  "Decimals": 5
+}, {
+  "Market": "BRD-WETH",
+  "Decimals": 7
+}, {
+  "Market": "BRM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BRM-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BRM-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BRM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BTK-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BTK-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BTK-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BTK-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BTM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BTM-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "BTM-USDT",
+  "Decimals": 4
+}, {
+  "Market": "BTM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "BTO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "BTO-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "BTO-USDT",
+  "Decimals": 6
+}, {
+  "Market": "BTO-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CAT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CAT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CAT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CAT-WETH",
+  "Decimals": 7
+}, {
+  "Market": "CDT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CDT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CDT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CDT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CEN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CEN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CEN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CEN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CFI-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CFI-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CFI-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CFI-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CMT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CMT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CMT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CMT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CND-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CND-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "CND-USDT",
+  "Decimals": 5
+}, {
+  "Market": "CND-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CPC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CPC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CPC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CPC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CTR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CTR-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CTR-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CTR-WETH",
+  "Decimals": 7
+}, {
+  "Market": "CVC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CVC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CVC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CVC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CVH-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CVH-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CVH-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CVH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "CYBER-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CYBER-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "CYBER-USDT",
+  "Decimals": 6
+}, {
+  "Market": "CYBER-WETH",
+  "Decimals": 8
+}, {
+  "Market": "DAI-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DAI-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "DAI-USDT",
+  "Decimals": 4
+}, {
+  "Market": "DAI-WETH",
+  "Decimals": 7
+}, {
+  "Market": "DET-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DET-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "DET-USDT",
+  "Decimals": 6
+}, {
+  "Market": "DET-WETH",
+  "Decimals": 8
+}, {
+  "Market": "DGD-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DGD-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "DGD-USDT",
+  "Decimals": 4
+}, {
+  "Market": "DGD-WETH",
+  "Decimals": 5
+}, {
+  "Market": "DLT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DLT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "DLT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "DLT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "DNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "DNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "DNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "DRP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "DRP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "DRP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "DRP-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ECT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ECT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "ECT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "ECT-WETH",
+  "Decimals": 7
+}, {
+  "Market": "EDG-LRC",
+  "Decimals": 6
+}, {
+  "Market": "EDG-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "EDG-USDT",
+  "Decimals": 6
+}, {
+  "Market": "EDG-WETH",
+  "Decimals": 8
+}, {
+  "Market": "EDO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "EDO-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "EDO-USDT",
+  "Decimals": 4
+}, {
+  "Market": "EDO-WETH",
+  "Decimals": 6
+}, {
+  "Market": "ELF-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ELF-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ELF-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ELF-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ENG-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ENG-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ENG-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ENG-WETH",
+  "Decimals": 7
+}, {
+  "Market": "ENJ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ENJ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ENJ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ENJ-WETH",
+  "Decimals": 8
+}, {
+  "Market": "EPH-LRC",
+  "Decimals": 6
+}, {
+  "Market": "EPH-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "EPH-USDT",
+  "Decimals": 6
+}, {
+  "Market": "EPH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "EQC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "EQC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "EQC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "EQC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ETHOS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ETHOS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ETHOS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ETHOS-WETH",
+  "Decimals": 8
+}, {
+  "Market": "EVX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "EVX-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "EVX-USDT",
+  "Decimals": 4
+}, {
+  "Market": "EVX-WETH",
+  "Decimals": 7
+}, {
+  "Market": "FKX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "FKX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "FKX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "FKX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "FOTC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "FOTC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "FOTC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "FOTC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "FUEL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "FUEL-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "FUEL-USDT",
+  "Decimals": 4
+}, {
+  "Market": "FUEL-WETH",
+  "Decimals": 8
+}, {
+  "Market": "FUN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "FUN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "FUN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "FUN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GNO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GNO-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "GNO-USDT",
+  "Decimals": 6
+}, {
+  "Market": "GNO-WETH",
+  "Decimals": 6
+}, {
+  "Market": "GNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "GNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "GNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GPT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GPT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "GPT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "GPT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GTO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GTO-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "GTO-USDT",
+  "Decimals": 4
+}, {
+  "Market": "GTO-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GUP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GUP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "GUP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "GUP-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GUSD-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GUSD-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "GUSD-USDT",
+  "Decimals": 6
+}, {
+  "Market": "GUSD-WETH",
+  "Decimals": 8
+}, {
+  "Market": "GVT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "GVT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "GVT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "GVT-WETH",
+  "Decimals": 6
+}, {
+  "Market": "HMQ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HMQ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "HMQ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "HMQ-WETH",
+  "Decimals": 5
+}, {
+  "Market": "HSC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HSC-TUSD",
+  "Decimals": 7
+}, {
+  "Market": "HSC-USDT",
+  "Decimals": 7
+}, {
+  "Market": "HSC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "HT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "HT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "HT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "HVN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HVN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "HVN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "HVN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ICN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ICN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ICN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ICN-WETH",
+  "Decimals": 7
+}, {
+  "Market": "ICX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ICX-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "ICX-USDT",
+  "Decimals": 4
+}, {
+  "Market": "ICX-WETH",
+  "Decimals": 6
+}, {
+  "Market": "IDHUB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "IDHUB-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "IDHUB-USDT",
+  "Decimals": 6
+}, {
+  "Market": "IDHUB-WETH",
+  "Decimals": 8
+}, {
+  "Market": "IND-LRC",
+  "Decimals": 6
+}, {
+  "Market": "IND-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "IND-USDT",
+  "Decimals": 6
+}, {
+  "Market": "IND-WETH",
+  "Decimals": 8
+}, {
+  "Market": "INK-LRC",
+  "Decimals": 6
+}, {
+  "Market": "INK-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "INK-USDT",
+  "Decimals": 5
+}, {
+  "Market": "INK-WETH",
+  "Decimals": 8
+}, {
+  "Market": "INS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "INS-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "INS-USDT",
+  "Decimals": 4
+}, {
+  "Market": "INS-WETH",
+  "Decimals": 6
+}, {
+  "Market": "INSUR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "INSUR-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "INSUR-USDT",
+  "Decimals": 6
+}, {
+  "Market": "INSUR-WETH",
+  "Decimals": 8
+}, {
+  "Market": "IOST-LRC",
+  "Decimals": 6
+}, {
+  "Market": "IOST-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "IOST-USDT",
+  "Decimals": 6
+}, {
+  "Market": "IOST-WETH",
+  "Decimals": 8
+}, {
+  "Market": "JNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "JNT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "JNT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "JNT-WETH",
+  "Decimals": 7
+}, {
+  "Market": "KIN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "KIN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "KIN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "KIN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "KNC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "KNC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "KNC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "KNC-WETH",
+  "Decimals": 7
+}, {
+  "Market": "KNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "KNT-TUSD",
+  "Decimals": 8
+}, {
+  "Market": "KNT-USDT",
+  "Decimals": 8
+}, {
+  "Market": "KNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LBA-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LBA-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "LBA-USDT",
+  "Decimals": 6
+}, {
+  "Market": "LBA-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LEND-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LEND-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "LEND-USDT",
+  "Decimals": 4
+}, {
+  "Market": "LEND-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LINK-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LINK-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "LINK-USDT",
+  "Decimals": 4
+}, {
+  "Market": "LINK-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LOOM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LOOM-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "LOOM-USDT",
+  "Decimals": 6
+}, {
+  "Market": "LOOM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LRC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "LRC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "LRC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "LT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "LT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "LUN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "LUN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "LUN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "LUN-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MANA-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MANA-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MANA-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MANA-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MCO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MCO-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MCO-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MCO-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MDA-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MDA-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MDA-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MDA-WETH",
+  "Decimals": 7
+}, {
+  "Market": "MGO-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MGO-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MGO-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MGO-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MLN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MLN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MLN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MLN-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MOD-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MOD-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MOD-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MOD-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MOOLYA-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MOOLYA-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MOOLYA-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MOOLYA-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MOT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MOT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MOT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MOT-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MOTE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MOTE-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MOTE-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MOTE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MRL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MRL-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MRL-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MRL-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MTH-LRC",
+  "Decimals": 8
+}, {
+  "Market": "MTH-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MTH-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MTH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "MTL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MTL-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MTL-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MTL-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MTN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MTN-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "MTN-USDT",
+  "Decimals": 4
+}, {
+  "Market": "MTN-WETH",
+  "Decimals": 6
+}, {
+  "Market": "MXCA-LRC",
+  "Decimals": 6
+}, {
+  "Market": "MXCA-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "MXCA-USDT",
+  "Decimals": 6
+}, {
+  "Market": "MXCA-WETH",
+  "Decimals": 8
+}, {
+  "Market": "NCASH-LRC",
+  "Decimals": 8
+}, {
+  "Market": "NCASH-TUSD",
+  "Decimals": 8
+}, {
+  "Market": "NCASH-USDT",
+  "Decimals": 8
+}, {
+  "Market": "NCASH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "NCU-LRC",
+  "Decimals": 6
+}, {
+  "Market": "NCU-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "NCU-USDT",
+  "Decimals": 6
+}, {
+  "Market": "NCU-WETH",
+  "Decimals": 8
+}, {
+  "Market": "NET-LRC",
+  "Decimals": 6
+}, {
+  "Market": "NET-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "NET-USDT",
+  "Decimals": 4
+}, {
+  "Market": "NET-WETH",
+  "Decimals": 7
+}, {
+  "Market": "NMR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "NMR-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "NMR-USDT",
+  "Decimals": 4
+}, {
+  "Market": "NMR-WETH",
+  "Decimals": 6
+}, {
+  "Market": "NTK-LRC",
+  "Decimals": 6
+}, {
+  "Market": "NTK-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "NTK-USDT",
+  "Decimals": 5
+}, {
+  "Market": "NTK-WETH",
+  "Decimals": 7
+}, {
+  "Market": "NULS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "NULS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "NULS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "NULS-WETH",
+  "Decimals": 8
+}, {
+  "Market": "OAX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "OAX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "OAX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "OAX-WETH",
+  "Decimals": 7
+}, {
+  "Market": "ODEM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ODEM-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ODEM-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ODEM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "OMG-LRC",
+  "Decimals": 6
+}, {
+  "Market": "OMG-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "OMG-USDT",
+  "Decimals": 4
+}, {
+  "Market": "OMG-WETH",
+  "Decimals": 6
+}, {
+  "Market": "PAY-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PAY-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "PAY-USDT",
+  "Decimals": 6
+}, {
+  "Market": "PAY-WETH",
+  "Decimals": 8
+}, {
+  "Market": "PLU-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PLU-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "PLU-USDT",
+  "Decimals": 4
+}, {
+  "Market": "PLU-WETH",
+  "Decimals": 6
+}, {
+  "Market": "PMH-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PMH-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "PMH-USDT",
+  "Decimals": 6
+}, {
+  "Market": "PMH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "PNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "PNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "PNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "POE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "POE-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "POE-USDT",
+  "Decimals": 4
+}, {
+  "Market": "POE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "POWR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "POWR-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "POWR-USDT",
+  "Decimals": 4
+}, {
+  "Market": "POWR-WETH",
+  "Decimals": 8
+}, {
+  "Market": "PPP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PPP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "PPP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "PPP-WETH",
+  "Decimals": 8
+}, {
+  "Market": "PPT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "PPT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "PPT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "PPT-WETH",
+  "Decimals": 6
+}, {
+  "Market": "QCH-LRC",
+  "Decimals": 6
+}, {
+  "Market": "QCH-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "QCH-USDT",
+  "Decimals": 6
+}, {
+  "Market": "QCH-WETH",
+  "Decimals": 8
+}, {
+  "Market": "QKC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "QKC-TUSD",
+  "Decimals": 3
+}, {
+  "Market": "QKC-USDT",
+  "Decimals": 3
+}, {
+  "Market": "QKC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "QSP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "QSP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "QSP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "QSP-WETH",
+  "Decimals": 8
+}, {
+  "Market": "QUBE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "QUBE-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "QUBE-USDT",
+  "Decimals": 6
+}, {
+  "Market": "QUBE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RATING-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RATING-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "RATING-USDT",
+  "Decimals": 6
+}, {
+  "Market": "RATING-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RCN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RCN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "RCN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "RCN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RDEX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RDEX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "RDEX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "RDEX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RDN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RDN-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "RDN-USDT",
+  "Decimals": 4
+}, {
+  "Market": "RDN-WETH",
+  "Decimals": 7
+}, {
+  "Market": "REP-LRC",
+  "Decimals": 6
+}, {
+  "Market": "REP-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "REP-USDT",
+  "Decimals": 6
+}, {
+  "Market": "REP-WETH",
+  "Decimals": 5
+}, {
+  "Market": "REQ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "REQ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "REQ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "REQ-WETH",
+  "Decimals": 8
+}, {
+  "Market": "REX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "REX-TUSD",
+  "Decimals": 2
+}, {
+  "Market": "REX-USDT",
+  "Decimals": 2
+}, {
+  "Market": "REX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RLC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RLC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "RLC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "RLC-WETH",
+  "Decimals": 6
+}, {
+  "Market": "ROL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ROL-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ROL-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ROL-WETH",
+  "Decimals": 8
+}, {
+  "Market": "RTE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RTE-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "RTE-USDT",
+  "Decimals": 4
+}, {
+  "Market": "RTE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SALT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SALT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SALT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SALT-WETH",
+  "Decimals": 6
+}, {
+  "Market": "SAN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SAN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SAN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SAN-WETH",
+  "Decimals": 7
+}, {
+  "Market": "SET-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SET-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SET-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SET-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SNGLS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SNGLS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SNGLS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SNGLS-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SNM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SNM-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SNM-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SNM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "SNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "SNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ST-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ST-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ST-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ST-WETH",
+  "Decimals": 8
+}, {
+  "Market": "STORJ-LRC",
+  "Decimals": 6
+}, {
+  "Market": "STORJ-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "STORJ-USDT",
+  "Decimals": 6
+}, {
+  "Market": "STORJ-WETH",
+  "Decimals": 7
+}, {
+  "Market": "STORM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "STORM-TUSD",
+  "Decimals": 8
+}, {
+  "Market": "STORM-USDT",
+  "Decimals": 8
+}, {
+  "Market": "STORM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SUB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SUB-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "SUB-USDT",
+  "Decimals": 4
+}, {
+  "Market": "SUB-WETH",
+  "Decimals": 8
+}, {
+  "Market": "SWT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "SWT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "SWT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "SWT-WETH",
+  "Decimals": 4
+}, {
+  "Market": "TAAS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TAAS-TUSD",
+  "Decimals": 1
+}, {
+  "Market": "TAAS-USDT",
+  "Decimals": 1
+}, {
+  "Market": "TAAS-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TCT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TCT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "TCT-USDT",
+  "Decimals": 4
+}, {
+  "Market": "TCT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TEN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TEN-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "TEN-USDT",
+  "Decimals": 4
+}, {
+  "Market": "TEN-WETH",
+  "Decimals": 6
+}, {
+  "Market": "TKN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TKN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TKN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TKN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TNB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TNB-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "TNB-USDT",
+  "Decimals": 5
+}, {
+  "Market": "TNB-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TNT-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TNT-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TNT-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TNT-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TRAC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TRAC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TRAC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TRAC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TRST-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TRST-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TRST-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TRST-WETH",
+  "Decimals": 7
+}, {
+  "Market": "TRUE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TRUE-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "TRUE-USDT",
+  "Decimals": 4
+}, {
+  "Market": "TRUE-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TRX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TRX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TRX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TRX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "TUC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "TUC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "TUC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "TUC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "USDT-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "VEN-LRC",
+  "Decimals": 6
+}, {
+  "Market": "VEN-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "VEN-USDT",
+  "Decimals": 6
+}, {
+  "Market": "VEN-WETH",
+  "Decimals": 8
+}, {
+  "Market": "VIB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "VIB-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "VIB-USDT",
+  "Decimals": 4
+}, {
+  "Market": "VIB-WETH",
+  "Decimals": 8
+}, {
+  "Market": "VIBE-LRC",
+  "Decimals": 6
+}, {
+  "Market": "VIBE-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "VIBE-USDT",
+  "Decimals": 5
+}, {
+  "Market": "VIBE-WETH",
+  "Decimals": 7
+}, {
+  "Market": "VITE-LRC",
+  "Decimals": 8
+}, {
+  "Market": "VITE-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "VITE-USDT",
+  "Decimals": 6
+}, {
+  "Market": "VITE-WETH",
+  "Decimals": 7
+}, {
+  "Market": "WABI-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WABI-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "WABI-USDT",
+  "Decimals": 4
+}, {
+  "Market": "WABI-WETH",
+  "Decimals": 8
+}, {
+  "Market": "WAX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WAX-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "WAX-USDT",
+  "Decimals": 5
+}, {
+  "Market": "WAX-WETH",
+  "Decimals": 8
+}, {
+  "Market": "WETH-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "WETH-USDT",
+  "Decimals": 6
+}, {
+  "Market": "WIC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WIC-TUSD",
+  "Decimals": 3
+}, {
+  "Market": "WIC-USDT",
+  "Decimals": 3
+}, {
+  "Market": "WIC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "WINGS-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WINGS-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "WINGS-USDT",
+  "Decimals": 6
+}, {
+  "Market": "WINGS-WETH",
+  "Decimals": 7
+}, {
+  "Market": "WPR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WPR-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "WPR-USDT",
+  "Decimals": 6
+}, {
+  "Market": "WPR-WETH",
+  "Decimals": 8
+}, {
+  "Market": "WTC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WTC-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "WTC-USDT",
+  "Decimals": 5
+}, {
+  "Market": "WTC-WETH",
+  "Decimals": 6
+}, {
+  "Market": "XAUR-LRC",
+  "Decimals": 6
+}, {
+  "Market": "XAUR-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "XAUR-USDT",
+  "Decimals": 6
+}, {
+  "Market": "XAUR-WETH",
+  "Decimals": 6
+}, {
+  "Market": "XMM-LRC",
+  "Decimals": 6
+}, {
+  "Market": "XMM-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "XMM-USDT",
+  "Decimals": 6
+}, {
+  "Market": "XMM-WETH",
+  "Decimals": 8
+}, {
+  "Market": "XMRC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "XMRC-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "XMRC-USDT",
+  "Decimals": 6
+}, {
+  "Market": "XMRC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "YOYOW-LRC",
+  "Decimals": 6
+}, {
+  "Market": "YOYOW-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "YOYOW-USDT",
+  "Decimals": 6
+}, {
+  "Market": "YOYOW-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ZIL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ZIL-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ZIL-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ZIL-WETH",
+  "Decimals": 8
+}, {
+  "Market": "ZRX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "ZRX-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "ZRX-USDT",
+  "Decimals": 6
+}, {
+  "Market": "ZRX-WETH",
+  "Decimals": 8
+}
+]

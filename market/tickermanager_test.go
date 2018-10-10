@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -49,6 +50,30 @@ func getDisplayMarketsFromDB(marketfile string) (displayMarkets []types.Market) 
 	return
 }
 
+func getMarketsDecimal(decimalfile string) (marketsDecimal map[string]types.MarketDecimal) {
+
+	fn, err := os.Open(decimalfile)
+	if err != nil {
+		log.Fatalf("market util load market of decimal failed:%s", err.Error())
+	}
+
+	bs, err := ioutil.ReadAll(fn)
+	if err != nil {
+		log.Fatalf("market util read market of decimal json file failed:%s", err.Error())
+	}
+
+	mkDecimals := make([]types.MarketDecimal, 0)
+	if err := json.Unmarshal(bs, &mkDecimals); err != nil {
+		log.Fatalf("market util unmarshal tokens failed:%s", err.Error())
+	}
+
+	marketsDecimal = make(map[string]types.MarketDecimal)
+	for _, v := range mkDecimals {
+		marketsDecimal[v.Market] = v
+	}
+	return
+}
+
 func TestAllMarkets(t *testing.T) {
 
 	var list []types.Market
@@ -61,8 +86,27 @@ func TestAllMarkets(t *testing.T) {
 
 func TestAllTokens(t *testing.T) {
 	SupportTokens, SupportMarkets, AllTokens, AllMarkets, SymbolTokenMap = getTokenAndMarketFromDB("/Users/michelle/Desktop/tokens.json")
-	fmt.Println(len(AllTokens))
-	fmt.Println(len(AllMarkets))
+	sort.Strings(AllMarkets)
+
+	for _, v := range AllMarkets {
+		mk := strings.Split(v, "-")[1]
+		if mk == WETH || mk == LRC || mk == USDT || mk == TUSD {
+			fmt.Println(v)
+		}
+	}
+
+}
+
+func TestMarketDecimals(t *testing.T) {
+	MKDecimals := getMarketsDecimal("/Users/michelle/gopath/src/github.com/Loopring/relay-cluster/config/market_decimal.json")
+
+	for k, v := range MKDecimals {
+		fmt.Println(k)
+		jsonbytes, _ := json.Marshal(v)
+		s := string(jsonbytes[:])
+		fmt.Println(s)
+	}
+
 }
 
 func getTokenAndMarketFromDB(tokenfile string) (

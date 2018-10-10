@@ -1091,11 +1091,6 @@ func (t *TrendManager) HandleOrderFilled(input eventemitter.EventData) (err erro
 			log.Error("send ticker update message failed")
 		}
 
-		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: "loopr"})
-		if err != nil {
-			log.Error("send ticker update message failed")
-		}
-
 		err = socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_Trends_Updated, &TrendUpdateMsg{Market: market, Interval: OneHour})
 		if err != nil {
 			log.Error("send trends update message failed")

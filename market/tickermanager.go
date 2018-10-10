@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	socketioUtil "github.com/Loopring/relay-cluster/util"
 	"github.com/Loopring/relay-lib/cache"
-	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
@@ -26,6 +24,7 @@ const (
 	ETH                         = "ETH"
 	LRC                         = "LRC"
 	USDT                        = "USDT"
+	TUSD                        = "TUSD"
 	WETH                        = "WETH"
 	TICKER_SOURCE_COINMARKETCAP = "coinmarketcap"
 
@@ -39,7 +38,6 @@ const (
 	marketTickerCachePreKey   = "COINMARKETCAP_TICKER_"
 	marketTickerLocalCacheKey = "COINMARKETCAP_TICKER_LOCAL"
 
-	defSyncInterval            = 5 // minutes
 	tickerManagerCronJobZkLock = "tickerManagerZkLock"
 	tickerManagerLockFailedMsg = "ticker manager try lock failed"
 )
@@ -47,12 +45,15 @@ const (
 var wethMarkets = make(map[string]string)
 var lrcMarkets = make(map[string]string)
 var usdtMarkets = make(map[string]string)
+var tusdMarkets = make(map[string]string)
 var displayMarkets = make(map[string]string)
+var blacklistMarkets = make(map[string]string)
 
 var tickerUrls = map[string]string{
 	ETH:  "https://api.coinmarketcap.com/v2/ticker/?convert=ETH&start=%d&limit=%d",
 	LRC:  "https://api.coinmarketcap.com/v2/ticker/?convert=LRC&start=%d&limit=%d",
 	USDT: "https://api.coinmarketcap.com/v2/ticker/?convert=USDT&start=%d&limit=%d",
+	TUSD: "https://api.coinmarketcap.com/v2/ticker/?convert=TUSD&start=%d&limit=%d",
 }
 
 type TickerResp struct {
@@ -86,14 +87,13 @@ type TickerManager interface {
 
 type GetTickerImpl struct {
 	trendManager      TrendManager
-	syncInterval      int
 	cron              *cron.Cron
 	localCache        *gocache.Cache
 	marketCapProvider marketcap.MarketCapProvider
 }
 
 func NewTickManager(trendManager TrendManager, marketCapProvider marketcap.MarketCapProvider) *GetTickerImpl {
-	rst := &GetTickerImpl{trendManager: trendManager, syncInterval: defSyncInterval, cron: cron.New(), localCache: gocache.New(5*time.Second, 5*time.Minute), marketCapProvider: marketCapProvider}
+	rst := &GetTickerImpl{trendManager: trendManager, cron: cron.New(), localCache: gocache.New(6*time.Second, 6*time.Minute), marketCapProvider: marketCapProvider}
 	return rst
 }
 
@@ -102,9 +102,10 @@ func (c *GetTickerImpl) Start() {
 		refreshMarkets()
 		c.cron.AddFunc("1 0/10 * * * *", refreshMarkets)
 		if zklock.TryLock(tickerManagerCronJobZkLock) == nil {
-			c.cron.AddFunc("@every 5m", c.updateWETHMarketCache)
-			c.cron.AddFunc("@every 5m", c.updateLRCMarketCache)
-			c.cron.AddFunc("@every 5m", c.updateUSDTMarketCache)
+			c.cron.AddFunc("@every 6m", c.updateWETHMarketCache)
+			c.cron.AddFunc("@every 6m", c.updateLRCMarketCache)
+			c.cron.AddFunc("@every 6m", c.updateUSDTMarketCache)
+			c.cron.AddFunc("@every 6m", c.updateTUSDMarketCache)
 			log.Info("start ticker manager cron jobs......... ")
 			c.cron.Start()
 		} else {
@@ -125,12 +126,20 @@ func refreshMarkets() {
 			lrcMarkets[util.AliasToSource(market[0])] = mkt
 		} else if market[1] == USDT {
 			usdtMarkets[util.AliasToSource(market[0])] = mkt
+		} else if market[1] == TUSD {
+			tusdMarkets[util.AliasToSource(market[0])] = mkt
 		}
 	}
 
 	for _, dpmkt := range util.DisplayMarkets {
-		for _, market := range dpmkt.MarketPairs {
-			displayMarkets[market] = dpmkt.ListType
+		if MARKET_OF_WHITELIST == dpmkt.ListType {
+			for _, market := range dpmkt.MarketPairs {
+				displayMarkets[market] = dpmkt.ListType
+			}
+		} else if MARKET_OF_BLACKLIST == dpmkt.ListType {
+			for _, market := range dpmkt.MarketPairs {
+				blacklistMarkets[market] = dpmkt.ListType
+			}
 		}
 	}
 }
@@ -153,6 +162,13 @@ func (c *GetTickerImpl) updateUSDTMarketCache() {
 	c.marketCapProvider.AddSyncFunc(
 		func() error {
 			return syncMarketTickerFromAPI(USDT)
+		})
+}
+
+func (c *GetTickerImpl) updateTUSDMarketCache() {
+	c.marketCapProvider.AddSyncFunc(
+		func() error {
+			return syncMarketTickerFromAPI(TUSD)
 		})
 }
 
@@ -210,11 +226,6 @@ func syncMarketTickerFromAPI(currency string) error {
 				}
 			}
 		}
-	}
-
-	err := socketioUtil.ProducerSocketIOMessage(kafka.Kafka_Topic_SocketIO_SourceOf_Ticker_Updated, &TickerUpdateMsg{TickerSource: TICKER_SOURCE_COINMARKETCAP})
-	if err != nil {
-		log.Error("send ticker update message failed")
 	}
 
 	return nil
@@ -285,6 +296,8 @@ func (c *GetTickerImpl) GetTickerByMarket(market string) (Ticker, error) {
 		marketPairs = lrcMarkets
 	} else if mkt == USDT {
 		marketPairs = usdtMarkets
+	} else if mkt == TUSD {
+		marketPairs = tusdMarkets
 	}
 
 	tickers, _ := getTickersFromRedis(marketPairs, mkt)
@@ -309,6 +322,7 @@ func RankMode(tickers []TickerResp) []TickerResp {
 	wethmkt := make([]TickerResp, 0)
 	lrcmkt := make([]TickerResp, 0)
 	usdtmkt := make([]TickerResp, 0)
+	tusdmkt := make([]TickerResp, 0)
 	for _, v := range tickers {
 		market := strings.Split(v.Market, SPLIT_MARK)
 		if market[1] == WETH {
@@ -317,6 +331,8 @@ func RankMode(tickers []TickerResp) []TickerResp {
 			lrcmkt = append(lrcmkt, v)
 		} else if market[1] == USDT {
 			usdtmkt = append(usdtmkt, v)
+		} else if market[1] == TUSD {
+			tusdmkt = append(tusdmkt, v)
 		}
 	}
 	if len(wethmkt) > 0 {
@@ -328,6 +344,10 @@ func RankMode(tickers []TickerResp) []TickerResp {
 	if len(usdtmkt) > 0 {
 		mkts = append(mkts, rankByVol(usdtmkt)...)
 	}
+	if len(tusdmkt) > 0 {
+		mkts = append(mkts, rankByVol(tusdmkt)...)
+	}
+
 	return mkts
 }
 
@@ -338,11 +358,17 @@ func rankByVol(tickers []TickerResp) []TickerResp {
 	})
 
 	for k, v := range tickers {
-		if k < 100 {
+		if k <= 100 {
 			v.Label = MARKET_OF_WHITELIST
 		} else {
 			v.Label = MARKET_OF_HIDELIST
 		}
+
+		//filter market in blacklist
+		if listType, exists := blacklistMarkets[v.Market]; exists {
+			v.Label = listType
+		}
+
 		mkts = append(mkts, v)
 	}
 	return mkts
@@ -355,6 +381,11 @@ func DefaultMode(tickers []TickerResp) []TickerResp {
 			resp.Label = listType
 		} else {
 			resp.Label = MARKET_OF_HIDELIST
+		}
+
+		//filter market in blacklist
+		if listType, exists := blacklistMarkets[resp.Market]; exists {
+			resp.Label = listType
 		}
 		mkts = append(mkts, resp)
 	}
@@ -379,7 +410,12 @@ func getDefaultTicker(tickers []Ticker) []TickerResp {
 			marketTicker.Buy = data.Buy
 			marketTicker.Sell = data.Sell
 			marketTicker.Change = data.Change
-			marketTicker.Decimals = 8
+			if marketDecimal, exists := util.MarketsDecimal[data.Market]; exists {
+				marketTicker.Decimals = marketDecimal.Decimals
+			} else {
+				marketTicker.Decimals = 8
+			}
+
 			tickerResp = append(tickerResp, marketTicker)
 		}
 	}
@@ -395,6 +431,7 @@ func (c *GetTickerImpl) getCMCMarketTicker() (tickers []TickerResp, err error) {
 	wethTicker, _ := getTickersFromRedis(wethMarkets, ETH)
 	lrcTicker, _ := getTickersFromRedis(lrcMarkets, LRC)
 	usdtTicker, _ := getTickersFromRedis(usdtMarkets, USDT)
+	tusdTicker, _ := getTickersFromRedis(tusdMarkets, TUSD)
 	if len(wethTicker) > 0 {
 		tickers = append(tickers, wethTicker...)
 	}
@@ -405,6 +442,10 @@ func (c *GetTickerImpl) getCMCMarketTicker() (tickers []TickerResp, err error) {
 
 	if len(usdtTicker) > 0 {
 		tickers = append(tickers, usdtTicker...)
+	}
+
+	if len(tusdTicker) > 0 {
+		tickers = append(tickers, tusdTicker...)
 	}
 
 	c.localCache.Set(marketTickerLocalCacheKey, tickers, 5*time.Second)
@@ -448,7 +489,13 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 			ticker.Change = fmt.Sprintf("%.2f%%", change24H)
 
 		}
-		ticker.Decimals = 8
+
+		if marketDecimal, exists := util.MarketsDecimal[v]; exists {
+			ticker.Decimals = marketDecimal.Decimals
+		} else {
+			ticker.Decimals = 8
+		}
+
 		tickers = append(tickers, ticker)
 	}
 
