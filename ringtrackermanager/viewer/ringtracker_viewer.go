@@ -1,38 +1,42 @@
 package viewer
 
 import (
+	"github.com/Loopring/extractor/extractor"
 	"github.com/Loopring/relay-cluster/dao"
+	cache2 "github.com/Loopring/relay-cluster/ringtrackermanager/cache"
 	"github.com/Loopring/relay-cluster/ringtrackermanager/types"
-	"github.com/Loopring/relay-lib/marketcap"
-	"github.com/Loopring/relay-lib/log"
-	"net/http"
-	"strconv"
-	"io/ioutil"
-	"github.com/bitly/go-simplejson"
-	"time"
-	"github.com/robfig/cron"
-	"github.com/Loopring/relay-lib/marketutil"
-	"strings"
-	"github.com/pkg/errors"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/eth/accessor"
 	"github.com/Loopring/relay-lib/eth/contract"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"math/big"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/Loopring/extractor/extractor"
-	"github.com/Loopring/relay-lib/eth/accessor"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	types2 "github.com/Loopring/relay-lib/eth/types"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
+	"github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/sns"
 	types3 "github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay-lib/cache"
-	cache2 "github.com/Loopring/relay-cluster/ringtrackermanager/cache"
+	"github.com/Loopring/relay-lib/zklock"
+	"github.com/bitly/go-simplejson"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
+	"github.com/robfig/cron"
+	"io/ioutil"
+	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
-	START_TIME          = int64(1524096000)
-	TIME_INTERVAL       = 86400
-	RING_TRACKER_PREFIX = "ringtracker_"
-	RING_TRACKER_DATA   = "data_"
-	TOKEN_PRICE         = "tokenprice_"
+	START_TIME                  = int64(1524096000)
+	TIME_INTERVAL               = 86400
+	RING_TRACKER_PREFIX         = "ringtracker_"
+	RING_TRACKER_DATA           = "data_"
+	TOKEN_PRICE                 = "tokenprice_"
+	RING_TRACKER_CronJob_ZkLock = "ringTrackerZkLock"
+	RingTrackerLockFailedMsg    = "ringTracker viewer try lock failed"
 )
 
 type RingTrackerViewer interface {
@@ -61,10 +65,17 @@ func NewRingTrackerViewer(rds *dao.RdsService, mc marketcap.MarketCapProvider) *
 	viewer.rds = rds
 	viewer.mc = mc
 	viewer.cron = cron.New()
-	viewer.cron.AddFunc("0 0 0 * * *", viewer.SetEthTokenPrice)
-	//viewer.cron.AddFunc("0 0 */1 * * *", viewer.SetFullFills)
-	viewer.cron.AddFunc("0 */30 * * * *", viewer.SetTokenPrices)
-	viewer.cron.Start()
+	if zklock.TryLock(RING_TRACKER_CronJob_ZkLock) == nil {
+		viewer.cron.AddFunc("0 0 0 * * *", viewer.SetEthTokenPrice)
+		viewer.cron.AddFunc("0 */30 * * * *", viewer.SetTokenPrices)
+		log.Info("start ringTracker viewer cron jobs......... ")
+		viewer.cron.Start()
+	} else {
+		err := sns.PublishSns(RingTrackerLockFailedMsg, RingTrackerLockFailedMsg)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
 	//go viewer.SetFullFills()
 	//viewer.SetEthTokenPrice()
 	ClearRingTrackerCache()
@@ -162,7 +173,7 @@ func (r *RingTrackerViewerImpl) GetTrend(duration types.Duration, trendType type
 	return res
 }
 
-func (r *RingTrackerViewerImpl) GetEcosystemTrend(duration types.Duration, trendType types.TrendType, indicator types.Indicator, currency types.Currency) ([]types.EcoTrendRsp) {
+func (r *RingTrackerViewerImpl) GetEcosystemTrend(duration types.Duration, trendType types.TrendType, indicator types.Indicator, currency types.Currency) []types.EcoTrendRsp {
 	res := make([]types.EcoTrendRsp, 0)
 	key := RING_TRACKER_PREFIX + RING_TRACKER_DATA + "ecosystemtrend_" + strings.Join([]string{"duration:" + string(duration), "trendType:" + string(trendType), "indicator:" + string(indicator), "currency:" + string(currency)}, ",")
 	if cache2.GetFromCache(key, &res) {
