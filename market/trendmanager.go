@@ -415,6 +415,8 @@ func (t *TrendManager) insertTrendByInterval(interval string) error {
 	if !isTimeToInsert(interval) {
 		log.Info("no need to insert trend by interval " + interval)
 		return nil
+	} else {
+		log.Infof("start insert trend by interval %s, ", interval)
 	}
 
 	if interval == OneHour {
@@ -433,6 +435,8 @@ func (t *TrendManager) insertByTrend(interval string) error {
 	//multiple := tsInterval / tsOneHour
 
 	for _, mkt := range util.AllMarkets {
+
+		log.Infof("start insert trend by market %s, interval : %s", mkt, interval)
 
 		trends, err := t.rds.TrendQueryByInterval(OneHour, mkt, start, end.Unix())
 
@@ -781,9 +785,11 @@ func (t *TrendManager) ScheduleUpdate() {
 	wg.Wait()
 	var wgInterval sync.WaitGroup
 	intervals := append(allInterval[:0], allInterval[1:]...)
+	log.Info("start insert interval data expected 1Hr")
 	for _, i := range intervals {
 		wgInterval.Add(1)
 		aliasOfI := i
+		log.Info("start insert interval data " + aliasOfI)
 		go t.insertTrendByInterval(aliasOfI)
 		wgInterval.Done()
 	}

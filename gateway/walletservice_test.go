@@ -38,15 +38,9 @@ import (
 	"testing"
 	//"github.com/Loopring/relay-lib/marketutil"
 	//"math/big"
-	"github.com/patrickmn/go-cache"
-	"github.com/Loopring/relay-cluster/gateway"
-	"strconv"
 	"fmt"
+	"sync"
 	"time"
-	"strings"
-	"github.com/Loopring/relay-lib/marketutil"
-	"github.com/Loopring/relay-lib/types"
-	"math/big"
 )
 
 //import (
@@ -227,163 +221,180 @@ import (
 //}
 
 func TestCrossDepth(t *testing.T) {
-	println("slkdjflksjdfjk")
-
-	tr := new(big.Rat).SetFloat64(3.1414555)
-	fmt.Println(tr.Float64())
-
-	depth := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
-	newBuy := make([][]string, 0)
-	for i := range newBuy {
-		newBuy[i] = make([]string, 0)
+	intervals := []string{"1Hr", "2Hr", "4Hr", "1Day", "1Week"}
+	var wgInterval sync.WaitGroup
+	for _, i := range intervals {
+		wgInterval.Add(1)
+		aliasOfI := i
+		fmt.Println(aliasOfI)
+		go func(interval string) {
+			fmt.Println("xxxxxxxxxxxxx", interval)
+		}(aliasOfI)
+		wgInterval.Done()
 	}
-	newSell := make([][]string, 0)
-	for j := range newSell {
-		newSell[j] = make([]string, 0)
-	}
-
-	newBuy = append(newBuy, []string{"0.72", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.6", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.5", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.4", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.3", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.2", "0.1", "10"})
-	newBuy = append(newBuy, []string{"0.1", "0.1", "10"})
-
-	newSell = append(newSell, []string{"0.9", "0.1", "10"})
-	newSell = append(newSell, []string{"0.8", "0.1", "10"})
-	newSell = append(newSell, []string{"0.7", "0.1", "10"})
-	newSell = append(newSell, []string{"0.6", "0.1", "10"})
-	newSell = append(newSell, []string{"0.51", "0.1", "10"})
-	depth.Depth.Buy = newBuy
-	depth.Depth.Sell = newSell
-
-
-	xc := cache.New(10*time.Minute, 10*time.Minute)
-
-	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-	xc.Set(gateway.DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
-	xc.Set(gateway.DEPTH_MIN_SELL, minSell, 1*time.Hour)
-	mb,_ := xc.Get(gateway.DEPTH_MAX_BUY)
-	ms,_ := xc.Get(gateway.DEPTH_MIN_SELL)
-	fmt.Printf(strconv.FormatFloat(mb.(float64), 'G', -1, 64))
-	fmt.Printf(strconv.FormatFloat(ms.(float64), 'G', -1, 64))
-
-
-	fmt.Println(removeCross(depth))
-
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.049"))
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.1"))
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.1"))
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.05"))
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.049"))
-	fmt.Println(checkDepthThreshHold("LRC-WETH", "101.0", "0.051"))
-	fmt.Println(checkDepthThreshHold("VITE-WETH", "199.0", "0.1"))
-	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
-	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.05"))
-	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
-	fmt.Println(checkDepthThreshHold("VITE-WETH", "201.0", "0.051"))
-
-
-	//rst := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
-	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-
-
-	o := types.OrderState{}
-	o.RawOrder = types.Order{}
-	o.RawOrder.BuyNoMoreThanAmountB = true
-	o.DealtAmountS = new(big.Int).SetInt64(26462925008396183)
-	o.DealtAmountB, _ = new(big.Int).SetString("60000000000000000000", 10)
-	o.CancelledAmountS = new(big.Int).SetInt64(0)
-	o.CancelledAmountB = new(big.Int).SetInt64(0)
-	o.SplitAmountS = new(big.Int).SetInt64(0)
-	o.SplitAmountB = new(big.Int).SetInt64(1856101511879049873)
-	o.RawOrder.AmountS = new(big.Int).SetInt64(88420000000000000)
-	o.RawOrder.AmountB, _ = new(big.Int).SetString("200000000000000000000", 10)
-	s, b := o.RemainedAmount()
-	fmt.Println(s.String())
-	fmt.Println(b.String())
-	fmt.Println(s.Num())
-	fmt.Println(s.Denom())
-	xxx := s.Denom()
-	fmt.Println(s.Num().Quo(s.Num(), xxx))
-
-
-
-
-	//owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
-	//
-	//customToken := marketutil.CustomToken{}
-	//customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
-	//customToken.Symbol = "XNN"
-	//customToken.Decimals = new(big.Int).SetInt64(18)
-	//
-	//err := marketutil.AddToken(owner, customToken)
-	//if nil != err {
-	//	t.Error(err.Error())
-	//}
+	wgInterval.Wait()
+	fmt.Println("skdjfksdfjlsdjf")
+	time.Sleep(3 *time.Second)
 }
 
-func checkDepthThreshHold(market string, amount string, size string) bool {
-	s, b := marketutil.UnWrap(market)
-	return checkDepthAmountThreshHold(s, amount) || checkDepthAmountThreshHold(b, size)
-}
-
-func checkDepthAmountThreshHold(token string, amount string) bool {
-
-	var depthTheshHold = map[string]float64 {
-		"LRC" : 100.0,
-		"VITE" : 200.0,
-		"WETH" : 0.05,
-	}
-
-	amountIsOK := false
-	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
-		amountF, _ := strconv.ParseFloat(amount, 64)
-		amountIsOK = amountF >= st
-	} else {
-		amountIsOK = true
-	}
-	return amountIsOK
-}
-
-func removeCross(depth gateway.Depth) gateway.Depth {
-	if len(depth.Depth.Buy) == 0 || len(depth.Depth.Sell) == 0 {
-		return depth
-	}
-	rst := gateway.Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
-	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-
-
-	newBuy := make([][]string, 0)
-	for i := range newBuy {
-		newBuy[i] = make([]string, 0)
-	}
-	newSell := make([][]string, 0)
-	for j := range newSell {
-		newSell[j] = make([]string, 0)
-	}
-
-	for _, v := range depth.Depth.Buy {
-		buy, _ := strconv.ParseFloat(v[0], 64)
-		if buy < minSell {
-			newBuy = append(newBuy, v)
-		}
-	}
-
-	for _, vv := range depth.Depth.Sell {
-		sell, _ := strconv.ParseFloat(vv[0], 64)
-		if sell > maxBuy {
-			newSell = append(newSell, vv)
-		}
-	}
-
-	rst.Depth = gateway.AskBid{Buy : newBuy, Sell : newSell}
-	return rst
-}
+//func TestCrossDepth(t *testing.T) {
+//	println("slkdjflksjdfjk")
+//
+//	tr := new(big.Rat).SetFloat64(3.1414555)
+//	fmt.Println(tr.Float64())
+//
+//	depth := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
+//	newBuy := make([][]string, 0)
+//	for i := range newBuy {
+//		newBuy[i] = make([]string, 0)
+//	}
+//	newSell := make([][]string, 0)
+//	for j := range newSell {
+//		newSell[j] = make([]string, 0)
+//	}
+//
+//	newBuy = append(newBuy, []string{"0.72", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.6", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.5", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.4", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.3", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.2", "0.1", "10"})
+//	newBuy = append(newBuy, []string{"0.1", "0.1", "10"})
+//
+//	newSell = append(newSell, []string{"0.9", "0.1", "10"})
+//	newSell = append(newSell, []string{"0.8", "0.1", "10"})
+//	newSell = append(newSell, []string{"0.7", "0.1", "10"})
+//	newSell = append(newSell, []string{"0.6", "0.1", "10"})
+//	newSell = append(newSell, []string{"0.51", "0.1", "10"})
+//	depth.Depth.Buy = newBuy
+//	depth.Depth.Sell = newSell
+//
+//
+//	xc := cache.New(10*time.Minute, 10*time.Minute)
+//
+//	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+//	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+//	xc.Set(gateway.DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
+//	xc.Set(gateway.DEPTH_MIN_SELL, minSell, 1*time.Hour)
+//	mb,_ := xc.Get(gateway.DEPTH_MAX_BUY)
+//	ms,_ := xc.Get(gateway.DEPTH_MIN_SELL)
+//	fmt.Printf(strconv.FormatFloat(mb.(float64), 'G', -1, 64))
+//	fmt.Printf(strconv.FormatFloat(ms.(float64), 'G', -1, 64))
+//
+//
+//	fmt.Println(removeCross(depth))
+//
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.049"))
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "99.0", "0.1"))
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.1"))
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.05"))
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "100.0", "0.049"))
+//	fmt.Println(checkDepthThreshHold("LRC-WETH", "101.0", "0.051"))
+//	fmt.Println(checkDepthThreshHold("VITE-WETH", "199.0", "0.1"))
+//	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
+//	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.05"))
+//	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
+//	fmt.Println(checkDepthThreshHold("VITE-WETH", "201.0", "0.051"))
+//
+//
+//	//rst := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
+//	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+//	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+//
+//
+//	o := types.OrderState{}
+//	o.RawOrder = types.Order{}
+//	o.RawOrder.BuyNoMoreThanAmountB = true
+//	o.DealtAmountS = new(big.Int).SetInt64(26462925008396183)
+//	o.DealtAmountB, _ = new(big.Int).SetString("60000000000000000000", 10)
+//	o.CancelledAmountS = new(big.Int).SetInt64(0)
+//	o.CancelledAmountB = new(big.Int).SetInt64(0)
+//	o.SplitAmountS = new(big.Int).SetInt64(0)
+//	o.SplitAmountB = new(big.Int).SetInt64(1856101511879049873)
+//	o.RawOrder.AmountS = new(big.Int).SetInt64(88420000000000000)
+//	o.RawOrder.AmountB, _ = new(big.Int).SetString("200000000000000000000", 10)
+//	s, b := o.RemainedAmount()
+//	fmt.Println(s.String())
+//	fmt.Println(b.String())
+//	fmt.Println(s.Num())
+//	fmt.Println(s.Denom())
+//	xxx := s.Denom()
+//	fmt.Println(s.Num().Quo(s.Num(), xxx))
+//
+//
+//
+//
+//	//owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
+//	//
+//	//customToken := marketutil.CustomToken{}
+//	//customToken.Address = common.HexToAddress("0x512ae1A925bBBaB6FACA45fA839377a56Dc728F5")
+//	//customToken.Symbol = "XNN"
+//	//customToken.Decimals = new(big.Int).SetInt64(18)
+//	//
+//	//err := marketutil.AddToken(owner, customToken)
+//	//if nil != err {
+//	//	t.Error(err.Error())
+//	//}
+//}
+//
+//func checkDepthThreshHold(market string, amount string, size string) bool {
+//	s, b := marketutil.UnWrap(market)
+//	return checkDepthAmountThreshHold(s, amount) || checkDepthAmountThreshHold(b, size)
+//}
+//
+//func checkDepthAmountThreshHold(token string, amount string) bool {
+//
+//	var depthTheshHold = map[string]float64 {
+//		"LRC" : 100.0,
+//		"VITE" : 200.0,
+//		"WETH" : 0.05,
+//	}
+//
+//	amountIsOK := false
+//	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
+//		amountF, _ := strconv.ParseFloat(amount, 64)
+//		amountIsOK = amountF >= st
+//	} else {
+//		amountIsOK = true
+//	}
+//	return amountIsOK
+//}
+//
+//func removeCross(depth gateway.Depth) gateway.Depth {
+//	if len(depth.Depth.Buy) == 0 || len(depth.Depth.Sell) == 0 {
+//		return depth
+//	}
+//	rst := gateway.Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
+//	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
+//	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+//
+//
+//	newBuy := make([][]string, 0)
+//	for i := range newBuy {
+//		newBuy[i] = make([]string, 0)
+//	}
+//	newSell := make([][]string, 0)
+//	for j := range newSell {
+//		newSell[j] = make([]string, 0)
+//	}
+//
+//	for _, v := range depth.Depth.Buy {
+//		buy, _ := strconv.ParseFloat(v[0], 64)
+//		if buy < minSell {
+//			newBuy = append(newBuy, v)
+//		}
+//	}
+//
+//	for _, vv := range depth.Depth.Sell {
+//		sell, _ := strconv.ParseFloat(vv[0], 64)
+//		if sell > maxBuy {
+//			newSell = append(newSell, vv)
+//		}
+//	}
+//
+//	rst.Depth = gateway.AskBid{Buy : newBuy, Sell : newSell}
+//	return rst
+//}
 
 //func (ab *AB) ABTest1(query ABReq1) (res1 ABRes1, err error) {
 //	return ABRes1{A: "AA", B: 11}, nil
