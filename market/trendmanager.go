@@ -256,7 +256,13 @@ func (t *TrendManager) refreshCacheByInterval(interval string) {
 
 func (t *TrendManager) LoadCache() {
 	t.refreshMinIntervalCache()
-	intervals := append(allInterval[:0], allInterval[1:]...)
+	intervals := make([]string, 0)
+	for k, v := range allInterval {
+		if k == 0 {
+			continue
+		}
+		intervals = append(intervals, v)
+	}
 	for _, i := range intervals {
 		aliasOfI := i
 		t.refreshCacheByInterval(aliasOfI)
@@ -780,7 +786,14 @@ func (t *TrendManager) ScheduleUpdate() {
 	}
 	wg.Wait()
 	var wgInterval sync.WaitGroup
-	intervals := append(allInterval[:0], allInterval[1:]...)
+	intervals := make([]string, 0)
+	for k, v := range allInterval {
+		if k == 0 {
+			continue
+		}
+		intervals = append(intervals, v)
+	}
+	log.Info("start insert interval data expected 1Hr")
 	for _, i := range intervals {
 		wgInterval.Add(1)
 		aliasOfI := i
