@@ -2229,5 +2229,53 @@
 }, {
   "Market": "ZRX-WETH",
   "Decimals": 8
+}, {
+  "Market": "HAND-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HAND-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "HAND-USDT",
+  "Decimals": 5
+}, {
+  "Market": "HAND-WETH",
+  "Decimals": 6
+}, {
+  "Market": "HDL-LRC",
+  "Decimals": 6
+}, {
+  "Market": "HDL-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "HDL-USDT",
+  "Decimals": 5
+}, {
+  "Market": "HDL-WETH",
+  "Decimals": 6
+}, {
+  "Market": "R-LRC",
+  "Decimals": 6
+}, {
+  "Market": "R-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "R-USDT",
+  "Decimals": 5
+}, {
+  "Market": "R-WETH",
+  "Decimals": 6
+}, {
+  "Market": "RDEX-LRC",
+  "Decimals": 6
+}, {
+  "Market": "RDEX-TUSD",
+  "Decimals": 5
+}, {
+  "Market": "RDEX-USDT",
+  "Decimals": 5
+}, {
+  "Market": "RDEX-WETH",
+  "Decimals": 6
 }
 ]
