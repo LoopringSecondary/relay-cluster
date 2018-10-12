@@ -209,6 +209,11 @@ type PriceQuoteQuery struct {
 	Token    string `json:"token"`
 }
 
+type PriceQuoteQuery2 struct {
+	Currency string `json:"currency"`
+	Token    string `json:"token"`
+}
+
 type CutoffRequest struct {
 	Address         string `json:"address"`
 	DelegateAddress string `json:"delegateAddress"`
@@ -567,6 +572,18 @@ func (w *WalletServiceImpl) GetPriceQuote(query PriceQuoteQuery) (result PriceQu
 		return rst2, nil
 	}
 	return rst, nil
+}
+
+func (w *WalletServiceImpl) GetPriceQuoteByToken(query PriceQuoteQuery2) (result PriceQuote, err error) {
+	result = PriceQuote{query.Currency, make([]TokenPrice, 0)}
+	rst, _ := w.GetPriceQuote(PriceQuoteQuery{Currency: query.Currency})
+	for _, token := range rst.Tokens {
+		if token.Token == strings.ToUpper(query.Token) {
+			result.Tokens = append(result.Tokens, token)
+			break;
+		}
+	}
+	return result, nil
 }
 
 func (w *WalletServiceImpl) GetTickers(mkt SingleMarket) (result map[string]market.Ticker, err error) {
