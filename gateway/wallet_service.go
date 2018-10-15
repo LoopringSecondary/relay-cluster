@@ -206,7 +206,6 @@ type TxNotify struct {
 
 type PriceQuoteQuery struct {
 	Currency string `json:"currency"`
-	Token    string `json:"token"`
 }
 
 type PriceQuoteQuery2 struct {
@@ -561,16 +560,6 @@ func (w *WalletServiceImpl) GetPriceQuote(query PriceQuoteQuery) (result PriceQu
 		}
 	}
 
-	if query.Token != "" {
-		rst2 := PriceQuote{query.Currency, make([]TokenPrice, 0)}
-		for _, token := range rst.Tokens {
-			if token.Token == strings.ToUpper(query.Token) {
-				rst2.Tokens = append(rst2.Tokens, token)
-				break
-			}
-		}
-		return rst2, nil
-	}
 	return rst, nil
 }
 
