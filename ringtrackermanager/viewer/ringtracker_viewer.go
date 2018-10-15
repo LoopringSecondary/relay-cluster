@@ -65,21 +65,23 @@ func NewRingTrackerViewer(rds *dao.RdsService, mc marketcap.MarketCapProvider) *
 	viewer.rds = rds
 	viewer.mc = mc
 	viewer.cron = cron.New()
-	if zklock.TryLock(RING_TRACKER_CronJob_ZkLock) == nil {
-		viewer.cron.AddFunc("0 0 0 * * *", viewer.SetEthTokenPrice)
-		viewer.cron.AddFunc("0 */30 * * * *", viewer.SetTokenPrices)
-		log.Info("start ringTracker viewer cron jobs......... ")
-		viewer.cron.Start()
-	} else {
-		err := sns.PublishSns(RingTrackerLockFailedMsg, RingTrackerLockFailedMsg)
-		if err != nil {
-			log.Error(err.Error())
+	go func() {
+		if zklock.TryLock(RING_TRACKER_CronJob_ZkLock) == nil {
+			viewer.cron.AddFunc("0 0 0 * * *", viewer.SetEthTokenPrice)
+			viewer.cron.AddFunc("0 */30 * * * *", viewer.SetTokenPrices)
+			log.Info("start ringTracker viewer cron jobs......... ")
+			viewer.cron.Start()
+			//go viewer.SetFullFills()
+			//viewer.SetEthTokenPrice()
+			ClearRingTrackerCache()
+			viewer.SetTokenPrices()
+		} else {
+			err := sns.PublishSns(RingTrackerLockFailedMsg, RingTrackerLockFailedMsg)
+			if err != nil {
+				log.Error(err.Error())
+			}
 		}
-	}
-	//go viewer.SetFullFills()
-	//viewer.SetEthTokenPrice()
-	ClearRingTrackerCache()
-	viewer.SetTokenPrices()
+	}()
 	return &viewer
 }
 
