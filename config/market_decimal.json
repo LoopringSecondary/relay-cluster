@@ -2277,5 +2277,29 @@
 }, {
   "Market": "RDEX-WETH",
   "Decimals": 6
+}, {
+  "Market": "CDCC-LRC",
+  "Decimals": 6
+}, {
+  "Market": "CDCC-TUSD",
+  "Decimals": 4
+}, {
+  "Market": "CDCC-USDT",
+  "Decimals": 4
+}, {
+  "Market": "CDCC-WETH",
+  "Decimals": 8
+}, {
+  "Market": "WEB-LRC",
+  "Decimals": 6
+}, {
+  "Market": "WEB-TUSD",
+  "Decimals": 6
+}, {
+  "Market": "WEB-USDT",
+  "Decimals": 6
+}, {
+  "Market": "WEB-WETH",
+  "Decimals": 8
 }
 ]
