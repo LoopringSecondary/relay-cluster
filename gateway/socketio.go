@@ -1033,7 +1033,6 @@ func (so *SocketIOServiceImpl) handleTransactionUpdate(input interface{}) (err e
 	so.handleTransactions(input)
 	so.handlePendingTransaction(input)
 	so.handleLatestTransactions(input)
-	so.handleTransactionsStatus(input)
 	return nil
 }
 
