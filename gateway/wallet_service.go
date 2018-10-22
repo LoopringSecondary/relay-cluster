@@ -569,7 +569,7 @@ func (w *WalletServiceImpl) GetPriceQuoteByToken(query PriceQuoteQuery2) (result
 	for _, token := range rst.Tokens {
 		if token.Token == strings.ToUpper(query.Token) {
 			result.Tokens = append(result.Tokens, token)
-			break;
+			break
 		}
 	}
 	return result, nil
@@ -1364,7 +1364,7 @@ func pagination(pageIndex, pageSize int) (int, int, int, int) {
 	return pageIndex, pageSize, limit, offset
 }
 
-func (w *WalletServiceImpl) GetTransactioetnsByHash(query TransactionQuery) (result []txtyp.TransactionJsonResult, err error) {
+func (w *WalletServiceImpl) GetTransactionsByHash(query TransactionQuery) (result []txtyp.TransactionJsonResult, err error) {
 	return txmanager.GetTransactionsByHash(query.Owner, query.TrxHashes)
 }
 
