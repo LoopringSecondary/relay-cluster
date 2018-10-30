@@ -43,7 +43,7 @@ const (
 	TX_TYPE_UNSUPPORTED_CONTRACT TxType = 12
 	TX_TYPE_LRC_FEE              TxType = 13
 	TX_TYPE_LRC_REWARD           TxType = 14
-	TX_TYPE_SUBMIT_RING 		 TxType = 15
+	TX_TYPE_SUBMIT_RING          TxType = 15
 )
 
 func TypeStr(typ TxType) string {

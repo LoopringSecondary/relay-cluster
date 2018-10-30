@@ -20,11 +20,11 @@ package types
 
 import (
 	"fmt"
+	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"github.com/Loopring/relay-lib/log"
 )
 
 type TransactionView struct {
@@ -155,7 +155,7 @@ func WethWithdrawalView(src *types.WethWithdrawalEvent) ([]TransactionView, erro
 }
 
 func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
-	var list     []TransactionView
+	var list []TransactionView
 
 	if tx, err := singleTransferView(src, true); err == nil {
 		list = append(list, tx)
@@ -173,7 +173,7 @@ func TransferView(src *types.TransferEvent) ([]TransactionView, error) {
 }
 
 func singleTransferView(src *types.TransferEvent, isSender bool) (TransactionView, error) {
-	tx  := TransactionView{}
+	tx := TransactionView{}
 	tx.Amount = src.Amount
 
 	if isSender {
@@ -248,8 +248,8 @@ func UnsupportedContractView(src *types.UnsupportedContractEvent) ([]Transaction
 func SubmitRingContractView(src *types.SubmitRingMethodEvent) ([]TransactionView, error) {
 	var (
 		list []TransactionView
-		tx  TransactionView
-		ord types.Order
+		tx   TransactionView
+		ord  types.Order
 	)
 
 	for _, v := range src.OrderList {

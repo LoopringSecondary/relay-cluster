@@ -43,7 +43,7 @@ type TransactionManager struct {
 	transferEventWatcher            *eventemitter.Watcher
 	ethTransferEventWatcher         *eventemitter.Watcher
 	unsupportedContractEventWatcher *eventemitter.Watcher
-	submitRingEventWatcher 			*eventemitter.Watcher
+	submitRingEventWatcher          *eventemitter.Watcher
 	orderFilledEventWatcher         *eventemitter.Watcher
 	forkDetectedEventWatcher        *eventemitter.Watcher
 }
