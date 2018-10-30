@@ -25,6 +25,7 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"strings"
 )
 
 const (
@@ -69,7 +70,7 @@ func SetMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) err
 }
 
 func generateNonceKey(owner common.Address) string {
-	return MaxNoncePrefix + owner.Hex()
+	return MaxNoncePrefix + strings.ToLower(owner.Hex())
 }
 
 ///////////////////////////////////////////////////////////
@@ -108,5 +109,5 @@ func SetTxMinedMaxNonceValue(owner common.Address, preNonce, currentNonce *big.I
 }
 
 func generateTxMinedMaxNonceKey(owner common.Address) string {
-	return MaxNonceTxSuccessPrefix + owner.Hex()
+	return MaxNonceTxSuccessPrefix + strings.ToLower(owner.Hex())
 }
