@@ -245,6 +245,46 @@ func UnsupportedContractView(src *types.UnsupportedContractEvent) ([]Transaction
 	return list, nil
 }
 
+func SubmitRingContractView(src *types.SubmitRingMethodEvent) ([]TransactionView, error) {
+	var (
+		list []TransactionView
+		tx  TransactionView
+		ord types.Order
+	)
+
+	for _, v := range src.OrderList {
+		if v.Owner.Hex() == src.From.Hex() {
+			ord = v
+			break
+		}
+	}
+
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return list, err
+	}
+	tx.Type = TX_TYPE_SUBMIT_RING
+	tx.Owner = src.From
+
+	symbolS := util.AddressToAlias(ord.TokenS.Hex())
+	symbolB := util.AddressToAlias(ord.TokenB.Hex())
+
+	tx1 := tx
+	tx1.Symbol = symbolS
+	list = append(list, tx1)
+
+	tx2 := tx
+	tx2.Symbol = symbolB
+	list = append(list, tx2)
+
+	if symbolS != SYMBOL_LRC && symbolB != SYMBOL_LRC {
+		tx3 := tx
+		tx3.Symbol = SYMBOL_LRC
+		list = append(list, tx3)
+	}
+
+	return list, nil
+}
+
 // 用户币种最多3个tokenS,tokenB,lrc
 // 一个fill只有一个owner,我们这里最多存储3条数据
 func OrderFilledView(src *types.OrderFilledEvent) ([]TransactionView, error) {

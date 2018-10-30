@@ -1,0 +1,9 @@
+[{
+  "ListType": "whitelist",
+  "MarketPairs": [
+    "LRC-WETH"
+  ]
+}, {
+  "ListType": "blacklist",
+  "MarketPairs": null
+}]
