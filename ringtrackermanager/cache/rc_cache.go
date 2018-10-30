@@ -2,8 +2,8 @@ package cache
 
 import (
 	"encoding/json"
-	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/log"
 )
 
 func GetFromCache(key string, res interface{}) bool {

@@ -47,7 +47,7 @@ func StrToEcoTrendDuration(duration string) Duration {
 const (
 	ALL_TREND TrendType = "all"
 	TOKEN     TrendType = "token"
-	RELAY   TrendType = "relay"
+	RELAY     TrendType = "relay"
 	DEX       TrendType = "dex"
 	RING      TrendType = "ring"
 )

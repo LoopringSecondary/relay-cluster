@@ -1,10 +1,10 @@
 package gateway
 
 import (
-	"github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
-	"github.com/Loopring/relay-cluster/ringtrackermanager/types"
-	"github.com/Loopring/relay-cluster/market"
 	"github.com/Loopring/relay-cluster/dao"
+	"github.com/Loopring/relay-cluster/market"
+	"github.com/Loopring/relay-cluster/ringtrackermanager/types"
+	"github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
 )
 
 type RingTrackerServiceImpl struct {

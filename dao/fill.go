@@ -56,11 +56,10 @@ type FillEvent struct {
 }
 
 type ContestRankDO struct {
-	Owner string `gorm:"column:owner" json: "owner"`
-	TradeCount int `gorm:"column:trade_count" json: "tradeCount"`
+	Owner       string `gorm:"column:owner" json: "owner"`
+	TradeCount  int    `gorm:"column:trade_count" json: "tradeCount"`
 	TradeAmount string `gorm:"column:trade_amount" json: "tradeAmount"`
-	idSum int64 `gorm:"column:id_sum" json: "idSum"`
-
+	idSum       int64  `gorm:"column:id_sum" json: "idSum"`
 }
 
 // convert chainclient/orderFilledEvent to dao/fill
@@ -218,8 +217,8 @@ func (s *RdsService) RollBackFill(from, to int64) error {
 
 func (s *RdsService) GetAllTradeByRank(start int64, end int64) (res []ContestRankDO) {
 	sql := "select " +
-		"owner, count(owner) as trade_count, sum(amount_s) as trade_amount, sum(id) as id_sum from lpr_fill_events where create_time >= " + strconv.FormatInt(start, 10) + " "  +
-		"and create_time < " + strconv.FormatInt(end, 10) + " "  +
+		"owner, count(owner) as trade_count, sum(amount_s) as trade_amount, sum(id) as id_sum from lpr_fill_events where create_time >= " + strconv.FormatInt(start, 10) + " " +
+		"and create_time < " + strconv.FormatInt(end, 10) + " " +
 		"and market in ('lrc-weth', 'vite-weth')" + " " +
 		"and order_type = 'market_order'" + " " +
 		" group by owner order by count(owner) desc, sum(amount_s) desc, sum(id) asc"

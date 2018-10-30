@@ -36,8 +36,8 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
-	"time"
 	"strings"
+	"time"
 )
 
 type Gateway struct {
@@ -329,7 +329,6 @@ func (f *BaseFilter) filter(o *types.Order) (bool, error) {
 		minAmountFloat, _ := minAmountRat.Float64()
 		return false, fmt.Errorf("%s amount is too small and less than %f", tokenS.Symbol, minAmountFloat)
 	}
-
 
 	// USD min amount check
 	//tokenSPrice, err := gateway.marketCap.GetMarketCapByCurrency(o.TokenS, "USD")

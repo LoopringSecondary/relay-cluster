@@ -42,8 +42,8 @@ type JsonrpcService interface {
 }
 
 type JsonrpcServiceImpl struct {
-	port          string
-	walletService *WalletServiceImpl
+	port               string
+	walletService      *WalletServiceImpl
 	ringTrackerService *RingTrackerServiceImpl
 	contestRankService *ContestRankServiceImpl
 }
@@ -65,12 +65,12 @@ func (j *JsonrpcServiceImpl) Start() {
 		return
 	}
 
-	if err := handler.RegisterName("loopring", j.ringTrackerService); err!=nil {
+	if err := handler.RegisterName("loopring", j.ringTrackerService); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if err := handler.RegisterName("loopring", j.contestRankService); err!=nil {
+	if err := handler.RegisterName("loopring", j.contestRankService); err != nil {
 		fmt.Println(err)
 		return
 	}

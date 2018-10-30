@@ -38,15 +38,15 @@ import (
 	"testing"
 	//"github.com/Loopring/relay-lib/marketutil"
 	//"math/big"
-	"github.com/patrickmn/go-cache"
-	"github.com/Loopring/relay-cluster/gateway"
-	"strconv"
 	"fmt"
-	"time"
-	"strings"
+	"github.com/Loopring/relay-cluster/gateway"
 	"github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/types"
+	"github.com/patrickmn/go-cache"
 	"math/big"
+	"strconv"
+	"strings"
+	"time"
 )
 
 //import (
@@ -258,18 +258,16 @@ func TestCrossDepth(t *testing.T) {
 	depth.Depth.Buy = newBuy
 	depth.Depth.Sell = newSell
 
-
 	xc := cache.New(10*time.Minute, 10*time.Minute)
 
 	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell)-1][0], 64)
 	xc.Set(gateway.DEPTH_MAX_BUY, maxBuy, 1*time.Hour)
 	xc.Set(gateway.DEPTH_MIN_SELL, minSell, 1*time.Hour)
-	mb,_ := xc.Get(gateway.DEPTH_MAX_BUY)
-	ms,_ := xc.Get(gateway.DEPTH_MIN_SELL)
+	mb, _ := xc.Get(gateway.DEPTH_MAX_BUY)
+	ms, _ := xc.Get(gateway.DEPTH_MIN_SELL)
 	fmt.Printf(strconv.FormatFloat(mb.(float64), 'G', -1, 64))
 	fmt.Printf(strconv.FormatFloat(ms.(float64), 'G', -1, 64))
-
 
 	fmt.Println(removeCross(depth))
 
@@ -285,11 +283,9 @@ func TestCrossDepth(t *testing.T) {
 	fmt.Println(checkDepthThreshHold("VITE-WETH", "200.0", "0.049"))
 	fmt.Println(checkDepthThreshHold("VITE-WETH", "201.0", "0.051"))
 
-
 	//rst := gateway.Depth{Market: "LRC-WETH", DelegateAddress: "0x17233e07c67d086464fD408148c3ABB56245FA64"}
 	//maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
 	//minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-
 
 	o := types.OrderState{}
 	o.RawOrder = types.Order{}
@@ -309,9 +305,6 @@ func TestCrossDepth(t *testing.T) {
 	fmt.Println(s.Denom())
 	xxx := s.Denom()
 	fmt.Println(s.Num().Quo(s.Num(), xxx))
-
-
-
 
 	//owner := test.Entity().Accounts[0].Address //test.Entity().Creator.Address
 	//
@@ -333,14 +326,15 @@ func checkDepthThreshHold(market string, amount string, size string) bool {
 
 func checkDepthAmountThreshHold(token string, amount string) bool {
 
-	var depthTheshHold = map[string]float64 {
-		"LRC" : 100.0,
-		"VITE" : 200.0,
-		"WETH" : 0.05,
+	var depthTheshHold = map[string]float64{
+		"LRC":  100.0,
+		"VITE": 200.0,
+		"WETH": 0.05,
 	}
 
 	amountIsOK := false
-	st, ok := depthTheshHold[strings.ToUpper(token)]; if ok {
+	st, ok := depthTheshHold[strings.ToUpper(token)]
+	if ok {
 		amountF, _ := strconv.ParseFloat(amount, 64)
 		amountIsOK = amountF >= st
 	} else {
@@ -355,8 +349,7 @@ func removeCross(depth gateway.Depth) gateway.Depth {
 	}
 	rst := gateway.Depth{Market: depth.Market, DelegateAddress: depth.DelegateAddress}
 	maxBuy, _ := strconv.ParseFloat(depth.Depth.Buy[0][0], 64)
-	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell) - 1][0], 64)
-
+	minSell, _ := strconv.ParseFloat(depth.Depth.Sell[len(depth.Depth.Sell)-1][0], 64)
 
 	newBuy := make([][]string, 0)
 	for i := range newBuy {
@@ -381,7 +374,7 @@ func removeCross(depth gateway.Depth) gateway.Depth {
 		}
 	}
 
-	rst.Depth = gateway.AskBid{Buy : newBuy, Sell : newSell}
+	rst.Depth = gateway.AskBid{Buy: newBuy, Sell: newSell}
 	return rst
 }
 
