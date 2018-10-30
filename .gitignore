@@ -8,6 +8,8 @@ dao/err.log
 ks_dir
 config/debug.toml
 config/debug_tokens.json
+config/debug_markets.json
+config/debug_decimals.json
 config/default_market.json
 config/docker.toml
 config/mainchain.toml

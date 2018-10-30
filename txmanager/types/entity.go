@@ -249,6 +249,14 @@ func (tx *TransactionEntity) FromUnsupportedContractEvent(src *types.Unsupported
 	return nil
 }
 
+func (tx *TransactionEntity) FromSubmitRingEvent(src *types.SubmitRingMethodEvent) error {
+	if err := tx.fullFilled(src.TxInfo); err != nil {
+		return err
+	}
+	tx.Content = ""
+	return nil
+}
+
 func (tx *TransactionEntity) FromOrderFilledEvent(src *types.OrderFilledEvent) error {
 	if err := tx.fullFilled(src.TxInfo); err != nil {
 		return err
