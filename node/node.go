@@ -28,6 +28,7 @@ import (
 	"github.com/Loopring/relay-cluster/market"
 	ordermanager "github.com/Loopring/relay-cluster/ordermanager/manager"
 	orderviewer "github.com/Loopring/relay-cluster/ordermanager/viewer"
+	ringtrackerviewer "github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
 	txmanager "github.com/Loopring/relay-cluster/txmanager/manager"
 	txviewer "github.com/Loopring/relay-cluster/txmanager/viewer"
 	"github.com/Loopring/relay-cluster/usermanager"
@@ -46,7 +47,6 @@ import (
 	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"go.uber.org/zap"
-	ringtrackerviewer "github.com/Loopring/relay-cluster/ringtrackermanager/viewer"
 )
 
 type Node struct {
@@ -136,6 +136,7 @@ func (n *Node) Start() {
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
 	go n.socketIOService.Start()
+	go n.walletService.Start()
 	gateway.StartMotanService(n.globalConfig.MotanServer, n.accountManager, n.orderViewer)
 
 	n.wg.Add(1)
