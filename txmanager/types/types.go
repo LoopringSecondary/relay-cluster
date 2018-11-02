@@ -43,6 +43,7 @@ const (
 	TX_TYPE_UNSUPPORTED_CONTRACT TxType = 12
 	TX_TYPE_LRC_FEE              TxType = 13
 	TX_TYPE_LRC_REWARD           TxType = 14
+	TX_TYPE_SUBMIT_RING          TxType = 15
 )
 
 func TypeStr(typ TxType) string {
@@ -75,6 +76,8 @@ func TypeStr(typ TxType) string {
 		ret = "lrc_fee"
 	case TX_TYPE_LRC_REWARD:
 		ret = "lrc_reward"
+	case TX_TYPE_SUBMIT_RING:
+		ret = "submit_ring"
 	default:
 		ret = "unknown"
 	}
@@ -111,6 +114,8 @@ func StrToTxType(typ string) TxType {
 		ret = TX_TYPE_LRC_FEE
 	case "lrc_reward":
 		ret = TX_TYPE_LRC_REWARD
+	case "submit_ring":
+		ret = TX_TYPE_SUBMIT_RING
 	default:
 		ret = TX_TYPE_UNKNOWN
 	}

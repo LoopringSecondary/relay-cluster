@@ -43,6 +43,7 @@ type TransactionManager struct {
 	transferEventWatcher            *eventemitter.Watcher
 	ethTransferEventWatcher         *eventemitter.Watcher
 	unsupportedContractEventWatcher *eventemitter.Watcher
+	submitRingEventWatcher          *eventemitter.Watcher
 	orderFilledEventWatcher         *eventemitter.Watcher
 	forkDetectedEventWatcher        *eventemitter.Watcher
 }
@@ -89,6 +90,9 @@ func (tm *TransactionManager) Start() {
 	tm.unsupportedContractEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveUnSupportedContractEvent}
 	eventemitter.On(eventemitter.UnsupportedContract, tm.unsupportedContractEventWatcher)
 
+	tm.submitRingEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveSubmitRingEvent}
+	eventemitter.On(eventemitter.Miner_SubmitRing_Method, tm.submitRingEventWatcher)
+
 	tm.orderFilledEventWatcher = &eventemitter.Watcher{Concurrent: false, Handle: tm.SaveOrderFilledEvent}
 	eventemitter.On(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
 
@@ -106,6 +110,7 @@ func (tm *TransactionManager) Stop() {
 	eventemitter.Un(eventemitter.Transfer, tm.transferEventWatcher)
 	eventemitter.Un(eventemitter.EthTransfer, tm.ethTransferEventWatcher)
 	eventemitter.Un(eventemitter.UnsupportedContract, tm.unsupportedContractEventWatcher)
+	eventemitter.Un(eventemitter.Miner_SubmitRing_Method, tm.submitRingEventWatcher)
 	eventemitter.Un(eventemitter.OrderFilled, tm.orderFilledEventWatcher)
 	eventemitter.Un(eventemitter.ChainForkDetected, tm.forkDetectedEventWatcher)
 }
@@ -296,6 +301,32 @@ func (tm *TransactionManager) SaveUnSupportedContractEvent(input eventemitter.Ev
 		return err
 	}
 	list, err := txtyp.UnsupportedContractView(event)
+	if err != nil {
+		return err
+	}
+	return tm.saveTransaction(&entity, list)
+}
+
+func (tm *TransactionManager) SaveSubmitRingEvent(input eventemitter.EventData) error {
+	event := input.(*types.SubmitRingMethodEvent)
+
+	// 如果不是p2p订单 则直接返回
+	isp2p := false
+	for _, v := range event.OrderList {
+		if v.Owner.Hex() == event.From.Hex() {
+			isp2p = true
+			break
+		}
+	}
+	if !isp2p {
+		return nil
+	}
+
+	var entity txtyp.TransactionEntity
+	if err := entity.FromSubmitRingEvent(event); err != nil {
+		return err
+	}
+	list, err := txtyp.SubmitRingContractView(event)
 	if err != nil {
 		return err
 	}
