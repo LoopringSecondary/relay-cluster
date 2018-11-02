@@ -1045,7 +1045,7 @@ func (w *WalletServiceImpl) GetLatestFills(query FillQuery) ([]LatestFill, error
 
 	rst := make([]LatestFill, 0)
 	fillQuery, _, _ := fillQueryToMap(query)
-	res, err := w.orderViewer.GetLatestFills(fillQuery, 40)
+	res, err := w.orderViewer.GetLatestFills(fillQuery, 80)
 
 	if err != nil {
 		return rst, err
