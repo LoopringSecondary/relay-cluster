@@ -235,7 +235,6 @@ func (w *WalletServiceImpl) HandleFilledEventForCityPartner(input eventemitter.E
 			token.Symbol = "LRC"
 			token.Decimals = big.NewInt(100000000000000000)
 		}
-
 		amount.SetInt(event.LrcFee)
 	} else if event.SplitB.Sign() > 0 {
 		if token, err = marketutil.AddressToToken(common.HexToAddress(order.TokenB)); nil != err {
@@ -255,6 +254,8 @@ func (w *WalletServiceImpl) HandleFilledEventForCityPartner(input eventemitter.E
 		//receivedDetail.TokenAddress = order.TokenS
 		//receivedDetail.TokenSymbol = marketutil.AddressToAlias(order.TokenS)
 		amount.SetInt(event.SplitS)
+	} else {
+		return nil
 	}
 	receivedDetail.TokenAddress = token.Protocol.Hex()
 	receivedDetail.TokenSymbol = token.Symbol
