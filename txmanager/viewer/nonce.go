@@ -43,12 +43,12 @@ func (impl *TransactionViewerImpl) GetNonce(ownerStr string) (*big.Int, error) {
 
 // 校验用户nonce是否可用,用户提交的pending tx nonce值不允许小于已经成功了的tx nonce值
 func (impl *TransactionViewerImpl) ValidateNonce(ownerStr string, nonce *big.Int) error {
-	ownerStr = safeOwner(ownerStr)
-	owner := common.HexToAddress(ownerStr)
-	if nonce.Cmp(big.NewInt(0)) <= 0 {
+	if nonce.Cmp(big.NewInt(0)) < 0 {
 		return ErrNonceInvalid
 	}
 
+	ownerStr = safeOwner(ownerStr)
+	owner := common.HexToAddress(ownerStr)
 	successNonce, err := cache.GetTxMinedMaxNonceValue(owner)
 	if err != nil {
 		return ErrNonceNotExist
