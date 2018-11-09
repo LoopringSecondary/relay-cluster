@@ -404,5 +404,10 @@
   ]
 }, {
   "ListType": "blacklist",
-  "MarketPairs": null
+  "MarketPairs": [
+    "HYKT-WETH",
+    "HYKT-LRC",
+    "HYKT-USDT",
+    "HYKT-TUSD"
+  ]
 }]
