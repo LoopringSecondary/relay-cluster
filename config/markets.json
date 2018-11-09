@@ -436,6 +436,14 @@
     "RTE-LRC",
     "RTE-TUSD",
     "RTE-USDT",
-    "RTE-WETH"
+    "CPC-WETH",
+    "PNT-WETH",
+    "PNT-LRC",
+    "PNT-USDT",
+    "PNT-TUSD",
+    "IDHUB-WETH",
+    "IDHUB-LRC",
+    "IDHUB-USDT",
+    "IDHUB-TUSD"
   ]
 }]
