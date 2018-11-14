@@ -365,11 +365,10 @@ func rankByVol(tickers []TickerResp) []TickerResp {
 		}
 
 		//filter market in blacklist
-		if listType, exists := blacklistMarkets[v.Market]; exists {
-			v.Label = listType
+		if _, exists := blacklistMarkets[v.Market]; !exists {
+			mkts = append(mkts, v)
 		}
 
-		mkts = append(mkts, v)
 	}
 	return mkts
 }
@@ -384,10 +383,9 @@ func DefaultMode(tickers []TickerResp) []TickerResp {
 		}
 
 		//filter market in blacklist
-		if listType, exists := blacklistMarkets[resp.Market]; exists {
-			resp.Label = listType
+		if _, exists := blacklistMarkets[resp.Market]; !exists {
+			mkts = append(mkts, resp)
 		}
-		mkts = append(mkts, resp)
 	}
 	return mkts
 }

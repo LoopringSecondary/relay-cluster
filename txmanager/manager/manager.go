@@ -529,17 +529,17 @@ func (m unlockedMap) invalidView(owner common.Address) bool {
 	return false
 }
 
+// 链上成功/失败,ex tx nonce为2, eth.txCount为3
+// 用户pending 直接加1
 func setNonce(status types.TxStatus, owner common.Address, currentNonce *big.Int) error {
+	currentNonce = new(big.Int).Add(currentNonce, big.NewInt(1))
+
 	// mined
 	if status != types.TX_STATUS_PENDING {
-		if preNonce, err := cache.GetTxMinedMaxNonceValue(owner); err != nil {
-			return err
-		} else {
-			cache.SetTxMinedMaxNonceValue(owner, preNonce, currentNonce)
-		}
+		cache.SetTxMinedMaxNonceValue(owner, currentNonce)
 	}
 
-	// pending/success/failed
+	// pending
 	if preNonce, err := cache.GetMaxNonceValue(owner); err != nil {
 		return err
 	} else {

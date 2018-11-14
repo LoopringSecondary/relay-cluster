@@ -52,6 +52,8 @@ func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 			return big.NewInt(0), err
 		}
 		nonce = result.BigInt()
+	} else {
+		nonce = new(big.Int).Add(nonce, big.NewInt(1))
 	}
 
 	bs := nonce.Bytes()
@@ -62,7 +64,7 @@ func GetMaxNonceValue(owner common.Address) (*big.Int, error) {
 
 func SetMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
 	if currentNonce.Cmp(preNonce) < 1 {
-		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
+		return fmt.Errorf("current nonce:%s <= pre nonce:%s", currentNonce.String(), preNonce.String())
 	}
 	key := generateNonceKey(owner)
 	bs := currentNonce.Bytes()
@@ -78,20 +80,19 @@ func generateNonceKey(owner common.Address) string {
 // nonce, tx status is success
 //
 ///////////////////////////////////////////////////////////
+
+// 唯一返回err的情况,没能在链上拿到地址对应的nonce(地址为空/网络请求失败)
 func GetTxMinedMaxNonceValue(owner common.Address) (*big.Int, error) {
 	key := generateTxMinedMaxNonceKey(owner)
 	if bs, err := cache.Get(key); err == nil {
 		return new(big.Int).SetBytes(bs), nil
 	}
 
-	nonce, err := rds.GetMaxSuccessNonce(owner)
-	if err != nil {
-		var result types.Big
-		if err := accessor.GetTransactionCount(&result, owner, "latest"); err != nil {
-			return big.NewInt(0), err
-		}
-		nonce = result.BigInt()
+	var result types.Big
+	if err := accessor.GetTransactionCount(&result, owner, "latest"); err != nil {
+		return big.NewInt(0), err
 	}
+	nonce := result.BigInt()
 
 	bs := nonce.Bytes()
 	cache.Set(key, bs, NonceTtl)
@@ -99,10 +100,7 @@ func GetTxMinedMaxNonceValue(owner common.Address) (*big.Int, error) {
 	return nonce, nil
 }
 
-func SetTxMinedMaxNonceValue(owner common.Address, preNonce, currentNonce *big.Int) error {
-	if currentNonce.Cmp(preNonce) < 1 {
-		return fmt.Errorf("current nonce:%s < pre nonce:%s", currentNonce.String(), preNonce.String())
-	}
+func SetTxMinedMaxNonceValue(owner common.Address, currentNonce *big.Int) error {
 	key := generateTxMinedMaxNonceKey(owner)
 	bs := currentNonce.Bytes()
 	return cache.Set(key, bs, NonceTtl)
