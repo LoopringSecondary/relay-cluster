@@ -1236,7 +1236,9 @@ func (w *WalletServiceImpl) getAllOrdersByOwner(owner, delegateAddress string) (
 	allOrders := make([]interface{}, 0)
 
 	orderQuery := OrderQuery{Owner: owner, DelegateAddress: delegateAddress, PageIndex: 1, PageSize: 200, Status: "ORDER_OPENED"}
-	pageRst, err := w.orderViewer.GetOrders(convertFromQuery(&orderQuery))
+	query, statusList, pageIndex, pageSize := convertFromQuery(&orderQuery)
+	delete(query, "order_type")
+	pageRst, err := w.orderViewer.GetOrders(query, statusList, pageIndex, pageSize)
 	if err != nil {
 		return orders, err
 	}
