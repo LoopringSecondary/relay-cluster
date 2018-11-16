@@ -2189,11 +2189,6 @@ func (w *WalletServiceImpl) SubmitOrderForP2P(p2pOrder *types.P2POrderJsonReques
 		return res, errors.New(P2P_50003)
 	}
 
-	if manager.IsDustyOrder(maker) {
-		//return res, errors.New("It's dusty order")
-		return res, errors.New(P2P_50007)
-	}
-
 	remainedAmountS, _ := maker.RemainedAmount()
 	log.Info("p2p order SubmitOrderForP2P remainedAmountS:" + remainedAmountS.String() + ", takerAmountB:" + p2pOrder.AmountB.String() + ", makerHash:" + maker.RawOrder.Hash.Hex())
 	if pendingAmountB, err := manager.GetP2PPendingAmount(maker.RawOrder.Hash.Hex()); nil != err {
