@@ -444,6 +444,10 @@
     "IDHUB-WETH",
     "IDHUB-LRC",
     "IDHUB-USDT",
-    "IDHUB-TUSD"
+    "IDHUB-TUSD",
+    "R-WETH",
+    "R-LRC",
+    "R-USDT",
+    "R-TUSD"
   ]
 }]
