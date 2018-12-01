@@ -250,7 +250,6 @@ func Initialize(options *MarketOptions) {
 
 	SupportTokens, SupportMarkets, AllTokens, AllMarkets, AllTokenPairs, SymbolTokenMap = getTokenAndMarketFromDB(options.TokenFile)
 	DisplayMarkets = getDisplayMarketsFromDB(options.MarketFile)
-	MarketsDecimal = getMarketsDecimal(options.DecimalFile)
 	// StartRefreshCron(rds)
 
 	//tokenRegisterWatcher := &eventemitter.Watcher{false, TokenRegister}
@@ -367,6 +366,15 @@ func AddressToAlias(t string) string {
 	for k, v := range AllTokens {
 		if strings.ToUpper(t) == strings.ToUpper(v.Protocol.Hex()) {
 			return k
+		}
+	}
+	return ""
+}
+
+func AddressToSource(t string) string {
+	for _, v := range AllTokens {
+		if strings.ToUpper(t) == strings.ToUpper(v.Protocol.Hex()) {
+			return v.Source
 		}
 	}
 	return ""

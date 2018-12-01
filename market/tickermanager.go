@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Loopring/relay-cluster/dao"
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/Loopring/relay-lib/marketcap"
 	util "github.com/Loopring/relay-lib/marketutil"
 	"github.com/Loopring/relay-lib/sns"
+	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/robfig/cron"
-	"io/ioutil"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,6 +20,8 @@ import (
 )
 
 const (
+	USD                         = "USD"
+	CNY                         = "CNY"
 	ETH                         = "ETH"
 	LRC                         = "LRC"
 	USDT                        = "USDT"
@@ -35,8 +36,10 @@ const (
 	VOL_RANK100_MODE = "rank"
 
 	SPLIT_MARK                = "-"
-	marketTickerCachePreKey   = "COINMARKETCAP_TICKER_"
+	marketTickerCachePreKey   = "COINMARKETCAP_TICKER_NEW_"
 	marketTickerLocalCacheKey = "COINMARKETCAP_TICKER_LOCAL"
+	CUSTOM_TOKENS_MARKETCAP   = "custom_tokens_marketcap_new_"
+	allCustomTokens           = "ALLCT"
 
 	tickerManagerCronJobZkLock = "tickerManagerZkLock"
 	tickerManagerLockFailedMsg = "ticker manager try lock failed"
@@ -49,12 +52,7 @@ var tusdMarkets = make(map[string]string)
 var displayMarkets = make(map[string]string)
 var blacklistMarkets = make(map[string]string)
 
-var tickerUrls = map[string]string{
-	ETH:  "https://api.coinmarketcap.com/v2/ticker/?convert=ETH&start=%d&limit=%d",
-	LRC:  "https://api.coinmarketcap.com/v2/ticker/?convert=LRC&start=%d&limit=%d",
-	USDT: "https://api.coinmarketcap.com/v2/ticker/?convert=USDT&start=%d&limit=%d",
-	TUSD: "https://api.coinmarketcap.com/v2/ticker/?convert=TUSD&start=%d&limit=%d",
-}
+var marketConvert = []string{USD, CNY, ETH, LRC, USDT, TUSD}
 
 type TickerResp struct {
 	Market    string  `json:"market"`
@@ -86,26 +84,24 @@ type TickerManager interface {
 }
 
 type GetTickerImpl struct {
-	trendManager      TrendManager
-	cron              *cron.Cron
-	localCache        *gocache.Cache
-	marketCapProvider marketcap.MarketCapProvider
+	trendManager TrendManager
+	cron         *cron.Cron
+	localCache   *gocache.Cache
+	rds          *dao.RdsService
 }
 
-func NewTickManager(trendManager TrendManager, marketCapProvider marketcap.MarketCapProvider) *GetTickerImpl {
-	rst := &GetTickerImpl{trendManager: trendManager, cron: cron.New(), localCache: gocache.New(6*time.Second, 6*time.Minute), marketCapProvider: marketCapProvider}
+func NewTickManager(rds *dao.RdsService, trendManager TrendManager) *GetTickerImpl {
+	rst := &GetTickerImpl{trendManager: trendManager, cron: cron.New(), localCache: gocache.New(10*time.Second, 10*time.Minute), rds: rds}
 	return rst
 }
 
 func (c *GetTickerImpl) Start() {
 	go func() {
 		refreshMarkets()
+		c.updateTokenTickerCache()
 		c.cron.AddFunc("1 0/10 * * * *", refreshMarkets)
 		if zklock.TryLock(tickerManagerCronJobZkLock) == nil {
-			c.cron.AddFunc("@every 6m", c.updateWETHMarketCache)
-			c.cron.AddFunc("@every 6m", c.updateLRCMarketCache)
-			c.cron.AddFunc("@every 6m", c.updateUSDTMarketCache)
-			c.cron.AddFunc("@every 6m", c.updateTUSDMarketCache)
+			c.cron.AddFunc("@every 10m", c.updateTokenTickerCache)
 			log.Info("start ticker manager cron jobs......... ")
 			c.cron.Start()
 		} else {
@@ -144,90 +140,54 @@ func refreshMarkets() {
 	}
 }
 
-func (c *GetTickerImpl) updateWETHMarketCache() {
-	c.marketCapProvider.AddSyncFunc(
-		func() error {
-			return syncMarketTickerFromAPI(ETH)
-		})
-}
-
-func (c *GetTickerImpl) updateLRCMarketCache() {
-	c.marketCapProvider.AddSyncFunc(
-		func() error {
-			return syncMarketTickerFromAPI(LRC)
-		})
-}
-
-func (c *GetTickerImpl) updateUSDTMarketCache() {
-	c.marketCapProvider.AddSyncFunc(
-		func() error {
-			return syncMarketTickerFromAPI(USDT)
-		})
-}
-
-func (c *GetTickerImpl) updateTUSDMarketCache() {
-	c.marketCapProvider.AddSyncFunc(
-		func() error {
-			return syncMarketTickerFromAPI(TUSD)
-		})
-}
-
-func syncMarketTickerFromAPI(currency string) error {
-	numCryptocurrencies := 105
-	start := 0
-	limit := 100
-	for numCryptocurrencies > 0 {
-		url := fmt.Sprintf(tickerUrls[currency], start, limit)
-		fmt.Println(url)
-		resp, err := http.Get(url)
+func (c *GetTickerImpl) updateTokenTickerCache() {
+	for _, v := range marketConvert {
+		err := c.syncTokenTickerFromDB(v)
 		if err != nil {
-			log.Errorf("sync market ticker from coinmarketcap error:%s", err.Error())
-			return err
+			log.Errorf("update token ticker cache of "+v+"err:%s", err.Error())
 		}
-		defer func() {
-			if nil != resp && nil != resp.Body {
-				resp.Body.Close()
-			}
-		}()
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if nil != err {
-			log.Errorf("err:%s", err.Error())
-			return err
-		} else {
-			result := &marketcap.CoinMarketCapResult{}
-			if err1 := json.Unmarshal(body, result); nil != err1 {
-				log.Errorf("err1:%s", err1.Error())
-				return err1
+	}
+}
+
+func (c *GetTickerImpl) syncTokenTickerFromDB(market string) error {
+	customTokens, _ := util.GetCustomTokensFromRedis(allCustomTokens)
+	if tickerlist, err := c.rds.GetTokenTickerByMarket(market); err == nil || len(tickerlist) > 0 {
+		tickerData := [][]byte{}
+		customTokensQuote := [][]byte{}
+		for _, v := range tickerlist {
+			var cmcTicker types.CMCTicker
+			v.ConvertUp(&cmcTicker)
+			fmt.Println(cmcTicker.Price)
+			if data, err2 := json.Marshal(cmcTicker); nil != err2 {
+				log.Errorf("err:%s", err2.Error())
+				return err2
 			} else {
-				if "" == result.Metadata.Error {
-					tickerData := [][]byte{}
-					for _, cap1 := range result.Data {
-						if data, err2 := json.Marshal(cap1); nil != err2 {
-							log.Errorf("err:%s", err2.Error())
-							return err2
-						} else {
-							tickerData = append(tickerData, []byte(cap1.WebsiteSlug), data)
-						}
-					}
-					// hmset tickerData in redis
-					if len(tickerData) > 0 {
-						err := cache.HMSet(marketTickerCachePreKey+currency, int64(43200), tickerData...)
-						if nil != err {
-							log.Errorf("hmset market ticker err:%s", err.Error())
-							return err
-						}
-					}
-
-					start = start + len(result.Data)
-					numCryptocurrencies = result.Metadata.NumCryptocurrencies - start
-				} else {
-					log.Errorf("err:%s", result.Metadata.Error)
+				tickerData = append(tickerData, []byte(cmcTicker.WebsiteSlug), data)
+				if _, exists := customTokens[cmcTicker.Symbol]; exists {
+					customTokensQuote = append(customTokensQuote, []byte(cmcTicker.Symbol), data)
 				}
 			}
 		}
-	}
 
+		// hmset tickerData in redis
+		if len(tickerData) > 0 {
+			err := cache.HMSet(marketTickerCachePreKey+market, int64(43200), tickerData...)
+			if nil != err {
+				log.Errorf("hmset market ticker err:%s", err.Error())
+				return err
+			}
+		}
+
+		//batch set customer's tokens quoteData
+		if len(customTokensQuote) > 0 {
+			err := cache.HMSet(CUSTOM_TOKENS_MARKETCAP+market, int64(43200), customTokensQuote...)
+			if nil != err {
+				log.Errorf("get custom tokens priceQuto err:%s", err.Error())
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -450,25 +410,22 @@ func (c *GetTickerImpl) getCMCMarketTicker() (tickers []TickerResp, err error) {
 	return tickers, nil
 }
 
-func getTickersFromRedis(marketPairs map[string]string, currency string) (tickers []TickerResp, err error) {
+func getTickersFromRedis(marketPairs map[string]string, market string) (tickers []TickerResp, err error) {
 	tickers = make([]TickerResp, 0)
-	tickerMap := make(map[string]*marketcap.MarketCap)
-	if ticketData, err := cache.HGetAll(marketTickerCachePreKey + currency); nil != err {
+	tickerMap := make(map[string]*types.CMCTicker)
+	if ticketData, err := cache.HGetAll(marketTickerCachePreKey + market); nil != err {
 		log.Debug(">>>>>>>> get ticker data from redis error " + err.Error())
 		return tickers, err
 	} else {
 		if len(ticketData) > 0 {
 			idx := 0
 			for idx < len(ticketData) {
-				cap := &marketcap.CoinMarketCap{}
-				if err := json.Unmarshal(ticketData[idx+1], cap); nil != err {
+				ticker := &types.CMCTicker{}
+				if err := json.Unmarshal(ticketData[idx+1], ticker); nil != err {
 					log.Errorf("get marketcap of ticker data err:%s", err.Error())
 					return nil, err
 				} else {
-					if quote, exist := cap.Quotes[currency]; exist {
-						tickerMap[string(ticketData[idx])] = quote
-					}
-
+					tickerMap[string(ticketData[idx])] = ticker
 				}
 				idx = idx + 2
 			}
@@ -479,9 +436,9 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 		ticker := TickerResp{}
 		ticker.Market = v
 		if priceQuote, exists := tickerMap[k]; exists {
-			price, _ := priceQuote.Price.Float64()
-			vol, _ := priceQuote.Volume24H.Float64()
-			change24H, _ := priceQuote.PercentChange24H.Float64()
+			price := priceQuote.Price
+			vol := priceQuote.Volume24H
+			change24H := priceQuote.PercentChange24H
 			ticker.Last, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", price), 64)
 			ticker.Vol, _ = strconv.ParseFloat(fmt.Sprintf("%0.8f", vol), 64)
 			ticker.Change = fmt.Sprintf("%.2f%%", change24H)
@@ -496,6 +453,5 @@ func getTickersFromRedis(marketPairs map[string]string, currency string) (ticker
 
 		tickers = append(tickers, ticker)
 	}
-
 	return tickers, nil
 }

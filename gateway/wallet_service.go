@@ -540,20 +540,17 @@ func (w *WalletServiceImpl) GetPriceQuote(query PriceQuoteQuery) (result PriceQu
 	}
 
 	//get all Customer's tokens priceQuote
-	if customTokensQuote, err := cache.HGetAll(marketcap.CUSTOM_TOKENS_MARKETCAP + query.Currency); nil != err {
+	if customTokensQuote, err := cache.HGetAll(market.CUSTOM_TOKENS_MARKETCAP + query.Currency); nil != err {
 		log.Debug(">>>>>>>> get custom tokens marketcap error " + err.Error())
 	} else {
 		if len(customTokensQuote) > 0 {
 			idx := 0
 			for idx < len(customTokensQuote) {
-				cap := &marketcap.CoinMarketCap{}
+				cap := &types.CMCTicker{}
 				if err := json.Unmarshal(customTokensQuote[idx+1], cap); nil != err {
 					log.Errorf("get marketcap of custom tokens err:%s", err.Error())
 				} else {
-					if quote, exists := cap.Quotes[query.Currency]; exists {
-						priceQuote, _ := quote.Price.Float64()
-						rst.Tokens = append(rst.Tokens, TokenPrice{string(customTokensQuote[idx]), priceQuote})
-					}
+					rst.Tokens = append(rst.Tokens, TokenPrice{string(customTokensQuote[idx]), cap.Price})
 				}
 				idx = idx + 2
 			}

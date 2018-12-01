@@ -91,6 +91,7 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 	n.registerCache()
 
 	n.registerMarketUtil()
+	n.registerTickerManager()
 	n.registerMarketCap()
 	n.registerAccessor()
 	n.registerUserManager()
@@ -107,7 +108,6 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 	n.registerTrendManager()
 	n.registerTickerCollector()
-	n.registerTickerManager()
 	n.registerGlobalMarket()
 	n.registerWalletService()
 	n.registerJsonRpcService()
@@ -125,13 +125,13 @@ func NewNode(logger *zap.Logger, globalConfig *GlobalConfig) *Node {
 
 func (n *Node) Start() {
 	n.orderManager.Start()
+	n.tickerManager.Start()
 	n.marketCapProvider.Start()
 	n.accountManager.Start()
 	n.txManager.Start()
 	//gateway.NewJsonrpcService("8080").Start()
 	fmt.Println("step in relay node start")
 	n.tickerCollector.Start()
-	n.tickerManager.Start()
 	n.globalMarket.Start()
 	go n.jsonRpcService.Start()
 	//n.websocketService.Start()
@@ -207,7 +207,7 @@ func (n *Node) registerTickerCollector() {
 }
 
 func (n *Node) registerTickerManager() {
-	n.tickerManager = *market.NewTickManager(n.trendManager, n.marketCapProvider)
+	n.tickerManager = *market.NewTickManager(n.rdsService, n.trendManager)
 }
 
 func (n *Node) registerGlobalMarket() {

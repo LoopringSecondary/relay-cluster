@@ -75,7 +75,6 @@ type MarketCapProvider interface {
 	IsOrderValueDust(state *types.OrderState) bool
 	IsValueDusted(value *big.Rat) bool
 	IsSupport(token common.Address) bool
-	AddSyncFunc(f func() error)
 }
 
 type CapProvider_LocalCap struct {
