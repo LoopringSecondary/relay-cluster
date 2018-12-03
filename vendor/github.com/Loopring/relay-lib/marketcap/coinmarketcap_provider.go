@@ -32,6 +32,8 @@ import (
 
 const (
 	marketTickerCachePreKey = "COINMARKETCAP_TICKER_NEW_"
+	currencyUSD             = "USD"
+	currencyCNY             = "CNY"
 )
 
 type icoTokens []common.Address
@@ -47,7 +49,7 @@ func (tokens icoTokens) contains(addr common.Address) bool {
 
 type CapProvider_CoinMarketCap struct {
 	baseUrl          string
-	tokenMarketCaps  map[common.Address]*types.CMCTicker
+	tokenMarketCaps  map[common.Address]map[string]*types.CMCTicker //address -> {currency -> ticker}
 	icoTokens        icoTokens
 	notSupportTokens map[common.Address]bool
 	slugToAddress    map[string]common.Address
@@ -69,16 +71,20 @@ func (p *CapProvider_CoinMarketCap) LegalCurrencyValueOfEth(amount *big.Rat) (*b
 func (p *CapProvider_CoinMarketCap) LegalCurrencyValueByCurrency(tokenAddress common.Address, amount *big.Rat, currencyStr string) (*big.Rat, error) {
 	if _, exists := p.notSupportTokens[tokenAddress]; exists {
 		return big.NewRat(int64(0), int64(1)), nil
-	} else if c, exists := p.tokenMarketCaps[tokenAddress]; !exists {
+	}
+
+	currencyMap, currencyExists := p.tokenMarketCaps[tokenAddress]
+	ticker, tickerExists := currencyMap[currencyStr]
+	if !currencyExists || !tickerExists {
 		return nil, errors.New("not found tokenCap:" + tokenAddress.Hex())
 	} else {
-		v := new(big.Rat).SetInt(c.Decimals)
+		v := new(big.Rat).SetInt(ticker.Decimals)
 		v.Quo(amount, v)
 		if price, err := p.GetMarketCapByCurrency(tokenAddress, currencyStr); nil != err {
 			log.Errorf("err:%s", err.Error())
 			return nil, err
 		} else {
-			log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), c.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
+			log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), ticker.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
 			v.Mul(price, v)
 			return v, nil
 		}
@@ -96,9 +102,13 @@ func (p *CapProvider_CoinMarketCap) GetEthCap() (*big.Rat, error) {
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
 	if _, exists := p.notSupportTokens[tokenAddress]; exists {
 		return big.NewRat(int64(0), int64(1)), nil
-	} else if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
+	}
+
+	currencyMap, currencyExists := p.tokenMarketCaps[tokenAddress]
+	ticker, tickerExists := currencyMap[currencyStr]
+	if currencyExists && tickerExists {
 		var v *big.Rat
-		v = new(big.Rat).SetFloat64(c.Price)
+		v = new(big.Rat).SetFloat64(ticker.Price)
 		if v == nil {
 			return nil, errors.New("tokenCap is nil")
 		} else {
@@ -135,8 +145,11 @@ func (p *CapProvider_CoinMarketCap) Start() {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap from redis...")
-				if err := p.syncMarketCapFromRedis(); nil != err {
-					log.Errorf("can't sync marketcap, time:%d", time.Now().Unix())
+				if err := p.syncMarketCapFromRedis(currencyCNY); nil != err {
+					log.Errorf("can't sync marketcap, time:%d, err:%s, currency:%s", time.Now().Unix(), err.Error(), currencyCNY)
+				}
+				if err := p.syncMarketCapFromRedis(currencyUSD); nil != err {
+					log.Errorf("can't sync marketcap, time:%d, err:%s, currency:%s", time.Now().Unix(), err.Error(), currencyUSD)
 				}
 			case stopped := <-stopChan:
 				if stopped {
@@ -148,26 +161,29 @@ func (p *CapProvider_CoinMarketCap) Start() {
 
 }
 
-func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
+func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis(currency string) error {
 
 	notSupportTokens := make(map[common.Address]bool)
-	tickerMap, _ := getTickersFromRedis(p.currency)
+	tickerMap, _ := getTickersFromRedis(currency)
 	for tokenAddr, c1 := range p.tokenMarketCaps {
-		if cmcTicker, exists := tickerMap[c1.WebsiteSlug]; exists {
-			p.tokenMarketCaps[tokenAddr].Price = cmcTicker.Price
-			p.tokenMarketCaps[tokenAddr].CmcRank = cmcTicker.CmcRank
-			p.tokenMarketCaps[tokenAddr].TokenName = cmcTicker.TokenName
-			p.tokenMarketCaps[tokenAddr].LastUpdated = cmcTicker.LastUpdated
-			p.tokenMarketCaps[tokenAddr].PercentChange7D = cmcTicker.PercentChange7D
-			p.tokenMarketCaps[tokenAddr].PercentChange24H = cmcTicker.PercentChange24H
-			p.tokenMarketCaps[tokenAddr].PercentChange1H = cmcTicker.PercentChange1H
-			p.tokenMarketCaps[tokenAddr].MarketCap = cmcTicker.MarketCap
-			p.tokenMarketCaps[tokenAddr].Market = cmcTicker.Market
-			p.tokenMarketCaps[tokenAddr].MaxSupply = cmcTicker.MaxSupply
-			p.tokenMarketCaps[tokenAddr].CirculatingSupply = cmcTicker.CirculatingSupply
-			p.tokenMarketCaps[tokenAddr].TotalSupply = cmcTicker.TotalSupply
-			p.tokenMarketCaps[tokenAddr].Volume24H = cmcTicker.Volume24H
-
+		ticker, tickerExists := c1[currency]
+		if !tickerExists {
+			continue
+		}
+		if cmcTicker, exists := tickerMap[ticker.WebsiteSlug]; exists {
+			p.tokenMarketCaps[tokenAddr][currency].Price = cmcTicker.Price
+			p.tokenMarketCaps[tokenAddr][currency].CmcRank = cmcTicker.CmcRank
+			p.tokenMarketCaps[tokenAddr][currency].TokenName = cmcTicker.TokenName
+			p.tokenMarketCaps[tokenAddr][currency].LastUpdated = cmcTicker.LastUpdated
+			p.tokenMarketCaps[tokenAddr][currency].PercentChange7D = cmcTicker.PercentChange7D
+			p.tokenMarketCaps[tokenAddr][currency].PercentChange24H = cmcTicker.PercentChange24H
+			p.tokenMarketCaps[tokenAddr][currency].PercentChange1H = cmcTicker.PercentChange1H
+			p.tokenMarketCaps[tokenAddr][currency].MarketCap = cmcTicker.MarketCap
+			p.tokenMarketCaps[tokenAddr][currency].Market = cmcTicker.Market
+			p.tokenMarketCaps[tokenAddr][currency].MaxSupply = cmcTicker.MaxSupply
+			p.tokenMarketCaps[tokenAddr][currency].CirculatingSupply = cmcTicker.CirculatingSupply
+			p.tokenMarketCaps[tokenAddr][currency].TotalSupply = cmcTicker.TotalSupply
+			p.tokenMarketCaps[tokenAddr][currency].Volume24H = cmcTicker.Volume24H
 		} else {
 			notSupportTokens[tokenAddr] = true
 		}
@@ -205,7 +221,7 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	provider := &CapProvider_CoinMarketCap{}
 	provider.baseUrl = options.BaseUrl
 	provider.currency = options.Currency
-	provider.tokenMarketCaps = make(map[common.Address]*types.CMCTicker)
+	provider.tokenMarketCaps = make(map[common.Address]map[string]*types.CMCTicker)
 	provider.notSupportTokens = make(map[common.Address]bool)
 	provider.icoTokens = provider.icoPriceTokens()
 	provider.slugToAddress = make(map[string]common.Address)
@@ -223,18 +239,28 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	}
 
 	for _, v := range util.AllTokens {
-		c := &types.CMCTicker{}
-		c.Address = v.Protocol
-		c.WebsiteSlug = v.Source
-		c.Symbol = v.Symbol
-		c.Decimals = v.Decimals
-		provider.tokenMarketCaps[c.Address] = c
-		provider.slugToAddress[strings.ToUpper(c.WebsiteSlug)] = c.Address
+		usdCmcTicker := &types.CMCTicker{}
+		usdCmcTicker.Address = v.Protocol
+		usdCmcTicker.WebsiteSlug = v.Source
+		usdCmcTicker.Symbol = v.Symbol
+		usdCmcTicker.Decimals = v.Decimals
+		cnyCmcTicker := &types.CMCTicker{}
+		cnyCmcTicker.Address = v.Protocol
+		cnyCmcTicker.WebsiteSlug = v.Source
+		cnyCmcTicker.Symbol = v.Symbol
+		cnyCmcTicker.Decimals = v.Decimals
+		provider.tokenMarketCaps[usdCmcTicker.Address] = make(map[string]*types.CMCTicker)
+		provider.tokenMarketCaps[usdCmcTicker.Address][currencyUSD] = usdCmcTicker
+		provider.tokenMarketCaps[usdCmcTicker.Address][currencyCNY] = cnyCmcTicker
+		provider.slugToAddress[strings.ToUpper(usdCmcTicker.WebsiteSlug)] = usdCmcTicker.Address
 
 	}
 
-	if err := provider.syncMarketCapFromRedis(); nil != err {
-		log.Fatalf("can't sync marketcap with error:%s", err.Error())
+	if err := provider.syncMarketCapFromRedis(currencyUSD); nil != err {
+		log.Fatalf("can't sync marketcap with error:%s, currency:%s", err.Error(), currencyUSD)
+	}
+	if err := provider.syncMarketCapFromRedis(currencyCNY); nil != err {
+		log.Fatalf("can't sync marketcap with error:%s, currency:%s", err.Error(), currencyCNY)
 	}
 
 	return provider
